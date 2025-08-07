@@ -15,6 +15,7 @@ import {
   MoreHorizontal 
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DashboardLayout } from "@/components/dashboard-layout";
 
 const months = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -129,26 +130,27 @@ export default function ApplyLeavePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Apply for Leave</h1>
-            <div className="flex items-center text-sm text-gray-500 mt-1">
-              <span>Home</span>
-              <ChevronRight className="w-4 h-4 mx-1" />
-              <span>Leave</span>
-              <ChevronRight className="w-4 h-4 mx-1" />
-              <span>Apply</span>
+    <DashboardLayout>
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <div className="bg-white border-b px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-semibold text-gray-900">Apply for Leave</h1>
+              <div className="flex items-center text-sm text-gray-500 mt-1">
+                <span>Home</span>
+                <ChevronRight className="w-4 h-4 mx-1" />
+                <span>Leave</span>
+                <ChevronRight className="w-4 h-4 mx-1" />
+                <span>Apply</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="flex">
-        {/* Main Content */}
-        <div className="flex-1 p-6">
+        <div className="flex">
+          {/* Main Content */}
+          <div className="flex-1 p-6">
           {/* Available Leave Banner */}
           <div className="bg-gradient-to-r from-teal-400 to-blue-600 text-white p-6 rounded-lg mb-6">
             <div className="flex items-center justify-between">
@@ -235,10 +237,10 @@ export default function ApplyLeavePage() {
               </div>
             </CardContent>
           </Card>
-        </div>
+          </div>
 
-        {/* Right Sidebar - Apply Leave Form */}
-        <div className="w-80 p-6 bg-white border-l">
+          {/* Right Sidebar - Apply Leave Form */}
+          <div className="w-80 p-6 bg-white border-l">
           <Card>
             <CardHeader className="bg-slate-600 text-white rounded-t-lg">
               <CardTitle className="text-center">Apply Leave</CardTitle>
@@ -368,8 +370,9 @@ export default function ApplyLeavePage() {
               </div>
             </CardContent>
           </Card>
+          </div>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
