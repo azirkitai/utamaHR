@@ -12,6 +12,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Building2,
   CalendarDays,
@@ -165,6 +173,19 @@ export default function SystemSettingPage() {
     overtimeCalculation: "basic-salary",
     overtimeCutoffDate: "31",
   });
+  
+  const [showCreatePolicyDialog, setShowCreatePolicyDialog] = useState(false);
+  const [policyType, setPolicyType] = useState<"financial" | "overtime">("financial");
+  const [newPolicyForm, setNewPolicyForm] = useState({
+    claimName: "",
+    mileageBased: false,
+    annualLimit: "",
+    limitUnlimited: true,
+    limitPerApplication: "",
+    limitPerAppUnlimited: true,
+    excludeEmployee: "",
+    claimRemark: "",
+  });
   const [companyData, setCompanyData] = useState({
     companyName: "utama hr",
     companyShortName: "KLINIK UTAMA 24 JAM",
@@ -237,6 +258,30 @@ export default function SystemSettingPage() {
 
   const handleSaveOvertimeSettings = () => {
     console.log("Save overtime settings:", overtimeSettings);
+  };
+
+  const handleOpenCreatePolicyDialog = (type: "financial" | "overtime") => {
+    setPolicyType(type);
+    setNewPolicyForm({
+      claimName: "",
+      mileageBased: false,
+      annualLimit: "",
+      limitUnlimited: true,
+      limitPerApplication: "",
+      limitPerAppUnlimited: true,
+      excludeEmployee: "",
+      claimRemark: "",
+    });
+    setShowCreatePolicyDialog(true);
+  };
+
+  const handleCloseCreatePolicyDialog = () => {
+    setShowCreatePolicyDialog(false);
+  };
+
+  const handleSaveNewPolicy = () => {
+    console.log("Save new policy:", { type: policyType, data: newPolicyForm });
+    setShowCreatePolicyDialog(false);
   };
 
   const renderCompanyForm = () => (
@@ -728,6 +773,7 @@ export default function SystemSettingPage() {
               variant="secondary"
               size="sm"
               className="bg-white text-cyan-600 hover:bg-gray-100"
+              onClick={() => handleOpenCreatePolicyDialog("financial")}
               data-testid="button-create-financial-policy"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -872,6 +918,7 @@ export default function SystemSettingPage() {
               variant="secondary"
               size="sm"
               className="bg-white text-cyan-600 hover:bg-gray-100"
+              onClick={() => handleOpenCreatePolicyDialog("overtime")}
               data-testid="button-create-overtime-policy"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -1335,6 +1382,133 @@ export default function SystemSettingPage() {
           </div>
         </div>
       </div>
+
+      {/* Create Policy Dialog */}
+      <Dialog open={showCreatePolicyDialog} onOpenChange={setShowCreatePolicyDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold bg-gradient-to-r from-cyan-600 to-teal-600 bg-clip-text text-transparent">
+              {policyType === "financial" ? "Financial Policy" : "Overtime Policy"}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Claim Name */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Claim Name</Label>
+              <Input
+                value={newPolicyForm.claimName}
+                onChange={(e) => setNewPolicyForm(prev => ({...prev, claimName: e.target.value}))}
+                placeholder="Claim Name"
+                data-testid="input-claim-name"
+              />
+            </div>
+
+            {/* Mileage Based Checkbox */}
+            {policyType === "financial" && (
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="mileage-based"
+                  checked={newPolicyForm.mileageBased}
+                  onCheckedChange={(checked) => setNewPolicyForm(prev => ({...prev, mileageBased: checked as boolean}))}
+                  data-testid="checkbox-mileage-based"
+                />
+                <Label htmlFor="mileage-based" className="text-sm">Mileage Based</Label>
+              </div>
+            )}
+
+            {/* Annual Limit */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Annual Limit</Label>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm">RM</span>
+                <Input
+                  type="number"
+                  value={newPolicyForm.annualLimit}
+                  onChange={(e) => setNewPolicyForm(prev => ({...prev, annualLimit: e.target.value}))}
+                  placeholder="0"
+                  className="flex-1"
+                  data-testid="input-annual-limit"
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="unlimited-annual"
+                  checked={newPolicyForm.limitUnlimited}
+                  onCheckedChange={(checked) => setNewPolicyForm(prev => ({...prev, limitUnlimited: checked as boolean}))}
+                  data-testid="checkbox-unlimited-annual"
+                />
+                <Label htmlFor="unlimited-annual" className="text-sm">Unlimited</Label>
+              </div>
+            </div>
+
+            {/* Limit per Application */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Limit per Application</Label>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm">RM</span>
+                <Input
+                  type="number"
+                  value={newPolicyForm.limitPerApplication}
+                  onChange={(e) => setNewPolicyForm(prev => ({...prev, limitPerApplication: e.target.value}))}
+                  placeholder="0"
+                  className="flex-1"
+                  data-testid="input-limit-per-application"
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="unlimited-per-app"
+                  checked={newPolicyForm.limitPerAppUnlimited}
+                  onCheckedChange={(checked) => setNewPolicyForm(prev => ({...prev, limitPerAppUnlimited: checked as boolean}))}
+                  data-testid="checkbox-unlimited-per-app"
+                />
+                <Label htmlFor="unlimited-per-app" className="text-sm">Unlimited</Label>
+              </div>
+            </div>
+
+            {/* Exclude Employee */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Exclude Employee</Label>
+              <Input
+                value={newPolicyForm.excludeEmployee}
+                onChange={(e) => setNewPolicyForm(prev => ({...prev, excludeEmployee: e.target.value}))}
+                placeholder="Exclude Employee"
+                data-testid="input-exclude-employee"
+              />
+            </div>
+
+            {/* Claim Remark */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Claim Remark</Label>
+              <Textarea
+                value={newPolicyForm.claimRemark}
+                onChange={(e) => setNewPolicyForm(prev => ({...prev, claimRemark: e.target.value}))}
+                placeholder="Claim Remark"
+                rows={3}
+                data-testid="textarea-claim-remark"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="flex gap-2 pt-4">
+            <Button
+              variant="outline"
+              onClick={handleCloseCreatePolicyDialog}
+              data-testid="button-cancel-policy"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveNewPolicy}
+              className="bg-blue-900 hover:bg-blue-800 text-white"
+              data-testid="button-save-policy"
+            >
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }
