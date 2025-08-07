@@ -17,6 +17,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -185,6 +186,12 @@ export default function SystemSettingPage() {
     limitPerAppUnlimited: true,
     excludeEmployee: "",
     claimRemark: "",
+    // Overtime specific fields
+    overtimeName: "",
+    deductionType: "",
+    overtimeRate: "",
+    includedEmployee: "",
+    remark: "",
   });
   const [companyData, setCompanyData] = useState({
     companyName: "utama hr",
@@ -271,6 +278,12 @@ export default function SystemSettingPage() {
       limitPerAppUnlimited: true,
       excludeEmployee: "",
       claimRemark: "",
+      // Overtime specific fields
+      overtimeName: "",
+      deductionType: "",
+      overtimeRate: "",
+      includedEmployee: "",
+      remark: "",
     });
     setShowCreatePolicyDialog(true);
   };
@@ -1390,105 +1403,183 @@ export default function SystemSettingPage() {
             <DialogTitle className="text-lg font-semibold bg-gradient-to-r from-cyan-600 to-teal-600 bg-clip-text text-transparent">
               {policyType === "financial" ? "Financial Policy" : "Overtime Policy"}
             </DialogTitle>
+            <DialogDescription>
+              {policyType === "financial" 
+                ? "Create a new financial claim policy with limits and settings"
+                : "Create a new overtime policy with rates and deduction settings"
+              }
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* Claim Name */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Claim Name</Label>
-              <Input
-                value={newPolicyForm.claimName}
-                onChange={(e) => setNewPolicyForm(prev => ({...prev, claimName: e.target.value}))}
-                placeholder="Claim Name"
-                data-testid="input-claim-name"
-              />
-            </div>
-
-            {/* Mileage Based Checkbox */}
+            {/* Financial Policy Fields */}
             {policyType === "financial" && (
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="mileage-based"
-                  checked={newPolicyForm.mileageBased}
-                  onCheckedChange={(checked) => setNewPolicyForm(prev => ({...prev, mileageBased: checked as boolean}))}
-                  data-testid="checkbox-mileage-based"
-                />
-                <Label htmlFor="mileage-based" className="text-sm">Mileage Based</Label>
-              </div>
+              <>
+                {/* Claim Name */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Claim Name</Label>
+                  <Input
+                    value={newPolicyForm.claimName}
+                    onChange={(e) => setNewPolicyForm(prev => ({...prev, claimName: e.target.value}))}
+                    placeholder="Claim Name"
+                    data-testid="input-claim-name"
+                  />
+                </div>
+
+                {/* Mileage Based Checkbox */}
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="mileage-based"
+                    checked={newPolicyForm.mileageBased}
+                    onCheckedChange={(checked) => setNewPolicyForm(prev => ({...prev, mileageBased: checked as boolean}))}
+                    data-testid="checkbox-mileage-based"
+                  />
+                  <Label htmlFor="mileage-based" className="text-sm">Mileage Based</Label>
+                </div>
+
+                {/* Annual Limit */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Annual Limit</Label>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm">RM</span>
+                    <Input
+                      type="number"
+                      value={newPolicyForm.annualLimit}
+                      onChange={(e) => setNewPolicyForm(prev => ({...prev, annualLimit: e.target.value}))}
+                      placeholder="0"
+                      className="flex-1"
+                      data-testid="input-annual-limit"
+                    />
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="unlimited-annual"
+                      checked={newPolicyForm.limitUnlimited}
+                      onCheckedChange={(checked) => setNewPolicyForm(prev => ({...prev, limitUnlimited: checked as boolean}))}
+                      data-testid="checkbox-unlimited-annual"
+                    />
+                    <Label htmlFor="unlimited-annual" className="text-sm">Unlimited</Label>
+                  </div>
+                </div>
+
+                {/* Limit per Application */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Limit per Application</Label>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm">RM</span>
+                    <Input
+                      type="number"
+                      value={newPolicyForm.limitPerApplication}
+                      onChange={(e) => setNewPolicyForm(prev => ({...prev, limitPerApplication: e.target.value}))}
+                      placeholder="0"
+                      className="flex-1"
+                      data-testid="input-limit-per-application"
+                    />
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="unlimited-per-app"
+                      checked={newPolicyForm.limitPerAppUnlimited}
+                      onCheckedChange={(checked) => setNewPolicyForm(prev => ({...prev, limitPerAppUnlimited: checked as boolean}))}
+                      data-testid="checkbox-unlimited-per-app"
+                    />
+                    <Label htmlFor="unlimited-per-app" className="text-sm">Unlimited</Label>
+                  </div>
+                </div>
+
+                {/* Exclude Employee */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Exclude Employee</Label>
+                  <Input
+                    value={newPolicyForm.excludeEmployee}
+                    onChange={(e) => setNewPolicyForm(prev => ({...prev, excludeEmployee: e.target.value}))}
+                    placeholder="Exclude Employee"
+                    data-testid="input-exclude-employee"
+                  />
+                </div>
+
+                {/* Claim Remark */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Claim Remark</Label>
+                  <Textarea
+                    value={newPolicyForm.claimRemark}
+                    onChange={(e) => setNewPolicyForm(prev => ({...prev, claimRemark: e.target.value}))}
+                    placeholder="Claim Remark"
+                    rows={3}
+                    data-testid="textarea-claim-remark"
+                  />
+                </div>
+              </>
             )}
 
-            {/* Annual Limit */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Annual Limit</Label>
-              <div className="flex items-center space-x-2">
-                <span className="text-sm">RM</span>
-                <Input
-                  type="number"
-                  value={newPolicyForm.annualLimit}
-                  onChange={(e) => setNewPolicyForm(prev => ({...prev, annualLimit: e.target.value}))}
-                  placeholder="0"
-                  className="flex-1"
-                  data-testid="input-annual-limit"
-                />
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="unlimited-annual"
-                  checked={newPolicyForm.limitUnlimited}
-                  onCheckedChange={(checked) => setNewPolicyForm(prev => ({...prev, limitUnlimited: checked as boolean}))}
-                  data-testid="checkbox-unlimited-annual"
-                />
-                <Label htmlFor="unlimited-annual" className="text-sm">Unlimited</Label>
-              </div>
-            </div>
+            {/* Overtime Policy Fields */}
+            {policyType === "overtime" && (
+              <>
+                {/* Overtime Name */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Overtime Name</Label>
+                  <Input
+                    value={newPolicyForm.overtimeName}
+                    onChange={(e) => setNewPolicyForm(prev => ({...prev, overtimeName: e.target.value}))}
+                    placeholder="Overtime Name"
+                    data-testid="input-overtime-name"
+                  />
+                </div>
 
-            {/* Limit per Application */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Limit per Application</Label>
-              <div className="flex items-center space-x-2">
-                <span className="text-sm">RM</span>
-                <Input
-                  type="number"
-                  value={newPolicyForm.limitPerApplication}
-                  onChange={(e) => setNewPolicyForm(prev => ({...prev, limitPerApplication: e.target.value}))}
-                  placeholder="0"
-                  className="flex-1"
-                  data-testid="input-limit-per-application"
-                />
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="unlimited-per-app"
-                  checked={newPolicyForm.limitPerAppUnlimited}
-                  onCheckedChange={(checked) => setNewPolicyForm(prev => ({...prev, limitPerAppUnlimited: checked as boolean}))}
-                  data-testid="checkbox-unlimited-per-app"
-                />
-                <Label htmlFor="unlimited-per-app" className="text-sm">Unlimited</Label>
-              </div>
-            </div>
+                {/* Deduction Type */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Deduction Type</Label>
+                  <Select 
+                    value={newPolicyForm.deductionType} 
+                    onValueChange={(value) => setNewPolicyForm(prev => ({...prev, deductionType: value}))}
+                  >
+                    <SelectTrigger data-testid="select-deduction-type">
+                      <SelectValue placeholder="Select overtime type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="rest-day">Rest Day</SelectItem>
+                      <SelectItem value="public-holiday">Public Holiday</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            {/* Exclude Employee */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Exclude Employee</Label>
-              <Input
-                value={newPolicyForm.excludeEmployee}
-                onChange={(e) => setNewPolicyForm(prev => ({...prev, excludeEmployee: e.target.value}))}
-                placeholder="Exclude Employee"
-                data-testid="input-exclude-employee"
-              />
-            </div>
+                {/* Overtime Rate */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Overtime Rate</Label>
+                  <Input
+                    type="number"
+                    value={newPolicyForm.overtimeRate}
+                    onChange={(e) => setNewPolicyForm(prev => ({...prev, overtimeRate: e.target.value}))}
+                    placeholder="0.00"
+                    data-testid="input-overtime-rate"
+                  />
+                </div>
 
-            {/* Claim Remark */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Claim Remark</Label>
-              <Textarea
-                value={newPolicyForm.claimRemark}
-                onChange={(e) => setNewPolicyForm(prev => ({...prev, claimRemark: e.target.value}))}
-                placeholder="Claim Remark"
-                rows={3}
-                data-testid="textarea-claim-remark"
-              />
-            </div>
+                {/* Included Employee */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Included Employee</Label>
+                  <Input
+                    value={newPolicyForm.includedEmployee}
+                    onChange={(e) => setNewPolicyForm(prev => ({...prev, includedEmployee: e.target.value}))}
+                    placeholder="Included Employee"
+                    data-testid="input-included-employee"
+                  />
+                </div>
+
+                {/* Remark */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Remark</Label>
+                  <Textarea
+                    value={newPolicyForm.remark}
+                    onChange={(e) => setNewPolicyForm(prev => ({...prev, remark: e.target.value}))}
+                    placeholder="Overtime Remark"
+                    rows={3}
+                    data-testid="textarea-overtime-remark"
+                  />
+                </div>
+              </>
+            )}
           </div>
 
           <DialogFooter className="flex gap-2 pt-4">
