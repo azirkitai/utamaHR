@@ -4,44 +4,111 @@ import {
   useMutation,
   UseMutationResult,
 } from "@tanstack/react-query";
-import { insertUserSchema, User as SelectUser, InsertUser } from "@shared/schema";
-import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
+import { User, LoginData, insertUserSchema } from "@shared/schema";
+import { apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
-type AuthContextType = {
-  user: SelectUser | null;
-  isLoading: boolean;
-  error: Error | null;
-  loginMutation: UseMutationResult<SelectUser, Error, LoginData>;
-  logoutMutation: UseMutationResult<void, Error, void>;
-  registerMutation: UseMutationResult<SelectUser, Error, InsertUser>;
+type AuthResponse = {
+  user: { id: string; username: string };
+  token: string;
+  message: string;
 };
 
-type LoginData = Pick<InsertUser, "username" | "password">;
+type AuthContextType = {
+  user: { id: string; username: string } | null;
+  isLoading: boolean;
+  error: Error | null;
+  loginMutation: UseMutationResult<AuthResponse, Error, LoginData>;
+  logoutMutation: UseMutationResult<void, Error, void>;
+  registerMutation: UseMutationResult<AuthResponse, Error, LoginData>;
+};
+
+// Token management
+const TOKEN_KEY = "utamahr_token";
+
+const getStoredToken = (): string | null => {
+  return localStorage.getItem(TOKEN_KEY);
+};
+
+const setStoredToken = (token: string): void => {
+  localStorage.setItem(TOKEN_KEY, token);
+};
+
+const removeStoredToken = (): void => {
+  localStorage.removeItem(TOKEN_KEY);
+};
 
 export const AuthContext = createContext<AuthContextType | null>(null);
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
+  
+  // Custom fetch function yang include JWT token
+  const authenticatedFetch = async (url: string): Promise<any> => {
+    const token = getStoredToken();
+    if (!token) {
+      throw new Error("Token tidak ditemui");
+    }
+
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        removeStoredToken();
+        queryClient.setQueryData(["/api/user"], null);
+        throw new Error("Token tidak sah");
+      }
+      throw new Error("Request failed");
+    }
+
+    return response.json();
+  };
+
   const {
     data: user,
     error,
     isLoading,
-  } = useQuery<SelectUser | undefined, Error>({
+  } = useQuery<{ id: string; username: string } | undefined, Error>({
     queryKey: ["/api/user"],
-    queryFn: getQueryFn({ on401: "returnNull" }),
+    queryFn: () => authenticatedFetch("/api/user"),
+    enabled: !!getStoredToken(),
+    retry: false,
   });
 
   const loginMutation = useMutation({
-    mutationFn: async (credentials: LoginData) => {
-      const res = await apiRequest("POST", "/api/login", credentials);
-      return await res.json();
+    mutationFn: async (credentials: LoginData): Promise<AuthResponse> => {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Login gagal");
+      }
+
+      return res.json();
     },
-    onSuccess: (user: SelectUser) => {
-      queryClient.setQueryData(["/api/user"], user);
+    onSuccess: (response: AuthResponse) => {
+      setStoredToken(response.token);
+      queryClient.setQueryData(["/api/user"], response.user);
+      toast({
+        title: "Berjaya!",
+        description: response.message || "Login berjaya",
+        variant: "default",
+      });
     },
     onError: (error: Error) => {
       toast({
-        title: "Login failed",
+        title: "Login Gagal",
         description: error.message,
         variant: "destructive",
       });
@@ -49,16 +116,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const registerMutation = useMutation({
-    mutationFn: async (credentials: InsertUser) => {
-      const res = await apiRequest("POST", "/api/register", credentials);
-      return await res.json();
+    mutationFn: async (credentials: LoginData): Promise<AuthResponse> => {
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Registration gagal");
+      }
+
+      return res.json();
     },
-    onSuccess: (user: SelectUser) => {
-      queryClient.setQueryData(["/api/user"], user);
+    onSuccess: (response: AuthResponse) => {
+      setStoredToken(response.token);
+      queryClient.setQueryData(["/api/user"], response.user);
+      toast({
+        title: "Berjaya!",
+        description: response.message || "Akaun berjaya dibuat",
+        variant: "default",
+      });
     },
     onError: (error: Error) => {
       toast({
-        title: "Registration failed",
+        title: "Pendaftaran Gagal",
         description: error.message,
         variant: "destructive",
       });
@@ -67,16 +152,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("POST", "/api/logout");
+      // Optional: call logout endpoint to blacklist token on server
+      const token = getStoredToken();
+      if (token) {
+        try {
+          await fetch("/api/logout", {
+            method: "POST",
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+        } catch (e) {
+          // Ignore logout API errors since we're clearing local storage anyway
+        }
+      }
     },
     onSuccess: () => {
+      removeStoredToken();
       queryClient.setQueryData(["/api/user"], null);
-    },
-    onError: (error: Error) => {
+      queryClient.clear();
       toast({
-        title: "Logout failed",
-        description: error.message,
-        variant: "destructive",
+        title: "Logout Berjaya",
+        description: "Anda telah log keluar",
+        variant: "default",
       });
     },
   });
@@ -85,7 +183,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user: user ?? null,
-        isLoading,
+        isLoading: isLoading && !!getStoredToken(),
         error,
         loginMutation,
         logoutMutation,

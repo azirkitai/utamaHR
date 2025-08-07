@@ -1,93 +1,153 @@
-import passport from "passport";
-import { Strategy as LocalStrategy } from "passport-local";
-import { Express } from "express";
-import session from "express-session";
+import { Express, Request, Response, NextFunction } from "express";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
+import jwt from "jsonwebtoken";
 import { storage } from "./storage";
-import { User as SelectUser } from "@shared/schema";
+import { User, loginSchema } from "@shared/schema";
+
+// Environment variables untuk JWT
+const JWT_SECRET = process.env.JWT_SECRET || "utamahr-secret-key-development";
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "24h";
 
 declare global {
   namespace Express {
-    interface User extends SelectUser {}
+    interface Request {
+      user?: User;
+    }
   }
 }
 
 const scryptAsync = promisify(scrypt);
 
-async function hashPassword(password: string) {
+// Helper functions untuk password hashing
+async function hashPassword(password: string): Promise<string> {
   const salt = randomBytes(16).toString("hex");
   const buf = (await scryptAsync(password, salt, 64)) as Buffer;
   return `${buf.toString("hex")}.${salt}`;
 }
 
-async function comparePasswords(supplied: string, stored: string) {
+async function comparePasswords(supplied: string, stored: string): Promise<boolean> {
   const [hashed, salt] = stored.split(".");
   const hashedBuf = Buffer.from(hashed, "hex");
   const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
   return timingSafeEqual(hashedBuf, suppliedBuf);
 }
 
-export function setupAuth(app: Express) {
-  const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET!,
-    resave: false,
-    saveUninitialized: false,
-    store: storage.sessionStore,
+// Helper functions untuk JWT
+function generateToken(user: User): string {
+  const payload = {
+    id: user.id,
+    username: user.username,
   };
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+}
 
-  app.set("trust proxy", 1);
-  app.use(session(sessionSettings));
-  app.use(passport.initialize());
-  app.use(passport.session());
+function verifyToken(token: string): any {
+  try {
+    return jwt.verify(token, JWT_SECRET);
+  } catch (error) {
+    return null;
+  }
+}
 
-  passport.use(
-    new LocalStrategy(async (username, password, done) => {
-      const user = await storage.getUserByUsername(username);
-      if (!user || !(await comparePasswords(password, user.password))) {
-        return done(null, false);
-      } else {
-        return done(null, user);
+// Middleware untuk verify JWT token
+export const authenticateToken = async (req: Request, res: Response, next: NextFunction) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+
+  if (!token) {
+    return res.status(401).json({ error: 'Access token diperlukan' });
+  }
+
+  const decoded = verifyToken(token);
+  if (!decoded) {
+    return res.status(403).json({ error: 'Token tidak sah atau telah tamat tempoh' });
+  }
+
+  // Verify user masih wujud dalam database
+  const user = await storage.getUser(decoded.id);
+  if (!user) {
+    return res.status(403).json({ error: 'User tidak dijumpai' });
+  }
+
+  req.user = user;
+  next();
+};
+
+export function setupAuth(app: Express) {
+  // Register endpoint
+  app.post("/api/register", async (req, res) => {
+    try {
+      const validatedData = loginSchema.parse(req.body);
+      
+      const existingUser = await storage.getUserByUsername(validatedData.username);
+      if (existingUser) {
+        return res.status(400).json({ error: "Username sudah digunakan" });
       }
-    }),
-  );
 
-  passport.serializeUser((user, done) => done(null, user.id));
-  passport.deserializeUser(async (id: number, done) => {
-    const user = await storage.getUser(id);
-    done(null, user);
-  });
+      const hashedPassword = await hashPassword(validatedData.password);
+      const newUser = await storage.createUser({
+        username: validatedData.username,
+        password: hashedPassword,
+      });
 
-  app.post("/api/register", async (req, res, next) => {
-    const existingUser = await storage.getUserByUsername(req.body.username);
-    if (existingUser) {
-      return res.status(400).send("Username already exists");
+      const token = generateToken(newUser);
+      
+      res.status(201).json({
+        message: "User berjaya didaftarkan",
+        user: {
+          id: newUser.id,
+          username: newUser.username,
+        },
+        token,
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(400).json({ error: "Data tidak sah" });
     }
+  });
 
-    const user = await storage.createUser({
-      ...req.body,
-      password: await hashPassword(req.body.password),
-    });
+  // Login endpoint
+  app.post("/api/login", async (req, res) => {
+    try {
+      const validatedData = loginSchema.parse(req.body);
+      
+      const user = await storage.getUserByUsername(validatedData.username);
+      if (!user) {
+        return res.status(401).json({ error: "Username atau password tidak betul" });
+      }
 
-    req.login(user, (err) => {
-      if (err) return next(err);
-      res.status(201).json(user);
+      const isValidPassword = await comparePasswords(validatedData.password, user.password);
+      if (!isValidPassword) {
+        return res.status(401).json({ error: "Username atau password tidak betul" });
+      }
+
+      const token = generateToken(user);
+
+      res.json({
+        message: "Login berjaya",
+        user: {
+          id: user.id,
+          username: user.username,
+        },
+        token,
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(400).json({ error: "Data tidak sah" });
+    }
+  });
+
+  // Get current user endpoint
+  app.get("/api/user", authenticateToken, (req, res) => {
+    res.json({
+      id: req.user!.id,
+      username: req.user!.username,
     });
   });
 
-  app.post("/api/login", passport.authenticate("local"), (req, res) => {
-    res.status(200).json(req.user);
-  });
-
-  app.post("/api/logout", (req, res, next) => {
-    req.logout((err) => {
-      if (err) return next(err);
-      res.sendStatus(200);
-    });
-  });
-
-  app.get("/api/user", (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    res.json(req.user);
+  // Logout endpoint (client-side akan remove token)
+  app.post("/api/logout", (req, res) => {
+    res.json({ message: "Logout berjaya" });
   });
 }

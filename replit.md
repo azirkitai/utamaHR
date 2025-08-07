@@ -1,6 +1,13 @@
 # Overview
 
-This is a full-stack web application built with React, TypeScript, and Express.js. It appears to be an Employee Management System or HR Dashboard with authentication capabilities. The application uses a modern tech stack with shadcn/ui components for the frontend, Drizzle ORM for database operations, and session-based authentication.
+UtamaHR - A comprehensive HR Management System built from scratch with React, TypeScript, and Express.js. This project focuses on secure authentication first, then expanding to full HR functionality. Currently implementing JWT-based authentication with username/password login, proper route protection, and production-ready deployment.
+
+## Project Status
+- Phase 1: Authentication System (In Progress)
+  - JWT token-based authentication
+  - Username/password login
+  - Route protection and redirects
+  - Production-ready implementation
 
 # User Preferences
 
