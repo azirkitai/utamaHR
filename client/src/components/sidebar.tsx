@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { 
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   LayoutDashboard,
   FileText,
   Megaphone,
@@ -17,7 +19,9 @@ import {
   FileSpreadsheet,
   CreditCard,
   Building2,
-  Star
+  Star,
+  DollarSign,
+  CalendarDays
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
@@ -52,6 +56,26 @@ const navigationItems: { category: string; items: SidebarItem[] }[] = [
         label: "Apply",
         icon: <FileSpreadsheet className="w-4 h-4" />,
         href: "/apply",
+        children: [
+          {
+            id: "apply-leave",
+            label: "Leave",
+            icon: <CalendarDays className="w-3 h-3" />,
+            href: "/apply/leave",
+          },
+          {
+            id: "apply-claim",
+            label: "Claim",
+            icon: <DollarSign className="w-3 h-3" />,
+            href: "/apply/claim",
+          },
+          {
+            id: "apply-timeoff",
+            label: "Timeoff",
+            icon: <Clock className="w-3 h-3" />,
+            href: "/apply/timeoff",
+          },
+        ],
       },
       {
         id: "announcement",
@@ -137,11 +161,22 @@ interface SidebarProps {
 
 export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
   const [location] = useLocation();
+  const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
   const isActiveRoute = (href: string) => {
     if (href === "/") return location === "/";
     return location.startsWith(href);
   };
+
+  const toggleExpanded = (itemId: string) => {
+    setExpandedItems(prev => 
+      prev.includes(itemId) 
+        ? prev.filter(id => id !== itemId)
+        : [...prev, itemId]
+    );
+  };
+
+  const isExpanded = (itemId: string) => expandedItems.includes(itemId);
 
   return (
     <div
@@ -195,45 +230,125 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
             
             <nav className="space-y-1 px-2">
               {section.items.map((item) => (
-                <Link key={item.id} href={item.href}>
-                  <Button
-                    variant="ghost"
-                    className={cn(
-                      "w-full justify-start text-left h-10 px-3",
-                      isActiveRoute(item.href)
-                        ? "bg-cyan-600 text-white hover:bg-cyan-700"
-                        : "text-slate-300 hover:bg-slate-700 hover:text-white",
-                      isCollapsed && "justify-center px-2"
-                    )}
-                    data-testid={`nav-${item.id}`}
-                  >
-                    <div className="flex items-center space-x-3 w-full">
-                      <div className="flex-shrink-0">
-                        {item.icon}
-                      </div>
-                      {!isCollapsed && (
-                        <>
-                          <span className="flex-1 text-sm font-medium">
-                            {item.label}
-                          </span>
-                          {item.badge && (
-                            <Badge
-                              variant="secondary"
-                              className={cn(
-                                "text-xs px-2 py-0",
-                                item.badge === "★" 
-                                  ? "bg-yellow-500 text-yellow-900" 
-                                  : "bg-slate-600 text-white"
-                              )}
-                            >
-                              {item.badge}
-                            </Badge>
-                          )}
-                        </>
+                <div key={item.id}>
+                  {/* Main Item */}
+                  {item.children ? (
+                    <Button
+                      variant="ghost"
+                      onClick={() => toggleExpanded(item.id)}
+                      className={cn(
+                        "w-full justify-start text-left h-10 px-3",
+                        isActiveRoute(item.href)
+                          ? "bg-cyan-600 text-white hover:bg-cyan-700"
+                          : "text-slate-300 hover:bg-slate-700 hover:text-white",
+                        isCollapsed && "justify-center px-2"
                       )}
+                      data-testid={`nav-${item.id}`}
+                    >
+                      <div className="flex items-center space-x-3 w-full">
+                        <div className="flex-shrink-0">
+                          {item.icon}
+                        </div>
+                        {!isCollapsed && (
+                          <>
+                            <span className="flex-1 text-sm font-medium">
+                              {item.label}
+                            </span>
+                            {item.badge && (
+                              <Badge
+                                variant="secondary"
+                                className={cn(
+                                  "text-xs px-2 py-0",
+                                  item.badge === "★" 
+                                    ? "bg-yellow-500 text-yellow-900" 
+                                    : "bg-slate-600 text-white"
+                                )}
+                              >
+                                {item.badge}
+                              </Badge>
+                            )}
+                            <div className="flex-shrink-0">
+                              {isExpanded(item.id) ? (
+                                <ChevronUp className="w-4 h-4" />
+                              ) : (
+                                <ChevronDown className="w-4 h-4" />
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </Button>
+                  ) : (
+                    <Link href={item.href}>
+                      <Button
+                        variant="ghost"
+                        className={cn(
+                          "w-full justify-start text-left h-10 px-3",
+                          isActiveRoute(item.href)
+                            ? "bg-cyan-600 text-white hover:bg-cyan-700"
+                            : "text-slate-300 hover:bg-slate-700 hover:text-white",
+                          isCollapsed && "justify-center px-2"
+                        )}
+                        data-testid={`nav-${item.id}`}
+                      >
+                        <div className="flex items-center space-x-3 w-full">
+                          <div className="flex-shrink-0">
+                            {item.icon}
+                          </div>
+                          {!isCollapsed && (
+                            <>
+                              <span className="flex-1 text-sm font-medium">
+                                {item.label}
+                              </span>
+                              {item.badge && (
+                                <Badge
+                                  variant="secondary"
+                                  className={cn(
+                                    "text-xs px-2 py-0",
+                                    item.badge === "★" 
+                                      ? "bg-yellow-500 text-yellow-900" 
+                                      : "bg-slate-600 text-white"
+                                  )}
+                                >
+                                  {item.badge}
+                                </Badge>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </Button>
+                    </Link>
+                  )}
+
+                  {/* Submenu Items */}
+                  {item.children && isExpanded(item.id) && !isCollapsed && (
+                    <div className="ml-6 mt-1 space-y-1">
+                      {item.children.map((child) => (
+                        <Link key={child.id} href={child.href}>
+                          <Button
+                            variant="ghost"
+                            className={cn(
+                              "w-full justify-start text-left h-8 px-3",
+                              isActiveRoute(child.href)
+                                ? "bg-cyan-600 text-white hover:bg-cyan-700"
+                                : "text-slate-400 hover:bg-slate-700 hover:text-white"
+                            )}
+                            data-testid={`nav-${child.id}`}
+                          >
+                            <div className="flex items-center space-x-2">
+                              <div className="flex-shrink-0">
+                                {child.icon}
+                              </div>
+                              <span className="text-xs font-medium">
+                                {child.label}
+                              </span>
+                            </div>
+                          </Button>
+                        </Link>
+                      ))}
                     </div>
-                  </Button>
-                </Link>
+                  )}
+                </div>
               ))}
             </nav>
           </div>
