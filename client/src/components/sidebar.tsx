@@ -25,7 +25,9 @@ import {
   Timer,
   CalendarClock,
   ClockIcon,
-  AlertTriangle
+  AlertTriangle,
+  Banknote,
+  Receipt
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
@@ -188,6 +190,20 @@ const navigationItems: { category: string; items: SidebarItem[] }[] = [
         label: "Payment",
         icon: <CreditCard className="w-4 h-4" />,
         href: "/payment",
+        children: [
+          {
+            id: "payment-salary-payroll",
+            label: "Salary Payroll",
+            icon: <Banknote className="w-3 h-3" />,
+            href: "/payment/salary-payroll",
+          },
+          {
+            id: "payment-voucher",
+            label: "Payment Voucher",
+            icon: <Receipt className="w-3 h-3" />,
+            href: "/payment/voucher",
+          },
+        ],
       },
       {
         id: "debug",
