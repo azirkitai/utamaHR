@@ -118,6 +118,26 @@ const navigationItems: { category: string; items: SidebarItem[] }[] = [
         label: "Approval",
         icon: <CheckSquare className="w-4 h-4" />,
         href: "/approval",
+        children: [
+          {
+            id: "approval-leave",
+            label: "Leave",
+            icon: <CalendarDays className="w-3 h-3" />,
+            href: "/approval/leave",
+          },
+          {
+            id: "approval-claim",
+            label: "Claim",
+            icon: <DollarSign className="w-3 h-3" />,
+            href: "/approval/claim",
+          },
+          {
+            id: "approval-timeoff",
+            label: "Timeoff",
+            icon: <Clock className="w-3 h-3" />,
+            href: "/approval/timeoff",
+          },
+        ],
       },
       {
         id: "attendance",
