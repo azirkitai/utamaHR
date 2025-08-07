@@ -8,6 +8,7 @@ import DashboardHome from "@/pages/dashboard-home";
 import AuthPage from "@/pages/auth-page";
 import EmployeesPage from "@/pages/employees-page";
 import DebugPage from "@/pages/debug-page";
+import MyRecordPage from "@/pages/my-record-page";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "./lib/protected-route";
 
@@ -16,6 +17,7 @@ function Router() {
     <Switch>
       <ProtectedRoute path="/" component={DashboardHome} />
       <ProtectedRoute path="/employees" component={EmployeesPage} />
+      <ProtectedRoute path="/my-record" component={MyRecordPage} />
       <ProtectedRoute path="/debug" component={DebugPage} />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
