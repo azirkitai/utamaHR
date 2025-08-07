@@ -12,6 +12,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { 
   Building2,
   CalendarDays,
@@ -165,6 +172,15 @@ export default function SystemSettingPage() {
     overtimeCalculation: "basic-salary",
     overtimeCutoffDate: "31",
   });
+
+  const [showOvertimePolicyModal, setShowOvertimePolicyModal] = useState(false);
+  const [newOvertimePolicy, setNewOvertimePolicy] = useState({
+    name: "",
+    deductionType: "",
+    rate: "",
+    includedEmployee: "",
+    remark: "",
+  });
   const [companyData, setCompanyData] = useState({
     companyName: "utama hr",
     companyShortName: "KLINIK UTAMA 24 JAM",
@@ -237,6 +253,35 @@ export default function SystemSettingPage() {
 
   const handleSaveOvertimeSettings = () => {
     console.log("Save overtime settings:", overtimeSettings);
+  };
+
+  const handleCreateOvertimePolicy = () => {
+    setShowOvertimePolicyModal(true);
+  };
+
+  const handleSaveOvertimePolicy = () => {
+    console.log("Save new overtime policy:", newOvertimePolicy);
+    // Add the new policy to the list
+    // Reset form and close modal
+    setNewOvertimePolicy({
+      name: "",
+      deductionType: "",
+      rate: "",
+      includedEmployee: "",
+      remark: "",
+    });
+    setShowOvertimePolicyModal(false);
+  };
+
+  const handleCancelOvertimePolicy = () => {
+    setNewOvertimePolicy({
+      name: "",
+      deductionType: "",
+      rate: "",
+      includedEmployee: "",
+      remark: "",
+    });
+    setShowOvertimePolicyModal(false);
   };
 
   const renderCompanyForm = () => (
@@ -872,6 +917,7 @@ export default function SystemSettingPage() {
               variant="secondary"
               size="sm"
               className="bg-white text-cyan-600 hover:bg-gray-100"
+              onClick={handleCreateOvertimePolicy}
               data-testid="button-create-overtime-policy"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -1335,6 +1381,104 @@ export default function SystemSettingPage() {
           </div>
         </div>
       </div>
+
+      {/* Overtime Policy Modal */}
+      <Dialog open={showOvertimePolicyModal} onOpenChange={setShowOvertimePolicyModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold text-gray-900">Overtime Policy</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="overtime-name" className="text-sm font-medium">
+                Overtime Name
+              </Label>
+              <Input
+                id="overtime-name"
+                placeholder="Overtime Name"
+                value={newOvertimePolicy.name}
+                onChange={(e) => setNewOvertimePolicy(prev => ({...prev, name: e.target.value}))}
+                data-testid="input-overtime-name"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="deduction-type" className="text-sm font-medium">
+                Deduction Type
+              </Label>
+              <Select 
+                value={newOvertimePolicy.deductionType} 
+                onValueChange={(value) => setNewOvertimePolicy(prev => ({...prev, deductionType: value}))}
+              >
+                <SelectTrigger data-testid="select-deduction-type">
+                  <SelectValue placeholder="Select overtime type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="normal-rate">Normal Rate</SelectItem>
+                  <SelectItem value="rest-day-rate">Rest Day Rate</SelectItem>
+                  <SelectItem value="public-holiday-rate">Public Holiday Rate</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="overtime-rate" className="text-sm font-medium">
+                Overtime Rate
+              </Label>
+              <Input
+                id="overtime-rate"
+                placeholder="0.00"
+                value={newOvertimePolicy.rate}
+                onChange={(e) => setNewOvertimePolicy(prev => ({...prev, rate: e.target.value}))}
+                data-testid="input-overtime-rate"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="included-employee" className="text-sm font-medium">
+                Included Employee
+              </Label>
+              <Input
+                id="included-employee"
+                value={newOvertimePolicy.includedEmployee}
+                onChange={(e) => setNewOvertimePolicy(prev => ({...prev, includedEmployee: e.target.value}))}
+                data-testid="input-included-employee"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="remark" className="text-sm font-medium">
+                Remark
+              </Label>
+              <Input
+                id="remark"
+                placeholder="Overtime Remark"
+                value={newOvertimePolicy.remark}
+                onChange={(e) => setNewOvertimePolicy(prev => ({...prev, remark: e.target.value}))}
+                data-testid="input-remark"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="flex space-x-2">
+            <Button
+              variant="outline"
+              onClick={handleCancelOvertimePolicy}
+              data-testid="button-cancel-overtime-policy"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveOvertimePolicy}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+              data-testid="button-save-overtime-policy"
+            >
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }
