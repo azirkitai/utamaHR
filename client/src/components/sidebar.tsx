@@ -207,40 +207,36 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
       )}
     >
       {/* Header */}
-      <div className="p-4 border-b border-slate-700">
-        <div className="flex items-center justify-between">
+      <div className="p-4 border-b border-slate-700 relative">
+        <div className="flex items-center justify-center">
           {!isCollapsed && (
-            <div className="flex items-center justify-center w-full">
-              <img 
-                src={utamaHRLogo} 
-                alt="UTAMA Human Resources" 
-                className="w-48 h-auto object-contain"
-              />
-            </div>
+            <img 
+              src={utamaHRLogo} 
+              alt="UTAMA Human Resources" 
+              className="w-48 h-auto object-contain"
+            />
           )}
           {isCollapsed && (
-            <div className="flex items-center justify-center w-full">
-              <img 
-                src={utamaHRLogo} 
-                alt="UTAMA HR" 
-                className="w-10 h-auto object-contain"
-              />
-            </div>
+            <img 
+              src={utamaHRLogo} 
+              alt="UTAMA HR" 
+              className="w-10 h-auto object-contain"
+            />
           )}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onToggleCollapse}
-            className="text-white hover:bg-slate-700 p-1 absolute right-2"
-            data-testid="button-toggle-sidebar"
-          >
-            {isCollapsed ? (
-              <ChevronRight className="w-4 h-4" />
-            ) : (
-              <ChevronLeft className="w-4 h-4" />
-            )}
-          </Button>
         </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onToggleCollapse}
+          className="text-white hover:bg-slate-700 p-1 absolute top-2 right-2"
+          data-testid="button-toggle-sidebar"
+        >
+          {isCollapsed ? (
+            <ChevronRight className="w-4 h-4" />
+          ) : (
+            <ChevronLeft className="w-4 h-4" />
+          )}
+        </Button>
       </div>
 
       {/* Navigation */}
