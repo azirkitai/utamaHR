@@ -24,6 +24,8 @@ import OvertimePage from "@/pages/overtime-page";
 import LatenessPage from "@/pages/lateness-page";
 import SalaryPayrollPage from "@/pages/salary-payroll-page";
 import PaymentVoucherPage from "@/pages/payment-voucher-page";
+import QRClockInPage from "@/pages/qr-clockin-page";
+import MobileClockInPage from "@/pages/mobile-clockin-page";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "./lib/protected-route";
 
@@ -48,9 +50,11 @@ function Router() {
       <ProtectedRoute path="/attendance/lateness" component={LatenessPage} />
       <ProtectedRoute path="/payment/salary-payroll" component={SalaryPayrollPage} />
       <ProtectedRoute path="/payment/voucher" component={PaymentVoucherPage} />
+      <ProtectedRoute path="/qr-clockin" component={QRClockInPage} />
       <ProtectedRoute path="/system-setting/*" component={SystemSettingPage} />
       <ProtectedRoute path="/system-setting" component={SystemSettingPage} />
       <Route path="/auth" component={AuthPage} />
+      <Route path="/mobile-clockin" component={MobileClockInPage} />
       <Route component={NotFound} />
     </Switch>
   );

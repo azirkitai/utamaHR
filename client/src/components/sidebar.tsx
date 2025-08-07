@@ -28,7 +28,8 @@ import {
   AlertTriangle,
   Banknote,
   Receipt,
-  Bell
+  Bell,
+  QrCode
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
@@ -147,6 +148,12 @@ const navigationItems: { category: string; items: SidebarItem[] }[] = [
         icon: <Clock className="w-4 h-4" />,
         href: "/attendance",
         children: [
+          {
+            id: "qr-clockin",
+            label: "QR Clock-In",
+            icon: <QrCode className="w-3 h-3" />,
+            href: "/qr-clockin",
+          },
           {
             id: "attendance-timesheet",
             label: "Timesheet",

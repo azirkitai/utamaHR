@@ -1,6 +1,20 @@
-import { type User, type InsertUser, type Employee, type InsertEmployee, type UpdateEmployee, users, employees } from "@shared/schema";
+import { 
+  type User, 
+  type InsertUser, 
+  type Employee, 
+  type InsertEmployee, 
+  type UpdateEmployee,
+  type QrToken,
+  type InsertQrToken,
+  type ClockInRecord,
+  type InsertClockIn,
+  users, 
+  employees,
+  qrTokens,
+  clockInRecords
+} from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -14,6 +28,15 @@ export interface IStorage {
   createEmployee(employee: InsertEmployee): Promise<Employee>;
   updateEmployee(id: string, employee: UpdateEmployee): Promise<Employee | undefined>;
   deleteEmployee(id: string): Promise<boolean>;
+  
+  // QR Token methods
+  createQrToken(qrToken: InsertQrToken): Promise<QrToken>;
+  getValidQrToken(token: string): Promise<QrToken | undefined>;
+  markQrTokenAsUsed(token: string): Promise<void>;
+  
+  // Clock-in methods
+  createClockInRecord(clockIn: InsertClockIn): Promise<ClockInRecord>;
+  getUserClockInRecords(userId: string): Promise<ClockInRecord[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -72,6 +95,57 @@ export class DatabaseStorage implements IStorage {
   async deleteEmployee(id: string): Promise<boolean> {
     const result = await db.delete(employees).where(eq(employees.id, id));
     return result.rowCount !== null && result.rowCount > 0;
+  }
+
+  // QR Token methods
+  async createQrToken(insertQrToken: InsertQrToken): Promise<QrToken> {
+    const [qrToken] = await db
+      .insert(qrTokens)
+      .values(insertQrToken)
+      .returning();
+    return qrToken;
+  }
+
+  async getValidQrToken(token: string): Promise<QrToken | undefined> {
+    const [qrToken] = await db
+      .select()
+      .from(qrTokens)
+      .where(
+        and(
+          eq(qrTokens.token, token),
+          eq(qrTokens.isUsed, "false")
+        )
+      );
+    
+    // Check if token is expired
+    if (qrToken && new Date(qrToken.expiresAt) > new Date()) {
+      return qrToken;
+    }
+    
+    return undefined;
+  }
+
+  async markQrTokenAsUsed(token: string): Promise<void> {
+    await db
+      .update(qrTokens)
+      .set({ isUsed: "true" })
+      .where(eq(qrTokens.token, token));
+  }
+
+  // Clock-in methods
+  async createClockInRecord(insertClockIn: InsertClockIn): Promise<ClockInRecord> {
+    const [clockInRecord] = await db
+      .insert(clockInRecords)
+      .values(insertClockIn)
+      .returning();
+    return clockInRecord;
+  }
+
+  async getUserClockInRecords(userId: string): Promise<ClockInRecord[]> {
+    return await db
+      .select()
+      .from(clockInRecords)
+      .where(eq(clockInRecords.userId, userId));
   }
 }
 

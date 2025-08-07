@@ -26,6 +26,28 @@ export const employees = pgTable("employees", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// QR Code tokens for clock-in
+export const qrTokens = pgTable("qr_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  token: text("token").notNull().unique(),
+  isUsed: text("is_used").notNull().default("false"), // Store as text: "false", "true"
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Clock-in records
+export const clockInRecords = pgTable("clock_in_records", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  clockInTime: timestamp("clock_in_time").defaultNow().notNull(),
+  latitude: text("latitude").notNull(),
+  longitude: text("longitude").notNull(),
+  selfieImagePath: text("selfie_image_path"), // Path to selfie in object storage
+  locationStatus: text("location_status").notNull().default("valid"), // valid, invalid
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Schemas for validation
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -45,6 +67,24 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Password diperlukan"),
 });
 
+export const insertQrTokenSchema = createInsertSchema(qrTokens).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertClockInSchema = createInsertSchema(clockInRecords).omit({
+  id: true,
+  createdAt: true,
+  clockInTime: true,
+});
+
+export const mobileClockInSchema = z.object({
+  token: z.string().min(1, "Token diperlukan"),
+  latitude: z.string().min(1, "Lokasi diperlukan"),
+  longitude: z.string().min(1, "Lokasi diperlukan"),
+  selfieImageUrl: z.string().min(1, "Selfie diperlukan"),
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -52,3 +92,8 @@ export type LoginData = z.infer<typeof loginSchema>;
 export type Employee = typeof employees.$inferSelect;
 export type InsertEmployee = z.infer<typeof insertEmployeeSchema>;
 export type UpdateEmployee = z.infer<typeof updateEmployeeSchema>;
+export type QrToken = typeof qrTokens.$inferSelect;
+export type InsertQrToken = z.infer<typeof insertQrTokenSchema>;
+export type ClockInRecord = typeof clockInRecords.$inferSelect;
+export type InsertClockIn = z.infer<typeof insertClockInSchema>;
+export type MobileClockInData = z.infer<typeof mobileClockInSchema>;
