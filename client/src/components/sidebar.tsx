@@ -97,12 +97,6 @@ const navigationItems: { category: string; items: SidebarItem[] }[] = [
         href: "/performance",
         badge: "★",
       },
-      {
-        id: "invite-friends",
-        label: "Invite Friends",
-        icon: <Users className="w-4 h-4" />,
-        href: "/invite-friends",
-      },
     ],
   },
   {
