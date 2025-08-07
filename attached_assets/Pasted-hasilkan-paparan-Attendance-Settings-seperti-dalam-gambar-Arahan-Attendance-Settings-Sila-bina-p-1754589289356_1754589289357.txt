@@ -1,0 +1,43 @@
+hasilkan paparan Attendance Settings seperti dalam gambar:
+
+Arahan: Attendance Settings
+
+Sila bina paparan ‘Attendance Settings’ di dalam modul ‘System Setting’ seperti berikut:
+
+Navigation Tab (kiri):
+
+Letakkan menu navigation di sebelah kiri yang merangkumi pilihan seperti Company, Leave, Claim, Department, Payment, Notifications, Attendance, Evaluation, Subscription, Yearly Form.
+
+Highlight pada bahagian Attendance apabila user berada di page ini.
+
+General Shift Setting:
+
+Bahagian atas paparan tunjukkan “General Shift Setting”.
+
+Ada satu tetapan Notification Setting untuk reminder clock in/out, dengan pilihan dropdown masa (cth: 15 minit sebelum, boleh pilih lain-lain masa).
+
+Attendance Location:
+
+Bahagian “Attendance Location” untuk user create lokasi geofencing bagi clock in/out (ruangan untuk isi nama lokasi dan alamat lokasi).
+
+Hanya boleh clock in/out jika berada dalam radius lokasi yang didaftarkan.
+
+Shift Manager:
+
+Bahagian “Shift Manager” paparkan senarai shift sedia ada, contoh: Default Shift, beserta hari bekerja (cth: Isnin – Sabtu).
+
+Ada butang ‘Assign Shift’ untuk assign shift mengikut role, department atau employee (popup untuk set jam masuk & keluar).
+
+Ada butang ‘Update Shift’ untuk edit maklumat shift (nama, description, masa clock in/out, tetapan selfie clock in/out, attendance confirmation, auto clock out, early & late indicator).
+
+Create New Shift:
+
+Ada butang ‘Create Shift’ yang akan buka popup untuk cipta shift baru (ruangan: nama, description, clock in/out, tetapan tambahan seperti di atas).
+
+Update Shift Setting:
+
+Paparkan pilihan full day/half day/off day untuk setiap hari (Ahad–Sabtu).
+
+Pilihan geofencing location, break setting, overtime calculation, lateness calculation boleh diaktifkan atau dinyahaktifkan (toggle switch).
+
+Rekabentuk UI perlu ringkas, konsisten dengan warna korporat dan mudah untuk user faham dan guna. Pastikan semua fungsi toggle, dropdown, dan form input boleh digunakan serta popup untuk tambah/edit shift atau lokasi berfungsi sepenuhnya.

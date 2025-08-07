@@ -286,6 +286,70 @@ export default function SystemSettingPage() {
     claimEmailNotification: true,
     payrollEmailNotification: true,
   });
+
+  // Attendance states
+  const [attendanceSettings, setAttendanceSettings] = useState({
+    reminderTime: "Before (Default)",
+    reminderMinutes: "15",
+  });
+
+  const [shifts, setShifts] = useState([
+    {
+      id: 1,
+      name: "Default Shift",
+      days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+      description: "No description available.",
+      clockIn: "08:30 AM",
+      clockOut: "05:30 PM",
+    }
+  ]);
+
+  const [locations, setLocations] = useState([]);
+
+  // Dialog states
+  const [showCreateLocationDialog, setShowCreateLocationDialog] = useState(false);
+  const [showAssignShiftDialog, setShowAssignShiftDialog] = useState(false);
+  const [showUpdateShiftDialog, setShowUpdateShiftDialog] = useState(false);
+  const [showCreateShiftDialog, setShowCreateShiftDialog] = useState(false);
+
+  // Location form state
+  const [locationForm, setLocationForm] = useState({
+    name: "",
+    address: "",
+  });
+
+  // Shift form state
+  const [shiftForm, setShiftForm] = useState({
+    name: "",
+    description: "",
+    clockIn: "08:30",
+    clockOut: "17:30",
+    enableOverwriteSetting: false,
+    enableClockInOutSelfie: false,
+    enableEarlyLateIndicator: false,
+    displayAttendanceConfirmation: false,
+    enableAutoClockOut: false,
+    workdays: {
+      Sunday: "Off Day",
+      Monday: "Full Day", 
+      Tuesday: "Full Day",
+      Wednesday: "Full Day",
+      Thursday: "Full Day",
+      Friday: "Full Day",
+      Saturday: "Half Day",
+    },
+    enableGeofencingLocation: false,
+    enableBreakTime: false,
+    enableOvertimeCalculation: false,
+    enableLatenessCalculation: false,
+  });
+
+  // Assign shift state
+  const [assignShiftTab, setAssignShiftTab] = useState("role");
+  const [assignShiftData, setAssignShiftData] = useState([
+    { id: 1, role: "Human Resource", clockIn: "08:30 AM", clockOut: "05:30 PM" },
+    { id: 2, role: "Employee", clockIn: "08:30 AM", clockOut: "05:30 PM" },
+  ]);
   const [companyData, setCompanyData] = useState({
     companyName: "utama hr",
     companyShortName: "KLINIK UTAMA 24 JAM",
@@ -1955,6 +2019,144 @@ export default function SystemSettingPage() {
     </div>
   );
 
+  const renderAttendanceForm = () => (
+    <div className="space-y-6">
+      {/* General Shift Setting */}
+      <div className="bg-white rounded-lg border">
+        <div className="bg-gradient-to-r from-cyan-400 to-teal-400 text-white p-3 rounded-t-lg">
+          <h3 className="font-semibold">General Shift Setting</h3>
+        </div>
+        <div className="p-4 space-y-4">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Notification Setting</Label>
+            <p className="text-xs text-gray-500">If enabled, employee will get notification through MySyarikat mobile apps before clock in/out.</p>
+            <div className="flex gap-2 items-center">
+              <Select value={attendanceSettings.reminderTime} onValueChange={(value) => setAttendanceSettings(prev => ({...prev, reminderTime: value}))}>
+                <SelectTrigger className="w-40" data-testid="select-reminder-time">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Before (Default)">Before (Default)</SelectItem>
+                  <SelectItem value="After">After</SelectItem>
+                </SelectContent>
+              </Select>
+              <Input 
+                type="number"
+                value={attendanceSettings.reminderMinutes}
+                onChange={(e) => setAttendanceSettings(prev => ({...prev, reminderMinutes: e.target.value}))}
+                className="w-20"
+                data-testid="input-reminder-minutes"
+              />
+              <span className="text-sm text-gray-600">mins</span>
+            </div>
+          </div>
+          
+          <div className="flex justify-end pt-2">
+            <Button className="bg-blue-900 hover:bg-blue-800" data-testid="button-save-general-shift">
+              Save Changes
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Attendance Location */}
+      <div className="bg-white rounded-lg border">
+        <div className="bg-gradient-to-r from-cyan-400 to-blue-900 text-white p-3 rounded-t-lg flex items-center justify-between">
+          <h3 className="font-semibold">Attendance Location</h3>
+          <Button 
+            variant="secondary"
+            size="sm"
+            className="bg-white text-blue-900 hover:bg-gray-100"
+            onClick={() => setShowCreateLocationDialog(true)}
+            data-testid="button-create-location"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            Create Location
+          </Button>
+        </div>
+        <div className="p-4">
+          <p className="text-sm text-gray-600 mb-4">Ensure all clock-ins and outs are restricted to a set radius. Create location now!</p>
+          {locations.length === 0 ? (
+            <p className="text-sm text-gray-500 italic">No locations created yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {locations.map((location, index) => (
+                <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <h4 className="font-medium">{location.name}</h4>
+                    <p className="text-sm text-gray-500">{location.address}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Shift Manager */}
+      <div className="bg-white rounded-lg border">
+        <div className="bg-gradient-to-r from-cyan-400 to-blue-900 text-white p-3 rounded-t-lg flex items-center justify-between">
+          <h3 className="font-semibold">Shift Manager</h3>
+          <Button 
+            variant="secondary"
+            size="sm"
+            className="bg-white text-blue-900 hover:bg-gray-100"
+            onClick={() => setShowCreateShiftDialog(true)}
+            data-testid="button-create-shift"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            Create Shift
+          </Button>
+        </div>
+        <div className="p-4 space-y-4">
+          {shifts.map((shift) => (
+            <div key={shift.id} className="border rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <h4 className="font-medium text-lg">{shift.name}</h4>
+                  <Button variant="link" size="sm" className="text-cyan-600" data-testid={`button-see-more-${shift.id}`}>
+                    See More
+                  </Button>
+                  <Switch defaultChecked className="data-[state=checked]:bg-blue-900" data-testid={`switch-shift-${shift.id}`} />
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowAssignShiftDialog(true)}
+                    data-testid={`button-assign-shift-${shift.id}`}
+                  >
+                    <Users className="w-4 h-4 mr-1" />
+                    Assign Shift
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowUpdateShiftDialog(true)}
+                    data-testid={`button-update-shift-${shift.id}`}
+                  >
+                    <Settings className="w-4 h-4 mr-1" />
+                    Update Shift
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="flex flex-wrap gap-2 mb-2">
+                {shift.days.map((day, index) => (
+                  <span key={index} className="px-3 py-1 bg-cyan-100 text-cyan-800 rounded-full text-sm">
+                    {day}
+                  </span>
+                ))}
+              </div>
+              
+              <p className="text-sm text-gray-500">{shift.description}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
   const renderNotificationForm = () => (
     <div className="space-y-6">
       {/* Notification Setting */}
@@ -2174,6 +2376,7 @@ export default function SystemSettingPage() {
              currentSection === "department" ? renderDepartmentForm() :
              currentSection === "payment" ? renderPaymentForm() :
              currentSection === "notifications" ? renderNotificationForm() :
+             currentSection === "attendance" ? renderAttendanceForm() :
              renderPlaceholderContent(currentSection)}
           </div>
         </div>
@@ -2433,6 +2636,371 @@ export default function SystemSettingPage() {
               className="bg-blue-900 hover:bg-blue-800 text-white"
               data-testid="button-save-department"
             >
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Location Dialog */}
+      <Dialog open={showCreateLocationDialog} onOpenChange={setShowCreateLocationDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="bg-gradient-to-r from-cyan-400 to-blue-900 bg-clip-text text-transparent">
+              Attendance Location
+            </DialogTitle>
+            <DialogDescription>Geofence Location</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Location Name</Label>
+              <Input
+                placeholder="Name"
+                value={locationForm.name}
+                onChange={(e) => setLocationForm(prev => ({...prev, name: e.target.value}))}
+                data-testid="input-location-name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Location Address</Label>
+              <Input
+                placeholder="Location Address"
+                value={locationForm.address}
+                onChange={(e) => setLocationForm(prev => ({...prev, address: e.target.value}))}
+                data-testid="input-location-address"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateLocationDialog(false)} data-testid="button-cancel-location">
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                setLocations(prev => [...prev, locationForm]);
+                setLocationForm({name: "", address: ""});
+                setShowCreateLocationDialog(false);
+              }}
+              className="bg-blue-900 hover:bg-blue-800"
+              data-testid="button-save-location"
+            >
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Assign Shift Dialog */}
+      <Dialog open={showAssignShiftDialog} onOpenChange={setShowAssignShiftDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="bg-gradient-to-r from-blue-800 to-blue-900 bg-clip-text text-transparent">
+              Assign Shift
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {/* Tab Navigation */}
+            <div className="flex border-b">
+              {["role", "department", "employee"].map((tab) => (
+                <button
+                  key={tab}
+                  className={`px-4 py-2 text-sm font-medium capitalize ${
+                    assignShiftTab === tab 
+                      ? "border-b-2 border-blue-600 text-blue-600" 
+                      : "text-gray-500"
+                  }`}
+                  onClick={() => setAssignShiftTab(tab)}
+                  data-testid={`tab-${tab}`}
+                >
+                  By {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </button>
+              ))}
+            </div>
+
+            {/* Search */}
+            <div className="space-y-2">
+              <Label>Search:</Label>
+              <Input placeholder="Search..." data-testid="input-search-assign" />
+            </div>
+
+            {/* Assignment Table */}
+            <div className="border rounded-lg">
+              <div className="bg-gray-50 p-3 rounded-t-lg">
+                <div className="grid grid-cols-3 gap-4 font-medium">
+                  <span>Role</span>
+                  <span>Clock In</span>
+                  <span>Clock Out</span>
+                </div>
+              </div>
+              <div className="divide-y">
+                {assignShiftData.map((item) => (
+                  <div key={item.id} className="p-3">
+                    <div className="grid grid-cols-3 gap-4">
+                      <span>{item.role}</span>
+                      <span>{item.clockIn}</span>
+                      <span>{item.clockOut}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Pagination */}
+            <div className="flex items-center justify-between">
+              <Button variant="outline" size="sm" data-testid="button-previous">Previous</Button>
+              <span className="text-sm text-gray-600">1</span>
+              <Button variant="outline" size="sm" data-testid="button-next">Next</Button>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAssignShiftDialog(false)} data-testid="button-cancel-assign">
+              Cancel
+            </Button>
+            <Button className="bg-blue-900 hover:bg-blue-800" data-testid="button-save-assign">
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Shift Dialog */}
+      <Dialog open={showCreateShiftDialog} onOpenChange={setShowCreateShiftDialog}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="bg-gradient-to-r from-blue-800 to-blue-900 bg-clip-text text-transparent">
+              Create New Shift
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            {/* Shift Information */}
+            <div className="space-y-4">
+              <h4 className="font-medium">Shift Information</h4>
+              <p className="text-sm text-gray-500">All employees will comply to this shift information.</p>
+              
+              <div className="space-y-2">
+                <Label>Shift Name</Label>
+                <Input
+                  placeholder="Shift Name"
+                  value={shiftForm.name}
+                  onChange={(e) => setShiftForm(prev => ({...prev, name: e.target.value}))}
+                  data-testid="input-shift-name"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Shift Description</Label>
+                <Textarea
+                  placeholder="Shift Description"
+                  value={shiftForm.description}
+                  onChange={(e) => setShiftForm(prev => ({...prev, description: e.target.value}))}
+                  data-testid="textarea-shift-description"
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Shift Clock In</Label>
+                  <Input
+                    type="time"
+                    value={shiftForm.clockIn}
+                    onChange={(e) => setShiftForm(prev => ({...prev, clockIn: e.target.value}))}
+                    data-testid="input-shift-clock-in"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Shift Clock Out</Label>
+                  <Input
+                    type="time"
+                    value={shiftForm.clockOut}
+                    onChange={(e) => setShiftForm(prev => ({...prev, clockOut: e.target.value}))}
+                    data-testid="input-shift-clock-out"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Shift Settings */}
+            <div className="space-y-4">
+              <h4 className="font-medium">Shift Setting</h4>
+              <p className="text-sm text-gray-500">All employees will comply to this shift setting.</p>
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label>Enable employee overwrite setting</Label>
+                  <Switch
+                    checked={shiftForm.enableOverwriteSetting}
+                    onCheckedChange={(checked) => setShiftForm(prev => ({...prev, enableOverwriteSetting: checked}))}
+                    data-testid="switch-overwrite-setting"
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <Label>Enable employee clock in/out selfie</Label>
+                  <Switch
+                    checked={shiftForm.enableClockInOutSelfie}
+                    onCheckedChange={(checked) => setShiftForm(prev => ({...prev, enableClockInOutSelfie: checked}))}
+                    data-testid="switch-selfie"
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <Label>Enable early & late indicator</Label>
+                  <Switch
+                    checked={shiftForm.enableEarlyLateIndicator}
+                    onCheckedChange={(checked) => setShiftForm(prev => ({...prev, enableEarlyLateIndicator: checked}))}
+                    data-testid="switch-early-late"
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <Label>Display attendance confirmation before submit</Label>
+                  <Switch
+                    checked={shiftForm.displayAttendanceConfirmation}
+                    onCheckedChange={(checked) => setShiftForm(prev => ({...prev, displayAttendanceConfirmation: checked}))}
+                    data-testid="switch-confirmation"
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <Label>Enable Auto Clock Out</Label>
+                  <Switch
+                    checked={shiftForm.enableAutoClockOut}
+                    onCheckedChange={(checked) => setShiftForm(prev => ({...prev, enableAutoClockOut: checked}))}
+                    data-testid="switch-auto-clock-out"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateShiftDialog(false)} data-testid="button-cancel-shift">
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                const newShift = {
+                  id: shifts.length + 1,
+                  name: shiftForm.name || "New Shift",
+                  days: Object.entries(shiftForm.workdays)
+                    .filter(([_, type]) => type !== "Off Day")
+                    .map(([day, _]) => day),
+                  description: shiftForm.description || "No description available.",
+                  clockIn: shiftForm.clockIn,
+                  clockOut: shiftForm.clockOut,
+                };
+                setShifts(prev => [...prev, newShift]);
+                setShowCreateShiftDialog(false);
+              }}
+              className="bg-blue-900 hover:bg-blue-800"
+              data-testid="button-save-shift"
+            >
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Update Shift Dialog */}
+      <Dialog open={showUpdateShiftDialog} onOpenChange={setShowUpdateShiftDialog}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="bg-gradient-to-r from-blue-800 to-blue-900 bg-clip-text text-transparent">
+              Update Shift Setting
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            {/* Shift Information */}
+            <div className="space-y-4">
+              <h4 className="font-medium">Shift Information</h4>
+              <p className="text-sm text-gray-500">All employees will comply to this shift information.</p>
+              
+              <div className="space-y-2">
+                <Label>Shift Name</Label>
+                <Input
+                  value="Default Shift"
+                  readOnly
+                  className="bg-gray-50"
+                  data-testid="input-update-shift-name"
+                />
+              </div>
+            </div>
+
+            {/* Workday Setting */}
+            <div className="space-y-4">
+              <h4 className="font-medium">Workday Setting</h4>
+              <p className="text-sm text-gray-500">All employees will comply to this workday setting.</p>
+              
+              <div className="space-y-3">
+                <div className="grid grid-cols-4 gap-4 font-medium text-sm">
+                  <span>Working</span>
+                  <span>Full Day</span>
+                  <span>Half Day</span>
+                  <span>Off Day</span>
+                </div>
+                
+                {["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].map((day) => (
+                  <div key={day} className="grid grid-cols-4 gap-4 items-center">
+                    <span className="text-sm">{day}</span>
+                    <div className="flex justify-center">
+                      <div className={`w-3 h-3 rounded-full ${day === "Sunday" ? "bg-gray-400" : "bg-blue-600"}`}></div>
+                    </div>
+                    <div className="flex justify-center">
+                      <div className={`w-3 h-3 rounded-full ${day === "Saturday" ? "bg-blue-600" : "bg-gray-400"}`}></div>
+                    </div>
+                    <div className="flex justify-center">
+                      <div className={`w-3 h-3 rounded-full ${day === "Sunday" ? "bg-blue-600" : "bg-gray-400"}`}></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Additional Settings */}
+            <div className="space-y-4">
+              <h4 className="font-medium">Attendance Location</h4>
+              <p className="text-sm text-gray-500">All employees will comply to this location setting, clock-ins and clock-outs are restricted within radius area.</p>
+              
+              <div className="flex items-center justify-between">
+                <Label>Enable geofencing location</Label>
+                <Switch data-testid="switch-update-geofencing" />
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h4 className="font-medium">Break Setting</h4>
+              <p className="text-sm text-gray-500">Schedule break will enable employees to record break time in and out within your shift.</p>
+              
+              <div className="flex items-center justify-between">
+                <Label>Enable Break Time</Label>
+                <Switch data-testid="switch-update-break" />
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h4 className="font-medium">Overtime Setting</h4>
+              <p className="text-sm text-gray-500">All employees will comply to this shift's attendance overtime setting.</p>
+              
+              <div className="flex items-center justify-between">
+                <Label>Enable overtime calculation</Label>
+                <Switch data-testid="switch-update-overtime" />
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h4 className="font-medium">Lateness Setting</h4>
+              <p className="text-sm text-gray-500">Shift's attendance lateness setting to count lateness within your clock in and shift clock in.</p>
+              
+              <div className="flex items-center justify-between">
+                <Label>Enable lateness calculation</Label>
+                <Switch data-testid="switch-update-lateness" />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowUpdateShiftDialog(false)} data-testid="button-cancel-update">
+              Cancel
+            </Button>
+            <Button className="bg-blue-900 hover:bg-blue-800" data-testid="button-save-update">
               Save
             </Button>
           </DialogFooter>
