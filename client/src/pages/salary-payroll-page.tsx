@@ -9,6 +9,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
@@ -22,6 +31,17 @@ import {
 export default function SalaryPayrollPage() {
   const [dateRange, setDateRange] = useState("01/2025 - 12/2025");
   const [selectedEmployee, setSelectedEmployee] = useState("All employee");
+  const [showNewPayrollModal, setShowNewPayrollModal] = useState(false);
+  const [payrollFormData, setPayrollFormData] = useState({
+    year: "2025",
+    month: "August",
+    paymentDate: "2025-08-08",
+    remarks: "Payment Remark",
+    claimFinancial: true,
+    claimOvertime: true,
+    unpaidLeave: true,
+    lateness: false
+  });
 
   // Sample data for Employee Salary Table
   const employeeData = [
@@ -44,6 +64,24 @@ export default function SalaryPayrollPage() {
   ];
 
   const allEmployees = ["All employee", "SITI NADIAH SABRI", "Madrah Samsi"];
+  const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+  const years = ["2023", "2024", "2025", "2026"];
+
+  const handlePayrollInputChange = (field: string, value: string | boolean) => {
+    setPayrollFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleGeneratePayroll = () => {
+    // Handle generate payroll logic here
+    console.log("Generate Payroll:", payrollFormData);
+    setShowNewPayrollModal(false);
+  };
 
   const renderPayrollListTable = () => (
     <div className="bg-white border rounded-lg overflow-hidden">
@@ -271,6 +309,7 @@ export default function SalaryPayrollPage() {
             {/* Run Payment Button - only show on Salary Payroll List tab */}
             <Button 
               className="bg-blue-900 hover:bg-blue-800 text-white"
+              onClick={() => setShowNewPayrollModal(true)}
               data-testid="button-run-payment"
             >
               <Play className="w-4 h-4 mr-2" />
@@ -465,6 +504,145 @@ export default function SalaryPayrollPage() {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Run New Payroll Modal */}
+        <Dialog open={showNewPayrollModal} onOpenChange={setShowNewPayrollModal}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader className="bg-blue-900 text-white p-4 -m-6 mb-6 rounded-t-lg">
+              <DialogTitle className="text-lg font-semibold">Run New Payroll</DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              {/* Payroll Information Section */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-medium text-gray-700">Payroll Information</h4>
+                
+                {/* Year */}
+                <div className="space-y-2">
+                  <Label htmlFor="payroll-year" className="text-sm font-medium">Year</Label>
+                  <Select value={payrollFormData.year} onValueChange={(value) => handlePayrollInputChange('year', value)}>
+                    <SelectTrigger data-testid="select-payroll-year">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {years.map((year) => (
+                        <SelectItem key={year} value={year}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Month */}
+                <div className="space-y-2">
+                  <Label htmlFor="payroll-month" className="text-sm font-medium">Month</Label>
+                  <Select value={payrollFormData.month} onValueChange={(value) => handlePayrollInputChange('month', value)}>
+                    <SelectTrigger data-testid="select-payroll-month">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {months.map((month) => (
+                        <SelectItem key={month} value={month}>
+                          {month}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Payment Date */}
+                <div className="space-y-2">
+                  <Label htmlFor="payroll-payment-date" className="text-sm font-medium">Payment Date</Label>
+                  <Input
+                    id="payroll-payment-date"
+                    type="date"
+                    value={payrollFormData.paymentDate}
+                    onChange={(e) => handlePayrollInputChange('paymentDate', e.target.value)}
+                    data-testid="input-payroll-payment-date"
+                  />
+                </div>
+
+                {/* Remarks */}
+                <div className="space-y-2">
+                  <Label htmlFor="payroll-remarks" className="text-sm font-medium">Remarks</Label>
+                  <Textarea
+                    id="payroll-remarks"
+                    value={payrollFormData.remarks}
+                    onChange={(e) => handlePayrollInputChange('remarks', e.target.value)}
+                    placeholder="Payment Remark"
+                    rows={3}
+                    data-testid="textarea-payroll-remarks"
+                  />
+                </div>
+              </div>
+
+              {/* Include Into Payroll Section */}
+              <div className="space-y-4 pt-4">
+                <h4 className="text-sm font-medium text-gray-700">Include Into payroll</h4>
+                
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="claim-financial" className="text-sm font-medium">Claim Financial</Label>
+                  <Switch
+                    id="claim-financial"
+                    checked={payrollFormData.claimFinancial}
+                    onCheckedChange={(checked) => handlePayrollInputChange('claimFinancial', checked)}
+                    data-testid="switch-claim-financial"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="claim-overtime" className="text-sm font-medium">Claim Overtime</Label>
+                  <Switch
+                    id="claim-overtime"
+                    checked={payrollFormData.claimOvertime}
+                    onCheckedChange={(checked) => handlePayrollInputChange('claimOvertime', checked)}
+                    data-testid="switch-claim-overtime"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="unpaid-leave" className="text-sm font-medium">Unpaid Leave</Label>
+                  <Switch
+                    id="unpaid-leave"
+                    checked={payrollFormData.unpaidLeave}
+                    onCheckedChange={(checked) => handlePayrollInputChange('unpaidLeave', checked)}
+                    data-testid="switch-unpaid-leave"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="lateness" className="text-sm font-medium">Lateness</Label>
+                  <Switch
+                    id="lateness"
+                    checked={payrollFormData.lateness}
+                    onCheckedChange={(checked) => handlePayrollInputChange('lateness', checked)}
+                    data-testid="switch-lateness"
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-2 pt-6">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowNewPayrollModal(false)}
+                  className="border-red-300 text-red-600 hover:bg-red-50"
+                  data-testid="button-cancel-payroll"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleGeneratePayroll}
+                  className="bg-blue-900 hover:bg-blue-800 text-white"
+                  data-testid="button-generate-payroll"
+                >
+                  Generate Payment
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );
