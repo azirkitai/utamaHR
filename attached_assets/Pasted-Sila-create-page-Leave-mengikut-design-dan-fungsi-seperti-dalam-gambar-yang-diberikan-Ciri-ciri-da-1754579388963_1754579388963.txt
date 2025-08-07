@@ -1,0 +1,61 @@
+Sila create page Leave mengikut design dan fungsi seperti dalam gambar yang diberikan.
+
+Ciri-ciri dan elemen penting yang perlu ada:
+
+Header dan Sidebar
+
+Kekalkan header dan sidebar seperti sedia ada untuk konsistensi antara semua page.
+
+Sidebar ada menu: Dashboard, My Record, Apply, Announcement, Calendar, Performance, Invite Friends, Administration, Employee, Approval, Attendance, Evaluation, Yearly Form, Payment, System Setting.
+
+Title Page
+
+Paparkan tajuk “Manage Leave History” di bahagian atas page.
+
+Tab Navigation
+
+Sediakan tab di bawah tajuk:
+
+Leave Approval
+
+Leave Report
+
+Summary
+
+History
+
+Leave Application Summary / Report
+
+Paparkan section dengan tajuk “Leave Application Summary” (untuk tab Summary & History) atau “Leave Application Report” (untuk tab Report).
+
+Ada dropdown untuk Department dan Year (atau Date Period, Employee, Leave Type, Leave Status untuk Report).
+
+Ada fungsi carian (Search).
+
+Table
+
+Untuk setiap tab, paparkan jadual yang mengandungi maklumat berikut:
+
+History Tab: Name, Balance Carry Forward, Balance Annual Leave, Balance Medical Leave, Balance Leave In Lieu, Carry Forward, Annual Leave, Medical Leave, Leave In Lieu, Unpaid Leave, Public Holiday Leave, Emergency Leave, Paternity Leave.
+
+Summary Tab: Name, Annual Leave, Medical Leave, Compassionate Leave (Paternity/Maternity/Death of Family), Sick (Spouse, Child, Parent), Emergency Leave, Unpaid Leave, Public Holiday, Leave In Lieu, Exam Leave.
+
+Leave Report Tab: Name, Status, Leave Type, Start Date, End Date, Day(s), Approve, Action.
+
+Leave Approval Tab: Name, Status, Leave Type, Start Date, End Date, Day(s), Action.
+
+Button & Function
+
+Pastikan ada butang Search dan ikon Print (jika perlu).
+
+Jadual membolehkan user lihat semua rekod cuti atau summary cuti mengikut tahun atau department.
+
+Layout
+
+Semua elemen perlu ikut warna dan tema seperti gambar asal.
+
+Pastikan responsive dan mudah digunakan.
+
+Nota:
+Page ini adalah untuk staff/admin pantau, review, approve, dan lihat sejarah cuti pekerja. Semua data akan dipaparkan dalam jadual berdasarkan pilihan tab, department, tahun, atau filter lain.
+

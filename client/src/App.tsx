@@ -15,6 +15,7 @@ import ApplyTimeoffPage from "@/pages/apply-timeoff-page";
 import AnnouncementPage from "@/pages/announcement-page";
 import CalendarPage from "@/pages/calendar-page";
 import ManageEmployeePage from "@/pages/manage-employee-page";
+import LeaveApprovalPage from "@/pages/leave-approval-page";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "./lib/protected-route";
 
@@ -30,6 +31,7 @@ function Router() {
       <ProtectedRoute path="/announcement" component={AnnouncementPage} />
       <ProtectedRoute path="/calendar" component={CalendarPage} />
       <ProtectedRoute path="/manage-employee" component={ManageEmployeePage} />
+      <ProtectedRoute path="/approval/leave" component={LeaveApprovalPage} />
       <ProtectedRoute path="/debug" component={DebugPage} />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
