@@ -350,6 +350,20 @@ export default function SystemSettingPage() {
     { id: 1, role: "Human Resource", clockIn: "08:30 AM", clockOut: "05:30 PM" },
     { id: 2, role: "Employee", clockIn: "08:30 AM", clockOut: "05:30 PM" },
   ]);
+
+  // Yearly Form state
+  const [yearlyFormSettings, setYearlyFormSettings] = useState({
+    eaPersonInCharge: "",
+  });
+
+  // Mock employee data for EA Person In Charge dropdown
+  const [employees, setEmployees] = useState([
+    { id: 1, name: "Ahmad Hassan", position: "HR Manager" },
+    { id: 2, name: "Siti Nurhaliza", position: "Accountant" },
+    { id: 3, name: "Muhammad Ali", position: "Finance Manager" },
+    { id: 4, name: "Fatimah Abdullah", position: "Admin Officer" },
+    { id: 5, name: "Azmi Rahman", position: "HR Executive" },
+  ]);
   const [companyData, setCompanyData] = useState({
     companyName: "utama hr",
     companyShortName: "KLINIK UTAMA 24 JAM",
@@ -2157,6 +2171,52 @@ export default function SystemSettingPage() {
     </div>
   );
 
+  const renderYearlyForm = () => (
+    <div className="space-y-6">
+      {/* EA Form Section */}
+      <div className="bg-white rounded-lg border">
+        <div className="bg-gradient-to-r from-cyan-400 to-teal-400 text-white p-3 rounded-t-lg">
+          <h3 className="font-semibold">EA Form</h3>
+        </div>
+        <div className="p-6 space-y-6">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">EA Person In Charge</Label>
+              <Select 
+                value={yearlyFormSettings.eaPersonInCharge} 
+                onValueChange={(value) => setYearlyFormSettings(prev => ({...prev, eaPersonInCharge: value}))}
+              >
+                <SelectTrigger className="w-full" data-testid="select-ea-person-in-charge">
+                  <SelectValue placeholder="Select PIC" />
+                </SelectTrigger>
+                <SelectContent>
+                  {employees.map((employee) => (
+                    <SelectItem key={employee.id} value={employee.id.toString()}>
+                      {employee.name} - {employee.position}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-4">
+            <Button 
+              className="bg-blue-900 hover:bg-blue-800" 
+              data-testid="button-save-yearly-form"
+              onClick={() => {
+                // Handle save functionality
+                console.log("Yearly Form settings saved:", yearlyFormSettings);
+              }}
+            >
+              Save Changes
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderNotificationForm = () => (
     <div className="space-y-6">
       {/* Notification Setting */}
@@ -2377,6 +2437,7 @@ export default function SystemSettingPage() {
              currentSection === "payment" ? renderPaymentForm() :
              currentSection === "notifications" ? renderNotificationForm() :
              currentSection === "attendance" ? renderAttendanceForm() :
+             currentSection === "yearly-form" ? renderYearlyForm() :
              renderPlaceholderContent(currentSection)}
           </div>
         </div>
