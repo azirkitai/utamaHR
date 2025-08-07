@@ -6,11 +6,15 @@ import {
   type UpdateEmployee,
   type QrToken,
   type InsertQrToken,
+  type OfficeLocation,
+  type InsertOfficeLocation,
+  type UpdateOfficeLocation,
   type ClockInRecord,
   type InsertClockIn,
   users, 
   employees,
   qrTokens,
+  officeLocations,
   clockInRecords
 } from "@shared/schema";
 import { db } from "./db";
@@ -33,6 +37,14 @@ export interface IStorage {
   createQrToken(qrToken: InsertQrToken): Promise<QrToken>;
   getValidQrToken(token: string): Promise<QrToken | undefined>;
   markQrTokenAsUsed(token: string): Promise<void>;
+  
+  // Office location methods
+  getAllOfficeLocations(): Promise<OfficeLocation[]>;
+  getOfficeLocation(id: string): Promise<OfficeLocation | undefined>;
+  createOfficeLocation(location: InsertOfficeLocation): Promise<OfficeLocation>;
+  updateOfficeLocation(id: string, location: UpdateOfficeLocation): Promise<OfficeLocation | undefined>;
+  deleteOfficeLocation(id: string): Promise<boolean>;
+  getActiveOfficeLocations(): Promise<OfficeLocation[]>;
   
   // Clock-in methods
   createClockInRecord(clockIn: InsertClockIn): Promise<ClockInRecord>;
@@ -130,6 +142,48 @@ export class DatabaseStorage implements IStorage {
       .update(qrTokens)
       .set({ isUsed: "true" })
       .where(eq(qrTokens.token, token));
+  }
+
+  // Office location methods
+  async getAllOfficeLocations(): Promise<OfficeLocation[]> {
+    return await db.select().from(officeLocations);
+  }
+
+  async getOfficeLocation(id: string): Promise<OfficeLocation | undefined> {
+    const [location] = await db.select().from(officeLocations).where(eq(officeLocations.id, id));
+    return location || undefined;
+  }
+
+  async createOfficeLocation(insertLocation: InsertOfficeLocation): Promise<OfficeLocation> {
+    const [location] = await db
+      .insert(officeLocations)
+      .values(insertLocation)
+      .returning();
+    return location;
+  }
+
+  async updateOfficeLocation(id: string, updateLocation: UpdateOfficeLocation): Promise<OfficeLocation | undefined> {
+    const [location] = await db
+      .update(officeLocations)
+      .set({
+        ...updateLocation,
+        updatedAt: new Date(),
+      })
+      .where(eq(officeLocations.id, id))
+      .returning();
+    return location || undefined;
+  }
+
+  async deleteOfficeLocation(id: string): Promise<boolean> {
+    const result = await db.delete(officeLocations).where(eq(officeLocations.id, id));
+    return result.rowCount !== null && result.rowCount > 0;
+  }
+
+  async getActiveOfficeLocations(): Promise<OfficeLocation[]> {
+    return await db
+      .select()
+      .from(officeLocations)
+      .where(eq(officeLocations.isActive, "true"));
   }
 
   // Clock-in methods

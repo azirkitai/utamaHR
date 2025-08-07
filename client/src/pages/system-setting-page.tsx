@@ -37,10 +37,15 @@ import {
   Link,
   Settings,
   User,
-  Calendar
+  Calendar,
+  MapPin,
+  Navigation,
+  Loader2
 } from "lucide-react";
 import { useLocation, Link as RouterLink } from "wouter";
 import { cn } from "@/lib/utils";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 const settingsMenuItems = [
   {
@@ -304,7 +309,7 @@ export default function SystemSettingPage() {
     }
   ]);
 
-  const [locations, setLocations] = useState([]);
+
 
   // Dialog states
   const [showCreateLocationDialog, setShowCreateLocationDialog] = useState(false);
@@ -313,10 +318,83 @@ export default function SystemSettingPage() {
   const [showCreateShiftDialog, setShowCreateShiftDialog] = useState(false);
 
   // Location form state
-  const [locationForm, setLocationForm] = useState({
+  const [newLocationForm, setNewLocationForm] = useState({
     name: "",
     address: "",
+    latitude: "",
+    longitude: "",
+    radius: "50", // Default 50 meters
+    useGPS: false,
+    isActive: "true"
   });
+
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
+
+  // Office locations state with React Query
+  const { data: officeLocations = [], refetch: refetchLocations } = useQuery({
+    queryKey: ["/api/office-locations"],
+    enabled: true
+  });
+
+  const createLocationMutation = useMutation({
+    mutationFn: async (locationData: typeof newLocationForm) => {
+      const response = await apiRequest("POST", "/api/office-locations", {
+        name: locationData.name,
+        address: locationData.address,
+        latitude: locationData.latitude,
+        longitude: locationData.longitude,
+        radius: locationData.radius,
+        isActive: locationData.isActive
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      refetchLocations();
+      setShowCreateLocationDialog(false);
+      setNewLocationForm({
+        name: "",
+        address: "",
+        latitude: "",
+        longitude: "",
+        radius: "50",
+        useGPS: false,
+        isActive: "true"
+      });
+    },
+    onError: (error: Error) => {
+      console.error("Create location error:", error);
+    }
+  });
+
+  // Get current GPS location
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert("GPS tidak disokong oleh pelayar ini");
+      return;
+    }
+
+    setIsGettingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setNewLocationForm(prev => ({
+          ...prev,
+          latitude: position.coords.latitude.toString(),
+          longitude: position.coords.longitude.toString(),
+        }));
+        setIsGettingLocation(false);
+      },
+      (error) => {
+        console.error("GPS error:", error);
+        alert("Gagal mendapatkan lokasi GPS");
+        setIsGettingLocation(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000
+      }
+    );
+  };
 
   // Shift form state
   const [shiftForm, setShiftForm] = useState({
@@ -2090,15 +2168,30 @@ export default function SystemSettingPage() {
         </div>
         <div className="p-4">
           <p className="text-sm text-gray-600 mb-4">Ensure all clock-ins and outs are restricted to a set radius. Create location now!</p>
-          {locations.length === 0 ? (
+          {officeLocations.length === 0 ? (
             <p className="text-sm text-gray-500 italic">No locations created yet.</p>
           ) : (
             <div className="space-y-2">
-              {locations.map((location, index) => (
-                <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+              {officeLocations.map((location) => (
+                <div key={location.id} className="flex items-center justify-between p-3 border rounded-lg">
                   <div>
-                    <h4 className="font-medium">{location.name}</h4>
+                    <h4 className="font-medium flex items-center gap-2">
+                      <MapPin className="w-4 h-4" />
+                      {location.name}
+                      {location.isActive === "true" && (
+                        <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Active</span>
+                      )}
+                    </h4>
                     <p className="text-sm text-gray-500">{location.address}</p>
+                    <p className="text-xs text-gray-400">Radius: {location.radius}m</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" data-testid={`button-edit-location-${location.id}`}>
+                      Edit
+                    </Button>
+                    <Button variant="outline" size="sm" className="text-red-600" data-testid={`button-delete-location-${location.id}`}>
+                      Delete
+                    </Button>
                   </div>
                 </div>
               ))}
@@ -2708,53 +2801,7 @@ export default function SystemSettingPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Create Location Dialog */}
-      <Dialog open={showCreateLocationDialog} onOpenChange={setShowCreateLocationDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="bg-gradient-to-r from-cyan-400 to-blue-900 bg-clip-text text-transparent">
-              Attendance Location
-            </DialogTitle>
-            <DialogDescription>Geofence Location</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>Location Name</Label>
-              <Input
-                placeholder="Name"
-                value={locationForm.name}
-                onChange={(e) => setLocationForm(prev => ({...prev, name: e.target.value}))}
-                data-testid="input-location-name"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Location Address</Label>
-              <Input
-                placeholder="Location Address"
-                value={locationForm.address}
-                onChange={(e) => setLocationForm(prev => ({...prev, address: e.target.value}))}
-                data-testid="input-location-address"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateLocationDialog(false)} data-testid="button-cancel-location">
-              Cancel
-            </Button>
-            <Button 
-              onClick={() => {
-                setLocations(prev => [...prev, locationForm]);
-                setLocationForm({name: "", address: ""});
-                setShowCreateLocationDialog(false);
-              }}
-              className="bg-blue-900 hover:bg-blue-800"
-              data-testid="button-save-location"
-            >
-              Save
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
 
       {/* Assign Shift Dialog */}
       <Dialog open={showAssignShiftDialog} onOpenChange={setShowAssignShiftDialog}>
@@ -3068,6 +3115,138 @@ export default function SystemSettingPage() {
             </Button>
             <Button className="bg-blue-900 hover:bg-blue-800" data-testid="button-save-update">
               Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Location Dialog */}
+      <Dialog open={showCreateLocationDialog} onOpenChange={setShowCreateLocationDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-blue-600" />
+              Create Office Location
+            </DialogTitle>
+            <DialogDescription>
+              Set up a new office location for attendance tracking with GPS coordinates and radius validation.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="location-name">Location Name</Label>
+              <Input
+                id="location-name"
+                placeholder="e.g., Main Office"
+                value={newLocationForm.name}
+                onChange={(e) => setNewLocationForm(prev => ({...prev, name: e.target.value}))}
+                data-testid="input-location-name"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="location-address">Address</Label>
+              <Input
+                id="location-address"
+                placeholder="Office address"
+                value={newLocationForm.address}
+                onChange={(e) => setNewLocationForm(prev => ({...prev, address: e.target.value}))}
+                data-testid="input-location-address"
+              />
+            </div>
+
+            <div className="space-y-3">
+              <Label>GPS Coordinates</Label>
+              <div className="flex gap-2 mb-2">
+                <Button
+                  type="button"
+                  variant="outline" 
+                  size="sm"
+                  onClick={getCurrentLocation}
+                  disabled={isGettingLocation}
+                  className="flex items-center gap-2"
+                  data-testid="button-get-gps"
+                >
+                  {isGettingLocation ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Navigation className="w-4 h-4" />
+                  )}
+                  {isGettingLocation ? "Getting GPS..." : "Get Current GPS"}
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-sm">Latitude</Label>
+                  <Input
+                    placeholder="e.g., 3.1390"
+                    value={newLocationForm.latitude}
+                    onChange={(e) => setNewLocationForm(prev => ({...prev, latitude: e.target.value}))}
+                    data-testid="input-latitude"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-sm">Longitude</Label>
+                  <Input
+                    placeholder="e.g., 101.6869"
+                    value={newLocationForm.longitude}
+                    onChange={(e) => setNewLocationForm(prev => ({...prev, longitude: e.target.value}))}
+                    data-testid="input-longitude"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="location-radius">Allowed Radius (meters)</Label>
+              <Input
+                id="location-radius"
+                type="number"
+                placeholder="50"
+                value={newLocationForm.radius}
+                onChange={(e) => setNewLocationForm(prev => ({...prev, radius: e.target.value}))}
+                data-testid="input-radius"
+              />
+              <p className="text-xs text-gray-500">Employees must be within this radius to clock in/out</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="location-status">Status</Label>
+              <Select 
+                value={newLocationForm.isActive} 
+                onValueChange={(value) => setNewLocationForm(prev => ({...prev, isActive: value}))}
+              >
+                <SelectTrigger data-testid="select-location-status">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="true">Active</SelectItem>
+                  <SelectItem value="false">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowCreateLocationDialog(false)}
+              data-testid="button-cancel-create-location"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => createLocationMutation.mutate(newLocationForm)}
+              disabled={createLocationMutation.isPending || !newLocationForm.name || !newLocationForm.latitude || !newLocationForm.longitude}
+              className="bg-blue-900 hover:bg-blue-800"
+              data-testid="button-save-location"
+            >
+              {createLocationMutation.isPending ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : null}
+              Save Location
             </Button>
           </DialogFooter>
         </DialogContent>

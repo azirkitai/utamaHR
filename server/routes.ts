@@ -7,7 +7,9 @@ import {
   updateEmployeeSchema,
   insertQrTokenSchema, 
   mobileClockInSchema,
-  insertClockInSchema 
+  insertClockInSchema,
+  insertOfficeLocationSchema,
+  updateOfficeLocationSchema
 } from "@shared/schema";
 import { checkEnvironmentSecrets } from "./env-check";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
@@ -222,22 +224,43 @@ export function registerRoutes(app: Express): Server {
         });
       }
 
-      // Office location coordinates (example: Kuala Lumpur city center)
-      const OFFICE_LAT = 3.1390;
-      const OFFICE_LNG = 101.6869;
-      const MAX_DISTANCE = 50; // 50 meters radius
+      // Get active office locations
+      const activeLocations = await storage.getActiveOfficeLocations();
+      if (activeLocations.length === 0) {
+        return res.status(400).json({ 
+          error: "Tiada lokasi pejabat aktif ditetapkan" 
+        });
+      }
 
-      // Calculate distance between user location and office
-      const distance = calculateDistance(
-        parseFloat(latitude), 
-        parseFloat(longitude), 
-        OFFICE_LAT, 
-        OFFICE_LNG
-      );
+      // Check if user is within any office location radius
+      let locationStatus = "invalid";
+      let nearestDistance = Infinity;
+      let nearestLocationId = null;
+      let locationMessage = "";
 
-      let locationStatus = "valid";
-      if (distance > MAX_DISTANCE) {
-        locationStatus = "invalid";
+      for (const location of activeLocations) {
+        const distance = calculateDistance(
+          parseFloat(latitude), 
+          parseFloat(longitude), 
+          parseFloat(location.latitude), 
+          parseFloat(location.longitude)
+        );
+
+        if (distance < nearestDistance) {
+          nearestDistance = distance;
+          nearestLocationId = location.id;
+        }
+
+        // Check if within allowed radius for this location
+        const maxDistance = parseFloat(location.radius);
+        if (distance <= maxDistance) {
+          locationStatus = "valid";
+          break;
+        }
+      }
+
+      if (locationStatus === "invalid") {
+        locationMessage = "Anda berada di luar kawasan pejabat. Sila berada dalam kawasan yang ditetapkan untuk check in";
       }
 
       // Process selfie image path
@@ -253,7 +276,9 @@ export function registerRoutes(app: Express): Server {
         latitude,
         longitude,
         selfieImagePath,
-        locationStatus
+        locationStatus,
+        distance: nearestDistance.toString(),
+        officeLocationId: nearestLocationId
       });
 
       const user = await storage.getUser(qrToken.userId);
@@ -264,14 +289,15 @@ export function registerRoutes(app: Express): Server {
           id: clockInRecord.id,
           clockInTime: clockInRecord.clockInTime,
           locationStatus: clockInRecord.locationStatus,
-          distance: Math.round(distance)
+          distance: Math.round(nearestDistance)
         },
         user: {
           username: user?.username
         },
         message: locationStatus === "valid" 
           ? "Clock-in berjaya! Anda berada dalam kawasan pejabat." 
-          : `Clock-in direkod tetapi anda berada ${Math.round(distance)}m dari pejabat (had: ${MAX_DISTANCE}m).`
+          : locationMessage,
+        distance: Math.round(nearestDistance)
       });
 
     } catch (error) {
@@ -314,6 +340,79 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Clock-in history error:", error);
       res.status(500).json({ error: "Gagal mendapatkan sejarah clock-in" });
+    }
+  });
+
+  // Office Location management routes (admin only)
+  app.get("/api/office-locations", authenticateToken, async (req, res) => {
+    try {
+      const locations = await storage.getAllOfficeLocations();
+      res.json(locations);
+    } catch (error) {
+      console.error("Get office locations error:", error);
+      res.status(500).json({ error: "Gagal mendapatkan senarai lokasi pejabat" });
+    }
+  });
+
+  app.get("/api/office-locations/active", authenticateToken, async (req, res) => {
+    try {
+      const locations = await storage.getActiveOfficeLocations();
+      res.json(locations);
+    } catch (error) {
+      console.error("Get active office locations error:", error);
+      res.status(500).json({ error: "Gagal mendapatkan senarai lokasi aktif" });
+    }
+  });
+
+  app.post("/api/office-locations", authenticateToken, async (req, res) => {
+    try {
+      const validationResult = insertOfficeLocationSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Data tidak sah", 
+          details: validationResult.error.issues 
+        });
+      }
+
+      const location = await storage.createOfficeLocation(validationResult.data);
+      res.status(201).json(location);
+    } catch (error) {
+      console.error("Create office location error:", error);
+      res.status(500).json({ error: "Gagal mencipta lokasi pejabat" });
+    }
+  });
+
+  app.put("/api/office-locations/:id", authenticateToken, async (req, res) => {
+    try {
+      const validationResult = updateOfficeLocationSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Data tidak sah", 
+          details: validationResult.error.issues 
+        });
+      }
+
+      const location = await storage.updateOfficeLocation(req.params.id, validationResult.data);
+      if (!location) {
+        return res.status(404).json({ error: "Lokasi tidak dijumpai" });
+      }
+      res.json(location);
+    } catch (error) {
+      console.error("Update office location error:", error);
+      res.status(500).json({ error: "Gagal mengemaskini lokasi pejabat" });
+    }
+  });
+
+  app.delete("/api/office-locations/:id", authenticateToken, async (req, res) => {
+    try {
+      const success = await storage.deleteOfficeLocation(req.params.id);
+      if (!success) {
+        return res.status(404).json({ error: "Lokasi tidak dijumpai" });
+      }
+      res.json({ message: "Lokasi berjaya dipadam" });
+    } catch (error) {
+      console.error("Delete office location error:", error);
+      res.status(500).json({ error: "Gagal memadamkan lokasi pejabat" });
     }
   });
 

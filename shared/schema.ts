@@ -36,6 +36,19 @@ export const qrTokens = pgTable("qr_tokens", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Office locations for clock-in validation
+export const officeLocations = pgTable("office_locations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  address: text("address"),
+  latitude: text("latitude").notNull(),
+  longitude: text("longitude").notNull(),
+  radius: text("radius").notNull().default("50"), // in meters
+  isActive: text("is_active").notNull().default("true"), // Store as text: "true", "false"
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Clock-in records
 export const clockInRecords = pgTable("clock_in_records", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -45,6 +58,8 @@ export const clockInRecords = pgTable("clock_in_records", {
   longitude: text("longitude").notNull(),
   selfieImagePath: text("selfie_image_path"), // Path to selfie in object storage
   locationStatus: text("location_status").notNull().default("valid"), // valid, invalid
+  distance: text("distance"), // distance from office in meters
+  officeLocationId: varchar("office_location_id").references(() => officeLocations.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -72,6 +87,14 @@ export const insertQrTokenSchema = createInsertSchema(qrTokens).omit({
   createdAt: true,
 });
 
+export const insertOfficeLocationSchema = createInsertSchema(officeLocations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateOfficeLocationSchema = insertOfficeLocationSchema.partial();
+
 export const insertClockInSchema = createInsertSchema(clockInRecords).omit({
   id: true,
   createdAt: true,
@@ -94,6 +117,9 @@ export type InsertEmployee = z.infer<typeof insertEmployeeSchema>;
 export type UpdateEmployee = z.infer<typeof updateEmployeeSchema>;
 export type QrToken = typeof qrTokens.$inferSelect;
 export type InsertQrToken = z.infer<typeof insertQrTokenSchema>;
+export type OfficeLocation = typeof officeLocations.$inferSelect;
+export type InsertOfficeLocation = z.infer<typeof insertOfficeLocationSchema>;
+export type UpdateOfficeLocation = z.infer<typeof updateOfficeLocationSchema>;
 export type ClockInRecord = typeof clockInRecords.$inferSelect;
 export type InsertClockIn = z.infer<typeof insertClockInSchema>;
 export type MobileClockInData = z.infer<typeof mobileClockInSchema>;
