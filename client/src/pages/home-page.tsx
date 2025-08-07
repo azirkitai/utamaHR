@@ -10,6 +10,7 @@ import {
   Calendar,
   DollarSign
 } from "lucide-react";
+import { Link } from "wouter";
 
 export default function HomePage() {
   const { user, logoutMutation } = useAuth();
@@ -134,10 +135,12 @@ export default function HomePage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2" data-testid="button-add-employee">
-                <Users className="h-6 w-6" />
-                <span>Tambah Pekerja</span>
-              </Button>
+              <Link href="/employees">
+                <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2 w-full" data-testid="button-manage-employees">
+                  <Users className="h-6 w-6" />
+                  <span>Senarai Pekerja</span>
+                </Button>
+              </Link>
               
               <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2" data-testid="button-manage-attendance">
                 <Calendar className="h-6 w-6" />
