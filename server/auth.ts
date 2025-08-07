@@ -39,7 +39,7 @@ function generateToken(user: User): string {
     id: user.id,
     username: user.username,
   };
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: "24h" });
 }
 
 function verifyToken(token: string): any {
