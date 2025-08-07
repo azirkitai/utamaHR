@@ -27,7 +27,8 @@ import {
   ClockIcon,
   AlertTriangle,
   Banknote,
-  Receipt
+  Receipt,
+  Bell
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
@@ -206,10 +207,72 @@ const navigationItems: { category: string; items: SidebarItem[] }[] = [
         ],
       },
       {
-        id: "settings",
-        label: "Settings",
+        id: "system-setting",
+        label: "System Setting",
         icon: <Settings className="w-4 h-4" />,
-        href: "/settings",
+        href: "/system-setting",
+        children: [
+          {
+            id: "setting-company",
+            label: "Company",
+            icon: <Building2 className="w-3 h-3" />,
+            href: "/system-setting/company",
+          },
+          {
+            id: "setting-leave",
+            label: "Leave",
+            icon: <CalendarDays className="w-3 h-3" />,
+            href: "/system-setting/leave",
+          },
+          {
+            id: "setting-claim",
+            label: "Claim",
+            icon: <DollarSign className="w-3 h-3" />,
+            href: "/system-setting/claim",
+          },
+          {
+            id: "setting-department",
+            label: "Department",
+            icon: <Users className="w-3 h-3" />,
+            href: "/system-setting/department",
+          },
+          {
+            id: "setting-payment",
+            label: "Payment",
+            icon: <CreditCard className="w-3 h-3" />,
+            href: "/system-setting/payment",
+          },
+          {
+            id: "setting-notifications",
+            label: "Notifications",
+            icon: <Bell className="w-3 h-3" />,
+            href: "/system-setting/notifications",
+          },
+          {
+            id: "setting-attendance",
+            label: "Attendance",
+            icon: <ClockIcon className="w-3 h-3" />,
+            href: "/system-setting/attendance",
+          },
+          {
+            id: "setting-evaluation",
+            label: "Evaluation",
+            icon: <BarChart3 className="w-3 h-3" />,
+            href: "/system-setting/evaluation",
+          },
+          {
+            id: "setting-subscription",
+            label: "Subscription",
+            icon: <Star className="w-3 h-3" />,
+            href: "/system-setting/subscription",
+          },
+          {
+            id: "setting-yearly-form",
+            label: "Yearly Form",
+            icon: <FileText className="w-3 h-3" />,
+            href: "/system-setting/yearly-form",
+          },
+        ],
       },
     ],
   },
