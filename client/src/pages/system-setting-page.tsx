@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { 
   Building2,
   CalendarDays,
@@ -88,8 +89,43 @@ const settingsMenuItems = [
   },
 ];
 
+// Leave policies data
+const leavePolicies = [
+  { id: "annual", name: "Annual Leave", entitlement: "12 Day(s)", enabled: true },
+  { id: "medical", name: "Medical Leave", entitlement: "90 Day(s)", enabled: true },
+  { id: "compassionate-paternity", name: "Compassionate Leave - Paternity Leave", entitlement: "7 Day(s)", enabled: true },
+  { id: "compassionate-maternity", name: "Compassionate Leave - Maternity Leave", entitlement: "98 Day(s)", enabled: true },
+  { id: "compassionate-death", name: "Compassionate Leave - Death Of Family Member", entitlement: "3 Day(s)", enabled: true },
+  { id: "sick-spouse", name: "Sick (Spouse, Child, Parent)", entitlement: "4 Day(s)", enabled: true },
+  { id: "emergency", name: "Emergency Leave", entitlement: "5 Day(s)", enabled: true },
+  { id: "unpaid", name: "Unpaid Leave", entitlement: "30 Day(s)", enabled: true },
+  { id: "public-holiday", name: "Public Holiday", entitlement: "7 Day(s)", enabled: true },
+  { id: "leave-in-lieu", name: "Leave in Lieu", entitlement: "14 Day(s)", enabled: true },
+  { id: "exam", name: "Exam Leave", entitlement: "10 Day(s)", enabled: true },
+  { id: "special-marriage", name: "Special Leave - Marriage Leave", entitlement: "3 Day(s)", enabled: true },
+  { id: "special-umrah", name: "Special Leave - Umrah Leave", entitlement: "7 Day(s)", enabled: true },
+  { id: "special-hajj", name: "Special Leave - Hajj Leave/ Others", entitlement: "30 Day(s)", enabled: true },
+  { id: "carry-forward", name: "Carry Forward Leave", entitlement: "0 Day(s)", enabled: true },
+  { id: "hospitalization", name: "Hospitalization Leave", entitlement: "60 Day(s)", enabled: true },
+];
+
 export default function SystemSettingPage() {
   const [location] = useLocation();
+  const [activeTab, setActiveTab] = useState("leave");
+  const [leaveApproval, setLeaveApproval] = useState({
+    firstLevel: "",
+    secondLevel: "",
+  });
+  const [timeoffApproval, setTimeoffApproval] = useState({
+    firstLevel: "",
+    secondLevel: "",
+  });
+  const [timeoffSettings, setTimeoffSettings] = useState({
+    enableAttachment: true,
+    applicationLimitHour: true,
+    minHour: 0,
+    maxHour: 4,
+  });
   const [companyData, setCompanyData] = useState({
     companyName: "utama hr",
     companyShortName: "KLINIK UTAMA 24 JAM",
@@ -134,6 +170,18 @@ export default function SystemSettingPage() {
 
   const handleUpdate = () => {
     console.log("Update company data:", companyData);
+  };
+
+  const handleSaveLeaveApproval = () => {
+    console.log("Save leave approval:", leaveApproval);
+  };
+
+  const handleSaveTimeoffApproval = () => {
+    console.log("Save timeoff approval:", timeoffApproval);
+  };
+
+  const handleSaveTimeoffSettings = () => {
+    console.log("Save timeoff settings:", timeoffSettings);
   };
 
   const renderCompanyForm = () => (
@@ -532,6 +580,275 @@ export default function SystemSettingPage() {
     </div>
   );
 
+  const renderLeaveForm = () => (
+    <div className="space-y-6">
+      {/* Tab Navigation */}
+      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
+        <button
+          onClick={() => setActiveTab("leave")}
+          className={cn(
+            "px-4 py-2 rounded-md text-sm font-medium transition-colors",
+            activeTab === "leave"
+              ? "bg-cyan-600 text-white"
+              : "text-gray-600 hover:text-gray-900"
+          )}
+          data-testid="tab-leave"
+        >
+          Leave
+        </button>
+        <button
+          onClick={() => setActiveTab("timeoff")}
+          className={cn(
+            "px-4 py-2 rounded-md text-sm font-medium transition-colors",
+            activeTab === "timeoff"
+              ? "bg-cyan-600 text-white"
+              : "text-gray-600 hover:text-gray-900"
+          )}
+          data-testid="tab-timeoff"
+        >
+          Timeoff
+        </button>
+      </div>
+
+      {/* Leave Tab Content */}
+      {activeTab === "leave" && (
+        <>
+          {/* Leave Approval */}
+          <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
+            <h3 className="text-lg font-semibold">Leave Approval</h3>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg border">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">First Level Approval</Label>
+                <Select 
+                  value={leaveApproval.firstLevel} 
+                  onValueChange={(value) => setLeaveApproval(prev => ({...prev, firstLevel: value}))}
+                >
+                  <SelectTrigger data-testid="select-first-level-approval">
+                    <SelectValue placeholder="Select first leave approval" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="manager">Manager</SelectItem>
+                    <SelectItem value="supervisor">Supervisor</SelectItem>
+                    <SelectItem value="hr">HR</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Second Level Approval</Label>
+                <Select 
+                  value={leaveApproval.secondLevel} 
+                  onValueChange={(value) => setLeaveApproval(prev => ({...prev, secondLevel: value}))}
+                >
+                  <SelectTrigger data-testid="select-second-level-approval">
+                    <SelectValue placeholder="None" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="director">Director</SelectItem>
+                    <SelectItem value="ceo">CEO</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Button 
+                  onClick={handleSaveLeaveApproval}
+                  className="bg-blue-900 hover:bg-blue-800 text-white"
+                  data-testid="button-save-leave-approval"
+                >
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Leave Policy */}
+          <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg flex items-center justify-between">
+            <h3 className="text-lg font-semibold">Leave Policy</h3>
+            <Button 
+              variant="secondary"
+              size="sm"
+              className="bg-white text-cyan-600 hover:bg-gray-100"
+              data-testid="button-create-leave-policy"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Leave Policy
+            </Button>
+          </div>
+
+          <div className="bg-white rounded-lg border">
+            <div className="divide-y">
+              {leavePolicies.map((policy) => (
+                <div key={policy.id} className="p-4 flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium text-gray-900">{policy.name}</h4>
+                    <p className="text-sm text-gray-500">Entitlement {policy.entitlement}</p>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="text-cyan-600 hover:text-cyan-700"
+                      data-testid={`button-see-more-${policy.id}`}
+                    >
+                      See More
+                    </Button>
+                    <Switch 
+                      checked={policy.enabled}
+                      className="data-[state=checked]:bg-blue-900"
+                      data-testid={`switch-${policy.id}`}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Timeoff Tab Content */}
+      {activeTab === "timeoff" && (
+        <>
+          {/* Timeoff Approval */}
+          <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
+            <h3 className="text-lg font-semibold">Timeoff Approval</h3>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg border">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">First Level Approval</Label>
+                <Select 
+                  value={timeoffApproval.firstLevel} 
+                  onValueChange={(value) => setTimeoffApproval(prev => ({...prev, firstLevel: value}))}
+                >
+                  <SelectTrigger data-testid="select-timeoff-first-level-approval">
+                    <SelectValue placeholder="Select first leave approval" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="manager">Manager</SelectItem>
+                    <SelectItem value="supervisor">Supervisor</SelectItem>
+                    <SelectItem value="hr">HR</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Second Level Approval</Label>
+                <Select 
+                  value={timeoffApproval.secondLevel} 
+                  onValueChange={(value) => setTimeoffApproval(prev => ({...prev, secondLevel: value}))}
+                >
+                  <SelectTrigger data-testid="select-timeoff-second-level-approval">
+                    <SelectValue placeholder="None" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="director">Director</SelectItem>
+                    <SelectItem value="ceo">CEO</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Button 
+                  onClick={handleSaveTimeoffApproval}
+                  className="bg-blue-900 hover:bg-blue-800 text-white"
+                  data-testid="button-save-timeoff-approval"
+                >
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Timeoff Settings */}
+          <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
+            <h3 className="text-lg font-semibold">Timeoff Setting</h3>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg border space-y-6">
+            {/* Enable Attachment */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-medium text-gray-900">Enable Attachment</h4>
+                <p className="text-sm text-gray-500">Turn on and off attachment compulsory for timeoff application</p>
+              </div>
+              <Switch 
+                checked={timeoffSettings.enableAttachment}
+                onCheckedChange={(checked) => setTimeoffSettings(prev => ({...prev, enableAttachment: checked}))}
+                className="data-[state=checked]:bg-blue-900"
+                data-testid="switch-enable-attachment"
+              />
+            </div>
+
+            {/* Application Limit Hour */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium text-gray-900">Application Limit Hour</h4>
+                  <p className="text-sm text-gray-500">Set the minimum and maximum hour limit per application</p>
+                </div>
+                <Switch 
+                  checked={timeoffSettings.applicationLimitHour}
+                  onCheckedChange={(checked) => setTimeoffSettings(prev => ({...prev, applicationLimitHour: checked}))}
+                  className="data-[state=checked]:bg-blue-900"
+                  data-testid="switch-application-limit-hour"
+                />
+              </div>
+
+              {timeoffSettings.applicationLimitHour && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Minimum Hour(s)</Label>
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        type="number"
+                        value={timeoffSettings.minHour}
+                        onChange={(e) => setTimeoffSettings(prev => ({...prev, minHour: parseInt(e.target.value) || 0}))}
+                        className="flex-1"
+                        data-testid="input-min-hour"
+                      />
+                      <span className="text-sm text-gray-500">Hour(s)</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Maximum Hour(s)</Label>
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        type="number"
+                        value={timeoffSettings.maxHour}
+                        onChange={(e) => setTimeoffSettings(prev => ({...prev, maxHour: parseInt(e.target.value) || 0}))}
+                        className="flex-1"
+                        data-testid="input-max-hour"
+                      />
+                      <span className="text-sm text-gray-500">Hour(s)</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end">
+              <Button 
+                onClick={handleSaveTimeoffSettings}
+                className="bg-blue-900 hover:bg-blue-800 text-white"
+                data-testid="button-save-timeoff-settings"
+              >
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+
   const renderPlaceholderContent = (section: string) => (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
@@ -589,7 +906,9 @@ export default function SystemSettingPage() {
         {/* Right Content Area */}
         <div className="flex-1 overflow-y-auto">
           <div className="p-6">
-            {currentSection === "company" ? renderCompanyForm() : renderPlaceholderContent(currentSection)}
+            {currentSection === "company" ? renderCompanyForm() : 
+             currentSection === "leave" ? renderLeaveForm() : 
+             renderPlaceholderContent(currentSection)}
           </div>
         </div>
       </div>
