@@ -210,20 +210,20 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
       <div className="p-4 border-b border-slate-700">
         <div className="flex items-center justify-between">
           {!isCollapsed && (
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center justify-center w-full">
               <img 
                 src={utamaHRLogo} 
                 alt="UTAMA Human Resources" 
-                className="w-32 h-auto object-contain"
+                className="w-48 h-auto object-contain"
               />
             </div>
           )}
           {isCollapsed && (
-            <div className="flex items-center justify-center">
+            <div className="flex items-center justify-center w-full">
               <img 
                 src={utamaHRLogo} 
                 alt="UTAMA HR" 
-                className="w-8 h-auto object-contain"
+                className="w-10 h-auto object-contain"
               />
             </div>
           )}
@@ -231,7 +231,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
             variant="ghost"
             size="sm"
             onClick={onToggleCollapse}
-            className="text-white hover:bg-slate-700 p-1"
+            className="text-white hover:bg-slate-700 p-1 absolute right-2"
             data-testid="button-toggle-sidebar"
           >
             {isCollapsed ? (
