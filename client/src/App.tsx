@@ -7,7 +7,7 @@ import NotFound from "@/pages/not-found";
 import DashboardHome from "@/pages/dashboard-home";
 import AuthPage from "@/pages/auth-page";
 import EmployeesPage from "@/pages/employees-page";
-import DebugPage from "@/pages/debug-page";
+import SettingsPage from "@/pages/settings-page";
 import MyRecordPage from "@/pages/my-record-page";
 import ApplyLeavePage from "@/pages/apply-leave-page";
 import ApplyClaimPage from "@/pages/apply-claim-page";
@@ -48,7 +48,7 @@ function Router() {
       <ProtectedRoute path="/attendance/lateness" component={LatenessPage} />
       <ProtectedRoute path="/payment/salary-payroll" component={SalaryPayrollPage} />
       <ProtectedRoute path="/payment/voucher" component={PaymentVoucherPage} />
-      <ProtectedRoute path="/debug" component={DebugPage} />
+      <ProtectedRoute path="/settings" component={SettingsPage} />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>
