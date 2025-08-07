@@ -1,0 +1,322 @@
+import { useQuery } from "@tanstack/react-query";
+import { DashboardLayout } from "@/components/dashboard-layout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { 
+  Users, 
+  Clock,
+  UserCheck,
+  FileText,
+  Calendar,
+  DollarSign,
+  TrendingUp,
+  Bell,
+  CheckCircle,
+  AlertCircle,
+  Download
+} from "lucide-react";
+import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+
+interface DashboardData {
+  message: string;
+  user: {
+    id: string;
+    username: string;
+  };
+  timestamp: string;
+}
+
+// Custom fetch function dengan JWT token
+const authenticatedFetch = async (url: string, options: RequestInit = {}): Promise<any> => {
+  const token = localStorage.getItem("utamahr_token");
+  if (!token) {
+    throw new Error("Token tidak ditemui");
+  }
+
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+  if (!response.ok) {
+    if (response.status === 401 || response.status === 403) {
+      localStorage.removeItem("utamahr_token");
+      window.location.href = "/auth";
+      throw new Error("Token tidak sah");
+    }
+    const errorData = await response.json();
+    throw new Error(errorData.error || `HTTP ${response.status}`);
+  }
+
+  return response.json();
+};
+
+// Mock data for demo
+const employeeData = [
+  { name: 'Active', value: 45, color: '#0891b2' },
+  { name: 'Resign', value: 5, color: '#94a3b8' }
+];
+
+const weeklyData = [
+  { day: 'Mon', clockIn: 8, onLeave: 2 },
+  { day: 'Tue', clockIn: 9, onLeave: 1 },
+  { day: 'Wed', clockIn: 8, onLeave: 2 },
+  { day: 'Thu', clockIn: 10, onLeave: 0 },
+  { day: 'Fri', clockIn: 7, onLeave: 3 },
+];
+
+export default function DashboardHome() {
+  // Fetch dashboard data
+  const { data: dashboardData, isLoading } = useQuery<DashboardData>({
+    queryKey: ["/api/dashboard"],
+    queryFn: () => authenticatedFetch("/api/dashboard"),
+  });
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good Morning";
+    if (hour < 17) return "Good Afternoon";
+    return "Good Evening";
+  };
+
+  const userName = dashboardData?.user?.username || 'SITI NADIAH SABRI';
+
+  return (
+    <DashboardLayout>
+      <div className="p-6 space-y-6">
+        {/* Welcome Hero Section */}
+        <div className="relative bg-gradient-to-r from-cyan-500 to-blue-600 rounded-2xl p-8 text-white overflow-hidden">
+          <div className="relative z-10">
+            <div className="flex justify-between items-start">
+              <div>
+                <h1 className="text-3xl font-bold mb-2" data-testid="text-welcome">
+                  Hey,
+                </h1>
+                <h2 className="text-4xl font-bold text-cyan-100 mb-2">
+                  {getGreeting()}
+                </h2>
+                <h3 className="text-2xl font-semibold mb-4">
+                  {userName.toUpperCase()}!
+                </h3>
+                <p className="text-cyan-100 text-lg">
+                  We are delighted to have you here today.
+                </p>
+              </div>
+              
+              {/* Setup Completion Card */}
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 min-w-[300px]">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="font-semibold text-lg">Get easy access to your account today!</h4>
+                  <Button variant="secondary" size="sm" className="text-gray-900">
+                    <Download className="w-4 h-4 mr-2" />
+                    Download MySyarikat Apps today.
+                  </Button>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium">Setup Completion</span>
+                      <span className="text-sm">71%</span>
+                    </div>
+                    <Progress value={71} className="h-2" />
+                    <span className="text-xs text-cyan-200">Overall completion</span>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Company details</span>
+                      <div className="flex items-center">
+                        <span className="text-sm mr-2">10/10</span>
+                        <CheckCircle className="w-4 h-4 text-green-400" />
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Add new staff</span>
+                      <div className="flex items-center">
+                        <span className="text-sm mr-2">1/1</span>
+                        <CheckCircle className="w-4 h-4 text-green-400" />
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Complete leave settings</span>
+                      <div className="flex items-center">
+                        <span className="text-sm mr-2">0/1</span>
+                        <AlertCircle className="w-4 h-4 text-yellow-400" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Decorative elements */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32"></div>
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-24 -translate-x-24"></div>
+        </div>
+
+        {/* Today Statistics */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl text-gray-800">Today Statistic</CardTitle>
+            <p className="text-sm text-gray-600">Here's your employee statistic so far.</p>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              {/* Pie Chart */}
+              <div className="lg:col-span-1">
+                <div className="h-40">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={employeeData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={30}
+                        outerRadius={60}
+                        dataKey="value"
+                      >
+                        {employeeData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex items-center justify-center space-x-4 mt-2">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-cyan-600 rounded-full"></div>
+                    <span className="text-xs text-gray-600">Active</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-slate-400 rounded-full"></div>
+                    <span className="text-xs text-gray-600">Resign</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stats Cards */}
+              <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200">
+                  <CardContent className="p-6 text-center">
+                    <div className="text-3xl font-bold text-blue-600 mb-2">0</div>
+                    <div className="text-sm text-gray-600 mb-1">Total</div>
+                    <div className="text-xs text-gray-500">Clock In</div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+                  <CardContent className="p-6 text-center">
+                    <div className="text-3xl font-bold text-green-600 mb-2">0</div>
+                    <div className="text-sm text-gray-600 mb-1">Total</div>
+                    <div className="text-xs text-gray-500">On Leave</div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200">
+                  <CardContent className="p-6 text-center">
+                    <div className="text-3xl font-bold text-purple-600 mb-2">0</div>
+                    <div className="text-sm text-gray-600 mb-1">Total Leave</div>
+                    <div className="text-xs text-gray-500">Approved</div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Pending Approval */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl text-gray-800">Pending Approval</CardTitle>
+            <p className="text-sm text-gray-600">task(s) waiting for your action.</p>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              {[
+                { name: 'Leave', icon: Calendar, count: 0 },
+                { name: 'Claim', icon: FileText, count: 0 },
+                { name: 'Overtime', icon: Clock, count: 0 },
+                { name: 'Payroll', icon: DollarSign, count: 0 },
+                { name: 'Voucher', icon: Users, count: 0 }
+              ].map((item) => (
+                <Card key={item.name} className="hover:shadow-md transition-shadow cursor-pointer">
+                  <CardContent className="p-6 text-center">
+                    <item.icon className="w-8 h-8 text-cyan-600 mx-auto mb-3" />
+                    <div className="text-2xl font-bold text-gray-800 mb-1">{item.count}</div>
+                    <div className="text-sm text-gray-600">{item.name}</div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Bottom Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Team Calendar */}
+          <Card className="lg:col-span-2">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-xl text-gray-800">Team Calendar</CardTitle>
+                <p className="text-sm text-gray-600">03 Aug - 09 Aug 2025</p>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-7 gap-2 mb-4">
+                {['Mon 8/4', 'Tue 8/5', 'Wed 8/6', 'Thu 8/7', 'Fri 8/8', 'Sat 8/9', 'Sun 8/10'].map((day) => (
+                  <div key={day} className="text-center">
+                    <div className="text-xs font-medium text-gray-600 mb-2">{day}</div>
+                    <div className="h-20 bg-yellow-50 rounded border border-yellow-200"></div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Right Sidebar */}
+          <div className="space-y-6">
+            {/* Announcement */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-3">
+                <CardTitle className="text-lg text-gray-800">Announcement</CardTitle>
+                <Button variant="link" size="sm" className="text-cyan-600">See More</Button>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-2 h-2 bg-cyan-500 rounded-full"></div>
+                    <div>
+                      <div className="text-sm font-medium">31 Aug 2025</div>
+                      <div className="text-xs text-gray-600">WUJUD</div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Who's off This Week */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-3">
+                <CardTitle className="text-lg text-gray-800">Who's off This Week</CardTitle>
+                <Button variant="link" size="sm" className="text-cyan-600">See More</Button>
+              </CardHeader>
+              <CardContent>
+                <div className="text-sm text-gray-600">All present today</div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+}

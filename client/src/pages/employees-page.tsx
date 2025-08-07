@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -242,45 +243,8 @@ export default function EmployeesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <Link href="/" className="flex items-center mr-4 text-sm text-gray-600 hover:text-gray-900">
-                <ArrowLeft className="w-4 h-4 mr-1" />
-                Kembali
-              </Link>
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center mr-3">
-                <Building2 className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <h1 className="text-xl font-semibold text-gray-900" data-testid="text-page-title">
-                Senarai Pekerja
-              </h1>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <span className="text-sm font-medium text-gray-700" data-testid="text-username">
-                {user?.username}
-              </span>
-              <Button 
-                variant="outline"
-                size="sm"
-                onClick={handleLogout}
-                disabled={logoutMutation.isPending}
-                data-testid="button-logout"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <DashboardLayout>
+      <div className="p-6 space-y-6">
         {/* Action Bar */}
         <div className="flex justify-between items-center mb-6">
           <div>
@@ -639,7 +603,7 @@ export default function EmployeesPage() {
             </Form>
           </DialogContent>
         </Dialog>
-      </main>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }

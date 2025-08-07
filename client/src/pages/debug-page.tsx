@@ -1,21 +1,17 @@
 import { useState } from "react";
-import { useAuth } from "@/hooks/use-auth";
+import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { 
-  Building2, 
-  LogOut,
   RefreshCw,
   Shield,
   AlertTriangle,
   CheckCircle,
-  ArrowLeft,
   Server
 } from "lucide-react";
-import { Link } from "wouter";
 
 interface EnvCheckResult {
   name: string;
@@ -70,7 +66,6 @@ const authenticatedFetch = async (url: string, options: RequestInit = {}): Promi
 };
 
 export default function DebugPage() {
-  const { user, logoutMutation } = useAuth();
   const { toast } = useToast();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -126,45 +121,8 @@ export default function DebugPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <Link href="/" className="flex items-center mr-4 text-sm text-gray-600 hover:text-gray-900">
-                <ArrowLeft className="w-4 h-4 mr-1" />
-                Kembali
-              </Link>
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center mr-3">
-                <Shield className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <h1 className="text-xl font-semibold text-gray-900" data-testid="text-page-title">
-                Environment Debug
-              </h1>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <span className="text-sm font-medium text-gray-700" data-testid="text-username">
-                {user?.username}
-              </span>
-              <Button 
-                variant="outline"
-                size="sm"
-                onClick={handleLogout}
-                disabled={logoutMutation.isPending}
-                data-testid="button-logout"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <DashboardLayout>
+      <div className="p-6 space-y-6">
         {/* Action Bar */}
         <div className="flex justify-between items-center mb-6">
           <div>
@@ -331,7 +289,7 @@ export default function DebugPage() {
             </div>
           </CardContent>
         </Card>
-      </main>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }
