@@ -1532,8 +1532,8 @@ export default function SystemSettingPage() {
     <div className="space-y-6">
       {/* Payment Setting */}
       <div className="bg-white rounded-lg border">
-        <div className="bg-gradient-to-r from-cyan-400 to-teal-400 text-white p-3 rounded-t-lg">
-          <h3 className="font-semibold">Payment Setting</h3>
+        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}>
+          <h3 className="font-semibold text-gray-800">Payment Setting</h3>
         </div>
         <div className="p-4 space-y-4">
           {/* Currency */}
@@ -1594,8 +1594,8 @@ export default function SystemSettingPage() {
 
       {/* Payment Approval */}
       <div className="bg-white rounded-lg border">
-        <div className="bg-gradient-to-r from-cyan-400 to-teal-400 text-white p-3 rounded-t-lg">
-          <h3 className="font-semibold">Payment Approval</h3>
+        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}>
+          <h3 className="font-semibold text-gray-800">Payment Approval</h3>
         </div>
         <div className="p-4 space-y-4">
           {/* Enable Approval */}
@@ -1667,8 +1667,8 @@ export default function SystemSettingPage() {
 
       {/* Unpaid Leave Setting */}
       <div className="bg-white rounded-lg border">
-        <div className="bg-gradient-to-r from-cyan-400 to-teal-400 text-white p-3 rounded-t-lg">
-          <h3 className="font-semibold">Unpaid Leave Setting</h3>
+        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}>
+          <h3 className="font-semibold text-gray-800">Unpaid Leave Setting</h3>
         </div>
         <div className="p-4 space-y-4">
           {/* Count approved Unpaid Leave */}
@@ -1745,8 +1745,8 @@ export default function SystemSettingPage() {
 
       {/* Claim Setting */}
       <div className="bg-white rounded-lg border">
-        <div className="bg-gradient-to-r from-cyan-400 to-teal-400 text-white p-3 rounded-t-lg">
-          <h3 className="font-semibold">Claim Setting</h3>
+        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}>
+          <h3 className="font-semibold text-gray-800">Claim Setting</h3>
         </div>
         <div className="p-4 space-y-4">
           {/* Enable count approved Claim */}
@@ -1806,8 +1806,8 @@ export default function SystemSettingPage() {
 
       {/* Overtime Setting */}
       <div className="bg-white rounded-lg border">
-        <div className="bg-gradient-to-r from-cyan-400 to-teal-400 text-white p-3 rounded-t-lg">
-          <h3 className="font-semibold">Overtime Setting</h3>
+        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}>
+          <h3 className="font-semibold text-gray-800">Overtime Setting</h3>
         </div>
         <div className="p-4 space-y-4">
           {/* Enable count approved Overtime */}
@@ -1915,8 +1915,8 @@ export default function SystemSettingPage() {
 
       {/* Lateness Setting */}
       <div className="bg-white rounded-lg border">
-        <div className="bg-gradient-to-r from-cyan-400 to-teal-400 text-white p-3 rounded-t-lg">
-          <h3 className="font-semibold">Lateness Setting</h3>
+        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}>
+          <h3 className="font-semibold text-gray-800">Lateness Setting</h3>
         </div>
         <div className="p-4 space-y-4">
           {/* Count approved Lateness */}
@@ -1943,8 +1943,8 @@ export default function SystemSettingPage() {
 
       {/* Payslip Setting */}
       <div className="bg-white rounded-lg border">
-        <div className="bg-gradient-to-r from-cyan-400 to-teal-400 text-white p-3 rounded-t-lg">
-          <h3 className="font-semibold">Payslip Setting</h3>
+        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}>
+          <h3 className="font-semibold text-gray-800">Payslip Setting</h3>
         </div>
         <div className="p-4 space-y-4">
           {/* Template */}
@@ -2037,8 +2037,8 @@ export default function SystemSettingPage() {
     <div className="space-y-6">
       {/* General Shift Setting */}
       <div className="bg-white rounded-lg border">
-        <div className="bg-gradient-to-r from-cyan-400 to-teal-400 text-white p-3 rounded-t-lg">
-          <h3 className="font-semibold">General Shift Setting</h3>
+        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}>
+          <h3 className="font-semibold text-gray-800">General Shift Setting</h3>
         </div>
         <div className="p-4 space-y-4">
           <div className="space-y-2">
@@ -2175,8 +2175,8 @@ export default function SystemSettingPage() {
     <div className="space-y-6">
       {/* EA Form Section */}
       <div className="bg-white rounded-lg border">
-        <div className="bg-gradient-to-r from-cyan-400 to-teal-400 text-white p-3 rounded-t-lg">
-          <h3 className="font-semibold">EA Form</h3>
+        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}>
+          <h3 className="font-semibold text-gray-800">EA Form</h3>
         </div>
         <div className="p-6 space-y-6">
           <div className="space-y-4">
@@ -2202,7 +2202,8 @@ export default function SystemSettingPage() {
 
           <div className="flex justify-end pt-4">
             <Button 
-              className="bg-blue-900 hover:bg-blue-800" 
+              className="text-gray-800 shadow-sm" 
+              style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}
               data-testid="button-save-yearly-form"
               onClick={() => {
                 // Handle save functionality
@@ -2221,8 +2222,8 @@ export default function SystemSettingPage() {
     <div className="space-y-6">
       {/* Notification Setting */}
       <div className="bg-white rounded-lg border">
-        <div className="bg-gradient-to-r from-cyan-400 to-teal-400 text-white p-3 rounded-t-lg">
-          <h3 className="font-semibold">Notification Setting</h3>
+        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}>
+          <h3 className="font-semibold text-gray-800">Notification Setting</h3>
         </div>
         <div className="p-6 space-y-6">
           {/* Top Bar Notification */}
@@ -2410,11 +2411,15 @@ export default function SystemSettingPage() {
                   <RouterLink key={item.id} href={item.href}>
                     <button
                       className={cn(
-                        "w-full flex items-center space-x-3 px-4 py-3 text-left text-sm hover:bg-gray-100 transition-colors",
+                        "w-full flex items-center space-x-3 px-4 py-3 text-left text-sm hover:bg-gray-100 transition-colors rounded-l-lg",
                         (currentSection === item.id || (currentSection === "company" && item.id === "company"))
-                          ? "bg-cyan-50 text-cyan-700 border-r-2 border-cyan-600"
+                          ? "text-gray-800 border-r-4 shadow-sm"
                           : "text-gray-700"
                       )}
+                      style={(currentSection === item.id || (currentSection === "company" && item.id === "company")) ? 
+                        { background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)", borderRightColor: "#07A3B2" } : 
+                        {}
+                      }
                       data-testid={`nav-setting-${item.id}`}
                     >
                       {item.icon}
