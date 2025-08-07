@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
+import utamaHRLogo from "@assets/eClaim_1754579086368.png";
 
 interface SidebarItem {
   id: string;
@@ -210,11 +211,20 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
         <div className="flex items-center justify-between">
           {!isCollapsed && (
             <div className="flex items-center space-x-2">
-              <Building2 className="w-8 h-8 text-cyan-400" />
-              <div>
-                <h1 className="text-lg font-bold text-white">UTAMA HR</h1>
-                <p className="text-xs text-slate-300">HR Management</p>
-              </div>
+              <img 
+                src={utamaHRLogo} 
+                alt="UTAMA Human Resources" 
+                className="w-32 h-auto object-contain"
+              />
+            </div>
+          )}
+          {isCollapsed && (
+            <div className="flex items-center justify-center">
+              <img 
+                src={utamaHRLogo} 
+                alt="UTAMA HR" 
+                className="w-8 h-auto object-contain"
+              />
             </div>
           )}
           <Button
