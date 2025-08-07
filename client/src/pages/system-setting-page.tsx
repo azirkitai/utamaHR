@@ -313,6 +313,7 @@ export default function SystemSettingPage() {
 
   // Dialog states
   const [showCreateLocationDialog, setShowCreateLocationDialog] = useState(false);
+  const [showEditLocationDialog, setShowEditLocationDialog] = useState(false);
   const [showAssignShiftDialog, setShowAssignShiftDialog] = useState(false);
   const [showUpdateShiftDialog, setShowUpdateShiftDialog] = useState(false);
   const [showCreateShiftDialog, setShowCreateShiftDialog] = useState(false);
@@ -324,6 +325,18 @@ export default function SystemSettingPage() {
     latitude: "",
     longitude: "",
     radius: "50", // Default 50 meters
+    useGPS: false,
+    isActive: "true"
+  });
+
+  // Edit location state
+  const [currentEditLocation, setCurrentEditLocation] = useState<any>(null);
+  const [editLocationForm, setEditLocationForm] = useState({
+    name: "",
+    address: "",
+    latitude: "",
+    longitude: "",
+    radius: "50",
     useGPS: false,
     isActive: "true"
   });
@@ -366,6 +379,37 @@ export default function SystemSettingPage() {
     }
   });
 
+  const updateLocationMutation = useMutation({
+    mutationFn: async (locationData: typeof editLocationForm & { id: string }) => {
+      const response = await apiRequest("PUT", `/api/office-locations/${locationData.id}`, {
+        name: locationData.name,
+        address: locationData.address,
+        latitude: locationData.latitude,
+        longitude: locationData.longitude,
+        radius: locationData.radius,
+        isActive: locationData.isActive
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      refetchLocations();
+      setShowEditLocationDialog(false);
+      setCurrentEditLocation(null);
+      setEditLocationForm({
+        name: "",
+        address: "",
+        latitude: "",
+        longitude: "",
+        radius: "50",
+        useGPS: false,
+        isActive: "true"
+      });
+    },
+    onError: (error: Error) => {
+      console.error("Update location error:", error);
+    }
+  });
+
   // Get current GPS location
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -394,6 +438,51 @@ export default function SystemSettingPage() {
         maximumAge: 60000
       }
     );
+  };
+
+  // Get GPS location for edit form
+  const getCurrentLocationForEdit = () => {
+    if (!navigator.geolocation) {
+      alert("GPS tidak disokong oleh pelayar ini");
+      return;
+    }
+
+    setIsGettingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setEditLocationForm(prev => ({
+          ...prev,
+          latitude: position.coords.latitude.toString(),
+          longitude: position.coords.longitude.toString(),
+        }));
+        setIsGettingLocation(false);
+      },
+      (error) => {
+        console.error("GPS error:", error);
+        alert("Gagal mendapatkan lokasi GPS");
+        setIsGettingLocation(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000
+      }
+    );
+  };
+
+  // Handle opening edit location dialog
+  const handleEditLocation = (location: any) => {
+    setCurrentEditLocation(location);
+    setEditLocationForm({
+      name: location.name,
+      address: location.address,
+      latitude: location.latitude,
+      longitude: location.longitude,
+      radius: location.radius,
+      useGPS: false,
+      isActive: location.isActive
+    });
+    setShowEditLocationDialog(true);
   };
 
   // Shift form state
@@ -2186,7 +2275,12 @@ export default function SystemSettingPage() {
                     <p className="text-xs text-gray-400">Radius: {location.radius}m</p>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" data-testid={`button-edit-location-${location.id}`}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleEditLocation(location)}
+                      data-testid={`button-edit-location-${location.id}`}
+                    >
                       Edit
                     </Button>
                     <Button variant="outline" size="sm" className="text-red-600" data-testid={`button-delete-location-${location.id}`}>
@@ -3247,6 +3341,138 @@ export default function SystemSettingPage() {
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               ) : null}
               Save Location
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Location Dialog */}
+      <Dialog open={showEditLocationDialog} onOpenChange={setShowEditLocationDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-blue-600" />
+              Edit Office Location
+            </DialogTitle>
+            <DialogDescription>
+              Update office location settings for attendance tracking with GPS coordinates and radius validation.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-location-name">Location Name</Label>
+              <Input
+                id="edit-location-name"
+                placeholder="e.g., Main Office"
+                value={editLocationForm.name}
+                onChange={(e) => setEditLocationForm(prev => ({...prev, name: e.target.value}))}
+                data-testid="input-edit-location-name"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-location-address">Address</Label>
+              <Input
+                id="edit-location-address"
+                placeholder="Office address"
+                value={editLocationForm.address}
+                onChange={(e) => setEditLocationForm(prev => ({...prev, address: e.target.value}))}
+                data-testid="input-edit-location-address"
+              />
+            </div>
+
+            <div className="space-y-3">
+              <Label>GPS Coordinates</Label>
+              <div className="flex gap-2 mb-2">
+                <Button
+                  type="button"
+                  variant="outline" 
+                  size="sm"
+                  onClick={getCurrentLocationForEdit}
+                  disabled={isGettingLocation}
+                  className="flex items-center gap-2"
+                  data-testid="button-edit-get-gps"
+                >
+                  {isGettingLocation ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Navigation className="w-4 h-4" />
+                  )}
+                  {isGettingLocation ? "Getting GPS..." : "Get Current GPS"}
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-sm">Latitude</Label>
+                  <Input
+                    placeholder="e.g., 3.1390"
+                    value={editLocationForm.latitude}
+                    onChange={(e) => setEditLocationForm(prev => ({...prev, latitude: e.target.value}))}
+                    data-testid="input-edit-latitude"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-sm">Longitude</Label>
+                  <Input
+                    placeholder="e.g., 101.6869"
+                    value={editLocationForm.longitude}
+                    onChange={(e) => setEditLocationForm(prev => ({...prev, longitude: e.target.value}))}
+                    data-testid="input-edit-longitude"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-location-radius">Allowed Radius (meters)</Label>
+              <Input
+                id="edit-location-radius"
+                type="number"
+                placeholder="50"
+                value={editLocationForm.radius}
+                onChange={(e) => setEditLocationForm(prev => ({...prev, radius: e.target.value}))}
+                data-testid="input-edit-radius"
+              />
+              <p className="text-xs text-gray-500">Employees must be within this radius to clock in/out</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-location-status">Status</Label>
+              <Select 
+                value={editLocationForm.isActive} 
+                onValueChange={(value) => setEditLocationForm(prev => ({...prev, isActive: value}))}
+              >
+                <SelectTrigger data-testid="select-edit-location-status">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="true">Active</SelectItem>
+                  <SelectItem value="false">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowEditLocationDialog(false)}
+              data-testid="button-cancel-edit-location"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => currentEditLocation && updateLocationMutation.mutate({...editLocationForm, id: currentEditLocation.id})}
+              disabled={updateLocationMutation.isPending || !editLocationForm.name || !editLocationForm.latitude || !editLocationForm.longitude}
+              className="bg-blue-900 hover:bg-blue-800"
+              data-testid="button-save-edit-location"
+            >
+              {updateLocationMutation.isPending ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : null}
+              Update Location
             </Button>
           </DialogFooter>
         </DialogContent>
