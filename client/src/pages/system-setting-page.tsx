@@ -193,6 +193,39 @@ export default function SystemSettingPage() {
     includedEmployee: "",
     remark: "",
   });
+
+  // Department states
+  const [showAddDepartmentDialog, setShowAddDepartmentDialog] = useState(false);
+  const [newDepartmentForm, setNewDepartmentForm] = useState({
+    name: "",
+    code: "",
+  });
+  const [departments, setDepartments] = useState([
+    {
+      id: 1,
+      name: "Human Resource",
+      code: "HR",
+      employeeCount: 2,
+    },
+    {
+      id: 2,
+      name: "Information Technology",
+      code: "IT",
+      employeeCount: 5,
+    },
+    {
+      id: 3,
+      name: "Finance & Accounting",
+      code: "FA",
+      employeeCount: 3,
+    },
+    {
+      id: 4,
+      name: "Marketing",
+      code: "MKT",
+      employeeCount: 4,
+    },
+  ]);
   const [companyData, setCompanyData] = useState({
     companyName: "utama hr",
     companyShortName: "KLINIK UTAMA 24 JAM",
@@ -295,6 +328,32 @@ export default function SystemSettingPage() {
   const handleSaveNewPolicy = () => {
     console.log("Save new policy:", { type: policyType, data: newPolicyForm });
     setShowCreatePolicyDialog(false);
+  };
+
+  // Department handlers
+  const handleOpenAddDepartmentDialog = () => {
+    setNewDepartmentForm({
+      name: "",
+      code: "",
+    });
+    setShowAddDepartmentDialog(true);
+  };
+
+  const handleCloseAddDepartmentDialog = () => {
+    setShowAddDepartmentDialog(false);
+  };
+
+  const handleSaveNewDepartment = () => {
+    if (newDepartmentForm.name && newDepartmentForm.code) {
+      const newDepartment = {
+        id: departments.length + 1,
+        name: newDepartmentForm.name,
+        code: newDepartmentForm.code,
+        employeeCount: 0,
+      };
+      setDepartments([...departments, newDepartment]);
+      setShowAddDepartmentDialog(false);
+    }
   };
 
   const renderCompanyForm = () => (
@@ -1331,6 +1390,54 @@ export default function SystemSettingPage() {
     </div>
   );
 
+  const renderDepartmentForm = () => (
+    <div className="space-y-6">
+      {/* Department Header */}
+      <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Department</h3>
+        <Button 
+          variant="secondary"
+          size="sm"
+          className="bg-white text-cyan-600 hover:bg-gray-100"
+          onClick={handleOpenAddDepartmentDialog}
+          data-testid="button-add-department"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add Department
+        </Button>
+      </div>
+
+      {/* Department List */}
+      <div className="bg-white rounded-lg border">
+        <div className="divide-y">
+          {departments.map((department) => (
+            <div key={department.id} className="p-4 flex items-center justify-between">
+              <div>
+                <h4 className="font-medium text-gray-900">{department.name}</h4>
+                <p className="text-sm text-gray-500">{department.employeeCount} Employee(s)</p>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-cyan-600 hover:text-cyan-700"
+                  data-testid={`button-see-more-${department.id}`}
+                >
+                  See More
+                </Button>
+                <Switch 
+                  defaultChecked={true}
+                  className="data-[state=checked]:bg-blue-900"
+                  data-testid={`switch-department-${department.id}`}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
   const renderPlaceholderContent = (section: string) => (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
@@ -1391,6 +1498,7 @@ export default function SystemSettingPage() {
             {currentSection === "company" ? renderCompanyForm() : 
              currentSection === "leave" ? renderLeaveForm() : 
              currentSection === "claim" ? renderClaimForm() :
+             currentSection === "department" ? renderDepartmentForm() :
              renderPlaceholderContent(currentSection)}
           </div>
         </div>
@@ -1594,6 +1702,61 @@ export default function SystemSettingPage() {
               onClick={handleSaveNewPolicy}
               className="bg-blue-900 hover:bg-blue-800 text-white"
               data-testid="button-save-policy"
+            >
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Department Dialog */}
+      <Dialog open={showAddDepartmentDialog} onOpenChange={setShowAddDepartmentDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold bg-gradient-to-r from-cyan-600 to-teal-600 bg-clip-text text-transparent">
+              Department
+            </DialogTitle>
+            <DialogDescription>
+              Create a new department with name and code
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Department Name */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Department Name</Label>
+              <Input
+                value={newDepartmentForm.name}
+                onChange={(e) => setNewDepartmentForm(prev => ({...prev, name: e.target.value}))}
+                placeholder="e.g. Human Resource Management"
+                data-testid="input-department-name"
+              />
+            </div>
+
+            {/* Department Code */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Code</Label>
+              <Input
+                value={newDepartmentForm.code}
+                onChange={(e) => setNewDepartmentForm(prev => ({...prev, code: e.target.value}))}
+                placeholder="e.g. HRM"
+                data-testid="input-department-code"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="flex gap-2 pt-4">
+            <Button
+              variant="outline"
+              onClick={handleCloseAddDepartmentDialog}
+              data-testid="button-cancel-department"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveNewDepartment}
+              className="bg-blue-900 hover:bg-blue-800 text-white"
+              data-testid="button-save-department"
             >
               Save
             </Button>
