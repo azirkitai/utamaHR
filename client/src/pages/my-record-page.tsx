@@ -746,9 +746,9 @@ export default function MyRecordPage() {
     </div>
   );
 
-  const renderPaymentTab = () => {
-    const [paymentSubTab, setPaymentSubTab] = useState<"salary" | "voucher" | "yearly">("salary");
+  const [paymentSubTab, setPaymentSubTab] = useState<"salary" | "voucher" | "yearly">("salary");
 
+  const renderPaymentTab = () => {
     const paymentTabs = [
       { id: "salary", label: "Salary Payroll" },
       { id: "voucher", label: "Payment Voucher" },
