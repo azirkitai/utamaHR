@@ -109,9 +109,29 @@ const leavePolicies = [
   { id: "hospitalization", name: "Hospitalization Leave", entitlement: "60 Day(s)", enabled: true },
 ];
 
+// Financial claim policies data
+const financialClaimPolicies = [
+  { id: "flight-tix", name: "Flight Tix", amount: "RM 100.00", enabled: true },
+  { id: "parking", name: "Parking", amount: "RM 100.00", enabled: true },
+  { id: "meal", name: "Meal", amount: "RM 100.00", enabled: true },
+  { id: "hotel", name: "Hotel", amount: "RM 100.00", enabled: true },
+  { id: "mileage", name: "Mileage (KM)", amount: "RM 100.00", enabled: true },
+  { id: "medical", name: "Medical", amount: "RM 100.00", enabled: true },
+  { id: "others", name: "Others/Misc", amount: "RM 100.00", enabled: true },
+];
+
+// Overtime policies data
+const overtimePolicies = [
+  { id: "normal-rate", name: "Normal Rate", rate: "1.5x of Salary", enabled: true },
+  { id: "rest-day-rate", name: "Rest Day Rate", rate: "2.0x of Salary", enabled: true },
+  { id: "public-holiday-rate", name: "Public Holiday Rate", rate: "3.0x of Salary", enabled: true },
+];
+
 export default function SystemSettingPage() {
   const [location] = useLocation();
   const [activeTab, setActiveTab] = useState("leave");
+  const [claimActiveTab, setClaimActiveTab] = useState("financial");
+  
   const [leaveApproval, setLeaveApproval] = useState({
     firstLevel: "",
     secondLevel: "",
@@ -125,6 +145,25 @@ export default function SystemSettingPage() {
     applicationLimitHour: true,
     minHour: 0,
     maxHour: 4,
+  });
+  
+  const [financialApproval, setFinancialApproval] = useState({
+    firstLevel: "",
+    secondLevel: "",
+  });
+  const [financialSettings, setFinancialSettings] = useState({
+    cutoffDate: "31",
+  });
+  
+  const [overtimeApproval, setOvertimeApproval] = useState({
+    firstLevel: "",
+    secondLevel: "",
+  });
+  const [overtimeSettings, setOvertimeSettings] = useState({
+    countOvertimeInPayroll: true,
+    workingDaysPerMonth: "26",
+    overtimeCalculation: "basic-salary",
+    overtimeCutoffDate: "31",
   });
   const [companyData, setCompanyData] = useState({
     companyName: "utama hr",
@@ -182,6 +221,22 @@ export default function SystemSettingPage() {
 
   const handleSaveTimeoffSettings = () => {
     console.log("Save timeoff settings:", timeoffSettings);
+  };
+
+  const handleSaveFinancialApproval = () => {
+    console.log("Save financial approval:", financialApproval);
+  };
+
+  const handleSaveFinancialSettings = () => {
+    console.log("Save financial settings:", financialSettings);
+  };
+
+  const handleSaveOvertimeApproval = () => {
+    console.log("Save overtime approval:", overtimeApproval);
+  };
+
+  const handleSaveOvertimeSettings = () => {
+    console.log("Save overtime settings:", overtimeSettings);
   };
 
   const renderCompanyForm = () => (
@@ -580,6 +635,373 @@ export default function SystemSettingPage() {
     </div>
   );
 
+  const renderClaimForm = () => (
+    <div className="space-y-6">
+      {/* Tab Navigation */}
+      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
+        <button
+          onClick={() => setClaimActiveTab("financial")}
+          className={cn(
+            "px-4 py-2 rounded-md text-sm font-medium transition-colors",
+            claimActiveTab === "financial"
+              ? "bg-cyan-600 text-white"
+              : "text-gray-600 hover:text-gray-900"
+          )}
+          data-testid="tab-financial"
+        >
+          Financial
+        </button>
+        <button
+          onClick={() => setClaimActiveTab("overtime")}
+          className={cn(
+            "px-4 py-2 rounded-md text-sm font-medium transition-colors",
+            claimActiveTab === "overtime"
+              ? "bg-cyan-600 text-white"
+              : "text-gray-600 hover:text-gray-900"
+          )}
+          data-testid="tab-overtime"
+        >
+          Overtime
+        </button>
+      </div>
+
+      {/* Financial Tab Content */}
+      {claimActiveTab === "financial" && (
+        <>
+          {/* Financial Approval */}
+          <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
+            <h3 className="text-lg font-semibold">Financial Approval</h3>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg border">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">First Level Approval</Label>
+                <Select 
+                  value={financialApproval.firstLevel} 
+                  onValueChange={(value) => setFinancialApproval(prev => ({...prev, firstLevel: value}))}
+                >
+                  <SelectTrigger data-testid="select-financial-first-level-approval">
+                    <SelectValue placeholder="Select first financial approval" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="manager">Manager</SelectItem>
+                    <SelectItem value="supervisor">Supervisor</SelectItem>
+                    <SelectItem value="hr">HR</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Second Level Approval</Label>
+                <Select 
+                  value={financialApproval.secondLevel} 
+                  onValueChange={(value) => setFinancialApproval(prev => ({...prev, secondLevel: value}))}
+                >
+                  <SelectTrigger data-testid="select-financial-second-level-approval">
+                    <SelectValue placeholder="None" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="director">Director</SelectItem>
+                    <SelectItem value="ceo">CEO</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Button 
+                  onClick={handleSaveFinancialApproval}
+                  className="bg-blue-900 hover:bg-blue-800 text-white"
+                  data-testid="button-save-financial-approval"
+                >
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Financial Policy */}
+          <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg flex items-center justify-between">
+            <h3 className="text-lg font-semibold">Financial Policy</h3>
+            <Button 
+              variant="secondary"
+              size="sm"
+              className="bg-white text-cyan-600 hover:bg-gray-100"
+              data-testid="button-create-financial-policy"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Policy
+            </Button>
+          </div>
+
+          <div className="bg-white rounded-lg border">
+            <div className="divide-y">
+              {financialClaimPolicies.map((policy) => (
+                <div key={policy.id} className="p-4 flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium text-gray-900">{policy.name}</h4>
+                    <p className="text-sm text-gray-500">{policy.amount}</p>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="text-cyan-600 hover:text-cyan-700"
+                      data-testid={`button-see-more-${policy.id}`}
+                    >
+                      See More
+                    </Button>
+                    <Switch 
+                      checked={policy.enabled}
+                      className="data-[state=checked]:bg-blue-900"
+                      data-testid={`switch-financial-${policy.id}`}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Financial Setting */}
+          <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
+            <h3 className="text-lg font-semibold">Financial Setting</h3>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg border space-y-4">
+            <div>
+              <h4 className="font-medium text-gray-900 mb-2">Monthly Cut-off Date for Claim Submission</h4>
+              <p className="text-sm text-gray-500 mb-4">
+                Here you can set the cut-off date for claim processing. After this date, any claims made will
+                fall into the next month payroll cycle.
+              </p>
+              
+              <div className="flex items-center space-x-2 max-w-md">
+                <Select 
+                  value={financialSettings.cutoffDate} 
+                  onValueChange={(value) => setFinancialSettings(prev => ({...prev, cutoffDate: value}))}
+                >
+                  <SelectTrigger data-testid="select-cutoff-date">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({length: 31}, (_, i) => (
+                      <SelectItem key={i + 1} value={(i + 1).toString()}>
+                        {i + 1}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <span className="text-sm text-gray-500">of the Month</span>
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <Button 
+                onClick={handleSaveFinancialSettings}
+                className="bg-blue-900 hover:bg-blue-800 text-white"
+                data-testid="button-save-financial-settings"
+              >
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Overtime Tab Content */}
+      {claimActiveTab === "overtime" && (
+        <>
+          {/* Overtime Approval */}
+          <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
+            <h3 className="text-lg font-semibold">Overtime Approval</h3>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg border">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">First Level Approval</Label>
+                <Select 
+                  value={overtimeApproval.firstLevel} 
+                  onValueChange={(value) => setOvertimeApproval(prev => ({...prev, firstLevel: value}))}
+                >
+                  <SelectTrigger data-testid="select-overtime-first-level-approval">
+                    <SelectValue placeholder="Select first overtime approval" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="manager">Manager</SelectItem>
+                    <SelectItem value="supervisor">Supervisor</SelectItem>
+                    <SelectItem value="hr">HR</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Second Level Approval</Label>
+                <Select 
+                  value={overtimeApproval.secondLevel} 
+                  onValueChange={(value) => setOvertimeApproval(prev => ({...prev, secondLevel: value}))}
+                >
+                  <SelectTrigger data-testid="select-overtime-second-level-approval">
+                    <SelectValue placeholder="None" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="director">Director</SelectItem>
+                    <SelectItem value="ceo">CEO</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Button 
+                  onClick={handleSaveOvertimeApproval}
+                  className="bg-blue-900 hover:bg-blue-800 text-white"
+                  data-testid="button-save-overtime-approval"
+                >
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Overtime Policy */}
+          <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg flex items-center justify-between">
+            <h3 className="text-lg font-semibold">Overtime Policy</h3>
+            <Button 
+              variant="secondary"
+              size="sm"
+              className="bg-white text-cyan-600 hover:bg-gray-100"
+              data-testid="button-create-overtime-policy"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Policy
+            </Button>
+          </div>
+
+          <div className="bg-white rounded-lg border">
+            <div className="divide-y">
+              {overtimePolicies.map((policy) => (
+                <div key={policy.id} className="p-4 flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium text-gray-900">{policy.name}</h4>
+                    <p className="text-sm text-gray-500">{policy.rate}</p>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <span className="text-xs text-gray-400">Default Rate</span>
+                    <Switch 
+                      checked={policy.enabled}
+                      className="data-[state=checked]:bg-blue-900"
+                      data-testid={`switch-overtime-${policy.id}`}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Overtime Setting */}
+          <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
+            <h3 className="text-lg font-semibold">Overtime Setting</h3>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg border space-y-6">
+            {/* Count Overtime in Payroll */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-medium text-gray-900">Count Overtime in Payroll</h4>
+              </div>
+              <Switch 
+                checked={overtimeSettings.countOvertimeInPayroll}
+                onCheckedChange={(checked) => setOvertimeSettings(prev => ({...prev, countOvertimeInPayroll: checked}))}
+                className="data-[state=checked]:bg-blue-900"
+                data-testid="switch-count-overtime-payroll"
+              />
+            </div>
+
+            {/* Working Days a Month */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Working Days a Month</Label>
+                <div className="flex items-center space-x-2">
+                  <Select 
+                    value={overtimeSettings.workingDaysPerMonth} 
+                    onValueChange={(value) => setOvertimeSettings(prev => ({...prev, workingDaysPerMonth: value}))}
+                  >
+                    <SelectTrigger data-testid="select-working-days">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({length: 31}, (_, i) => (
+                        <SelectItem key={i + 1} value={(i + 1).toString()}>
+                          {i + 1}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <span className="text-sm text-gray-500">days in a Month</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Overtime Calculation */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Overtime Calculation</Label>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-500">Calculate by</span>
+                <Select 
+                  value={overtimeSettings.overtimeCalculation} 
+                  onValueChange={(value) => setOvertimeSettings(prev => ({...prev, overtimeCalculation: value}))}
+                >
+                  <SelectTrigger data-testid="select-overtime-calculation" className="w-48">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="basic-salary">Basic Salary</SelectItem>
+                    <SelectItem value="gross-salary">Gross Salary</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Overtime Cut-off Date */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Overtime Cut-off Date</Label>
+              <div className="flex items-center space-x-2">
+                <Select 
+                  value={overtimeSettings.overtimeCutoffDate} 
+                  onValueChange={(value) => setOvertimeSettings(prev => ({...prev, overtimeCutoffDate: value}))}
+                >
+                  <SelectTrigger data-testid="select-overtime-cutoff-date" className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({length: 31}, (_, i) => (
+                      <SelectItem key={i + 1} value={(i + 1).toString()}>
+                        {i + 1}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <span className="text-sm text-gray-500">of the Month</span>
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <Button 
+                onClick={handleSaveOvertimeSettings}
+                className="bg-blue-900 hover:bg-blue-800 text-white"
+                data-testid="button-save-overtime-settings"
+              >
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+
   const renderLeaveForm = () => (
     <div className="space-y-6">
       {/* Tab Navigation */}
@@ -908,6 +1330,7 @@ export default function SystemSettingPage() {
           <div className="p-6">
             {currentSection === "company" ? renderCompanyForm() : 
              currentSection === "leave" ? renderLeaveForm() : 
+             currentSection === "claim" ? renderClaimForm() :
              renderPlaceholderContent(currentSection)}
           </div>
         </div>

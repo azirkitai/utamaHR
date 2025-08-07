@@ -1,0 +1,75 @@
+hasilkan paparan Settings > Claim seperti dalam gambar yang anda lampirkan:
+
+Arahan Kepada Agent: Hasilkan Page Setting Claim
+1. Navigation & Layout
+
+Pastikan terdapat navigation tab pada sebelah kiri untuk Setting (Company, Leave, Claim, Department, Payment, Notifications, Attendance, Evaluation, Subscription, Yearly Form).
+
+Apabila user klik pada Claim, paparan utama sebelah kanan akan memaparkan tetapan berkaitan claim.
+
+Di bahagian atas, terdapat tab untuk tukar antara Financial dan Overtime.
+
+2. Financial Claim Setting
+
+Financial Approval: Sediakan dropdown untuk First Level Approval dan Second Level Approval untuk kelulusan tuntutan kewangan.
+
+Financial Policy: Senaraikan polisi-polisi claim seperti:
+
+Flight Tix (dengan nilai peruntukan, contoh RM100.00)
+
+Parking
+
+Meal
+
+Hotel
+
+Mileage (KM)
+
+Medical
+
+Others/Misc
+
+Setiap polisi claim ada butang See More dan toggle aktif/tidak aktif.
+
+Sediakan butang Create Policy untuk tambah polisi claim baharu.
+
+3. Financial Setting (Bahagian Bawah)
+
+Paparkan Monthly Cut-off Date for Claim Submission
+
+Sediakan ruang untuk user tetapkan tarikh cut-off (contoh: 31 of the Month) untuk submission claim.
+
+Berikan penerangan ringkas: “Di sini anda boleh tetapkan tarikh akhir untuk proses claim. Selepas tarikh ini, claim yang dibuat akan dimasukkan ke kitaran payroll bulan berikutnya.”
+
+Sediakan butang Save Changes.
+
+4. Overtime Setting
+
+Apabila klik tab Overtime:
+
+Overtime Approval: Sediakan dropdown untuk First Level & Second Level Approval.
+
+Overtime Policy: Senaraikan polisi overtime (Normal Rate, Rest Day Rate, Public Holiday Rate) beserta kadar.
+
+Setiap polisi ada toggle untuk aktif/tidak aktif, dan butang Create Policy.
+
+Overtime Setting di bawah:
+
+Pilihan untuk “Count Overtime in Payroll” (boleh On/Off)
+
+Ruang tetapan “Working Days a Month”
+
+Overtime Calculation (dropdown: Calculate by Basic Salary, etc.)
+
+Overtime Cut-off Date (dropdown tarikh dan bulan)
+
+Butang Save Changes
+
+Nota tambahan:
+
+Semua data dalam jadual/paparan boleh ditambah, diedit atau dinyahaktif.
+
+Gaya dan warna mengikut contoh gambar.
+
+Semua fungsi dropdown, toggle dan input form boleh berfungsi.
+
