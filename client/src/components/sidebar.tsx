@@ -21,7 +21,11 @@ import {
   Building2,
   Star,
   DollarSign,
-  CalendarDays
+  CalendarDays,
+  Timer,
+  CalendarClock,
+  ClockIcon,
+  AlertTriangle
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
@@ -139,6 +143,32 @@ const navigationItems: { category: string; items: SidebarItem[] }[] = [
         label: "Attendance",
         icon: <Clock className="w-4 h-4" />,
         href: "/attendance",
+        children: [
+          {
+            id: "attendance-timesheet",
+            label: "Timesheet",
+            icon: <Timer className="w-3 h-3" />,
+            href: "/attendance/timesheet",
+          },
+          {
+            id: "attendance-shift-calendar",
+            label: "Shift Calendar",
+            icon: <CalendarClock className="w-3 h-3" />,
+            href: "/attendance/shift-calendar",
+          },
+          {
+            id: "attendance-overtime",
+            label: "Overtime",
+            icon: <ClockIcon className="w-3 h-3" />,
+            href: "/attendance/overtime",
+          },
+          {
+            id: "attendance-lateness",
+            label: "Lateness",
+            icon: <AlertTriangle className="w-3 h-3" />,
+            href: "/attendance/lateness",
+          },
+        ],
       },
       {
         id: "evaluation",
