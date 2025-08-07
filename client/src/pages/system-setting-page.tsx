@@ -35,7 +35,9 @@ import {
   Upload,
   Plus,
   Link,
-  Settings
+  Settings,
+  User,
+  Calendar
 } from "lucide-react";
 import { useLocation, Link as RouterLink } from "wouter";
 import { cn } from "@/lib/utils";
@@ -274,6 +276,15 @@ export default function SystemSettingPage() {
     showEPFDetails: false,
     showHRDFDetails: false,
     showYearToDateDetails: true,
+  });
+
+  // Notification states
+  const [notificationSettings, setNotificationSettings] = useState({
+    topBarNotification: true,
+    userEmailNotification: true,
+    leaveEmailNotification: true,
+    claimEmailNotification: true,
+    payrollEmailNotification: true,
   });
   const [companyData, setCompanyData] = useState({
     companyName: "utama hr",
@@ -1944,6 +1955,114 @@ export default function SystemSettingPage() {
     </div>
   );
 
+  const renderNotificationForm = () => (
+    <div className="space-y-6">
+      {/* Notification Setting */}
+      <div className="bg-white rounded-lg border">
+        <div className="bg-gradient-to-r from-cyan-400 to-teal-400 text-white p-3 rounded-t-lg">
+          <h3 className="font-semibold">Notification Setting</h3>
+        </div>
+        <div className="p-6 space-y-6">
+          {/* Top Bar Notification */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-gray-100 rounded-full">
+                <Bell className="w-5 h-5 text-gray-600" />
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Top Bar Notification</Label>
+              </div>
+            </div>
+            <Switch 
+              checked={notificationSettings.topBarNotification}
+              onCheckedChange={(checked) => setNotificationSettings(prev => ({...prev, topBarNotification: checked}))}
+              className="data-[state=checked]:bg-blue-900"
+              data-testid="switch-top-bar-notification"
+            />
+          </div>
+
+          {/* User Email Notification */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-gray-100 rounded-full">
+                <User className="w-5 h-5 text-gray-600" />
+              </div>
+              <div>
+                <Label className="text-sm font-medium">User Email Notification</Label>
+              </div>
+            </div>
+            <Switch 
+              checked={notificationSettings.userEmailNotification}
+              onCheckedChange={(checked) => setNotificationSettings(prev => ({...prev, userEmailNotification: checked}))}
+              className="data-[state=checked]:bg-blue-900"
+              data-testid="switch-user-email-notification"
+            />
+          </div>
+
+          {/* Leave Email Notification */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-gray-100 rounded-full">
+                <Calendar className="w-5 h-5 text-gray-600" />
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Leave Email Notification</Label>
+              </div>
+            </div>
+            <Switch 
+              checked={notificationSettings.leaveEmailNotification}
+              onCheckedChange={(checked) => setNotificationSettings(prev => ({...prev, leaveEmailNotification: checked}))}
+              className="data-[state=checked]:bg-blue-900"
+              data-testid="switch-leave-email-notification"
+            />
+          </div>
+
+          {/* Claim Email Notification */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-gray-100 rounded-full">
+                <FileText className="w-5 h-5 text-gray-600" />
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Claim Email Notification</Label>
+              </div>
+            </div>
+            <Switch 
+              checked={notificationSettings.claimEmailNotification}
+              onCheckedChange={(checked) => setNotificationSettings(prev => ({...prev, claimEmailNotification: checked}))}
+              className="data-[state=checked]:bg-blue-900"
+              data-testid="switch-claim-email-notification"
+            />
+          </div>
+
+          {/* Payroll Email Notification */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-gray-100 rounded-full">
+                <CreditCard className="w-5 h-5 text-gray-600" />
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Payroll Email Notification</Label>
+              </div>
+            </div>
+            <Switch 
+              checked={notificationSettings.payrollEmailNotification}
+              onCheckedChange={(checked) => setNotificationSettings(prev => ({...prev, payrollEmailNotification: checked}))}
+              className="data-[state=checked]:bg-blue-900"
+              data-testid="switch-payroll-email-notification"
+            />
+          </div>
+
+          <div className="flex justify-end pt-4">
+            <Button className="bg-blue-900 hover:bg-blue-800" data-testid="button-save-notification-settings">
+              Save Changes
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderDepartmentForm = () => (
     <div className="space-y-6">
       {/* Department Header */}
@@ -2054,6 +2173,7 @@ export default function SystemSettingPage() {
              currentSection === "claim" ? renderClaimForm() :
              currentSection === "department" ? renderDepartmentForm() :
              currentSection === "payment" ? renderPaymentForm() :
+             currentSection === "notifications" ? renderNotificationForm() :
              renderPlaceholderContent(currentSection)}
           </div>
         </div>
