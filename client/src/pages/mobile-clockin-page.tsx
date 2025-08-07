@@ -43,6 +43,7 @@ export default function MobileClockInPage() {
   const [selfiePreview, setSelfiePreview] = useState<string>("");
   const [locationData, setLocationData] = useState<{latitude: number; longitude: number} | null>(null);
   const [clockInResult, setClockInResult] = useState<ClockInResult | null>(null);
+  const [isCameraReady, setIsCameraReady] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -91,6 +92,7 @@ export default function MobileClockInPage() {
   // Start camera for selfie
   const startCamera = async () => {
     try {
+      setIsCameraReady(false);
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
           facingMode: 'user',
@@ -101,7 +103,19 @@ export default function MobileClockInPage() {
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.play();
+        
+        // Wait for video to be ready
+        videoRef.current.onloadedmetadata = () => {
+          console.log("Video metadata loaded");
+          setIsCameraReady(true);
+        };
+        
+        videoRef.current.oncanplay = () => {
+          console.log("Video can play");
+          setIsCameraReady(true);
+        };
+        
+        await videoRef.current.play();
       }
     } catch (err) {
       console.error("Camera error:", err);
@@ -112,14 +126,30 @@ export default function MobileClockInPage() {
 
   // Capture selfie
   const captureSelfie = () => {
-    if (!videoRef.current || !canvasRef.current) return;
+    console.log("Capture selfie clicked");
+    if (!videoRef.current || !canvasRef.current) {
+      console.log("Video or canvas ref not available");
+      return;
+    }
 
     const canvas = canvasRef.current;
     const video = videoRef.current;
     const context = canvas.getContext('2d');
 
-    if (!context) return;
+    if (!context) {
+      console.log("Canvas context not available");
+      return;
+    }
 
+    // Check if video is ready
+    if (video.videoWidth === 0 || video.videoHeight === 0) {
+      console.log("Video not ready");
+      setError("Kamera belum siap. Sila cuba sekali lagi.");
+      return;
+    }
+
+    console.log("Capturing selfie...");
+    
     // Set canvas size to video size
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
@@ -130,6 +160,7 @@ export default function MobileClockInPage() {
     // Convert to blob
     canvas.toBlob((blob) => {
       if (blob) {
+        console.log("Selfie captured successfully");
         setSelfieBlob(blob);
         setSelfiePreview(canvas.toDataURL());
         
@@ -137,9 +168,11 @@ export default function MobileClockInPage() {
         const stream = video.srcObject as MediaStream;
         if (stream) {
           stream.getTracks().forEach(track => track.stop());
+          video.srcObject = null;
         }
-        
-        setStep("location");
+      } else {
+        console.log("Failed to create blob");
+        setError("Gagal mengambil gambar. Sila cuba sekali lagi.");
       }
     }, 'image/jpeg', 0.8);
   };
@@ -224,6 +257,7 @@ export default function MobileClockInPage() {
   const retrySelfie = () => {
     setSelfieBlob(null);
     setSelfiePreview("");
+    setIsCameraReady(false);
     setStep("camera");
   };
 
@@ -417,18 +451,20 @@ export default function MobileClockInPage() {
                       <Button 
                         onClick={startCamera}
                         className="flex-1"
-                        disabled={!!videoRef.current?.srcObject}
+                        disabled={isCameraReady}
                       >
                         <Camera className="mr-2 h-4 w-4" />
-                        Buka Kamera
+                        {isCameraReady ? "Kamera Siap" : "Buka Kamera"}
                       </Button>
                       
                       <Button 
                         onClick={captureSelfie}
-                        disabled={!videoRef.current?.srcObject}
+                        disabled={!isCameraReady}
                         className="flex-1"
                         style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}
+                        data-testid="button-capture-selfie"
                       >
+                        <Camera className="mr-2 h-4 w-4" />
                         Ambil Gambar
                       </Button>
                     </div>
