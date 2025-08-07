@@ -13,6 +13,7 @@ import ApplyLeavePage from "@/pages/apply-leave-page";
 import ApplyClaimPage from "@/pages/apply-claim-page";
 import ApplyTimeoffPage from "@/pages/apply-timeoff-page";
 import AnnouncementPage from "@/pages/announcement-page";
+import CalendarPage from "@/pages/calendar-page";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "./lib/protected-route";
 
@@ -26,6 +27,7 @@ function Router() {
       <ProtectedRoute path="/apply/claim" component={ApplyClaimPage} />
       <ProtectedRoute path="/apply/timeoff" component={ApplyTimeoffPage} />
       <ProtectedRoute path="/announcement" component={AnnouncementPage} />
+      <ProtectedRoute path="/calendar" component={CalendarPage} />
       <ProtectedRoute path="/debug" component={DebugPage} />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
