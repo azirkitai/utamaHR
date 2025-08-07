@@ -21,6 +21,7 @@ import TimeoffApprovalPage from "@/pages/timeoff-approval-page";
 import AttendanceTimesheetPage from "@/pages/attendance-timesheet-page";
 import ShiftCalendarPage from "@/pages/shift-calendar-page";
 import OvertimePage from "@/pages/overtime-page";
+import LatenessPage from "@/pages/lateness-page";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "./lib/protected-route";
 
@@ -42,6 +43,7 @@ function Router() {
       <ProtectedRoute path="/attendance/timesheet" component={AttendanceTimesheetPage} />
       <ProtectedRoute path="/attendance/shift-calendar" component={ShiftCalendarPage} />
       <ProtectedRoute path="/attendance/overtime" component={OvertimePage} />
+      <ProtectedRoute path="/attendance/lateness" component={LatenessPage} />
       <ProtectedRoute path="/debug" component={DebugPage} />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
