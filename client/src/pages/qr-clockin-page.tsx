@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { DashboardLayout } from "@/components/dashboard-layout";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -140,21 +141,22 @@ export default function QRClockInPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      {/* Page Header */}
-      <div className="mb-8">
-        <div 
-          className="rounded-lg p-6 shadow-sm"
-          style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}
-        >
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            Sistem QR Code Clock-In
-          </h1>
-          <p className="text-gray-700 text-lg">
-            Sistem clock-in pekerja menggunakan QR code dengan pengesahan lokasi GPS dan selfie
-          </p>
+    <DashboardLayout>
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        {/* Page Header */}
+        <div className="mb-8">
+          <div 
+            className="rounded-lg p-6 shadow-sm"
+            style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}
+          >
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+              Sistem QR Code Clock-In
+            </h1>
+            <p className="text-gray-700 text-lg">
+              Sistem clock-in pekerja menggunakan QR code dengan pengesahan lokasi GPS dan selfie
+            </p>
+          </div>
         </div>
-      </div>
 
       <div className="grid lg:grid-cols-2 gap-8">
         {/* QR Code Generation Section */}
@@ -404,6 +406,7 @@ export default function QRClockInPage() {
           </Card>
         </div>
       </div>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }
