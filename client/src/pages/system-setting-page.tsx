@@ -226,6 +226,55 @@ export default function SystemSettingPage() {
       employeeCount: 4,
     },
   ]);
+
+  // Payment states
+  const [paymentSettings, setPaymentSettings] = useState({
+    currency: "RM",
+    hrdfContribution: "choose",
+    standardWorkingHour: "8",
+  });
+  
+  const [paymentApproval, setPaymentApproval] = useState({
+    enableApproval: true,
+    approvalLevel: "Second Level",
+    firstLevel: "",
+    secondLevel: "",
+  });
+
+  const [unpaidLeaveSettings, setUnpaidLeaveSettings] = useState({
+    countIntoPayroll: true,
+    wageCalculation: "Basic Salary",
+    cutoffDate: "31",
+    countMode: "Default",
+  });
+
+  const [claimSettings, setClaimSettings] = useState({
+    enableClaim: true,
+    choosePayment: "Payroll",
+    cutoffDate: "31",
+  });
+
+  const [overtimeSettings2, setOvertimeSettings2] = useState({
+    enableOvertime: true,
+    choosePayment: "Payroll",
+    wageCalculation: "Basic Salary",
+    cutoffDate: "31",
+    compensationRounded: "No Round",
+    workingDaysInMonth: "26",
+  });
+
+  const [latenessSettings, setLatenessSettings] = useState({
+    countIntoPayroll: false,
+  });
+
+  const [payslipSettings, setPayslipSettings] = useState({
+    template: "Template One",
+    showOvertimeDetails: true,
+    showUnpaidLeaveDetails: true,
+    showEPFDetails: false,
+    showHRDFDetails: false,
+    showYearToDateDetails: true,
+  });
   const [companyData, setCompanyData] = useState({
     companyName: "utama hr",
     companyShortName: "KLINIK UTAMA 24 JAM",
@@ -1390,6 +1439,511 @@ export default function SystemSettingPage() {
     </div>
   );
 
+  const renderPaymentForm = () => (
+    <div className="space-y-6">
+      {/* Payment Setting */}
+      <div className="bg-white rounded-lg border">
+        <div className="bg-gradient-to-r from-cyan-400 to-teal-400 text-white p-3 rounded-t-lg">
+          <h3 className="font-semibold">Payment Setting</h3>
+        </div>
+        <div className="p-4 space-y-4">
+          {/* Currency */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Currency</Label>
+            <p className="text-xs text-gray-500">Choose currency applied by the company</p>
+            <Select value={paymentSettings.currency} onValueChange={(value) => setPaymentSettings(prev => ({...prev, currency: value}))}>
+              <SelectTrigger data-testid="select-currency">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="RM">RM</SelectItem>
+                <SelectItem value="USD">USD</SelectItem>
+                <SelectItem value="EUR">EUR</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* HRDF Contribution */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">HRDF Contribution</Label>
+            <p className="text-xs text-gray-500">Only applicable for every mode Monthly and hourly (From Salary Details)</p>
+            <Select value={paymentSettings.hrdfContribution} onValueChange={(value) => setPaymentSettings(prev => ({...prev, hrdfContribution: value}))}>
+              <SelectTrigger data-testid="select-hrdf">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="choose">Choose</SelectItem>
+                <SelectItem value="enabled">Enabled</SelectItem>
+                <SelectItem value="disabled">Disabled</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Standard Working Hour */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Standard Working Hour</Label>
+            <p className="text-xs text-gray-500">Choose these option based on the company policy</p>
+            <div className="flex gap-2">
+              <Input 
+                type="number"
+                value={paymentSettings.standardWorkingHour}
+                onChange={(e) => setPaymentSettings(prev => ({...prev, standardWorkingHour: e.target.value}))}
+                className="flex-1"
+                data-testid="input-working-hour"
+              />
+              <span className="flex items-center px-3 py-2 bg-gray-100 rounded text-sm">hour a Day</span>
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-4">
+            <Button className="bg-blue-900 hover:bg-blue-800" data-testid="button-save-payment-setting">
+              Save Changes
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Payment Approval */}
+      <div className="bg-white rounded-lg border">
+        <div className="bg-gradient-to-r from-cyan-400 to-teal-400 text-white p-3 rounded-t-lg">
+          <h3 className="font-semibold">Payment Approval</h3>
+        </div>
+        <div className="p-4 space-y-4">
+          {/* Enable Approval */}
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="text-sm font-medium">Enable Approval</Label>
+              <p className="text-xs text-gray-500">If enabled, system will skip approval and close payroll when HR submit payroll</p>
+            </div>
+            <Switch 
+              checked={paymentApproval.enableApproval}
+              onCheckedChange={(checked) => setPaymentApproval(prev => ({...prev, enableApproval: checked}))}
+              className="data-[state=checked]:bg-blue-900"
+              data-testid="switch-payment-approval"
+            />
+          </div>
+
+          {/* Choose Approval Level */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Choose Approval Level</Label>
+            <p className="text-xs text-gray-500">Choose approval level (First or Second Level) according to company policy.</p>
+            <Select value={paymentApproval.approvalLevel} onValueChange={(value) => setPaymentApproval(prev => ({...prev, approvalLevel: value}))}>
+              <SelectTrigger data-testid="select-approval-level">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="First Level">First Level</SelectItem>
+                <SelectItem value="Second Level">Second Level</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* First Level Approval */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">First Level Approval</Label>
+            <Select value={paymentApproval.firstLevel} onValueChange={(value) => setPaymentApproval(prev => ({...prev, firstLevel: value}))}>
+              <SelectTrigger data-testid="select-first-level">
+                <SelectValue placeholder="Select First Payroll Approval" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="manager">Manager</SelectItem>
+                <SelectItem value="supervisor">Supervisor</SelectItem>
+                <SelectItem value="hr">HR Manager</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Second Level Approval */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Second Level Approval</Label>
+            <Select value={paymentApproval.secondLevel} onValueChange={(value) => setPaymentApproval(prev => ({...prev, secondLevel: value}))}>
+              <SelectTrigger data-testid="select-second-level">
+                <SelectValue placeholder="Select Second Payroll Approval" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ceo">CEO</SelectItem>
+                <SelectItem value="cfo">CFO</SelectItem>
+                <SelectItem value="director">Director</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex justify-end pt-4">
+            <Button className="bg-blue-900 hover:bg-blue-800" data-testid="button-save-payment-approval">
+              Save Changes
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Unpaid Leave Setting */}
+      <div className="bg-white rounded-lg border">
+        <div className="bg-gradient-to-r from-cyan-400 to-teal-400 text-white p-3 rounded-t-lg">
+          <h3 className="font-semibold">Unpaid Leave Setting</h3>
+        </div>
+        <div className="p-4 space-y-4">
+          {/* Count approved Unpaid Leave */}
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="text-sm font-medium">Count approved Unpaid Leave into Payroll?</Label>
+              <p className="text-xs text-gray-500">If enabled, system will calculate approved unpaid leave and add amount into payroll</p>
+            </div>
+            <Switch 
+              checked={unpaidLeaveSettings.countIntoPayroll}
+              onCheckedChange={(checked) => setUnpaidLeaveSettings(prev => ({...prev, countIntoPayroll: checked}))}
+              className="data-[state=checked]:bg-blue-900"
+              data-testid="switch-unpaid-leave"
+            />
+          </div>
+
+          {/* Wage Calculation */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Wage Calculation</Label>
+            <p className="text-xs text-gray-500">Only applicable for every mode Monthly and hourly (From Salary Details)</p>
+            <Select value={unpaidLeaveSettings.wageCalculation} onValueChange={(value) => setUnpaidLeaveSettings(prev => ({...prev, wageCalculation: value}))}>
+              <SelectTrigger data-testid="select-unpaid-wage">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Basic Salary">Basic Salary</SelectItem>
+                <SelectItem value="Gross Salary">Gross Salary</SelectItem>
+                <SelectItem value="Net Salary">Net Salary</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Unpaid Leave Cut-off Date */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Unpaid Leave Cut-off Date</Label>
+            <p className="text-xs text-gray-500">Here you can set the cut-off date for unpaid leave processing. After this date, any unpaid leaves made will fall into the next month payroll cycle.</p>
+            <div className="flex gap-2">
+              <Select value={unpaidLeaveSettings.cutoffDate} onValueChange={(value) => setUnpaidLeaveSettings(prev => ({...prev, cutoffDate: value}))}>
+                <SelectTrigger className="flex-1" data-testid="select-unpaid-cutoff">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({length: 31}, (_, i) => (
+                    <SelectItem key={i+1} value={(i+1).toString()}>{i+1}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <span className="flex items-center px-3 py-2 bg-gray-100 rounded text-sm">of the Month</span>
+            </div>
+          </div>
+
+          {/* Count Mode */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Count Mode</Label>
+            <p className="text-xs text-gray-500">No description</p>
+            <Select value={unpaidLeaveSettings.countMode} onValueChange={(value) => setUnpaidLeaveSettings(prev => ({...prev, countMode: value}))}>
+              <SelectTrigger data-testid="select-count-mode">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Default">Default</SelectItem>
+                <SelectItem value="Custom">Custom</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex justify-end pt-4">
+            <Button className="bg-blue-900 hover:bg-blue-800" data-testid="button-save-unpaid-leave">
+              Save Changes
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Claim Setting */}
+      <div className="bg-white rounded-lg border">
+        <div className="bg-gradient-to-r from-cyan-400 to-teal-400 text-white p-3 rounded-t-lg">
+          <h3 className="font-semibold">Claim Setting</h3>
+        </div>
+        <div className="p-4 space-y-4">
+          {/* Enable count approved Claim */}
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="text-sm font-medium">Enable count approved Claim?</Label>
+              <p className="text-xs text-gray-500">If enabled, system will calculate approved claim and add amount into payroll or payment voucher.</p>
+            </div>
+            <Switch 
+              checked={claimSettings.enableClaim}
+              onCheckedChange={(checked) => setClaimSettings(prev => ({...prev, enableClaim: checked}))}
+              className="data-[state=checked]:bg-blue-900"
+              data-testid="switch-claim-setting"
+            />
+          </div>
+
+          {/* Choose Payment */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Choose Payment</Label>
+            <Select value={claimSettings.choosePayment} onValueChange={(value) => setClaimSettings(prev => ({...prev, choosePayment: value}))}>
+              <SelectTrigger data-testid="select-claim-payment">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Payroll">Payroll</SelectItem>
+                <SelectItem value="Payment Voucher">Payment Voucher</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Claim Cut-off Date */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Claim Cut-off Date</Label>
+            <p className="text-xs text-gray-500">Here you can set the cut-off date for claim processing. After this date, any claims made will fall into the next month payroll cycle.</p>
+            <div className="flex gap-2">
+              <Select value={claimSettings.cutoffDate} onValueChange={(value) => setClaimSettings(prev => ({...prev, cutoffDate: value}))}>
+                <SelectTrigger className="flex-1" data-testid="select-claim-cutoff">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({length: 31}, (_, i) => (
+                    <SelectItem key={i+1} value={(i+1).toString()}>{i+1}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <span className="flex items-center px-3 py-2 bg-gray-100 rounded text-sm">of the Month</span>
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-4">
+            <Button className="bg-blue-900 hover:bg-blue-800" data-testid="button-save-claim-setting">
+              Save Changes
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Overtime Setting */}
+      <div className="bg-white rounded-lg border">
+        <div className="bg-gradient-to-r from-cyan-400 to-teal-400 text-white p-3 rounded-t-lg">
+          <h3 className="font-semibold">Overtime Setting</h3>
+        </div>
+        <div className="p-4 space-y-4">
+          {/* Enable count approved Overtime */}
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="text-sm font-medium">Enable count approved Overtime?</Label>
+              <p className="text-xs text-gray-500">If enabled, system will calculate approved overtime and add amount into payroll or payment voucher</p>
+            </div>
+            <Switch 
+              checked={overtimeSettings2.enableOvertime}
+              onCheckedChange={(checked) => setOvertimeSettings2(prev => ({...prev, enableOvertime: checked}))}
+              className="data-[state=checked]:bg-blue-900"
+              data-testid="switch-overtime-setting"
+            />
+          </div>
+
+          {/* Choose Payment */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Choose Payment</Label>
+            <Select value={overtimeSettings2.choosePayment} onValueChange={(value) => setOvertimeSettings2(prev => ({...prev, choosePayment: value}))}>
+              <SelectTrigger data-testid="select-overtime-payment">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Payroll">Payroll</SelectItem>
+                <SelectItem value="Payment Voucher">Payment Voucher</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Wage Calculation */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Wage Calculation</Label>
+            <p className="text-xs text-gray-500">Only applicable for overtime type from Application and By Policy</p>
+            <Select value={overtimeSettings2.wageCalculation} onValueChange={(value) => setOvertimeSettings2(prev => ({...prev, wageCalculation: value}))}>
+              <SelectTrigger data-testid="select-overtime-wage">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Basic Salary">Basic Salary</SelectItem>
+                <SelectItem value="Gross Salary">Gross Salary</SelectItem>
+                <SelectItem value="Net Salary">Net Salary</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Overtime Cut-off Date */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Overtime Cut-off Date</Label>
+            <p className="text-xs text-gray-500">Here you can set the cut-off date for overtime processing. After this date, any overtime made will fall into the next month payroll cycle.</p>
+            <div className="flex gap-2">
+              <Select value={overtimeSettings2.cutoffDate} onValueChange={(value) => setOvertimeSettings2(prev => ({...prev, cutoffDate: value}))}>
+                <SelectTrigger className="flex-1" data-testid="select-overtime-cutoff">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({length: 31}, (_, i) => (
+                    <SelectItem key={i+1} value={(i+1).toString()}>{i+1}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <span className="flex items-center px-3 py-2 bg-gray-100 rounded text-sm">of the Month</span>
+            </div>
+          </div>
+
+          {/* Compensation Rounded */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Compensation Rounded</Label>
+            <p className="text-xs text-gray-500">No description</p>
+            <Select value={overtimeSettings2.compensationRounded} onValueChange={(value) => setOvertimeSettings2(prev => ({...prev, compensationRounded: value}))}>
+              <SelectTrigger data-testid="select-compensation-rounded">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="No Round">No Round</SelectItem>
+                <SelectItem value="Round Up">Round Up</SelectItem>
+                <SelectItem value="Round Down">Round Down</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Overtime working days in month */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Overtime working days in month</Label>
+            <p className="text-xs text-gray-500">No description</p>
+            <div className="flex gap-2">
+              <Input 
+                type="number"
+                value={overtimeSettings2.workingDaysInMonth}
+                onChange={(e) => setOvertimeSettings2(prev => ({...prev, workingDaysInMonth: e.target.value}))}
+                className="flex-1"
+                data-testid="input-overtime-working-days"
+              />
+              <span className="flex items-center px-3 py-2 bg-gray-100 rounded text-sm">days per Month</span>
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-4">
+            <Button className="bg-blue-900 hover:bg-blue-800" data-testid="button-save-overtime-setting">
+              Save Changes
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Lateness Setting */}
+      <div className="bg-white rounded-lg border">
+        <div className="bg-gradient-to-r from-cyan-400 to-teal-400 text-white p-3 rounded-t-lg">
+          <h3 className="font-semibold">Lateness Setting</h3>
+        </div>
+        <div className="p-4 space-y-4">
+          {/* Count approved Lateness */}
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="text-sm font-medium">Count approved Lateness into Payroll?</Label>
+              <p className="text-xs text-gray-500">If enabled, system will calculate approved lateness and add data into payroll</p>
+            </div>
+            <Switch 
+              checked={latenessSettings.countIntoPayroll}
+              onCheckedChange={(checked) => setLatenessSettings(prev => ({...prev, countIntoPayroll: checked}))}
+              className="data-[state=checked]:bg-blue-900"
+              data-testid="switch-lateness-setting"
+            />
+          </div>
+
+          <div className="flex justify-end pt-4">
+            <Button className="bg-blue-900 hover:bg-blue-800" data-testid="button-save-lateness-setting">
+              Save Changes
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Payslip Setting */}
+      <div className="bg-white rounded-lg border">
+        <div className="bg-gradient-to-r from-cyan-400 to-teal-400 text-white p-3 rounded-t-lg">
+          <h3 className="font-semibold">Payslip Setting</h3>
+        </div>
+        <div className="p-4 space-y-4">
+          {/* Template */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Template</Label>
+            <p className="text-xs text-gray-500">May choose from any available templates</p>
+            <div className="flex gap-2 items-center">
+              <Select value={payslipSettings.template} onValueChange={(value) => setPayslipSettings(prev => ({...prev, template: value}))}>
+                <SelectTrigger className="flex-1" data-testid="select-payslip-template">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Template One">Template One</SelectItem>
+                  <SelectItem value="Template Two">Template Two</SelectItem>
+                  <SelectItem value="Template Three">Template Three</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button variant="link" className="text-cyan-600 text-sm" data-testid="button-view-template">
+                👁 View Template
+              </Button>
+            </div>
+          </div>
+
+          {/* Show Overtime Remarks Details */}
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium">Show Overtime Remarks Details</Label>
+            <Switch 
+              checked={payslipSettings.showOvertimeDetails}
+              onCheckedChange={(checked) => setPayslipSettings(prev => ({...prev, showOvertimeDetails: checked}))}
+              className="data-[state=checked]:bg-blue-900"
+              data-testid="switch-show-overtime-details"
+            />
+          </div>
+
+          {/* Show Unpaid Leave Remarks Details */}
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium">Show Unpaid Leave Remarks Details</Label>
+            <Switch 
+              checked={payslipSettings.showUnpaidLeaveDetails}
+              onCheckedChange={(checked) => setPayslipSettings(prev => ({...prev, showUnpaidLeaveDetails: checked}))}
+              className="data-[state=checked]:bg-blue-900"
+              data-testid="switch-show-unpaid-leave-details"
+            />
+          </div>
+
+          {/* Show EPF Remarks Details */}
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium">Show EPF Remarks Details</Label>
+            <Switch 
+              checked={payslipSettings.showEPFDetails}
+              onCheckedChange={(checked) => setPayslipSettings(prev => ({...prev, showEPFDetails: checked}))}
+              className="data-[state=checked]:bg-blue-900"
+              data-testid="switch-show-epf-details"
+            />
+          </div>
+
+          {/* Show HRDF Details */}
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium">Show HRDF Details</Label>
+            <Switch 
+              checked={payslipSettings.showHRDFDetails}
+              onCheckedChange={(checked) => setPayslipSettings(prev => ({...prev, showHRDFDetails: checked}))}
+              className="data-[state=checked]:bg-blue-900"
+              data-testid="switch-show-hrdf-details"
+            />
+          </div>
+
+          {/* Show Year To Date Details */}
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium">Show Year To Date Details</Label>
+            <Switch 
+              checked={payslipSettings.showYearToDateDetails}
+              onCheckedChange={(checked) => setPayslipSettings(prev => ({...prev, showYearToDateDetails: checked}))}
+              className="data-[state=checked]:bg-blue-900"
+              data-testid="switch-show-year-to-date-details"
+            />
+          </div>
+
+          <div className="flex justify-end pt-4">
+            <Button className="bg-blue-900 hover:bg-blue-800" data-testid="button-save-payslip-setting">
+              Save Changes
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderDepartmentForm = () => (
     <div className="space-y-6">
       {/* Department Header */}
@@ -1499,6 +2053,7 @@ export default function SystemSettingPage() {
              currentSection === "leave" ? renderLeaveForm() : 
              currentSection === "claim" ? renderClaimForm() :
              currentSection === "department" ? renderDepartmentForm() :
+             currentSection === "payment" ? renderPaymentForm() :
              renderPlaceholderContent(currentSection)}
           </div>
         </div>
