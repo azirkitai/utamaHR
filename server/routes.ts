@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { setupAuth, authenticateToken } from "./auth";
 import { storage } from "./storage";
 import { insertEmployeeSchema, updateEmployeeSchema } from "@shared/schema";
+import { checkEnvironmentSecrets } from "./env-check";
 
 export function registerRoutes(app: Express): Server {
   // Setup authentication routes: /api/register, /api/login, /api/logout, /api/user
@@ -85,6 +86,29 @@ export function registerRoutes(app: Express): Server {
       console.error("Delete employee error:", error);
       res.status(500).json({ error: "Gagal menghapuskan pekerja" });
     }
+  });
+
+  // Environment secrets check endpoint for debugging
+  app.get("/api/env-check", authenticateToken, async (req, res) => {
+    try {
+      const envCheck = checkEnvironmentSecrets();
+      res.json(envCheck);
+    } catch (error) {
+      console.error("Env check error:", error);
+      res.status(500).json({ error: "Gagal memeriksa environment variables" });
+    }
+  });
+
+  // Public health check (no auth required)
+  app.get("/api/health", (req, res) => {
+    const envCheck = checkEnvironmentSecrets();
+    res.json({
+      status: "OK",
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      secretsValid: envCheck.allValid,
+      version: "1.0.0"
+    });
   });
 
   const httpServer = createServer(app);

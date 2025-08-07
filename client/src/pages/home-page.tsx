@@ -8,7 +8,8 @@ import {
   LogOut,
   BarChart3,
   Calendar,
-  DollarSign
+  DollarSign,
+  Shield
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -152,10 +153,12 @@ export default function HomePage() {
                 <span>Proses Gaji</span>
               </Button>
               
-              <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2" data-testid="button-view-reports">
-                <BarChart3 className="h-6 w-6" />
-                <span>Lihat Laporan</span>
-              </Button>
+              <Link href="/debug">
+                <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2 w-full" data-testid="button-env-debug">
+                  <Shield className="h-6 w-6" />
+                  <span>Debug Env</span>
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
