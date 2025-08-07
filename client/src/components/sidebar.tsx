@@ -55,6 +55,12 @@ const navigationItems: { category: string; items: SidebarItem[] }[] = [
         href: "/",
       },
       {
+        id: "qr-clockin",
+        label: "QR Clock-In",
+        icon: <QrCode className="w-4 h-4" />,
+        href: "/qr-clockin",
+      },
+      {
         id: "my-record",
         label: "My Record",
         icon: <FileText className="w-4 h-4" />,
@@ -148,12 +154,6 @@ const navigationItems: { category: string; items: SidebarItem[] }[] = [
         icon: <Clock className="w-4 h-4" />,
         href: "/attendance",
         children: [
-          {
-            id: "qr-clockin",
-            label: "QR Clock-In",
-            icon: <QrCode className="w-3 h-3" />,
-            href: "/qr-clockin",
-          },
           {
             id: "attendance-timesheet",
             label: "Timesheet",
