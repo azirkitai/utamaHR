@@ -18,6 +18,7 @@ import {
   Download
 } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import utamaMedgroupImage from "@assets/PANEL KLINIK UTAMA_1754579785517.png";
 
 interface DashboardData {
   message: string;
@@ -109,52 +110,13 @@ export default function DashboardHome() {
                 </p>
               </div>
               
-              {/* Setup Completion Card */}
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 min-w-[300px]">
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className="font-semibold text-lg">Get easy access to your account today!</h4>
-                  <Button variant="secondary" size="sm" className="text-gray-900">
-                    <Download className="w-4 h-4 mr-2" />
-                    Download MySyarikat Apps today.
-                  </Button>
-                </div>
-                
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium">Setup Completion</span>
-                      <span className="text-sm">71%</span>
-                    </div>
-                    <Progress value={71} className="h-2" />
-                    <span className="text-xs text-cyan-200">Overall completion</span>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">Company details</span>
-                      <div className="flex items-center">
-                        <span className="text-sm mr-2">10/10</span>
-                        <CheckCircle className="w-4 h-4 text-green-400" />
-                      </div>
-                    </div>
-                    
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">Add new staff</span>
-                      <div className="flex items-center">
-                        <span className="text-sm mr-2">1/1</span>
-                        <CheckCircle className="w-4 h-4 text-green-400" />
-                      </div>
-                    </div>
-                    
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">Complete leave settings</span>
-                      <div className="flex items-center">
-                        <span className="text-sm mr-2">0/1</span>
-                        <AlertCircle className="w-4 h-4 text-yellow-400" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              {/* UTAMA Medgroup Image */}
+              <div className="min-w-[300px] flex justify-center items-center">
+                <img 
+                  src={utamaMedgroupImage} 
+                  alt="UTAMA Medgroup - Panel Klinik" 
+                  className="w-full max-w-sm h-auto object-contain"
+                />
               </div>
             </div>
           </div>
