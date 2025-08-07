@@ -111,7 +111,7 @@ const navigationItems: { category: string; items: SidebarItem[] }[] = [
         id: "employee",
         label: "Employee",
         icon: <Users className="w-4 h-4" />,
-        href: "/employees",
+        href: "/manage-employee",
       },
       {
         id: "approval",
