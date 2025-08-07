@@ -79,12 +79,7 @@ const settingsMenuItems = [
     icon: <BarChart3 className="w-4 h-4" />,
     href: "/system-setting/evaluation",
   },
-  {
-    id: "subscription",
-    label: "Subscription",
-    icon: <Star className="w-4 h-4" />,
-    href: "/system-setting/subscription",
-  },
+
   {
     id: "yearly-form",
     label: "Yearly Form",

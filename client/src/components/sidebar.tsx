@@ -260,12 +260,7 @@ const navigationItems: { category: string; items: SidebarItem[] }[] = [
             icon: <BarChart3 className="w-3 h-3" />,
             href: "/system-setting/evaluation",
           },
-          {
-            id: "setting-subscription",
-            label: "Subscription",
-            icon: <Star className="w-3 h-3" />,
-            href: "/system-setting/subscription",
-          },
+
           {
             id: "setting-yearly-form",
             label: "Yearly Form",
