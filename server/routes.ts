@@ -343,7 +343,7 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Office Location management routes (admin only)
+  // Office Location management routes (admin only) 
   app.get("/api/office-locations", authenticateToken, async (req, res) => {
     try {
       const locations = await storage.getAllOfficeLocations();
