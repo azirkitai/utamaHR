@@ -9,6 +9,8 @@ import {
   updateEmploymentSchema,
   insertContactSchema,
   updateContactSchema,
+  insertFamilyDetailsSchema,
+  updateFamilyDetailsSchema,
   insertQrTokenSchema, 
   mobileClockInSchema,
   insertClockInSchema,
