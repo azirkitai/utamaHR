@@ -95,14 +95,14 @@ export interface IStorage {
   deleteEmployee(id: string): Promise<boolean>;
   
   // =================== EMPLOYMENT METHODS ===================
-  getEmployment(employeeId: string): Promise<Employment | undefined>;
+  getEmploymentByEmployeeId(employeeId: string): Promise<Employment | undefined>;
   createEmployment(employment: InsertEmployment): Promise<Employment>;
-  updateEmployment(employeeId: string, employment: UpdateEmployment): Promise<Employment | undefined>;
+  updateEmployment(id: string, employment: UpdateEmployment): Promise<Employment | undefined>;
   
   // =================== CONTACT METHODS ===================
-  getContact(employeeId: string): Promise<Contact | undefined>;
+  getContactByEmployeeId(employeeId: string): Promise<Contact | undefined>;
   createContact(contact: InsertContact): Promise<Contact>;
-  updateContact(employeeId: string, contact: UpdateContact): Promise<Contact | undefined>;
+  updateContact(id: string, contact: UpdateContact): Promise<Contact | undefined>;
   
   // =================== FAMILY DETAILS METHODS ===================
   getFamilyDetails(employeeId: string): Promise<FamilyDetails[]>;
@@ -261,7 +261,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // =================== EMPLOYMENT METHODS ===================
-  async getEmployment(employeeId: string): Promise<Employment | undefined> {
+  async getEmploymentByEmployeeId(employeeId: string): Promise<Employment | undefined> {
     const [record] = await db.select().from(employment).where(eq(employment.employeeId, employeeId));
     return record || undefined;
   }
@@ -274,20 +274,20 @@ export class DatabaseStorage implements IStorage {
     return record;
   }
 
-  async updateEmployment(employeeId: string, updateEmployment: UpdateEmployment): Promise<Employment | undefined> {
+  async updateEmployment(id: string, updateEmployment: UpdateEmployment): Promise<Employment | undefined> {
     const [record] = await db
       .update(employment)
       .set({
         ...updateEmployment,
         updatedAt: new Date()
       })
-      .where(eq(employment.employeeId, employeeId))
+      .where(eq(employment.id, id))
       .returning();
     return record || undefined;
   }
 
   // =================== CONTACT METHODS ===================
-  async getContact(employeeId: string): Promise<Contact | undefined> {
+  async getContactByEmployeeId(employeeId: string): Promise<Contact | undefined> {
     const [record] = await db.select().from(contact).where(eq(contact.employeeId, employeeId));
     return record || undefined;
   }
@@ -300,14 +300,14 @@ export class DatabaseStorage implements IStorage {
     return record;
   }
 
-  async updateContact(employeeId: string, updateContact: UpdateContact): Promise<Contact | undefined> {
+  async updateContact(id: string, updateContact: UpdateContact): Promise<Contact | undefined> {
     const [record] = await db
       .update(contact)
       .set({
         ...updateContact,
         updatedAt: new Date()
       })
-      .where(eq(contact.employeeId, employeeId))
+      .where(eq(contact.id, id))
       .returning();
     return record || undefined;
   }

@@ -5,6 +5,10 @@ import { storage } from "./storage";
 import { 
   insertEmployeeSchema, 
   updateEmployeeSchema,
+  insertEmploymentSchema,
+  updateEmploymentSchema,
+  insertContactSchema,
+  updateContactSchema,
   insertQrTokenSchema, 
   mobileClockInSchema,
   insertClockInSchema,
@@ -249,6 +253,128 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Reset password error:", error);
       res.status(500).json({ error: "Gagal mereset password" });
+    }
+  });
+
+  // Employment management routes
+  app.get("/api/employment/:employeeId", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      const employment = await storage.getEmploymentByEmployeeId(req.params.employeeId);
+      
+      // Role-based access control
+      if (currentUser.role === 'admin' || currentUser.role === 'hr') {
+        res.json(employment);
+      } else {
+        // Regular employees can only access their own employment record
+        if (!employment || employment.employeeId !== req.params.employeeId) {
+          return res.status(403).json({ error: "Tidak dibenarkan mengakses data pekerjaan lain" });
+        }
+        res.json(employment);
+      }
+    } catch (error) {
+      console.error("Get employment error:", error);
+      res.status(500).json({ error: "Gagal mendapatkan maklumat pekerjaan" });
+    }
+  });
+
+  app.post("/api/employment", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      
+      // Only admin and HR can create employment records
+      if (currentUser.role !== 'admin' && currentUser.role !== 'hr') {
+        return res.status(403).json({ error: "Tidak dibenarkan untuk menambah maklumat pekerjaan" });
+      }
+      
+      const validatedData = insertEmploymentSchema.parse(req.body);
+      const employment = await storage.createEmployment(validatedData);
+      res.status(201).json(employment);
+    } catch (error) {
+      console.error("Create employment error:", error);
+      res.status(400).json({ error: "Gagal menambah maklumat pekerjaan" });
+    }
+  });
+
+  app.put("/api/employment/:id", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      
+      // Only admin and HR can update employment records
+      if (currentUser.role !== 'admin' && currentUser.role !== 'hr') {
+        return res.status(403).json({ error: "Tidak dibenarkan untuk mengemaskini maklumat pekerjaan" });
+      }
+      
+      const validatedData = updateEmploymentSchema.parse(req.body);
+      const employment = await storage.updateEmployment(req.params.id, validatedData);
+      if (!employment) {
+        return res.status(404).json({ error: "Maklumat pekerjaan tidak dijumpai" });
+      }
+      res.json(employment);
+    } catch (error) {
+      console.error("Update employment error:", error);
+      res.status(400).json({ error: "Gagal mengemaskini maklumat pekerjaan" });
+    }
+  });
+
+  // Contact management routes
+  app.get("/api/contact/:employeeId", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      const contact = await storage.getContactByEmployeeId(req.params.employeeId);
+      
+      // Role-based access control
+      if (currentUser.role === 'admin' || currentUser.role === 'hr') {
+        res.json(contact);
+      } else {
+        // Regular employees can only access their own contact record
+        if (!contact || contact.employeeId !== req.params.employeeId) {
+          return res.status(403).json({ error: "Tidak dibenarkan mengakses data kontak lain" });
+        }
+        res.json(contact);
+      }
+    } catch (error) {
+      console.error("Get contact error:", error);
+      res.status(500).json({ error: "Gagal mendapatkan maklumat kontak" });
+    }
+  });
+
+  app.post("/api/contact", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      
+      // Only admin and HR can create contact records
+      if (currentUser.role !== 'admin' && currentUser.role !== 'hr') {
+        return res.status(403).json({ error: "Tidak dibenarkan untuk menambah maklumat kontak" });
+      }
+      
+      const validatedData = insertContactSchema.parse(req.body);
+      const contact = await storage.createContact(validatedData);
+      res.status(201).json(contact);
+    } catch (error) {
+      console.error("Create contact error:", error);
+      res.status(400).json({ error: "Gagal menambah maklumat kontak" });
+    }
+  });
+
+  app.put("/api/contact/:id", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      
+      // Only admin and HR can update contact records
+      if (currentUser.role !== 'admin' && currentUser.role !== 'hr') {
+        return res.status(403).json({ error: "Tidak dibenarkan untuk mengemaskini maklumat kontak" });
+      }
+      
+      const validatedData = updateContactSchema.parse(req.body);
+      const contact = await storage.updateContact(req.params.id, validatedData);
+      if (!contact) {
+        return res.status(404).json({ error: "Maklumat kontak tidak dijumpai" });
+      }
+      res.json(contact);
+    } catch (error) {
+      console.error("Update contact error:", error);
+      res.status(400).json({ error: "Gagal mengemaskini maklumat kontak" });
     }
   });
 

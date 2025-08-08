@@ -90,6 +90,24 @@ export default function ManageEmployeePage() {
         status: "employed"
       });
       
+      const newEmployee = await employeeResponse.json();
+      
+      // Step 3: Create employment details record
+      await apiRequest("POST", "/api/employment", {
+        employeeId: newEmployee.id,
+        company: staffData.company,
+        designation: staffData.designation,
+        department: staffData.department,
+        employmentStatus: "Employed"
+      });
+      
+      // Step 4: Create contact details record
+      await apiRequest("POST", "/api/contact", {
+        employeeId: newEmployee.id,
+        phoneNumber: staffData.phone,
+        email: staffData.email
+      });
+      
       return await employeeResponse.json();
     },
     onSuccess: () => {
