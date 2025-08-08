@@ -55,6 +55,44 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Staff user creation route (for admin/HR creating new staff accounts)
+  app.post("/api/create-staff-user", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      
+      // Only admin and HR can create new staff user accounts
+      if (currentUser.role !== 'admin' && currentUser.role !== 'hr') {
+        return res.status(403).json({ error: "Tidak dibenarkan untuk membuat akaun staff baru" });
+      }
+      
+      const { username, password, role } = req.body;
+      
+      if (!username || !password || !role) {
+        return res.status(400).json({ error: "Username, password dan role diperlukan" });
+      }
+      
+      // Check if username already exists
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(400).json({ error: "Username sudah wujud" });
+      }
+      
+      // Create new user
+      const newUser = await storage.createUser({
+        username,
+        password,
+        role,
+      });
+      
+      // Return user without password
+      const { password: _, ...userWithoutPassword } = newUser;
+      res.status(201).json(userWithoutPassword);
+    } catch (error) {
+      console.error("Create staff user error:", error);
+      res.status(500).json({ error: "Gagal membuat akaun staff baru" });
+    }
+  });
+
   // Employee management routes
   app.get("/api/employees", authenticateToken, async (req, res) => {
     try {

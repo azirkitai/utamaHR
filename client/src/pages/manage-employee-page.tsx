@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -46,9 +48,74 @@ export default function ManageEmployeePage() {
   const [userRole, setUserRole] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   
+  const { toast } = useToast();
+  
   // Fetch employees from API
   const { data: allEmployees = [], isLoading } = useQuery<Employee[]>({
     queryKey: ["/api/employees"],
+  });
+
+  // Mutation for creating user and employee
+  const createStaffMutation = useMutation({
+    mutationFn: async (staffData: {
+      // User data
+      username: string;
+      password: string;
+      role: string;
+      // Employee data
+      firstName: string;
+      lastName: string;
+      phone: string;
+      company: string;
+      designation: string;
+      department: string;
+      email: string;
+    }) => {
+      // Step 1: Create user account first
+      const userResponse = await apiRequest("POST", "/api/create-staff-user", {
+        username: staffData.username,
+        password: staffData.password,
+        role: staffData.role,
+      });
+      
+      const newUser = await userResponse.json();
+      
+      // Step 2: Create employee record linked to user
+      const employeeResponse = await apiRequest("POST", "/api/employees", {
+        userId: newUser.id, // Link employee to user
+        firstName: staffData.firstName,
+        lastName: staffData.lastName,
+        name: `${staffData.firstName} ${staffData.lastName}`,
+        phone: staffData.phone,
+        company: staffData.company,
+        position: staffData.designation,
+        department: staffData.department,
+        email: staffData.email,
+        status: "active"
+      });
+      
+      return await employeeResponse.json();
+    },
+    onSuccess: () => {
+      // Refresh employees list
+      queryClient.invalidateQueries({ queryKey: ["/api/employees"] });
+      
+      toast({
+        title: "Berjaya!",
+        description: "Staff baru telah ditambah dengan jayanya.",
+      });
+      
+      // Reset form and close dialog
+      resetForm();
+      setIsAddEmployeeOpen(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Ralat",
+        description: `Gagal menambah staff: ${error.message}`,
+        variant: "destructive",
+      });
+    },
   });
 
   const filteredEmployees = allEmployees.filter(employee => {
@@ -64,17 +131,11 @@ export default function ManageEmployeePage() {
     }
   });
 
-  const handleAddEmployee = () => {
-    // Add employee logic here
-    console.log("Adding employee:", {
-      firstName, lastName, phone, company, designation, 
-      department, username, email, password, userRole
-    });
-    
-    // Reset form
+  const resetForm = () => {
     setFirstName("");
     setLastName("");
     setPhone("");
+    setCompany("utama hr");
     setDesignation("");
     setDepartment("");
     setUsername("");
@@ -82,7 +143,41 @@ export default function ManageEmployeePage() {
     setPassword("");
     setConfirmPassword("");
     setUserRole("");
-    setIsAddEmployeeOpen(false);
+  };
+
+  const handleAddEmployee = () => {
+    // Validation
+    if (!firstName || !lastName || !email || !username || !password || !userRole) {
+      toast({
+        title: "Ralat",
+        description: "Sila isi semua field yang diperlukan.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast({
+        title: "Ralat", 
+        description: "Password dan confirm password tidak sama.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Call the mutation
+    createStaffMutation.mutate({
+      username,
+      password,
+      role: userRole,
+      firstName,
+      lastName,
+      phone,
+      company,
+      designation,
+      department,
+      email,
+    });
   };
 
   const handleImportFile = () => {
@@ -324,11 +419,11 @@ export default function ManageEmployeePage() {
                         </Button>
                         <Button 
                           onClick={handleAddEmployee}
-                          disabled={!firstName || !lastName || !email || password !== confirmPassword}
+                          disabled={!firstName || !lastName || !email || password !== confirmPassword || createStaffMutation.isPending}
                           className="bg-slate-700 hover:bg-slate-800"
                           data-testid="button-add-staff"
                         >
-                          Add Staff
+                          {createStaffMutation.isPending ? "Adding..." : "Add Staff"}
                         </Button>
                       </DialogFooter>
                     </DialogContent>
