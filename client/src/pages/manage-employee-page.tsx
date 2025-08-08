@@ -86,13 +86,8 @@ export default function ManageEmployeePage() {
         userId: newUser.id, // Link employee to user
         firstName: staffData.firstName,
         lastName: staffData.lastName,
-        name: `${staffData.firstName} ${staffData.lastName}`,
-        phone: staffData.phone,
-        company: staffData.company,
-        position: staffData.designation,
-        department: staffData.department,
-        email: staffData.email,
-        status: "active"
+        fullName: `${staffData.firstName} ${staffData.lastName}`.trim(),
+        status: "employed"
       });
       
       return await employeeResponse.json();
@@ -120,15 +115,15 @@ export default function ManageEmployeePage() {
   });
 
   const filteredEmployees = allEmployees.filter(employee => {
-    const matchesSearch = employee.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      employee.employeeId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      employee.position?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      employee.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = employee.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employee.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employee.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employee.lastName?.toLowerCase().includes(searchTerm.toLowerCase());
     
     if (activeTab === "active") {
-      return matchesSearch && employee.status === "active";
+      return matchesSearch && employee.status === "employed";
     } else {
-      return matchesSearch && employee.status !== "active";
+      return matchesSearch && employee.status !== "employed";
     }
   });
 
@@ -581,7 +576,7 @@ export default function ManageEmployeePage() {
                                     <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center mr-3">
                                       <span className="text-xs text-gray-600">👤</span>
                                     </div>
-                                    {employee.name}
+                                    {employee.fullName}
                                   </div>
                                 </td>
                                 <td className="py-3 px-4">
@@ -589,16 +584,16 @@ export default function ManageEmployeePage() {
                                     <Badge variant="secondary" className="bg-blue-600 text-white text-xs">
                                       Employee
                                     </Badge>
-                                    <Badge variant="secondary" className={`text-white text-xs ${employee.status === 'active' ? 'bg-green-600' : 'bg-red-600'}`}>
-                                      {employee.status === 'active' ? 'Active' : 'Inactive'}
+                                    <Badge variant="secondary" className={`text-white text-xs ${employee.status === 'employed' ? 'bg-green-600' : 'bg-red-600'}`}>
+                                      {employee.status === 'employed' ? 'Active' : 'Inactive'}
                                     </Badge>
                                   </div>
                                 </td>
-                                <td className="py-3 px-4">{employee.employeeId || '-'}</td>
-                                <td className="py-3 px-4">{employee.position || '-'}</td>
-                                <td className="py-3 px-4">{employee.phone || '-'}</td>
-                                <td className="py-3 px-4">{employee.phone || '-'}</td>
-                                <td className="py-3 px-4">{employee.email || '-'}</td>
+                                <td className="py-3 px-4">{employee.id || '-'}</td>
+                                <td className="py-3 px-4">N/A</td>
+                                <td className="py-3 px-4">N/A</td>
+                                <td className="py-3 px-4">N/A</td>
+                                <td className="py-3 px-4">N/A</td>
                                 <td className="py-3 px-4">
                                   <Button
                                     variant="ghost"
