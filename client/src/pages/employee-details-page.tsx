@@ -2618,14 +2618,18 @@ export default function EmployeeDetailsPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                           <div className="space-y-2">
                             <Label className="text-sm font-medium text-gray-700 block">Spouse is Working</Label>
-                            <div className="mt-1 p-2 bg-gray-50 rounded border">
-                              <div className="flex items-center space-x-2">
+{isEditingIncomeTaxDetails ? (
+                              <div className="flex items-center space-x-2 mt-1">
                                 <input type="radio" id="spouse-working" name="spouse-work" value="yes" className="radio" />
                                 <Label htmlFor="spouse-working" className="text-sm">Yes</Label>
                                 <input type="radio" id="spouse-not-working" name="spouse-work" value="no" className="radio ml-4" />
                                 <Label htmlFor="spouse-not-working" className="text-sm">No</Label>
                               </div>
-                            </div>
+                            ) : (
+                              <div className="mt-1 p-2 bg-gray-50 rounded border">
+                                No
+                              </div>
+                            )}
                           </div>
 
                           <div className="space-y-2">
@@ -2649,14 +2653,18 @@ export default function EmployeeDetailsPage() {
 
                           <div className="space-y-2">
                             <Label className="text-sm font-medium text-gray-700 block">Spouse is Disable</Label>
-                            <div className="mt-1 p-2 bg-gray-50 rounded border">
-                              <div className="flex items-center space-x-2">
+{isEditingIncomeTaxDetails ? (
+                              <div className="flex items-center space-x-2 mt-1">
                                 <input type="radio" id="spouse-disable" name="spouse-disable" value="yes" className="radio" />
                                 <Label htmlFor="spouse-disable" className="text-sm">Yes</Label>
                                 <input type="radio" id="spouse-not-disable" name="spouse-disable" value="no" className="radio ml-4" />
                                 <Label htmlFor="spouse-not-disable" className="text-sm">No</Label>
                               </div>
-                            </div>
+                            ) : (
+                              <div className="mt-1 p-2 bg-gray-50 rounded border">
+                                No
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -2683,9 +2691,9 @@ export default function EmployeeDetailsPage() {
                               Determine whether employee is Returning Expert Programme (REP), Knowledge
                               Worker or Specific Region (sarawak Malaysia) or neither
                             </Label>
-                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+{isEditingIncomeTaxDetails ? (
                               <Select>
-                                <SelectTrigger>
+                                <SelectTrigger className="mt-1">
                                   <SelectValue placeholder="None" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -2695,7 +2703,11 @@ export default function EmployeeDetailsPage() {
                                   <SelectItem value="sarawak">Specific Region (Sarawak Malaysia)</SelectItem>
                                 </SelectContent>
                               </Select>
-                            </div>
+                            ) : (
+                              <div className="mt-1 p-2 bg-gray-50 rounded border">
+                                None
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
