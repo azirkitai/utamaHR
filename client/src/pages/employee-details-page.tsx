@@ -507,36 +507,16 @@ export default function EmployeeDetailsPage() {
                         <div>
                           <Label className="text-sm font-medium text-gray-700">Date of Birth</Label>
                           {isEditingPersonal ? (
-                            <Popover open={dateOfBirthPopoverOpen} onOpenChange={setDateOfBirthPopoverOpen}>
-                              <PopoverTrigger asChild>
-                                <div className="mt-1">
-                                  <Button
-                                    variant="outline"
-                                    className={cn(
-                                      "w-full justify-start text-left font-normal",
-                                      !dateOfBirth && "text-muted-foreground"
-                                    )}
-                                  >
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {dateOfBirth ? format(dateOfBirth, "PPP") : "Pick a date"}
-                                  </Button>
-                                </div>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                  mode="single"
-                                  selected={dateOfBirth}
-                                  onSelect={(date) => {
-                                    setDateOfBirth(date);
-                                    setDateOfBirthPopoverOpen(false);
-                                  }}
-                                  initialFocus
-                                />
-                              </PopoverContent>
-                            </Popover>
+                            <Input
+                              type="date"
+                              value={dateOfBirth ? dateOfBirth.toISOString().split('T')[0] : ""}
+                              onChange={(e) => setDateOfBirth(e.target.value ? new Date(e.target.value) : undefined)}
+                              className="mt-1"
+                              data-testid="input-date-birth"
+                            />
                           ) : (
                             <div className="mt-1 p-2 bg-gray-50 rounded border">
-                              {employee?.dateOfBirth ? format(new Date(employee.dateOfBirth), "PPP") : "N/A"}
+                              {employee?.dateOfBirth ? new Date(employee.dateOfBirth).toLocaleDateString('en-MY') : "N/A"}
                             </div>
                           )}
                         </div>
@@ -846,36 +826,16 @@ export default function EmployeeDetailsPage() {
                         <div className="md:col-span-2">
                           <Label className="text-sm font-medium text-gray-700">Driving Expiry Date</Label>
                           {isEditingDriving ? (
-                            <Popover open={drivingDatePopoverOpen} onOpenChange={setDrivingDatePopoverOpen}>
-                              <PopoverTrigger asChild>
-                                <div className="mt-1">
-                                  <Button
-                                    variant="outline"
-                                    className={cn(
-                                      "w-full justify-start text-left font-normal",
-                                      !drivingExpiryDate && "text-muted-foreground"
-                                    )}
-                                  >
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {drivingExpiryDate ? format(drivingExpiryDate, "PPP") : "Pick a date"}
-                                  </Button>
-                                </div>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                  mode="single"
-                                  selected={drivingExpiryDate}
-                                  onSelect={(date) => {
-                                    setDrivingExpiryDate(date);
-                                    setDrivingDatePopoverOpen(false);
-                                  }}
-                                  initialFocus
-                                />
-                              </PopoverContent>
-                            </Popover>
+                            <Input
+                              type="date"
+                              value={drivingExpiryDate ? drivingExpiryDate.toISOString().split('T')[0] : ""}
+                              onChange={(e) => setDrivingExpiryDate(e.target.value ? new Date(e.target.value) : undefined)}
+                              className="mt-1"
+                              data-testid="input-driving-expiry"
+                            />
                           ) : (
                             <div className="mt-1 p-2 bg-gray-50 rounded border">
-                              {employee?.drivingExpiryDate ? format(new Date(employee.drivingExpiryDate), "PPP") : "N/A"}
+                              {employee?.drivingExpiryDate ? new Date(employee.drivingExpiryDate).toLocaleDateString('en-MY') : "N/A"}
                             </div>
                           )}
                         </div>
@@ -954,59 +914,25 @@ export default function EmployeeDetailsPage() {
                                 <Label htmlFor="start-date" className="text-right">
                                   Start Date
                                 </Label>
-                                <Popover>
-                                  <PopoverTrigger asChild>
-                                    <div className="col-span-3">
-                                      <Button
-                                        variant="outline"
-                                        className={cn(
-                                          "w-full justify-start text-left font-normal",
-                                          !workExperienceForm.startDate && "text-muted-foreground"
-                                        )}
-                                      >
-                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {workExperienceForm.startDate ? format(workExperienceForm.startDate, "PPP") : "Pick a date"}
-                                      </Button>
-                                    </div>
-                                  </PopoverTrigger>
-                                  <PopoverContent className="w-auto p-0" align="start">
-                                    <Calendar
-                                      mode="single"
-                                      selected={workExperienceForm.startDate}
-                                      onSelect={(date) => date && setWorkExperienceForm({ ...workExperienceForm, startDate: date })}
-                                      initialFocus
-                                    />
-                                  </PopoverContent>
-                                </Popover>
+                                <Input
+                                  type="date"
+                                  id="start-date"
+                                  value={workExperienceForm.startDate ? workExperienceForm.startDate.toISOString().split('T')[0] : ""}
+                                  onChange={(e) => setWorkExperienceForm({ ...workExperienceForm, startDate: e.target.value ? new Date(e.target.value) : new Date() })}
+                                  className="col-span-3"
+                                />
                               </div>
                               <div className="grid grid-cols-4 items-center gap-4">
                                 <Label htmlFor="end-date" className="text-right">
                                   End Date
                                 </Label>
-                                <Popover>
-                                  <PopoverTrigger asChild>
-                                    <div className="col-span-3">
-                                      <Button
-                                        variant="outline"
-                                        className={cn(
-                                          "w-full justify-start text-left font-normal",
-                                          !workExperienceForm.endDate && "text-muted-foreground"
-                                        )}
-                                      >
-                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {workExperienceForm.endDate ? format(workExperienceForm.endDate, "PPP") : "Pick a date"}
-                                      </Button>
-                                    </div>
-                                  </PopoverTrigger>
-                                  <PopoverContent className="w-auto p-0" align="start">
-                                    <Calendar
-                                      mode="single"
-                                      selected={workExperienceForm.endDate}
-                                      onSelect={(date) => date && setWorkExperienceForm({ ...workExperienceForm, endDate: date })}
-                                      initialFocus
-                                    />
-                                  </PopoverContent>
-                                </Popover>
+                                <Input
+                                  type="date"
+                                  id="end-date"
+                                  value={workExperienceForm.endDate ? workExperienceForm.endDate.toISOString().split('T')[0] : ""}
+                                  onChange={(e) => setWorkExperienceForm({ ...workExperienceForm, endDate: e.target.value ? new Date(e.target.value) : new Date() })}
+                                  className="col-span-3"
+                                />
                               </div>
                             </div>
                             <DialogFooter>
