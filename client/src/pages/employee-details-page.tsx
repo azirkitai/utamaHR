@@ -56,6 +56,7 @@ export default function EmployeeDetailsPage() {
   const [isEditingYearly, setIsEditingYearly] = useState(false);
   const [isEditingContact, setIsEditingContact] = useState(false);
   const [isWorkExperienceDialogOpen, setIsWorkExperienceDialogOpen] = useState(false);
+  const [isFamilyDialogOpen, setIsFamilyDialogOpen] = useState(false);
   const [employeeForm, setEmployeeForm] = useState<Partial<Employee>>({});
   const [employmentForm, setEmploymentForm] = useState<Partial<Employment>>({});
   const [contactForm, setContactForm] = useState({
@@ -66,6 +67,19 @@ export default function EmployeeDetailsPage() {
     mailingAddress: "",
     emergencyContactName: "",
     emergencyContactPhone: ""
+  });
+  const [familyForm, setFamilyForm] = useState({
+    relation: "",
+    firstName: "",
+    lastName: "",
+    gender: "",
+    nric: "",
+    dateOfBirth: new Date(),
+    phoneNumber: "",
+    email: "",
+    address: "",
+    employmentStatus: "",
+    okuStatus: ""
   });
   
   // Date picker states
@@ -97,6 +111,12 @@ export default function EmployeeDetailsPage() {
   // Get employment details for this employee
   const { data: employment, isLoading: employmentLoading } = useQuery<Employment>({
     queryKey: ["/api/employment", id],
+    enabled: !!id
+  });
+
+  // Get family members for this employee
+  const { data: familyMembers = [], isLoading: familyMembersLoading } = useQuery<any[]>({
+    queryKey: ["/api/family-members", id],
     enabled: !!id
   });
 
@@ -311,6 +331,81 @@ export default function EmployeeDetailsPage() {
   const handleSaveContact = () => {
     const updatedData = { ...contactForm };
     updateContactMutation.mutate(updatedData);
+  };
+
+  // Create family member mutation
+  const createFamilyMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest("POST", "/api/family-members", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Berjaya",
+        description: "Ahli keluarga telah ditambah",
+      });
+      setIsFamilyDialogOpen(false);
+      setFamilyForm({
+        relation: "",
+        firstName: "",
+        lastName: "",
+        gender: "",
+        nric: "",
+        dateOfBirth: new Date(),
+        phoneNumber: "",
+        email: "",
+        address: "",
+        employmentStatus: "",
+        okuStatus: ""
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/family-members", id] });
+    },
+    onError: () => {
+      toast({
+        title: "Ralat",
+        description: "Gagal menambah ahli keluarga",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete family member mutation
+  const deleteFamilyMutation = useMutation({
+    mutationFn: async (familyId: string) => {
+      const response = await apiRequest("DELETE", `/api/family-members/${familyId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Berjaya",
+        description: "Ahli keluarga telah dipadam",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/family-members", id] });
+    },
+    onError: () => {
+      toast({
+        title: "Ralat",
+        description: "Gagal memadamkan ahli keluarga",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleAddFamily = () => {
+    if (!id) return;
+    
+    const data = {
+      employeeId: id,
+      ...familyForm,
+    };
+    
+    createFamilyMutation.mutate(data);
+  };
+
+  const handleDeleteFamily = (familyId: string) => {
+    if (confirm("Adakah anda pasti untuk memadamkan ahli keluarga ini?")) {
+      deleteFamilyMutation.mutate(familyId);
+    }
   };
 
   const navigationTabs = [
@@ -1864,8 +1959,249 @@ export default function EmployeeDetailsPage() {
                 </div>
               )}
 
+              {activeTab === "family-detail" && (
+                <div className="space-y-6">
+                  {/* Family Details Card */}
+                  <Card>
+                    <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="flex items-center gap-2">
+                          <Users className="w-5 h-5" />
+                          Family Details
+                        </CardTitle>
+                        <Dialog open={isFamilyDialogOpen} onOpenChange={setIsFamilyDialogOpen}>
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="bg-white text-teal-600 hover:bg-gray-50"
+                              data-testid="button-add-family"
+                            >
+                              <Plus className="w-4 h-4 mr-1" />
+                              Add
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-[600px]">
+                            <DialogHeader>
+                              <DialogTitle>Add Family Details</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4 py-4">
+                              <div className="text-lg font-medium text-gray-800 mb-4">Family Information</div>
+                              
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="relation">Relation</Label>
+                                  <Select value={familyForm.relation} onValueChange={(value) => setFamilyForm({ ...familyForm, relation: value })}>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select family relation" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="Father">Father</SelectItem>
+                                      <SelectItem value="Mother">Mother</SelectItem>
+                                      <SelectItem value="Spouse">Spouse</SelectItem>
+                                      <SelectItem value="Son">Son</SelectItem>
+                                      <SelectItem value="Daughter">Daughter</SelectItem>
+                                      <SelectItem value="Brother">Brother</SelectItem>
+                                      <SelectItem value="Sister">Sister</SelectItem>
+                                      <SelectItem value="Other">Other</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label htmlFor="first-name">First Name</Label>
+                                  <Input
+                                    id="first-name"
+                                    value={familyForm.firstName}
+                                    onChange={(e) => setFamilyForm({ ...familyForm, firstName: e.target.value })}
+                                    placeholder="First Name"
+                                  />
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label htmlFor="last-name">Last Name</Label>
+                                  <Input
+                                    id="last-name"
+                                    value={familyForm.lastName}
+                                    onChange={(e) => setFamilyForm({ ...familyForm, lastName: e.target.value })}
+                                    placeholder="Last Name"
+                                  />
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label htmlFor="gender">Gender</Label>
+                                  <Select value={familyForm.gender} onValueChange={(value) => setFamilyForm({ ...familyForm, gender: value })}>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select Gender" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="Male">Male</SelectItem>
+                                      <SelectItem value="Female">Female</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label htmlFor="nric">NRIC/Passport</Label>
+                                  <Input
+                                    id="nric"
+                                    value={familyForm.nric}
+                                    onChange={(e) => setFamilyForm({ ...familyForm, nric: e.target.value })}
+                                    placeholder="NRIC/Passport"
+                                  />
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label htmlFor="date-of-birth">Date of Birth</Label>
+                                  <Input
+                                    id="date-of-birth"
+                                    type="date"
+                                    value={familyForm.dateOfBirth ? familyForm.dateOfBirth.toISOString().split('T')[0] : ""}
+                                    onChange={(e) => {
+                                      const dateValue = e.target.value ? new Date(e.target.value) : new Date();
+                                      setFamilyForm({ ...familyForm, dateOfBirth: dateValue });
+                                    }}
+                                  />
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label htmlFor="phone">Phone No.</Label>
+                                  <Input
+                                    id="phone"
+                                    value={familyForm.phoneNumber}
+                                    onChange={(e) => setFamilyForm({ ...familyForm, phoneNumber: e.target.value })}
+                                    placeholder="Phone No."
+                                  />
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label htmlFor="email">Email</Label>
+                                  <Input
+                                    id="email"
+                                    type="email"
+                                    value={familyForm.email}
+                                    onChange={(e) => setFamilyForm({ ...familyForm, email: e.target.value })}
+                                    placeholder="Email"
+                                  />
+                                </div>
+
+                                <div className="space-y-2 md:col-span-2">
+                                  <Label htmlFor="address">Address</Label>
+                                  <Input
+                                    id="address"
+                                    value={familyForm.address}
+                                    onChange={(e) => setFamilyForm({ ...familyForm, address: e.target.value })}
+                                    placeholder="Address"
+                                  />
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label htmlFor="employment-status">Employment Status</Label>
+                                  <Select value={familyForm.employmentStatus} onValueChange={(value) => setFamilyForm({ ...familyForm, employmentStatus: value })}>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select family employment status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="Employed">Employed</SelectItem>
+                                      <SelectItem value="Unemployed">Unemployed</SelectItem>
+                                      <SelectItem value="Student">Student</SelectItem>
+                                      <SelectItem value="Retired">Retired</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label htmlFor="oku-status">OKU Status</Label>
+                                  <Select value={familyForm.okuStatus} onValueChange={(value) => setFamilyForm({ ...familyForm, okuStatus: value })}>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select family OKU status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="No">No</SelectItem>
+                                      <SelectItem value="Yes">Yes</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+                            </div>
+                            <DialogFooter>
+                              <Button
+                                variant="outline"
+                                onClick={() => setIsFamilyDialogOpen(false)}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                onClick={handleAddFamily}
+                                disabled={createFamilyMutation.isPending}
+                                className="bg-teal-600 hover:bg-teal-700"
+                              >
+                                {createFamilyMutation.isPending ? "Saving..." : "Save"}
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                      <div className="overflow-x-auto">
+                        <table className="w-full border-collapse">
+                          <thead>
+                            <tr className="border-b border-gray-200">
+                              <th className="text-left py-3 px-4 font-medium text-gray-700">No.</th>
+                              <th className="text-left py-3 px-4 font-medium text-gray-700">Name</th>
+                              <th className="text-left py-3 px-4 font-medium text-gray-700">Relation</th>
+                              <th className="text-left py-3 px-4 font-medium text-gray-700">Age</th>
+                              <th className="text-left py-3 px-4 font-medium text-gray-700">Phone</th>
+                              <th className="text-left py-3 px-4 font-medium text-gray-700">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {familyMembers.length > 0 ? (
+                              familyMembers.map((member, index) => (
+                                <tr key={member.id} className="border-b border-gray-100 hover:bg-gray-50">
+                                  <td className="py-3 px-4">{index + 1}</td>
+                                  <td className="py-3 px-4">{`${member.firstName} ${member.lastName}`}</td>
+                                  <td className="py-3 px-4">{member.relation}</td>
+                                  <td className="py-3 px-4">
+                                    {member.dateOfBirth ? 
+                                      new Date().getFullYear() - new Date(member.dateOfBirth).getFullYear() 
+                                      : "N/A"
+                                    }
+                                  </td>
+                                  <td className="py-3 px-4">{member.phoneNumber || "N/A"}</td>
+                                  <td className="py-3 px-4">
+                                    <div className="flex gap-2">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleDeleteFamily(member.id)}
+                                        className="h-8 w-8 p-0 hover:bg-red-100"
+                                        data-testid={`button-delete-family-${member.id}`}
+                                      >
+                                        <Trash2 className="h-4 w-4 text-red-600" />
+                                      </Button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td colSpan={6} className="text-center py-8 text-gray-500">
+                                  No family members recorded
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
               {/* Placeholder for other tabs */}
-              {activeTab !== "personal-details" && activeTab !== "employment" && activeTab !== "contact" && (
+              {!["personal-details", "employment", "contact", "family-detail"].includes(activeTab) && (
                 <Card>
                   <CardHeader className="bg-gradient-to-r from-teal-500 to-emerald-500 text-white">
                     <CardTitle className="capitalize">
