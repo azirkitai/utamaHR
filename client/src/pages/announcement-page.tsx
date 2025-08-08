@@ -28,6 +28,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DashboardLayout } from "@/components/dashboard-layout";
+import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "@tanstack/react-query";
 
 interface Announcement {
   id: number;
@@ -70,10 +72,17 @@ const employees = [
 ];
 
 export default function AnnouncementPage() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [announcements, setAnnouncements] = useState<Announcement[]>(sampleAnnouncements);
+
+  // Get current user's employee data to check role
+  const { data: currentEmployee } = useQuery({
+    queryKey: ['/api/employees', user?.id],
+    enabled: !!user?.id
+  });
   
   // Form states
   const [title, setTitle] = useState("");
@@ -124,6 +133,14 @@ export default function AnnouncementPage() {
     setIsCreateModalOpen(false);
   };
 
+  // Role-based access control function
+  const canAccessAnnouncementActions = () => {
+    if (!currentEmployee || !Array.isArray(currentEmployee) || currentEmployee.length === 0) return false;
+    const employee = currentEmployee[0];
+    const role = employee?.role;
+    return role && ['Super Admin', 'Admin', 'HR Manager', 'PIC', 'Finance/Account', 'Manager/Supervisor'].includes(role);
+  };
+
   const handleViewAnnouncement = (id: number) => {
     setAnnouncements(announcements.map(a => 
       a.id === id ? { ...a, status: 'Read' as const } : a
@@ -137,6 +154,7 @@ export default function AnnouncementPage() {
 
   const handleDeleteAnnouncement = (id: number) => {
     setAnnouncements(announcements.filter(a => a.id !== id));
+    console.log("Delete announcement:", id);
   };
 
   return (
@@ -178,16 +196,17 @@ export default function AnnouncementPage() {
                   </TabsTrigger>
                 </TabsList>
                 
-                <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-                  <DialogTrigger asChild>
-                    <Button 
-                      className="bg-slate-700 hover:bg-slate-800 text-white"
-                      data-testid="button-add-announcement"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Announcement
-                    </Button>
-                  </DialogTrigger>
+                {canAccessAnnouncementActions() && (
+                  <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        className="bg-slate-700 hover:bg-slate-800 text-white"
+                        data-testid="button-add-announcement"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Announcement
+                      </Button>
+                    </DialogTrigger>
                   <DialogContent className="max-w-2xl">
                     <DialogHeader>
                       <DialogTitle>Create New Announcement</DialogTitle>
@@ -322,6 +341,7 @@ export default function AnnouncementPage() {
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
+                )}
               </div>
 
               {/* Search */}
@@ -395,24 +415,28 @@ export default function AnnouncementPage() {
                                     >
                                       <Eye className="h-4 w-4" />
                                     </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      className="h-8 w-8 p-0 bg-blue-600 hover:bg-blue-700 text-white"
-                                      onClick={() => handleEditAnnouncement(announcement.id)}
-                                      data-testid={`button-edit-${announcement.id}`}
-                                    >
-                                      <Edit className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      className="h-8 w-8 p-0 bg-red-600 hover:bg-red-700 text-white"
-                                      onClick={() => handleDeleteAnnouncement(announcement.id)}
-                                      data-testid={`button-delete-${announcement.id}`}
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
+                                    {canAccessAnnouncementActions() && (
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-8 w-8 p-0 bg-blue-600 hover:bg-blue-700 text-white"
+                                        onClick={() => handleEditAnnouncement(announcement.id)}
+                                        data-testid={`button-edit-${announcement.id}`}
+                                      >
+                                        <Edit className="h-4 w-4" />
+                                      </Button>
+                                    )}
+                                    {canAccessAnnouncementActions() && (
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-8 w-8 p-0 bg-red-600 hover:bg-red-700 text-white"
+                                        onClick={() => handleDeleteAnnouncement(announcement.id)}
+                                        data-testid={`button-delete-${announcement.id}`}
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    )}
                                   </div>
                                 </td>
                               </tr>
@@ -478,24 +502,28 @@ export default function AnnouncementPage() {
                                     >
                                       <Eye className="h-4 w-4" />
                                     </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      className="h-8 w-8 p-0 bg-blue-600 hover:bg-blue-700 text-white"
-                                      onClick={() => handleEditAnnouncement(announcement.id)}
-                                      data-testid={`button-edit-unread-${announcement.id}`}
-                                    >
-                                      <Edit className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      className="h-8 w-8 p-0 bg-red-600 hover:bg-red-700 text-white"
-                                      onClick={() => handleDeleteAnnouncement(announcement.id)}
-                                      data-testid={`button-delete-unread-${announcement.id}`}
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
+                                    {canAccessAnnouncementActions() && (
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-8 w-8 p-0 bg-blue-600 hover:bg-blue-700 text-white"
+                                        onClick={() => handleEditAnnouncement(announcement.id)}
+                                        data-testid={`button-edit-unread-${announcement.id}`}
+                                      >
+                                        <Edit className="h-4 w-4" />
+                                      </Button>
+                                    )}
+                                    {canAccessAnnouncementActions() && (
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-8 w-8 p-0 bg-red-600 hover:bg-red-700 text-white"
+                                        onClick={() => handleDeleteAnnouncement(announcement.id)}
+                                        data-testid={`button-delete-unread-${announcement.id}`}
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    )}
                                   </div>
                                 </td>
                               </tr>
