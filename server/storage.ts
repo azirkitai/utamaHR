@@ -257,7 +257,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteEmployee(id: string): Promise<boolean> {
     const result = await db.delete(employees).where(eq(employees.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // =================== EMPLOYMENT METHODS ===================
@@ -339,7 +339,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteFamilyDetails(id: string): Promise<boolean> {
     const result = await db.delete(familyDetails).where(eq(familyDetails.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // =================== COMPENSATION METHODS ===================
@@ -395,7 +395,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteDocument(id: string): Promise<boolean> {
     const result = await db.delete(documents).where(eq(documents.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // =================== EQUIPMENT METHODS ===================
@@ -425,7 +425,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteEquipment(id: string): Promise<boolean> {
     const result = await db.delete(equipment).where(eq(equipment.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // =================== LEAVE POLICY METHODS ===================
@@ -455,7 +455,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteLeavePolicy(id: string): Promise<boolean> {
     const result = await db.delete(leavePolicy).where(eq(leavePolicy.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // =================== CLAIM POLICY METHODS ===================
@@ -485,7 +485,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteClaimPolicy(id: string): Promise<boolean> {
     const result = await db.delete(claimPolicy).where(eq(claimPolicy.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // =================== DISCIPLINARY METHODS ===================
@@ -515,7 +515,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteDisciplinary(id: string): Promise<boolean> {
     const result = await db.delete(disciplinary).where(eq(disciplinary.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // =================== APP SETTING METHODS ===================
@@ -568,7 +568,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteWorkExperience(id: string): Promise<boolean> {
     const result = await db.delete(workExperiences).where(eq(workExperiences.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // =================== QR TOKEN METHODS ===================
@@ -632,7 +632,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteOfficeLocation(id: string): Promise<boolean> {
     const result = await db.delete(officeLocations).where(eq(officeLocations.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   async getActiveOfficeLocations(): Promise<OfficeLocation[]> {

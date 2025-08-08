@@ -47,7 +47,7 @@ export default function EmployeeDetailsPage() {
   const [employeeForm, setEmployeeForm] = useState<Partial<Employee>>({});
 
   // Get employee details
-  const { data: employee, isLoading: employeeLoading } = useQuery({
+  const { data: employee, isLoading: employeeLoading } = useQuery<Employee>({
     queryKey: ["/api/employees", id],
     enabled: !!id
   });
@@ -96,7 +96,7 @@ export default function EmployeeDetailsPage() {
       fullName: employeeForm.fullName,
       firstName: employeeForm.firstName,
       lastName: employeeForm.lastName,
-    });
+    } as UpdateEmployee);
   };
 
   const navigationTabs = [
@@ -245,14 +245,14 @@ export default function EmployeeDetailsPage() {
                   <Avatar className="w-20 h-20 border-4 border-white">
                     <AvatarImage src="/placeholder-avatar.png" />
                     <AvatarFallback className="bg-white text-teal-600 text-2xl font-bold">
-                      {employee.fullName?.charAt(0) || "?"}
+                      {employee?.fullName?.charAt(0) || "?"}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h2 className="text-2xl font-bold">{employee.fullName || "N/A"}</h2>
+                    <h2 className="text-2xl font-bold">{employee?.fullName || "N/A"}</h2>
                     <div className="flex items-center gap-4 mt-2">
                       <span className="bg-blue-800 px-3 py-1 rounded text-sm">
-                        {employee.id || "N/A"}
+                        {employee?.id || "N/A"}
                       </span>
                       <span className="bg-green-600 px-3 py-1 rounded text-sm">N/A</span>
                     </div>
@@ -339,7 +339,7 @@ export default function EmployeeDetailsPage() {
                           />
                         ) : (
                           <div className="mt-1 p-2 bg-gray-50 rounded border">
-                            {employee.firstName || "N/A"}
+                            {employee?.firstName || "N/A"}
                           </div>
                         )}
                       </div>
@@ -355,7 +355,7 @@ export default function EmployeeDetailsPage() {
                           />
                         ) : (
                           <div className="mt-1 p-2 bg-gray-50 rounded border">
-                            {employee.lastName || "N/A"}
+                            {employee?.lastName || "N/A"}
                           </div>
                         )}
                       </div>
@@ -509,7 +509,7 @@ export default function EmployeeDetailsPage() {
                       <div>
                         <Label className="text-sm font-medium text-gray-700">Employee ID</Label>
                         <div className="mt-1 p-2 bg-gray-50 rounded border">
-                          {employee.id || "N/A"}
+                          {employee?.id || "N/A"}
                         </div>
                       </div>
                       <div>
