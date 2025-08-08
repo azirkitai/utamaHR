@@ -54,7 +54,21 @@ export default function MyRecordPage() {
       }
       
       console.log('Fetching attendance records with params:', params.toString());
-      const response = await fetch(`/api/attendance-records?${params}`);
+      
+      // Get JWT token from localStorage  
+      const token = localStorage.getItem('utamahr_token');
+      console.log('JWT Token found:', !!token, 'Length:', token?.length);
+      if (!token) {
+        console.error('No JWT token found in localStorage');
+        throw new Error('No authentication token found - please login again');
+      }
+      
+      const response = await fetch(`/api/attendance-records?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
