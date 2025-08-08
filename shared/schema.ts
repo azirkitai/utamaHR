@@ -38,6 +38,9 @@ export const employees = pgTable("employees", {
   bumiStatus: text("bumi_status"),
   familyMembers: integer("family_members").default(0),
   
+  // Role field (only visible to authorized roles)
+  role: text("role").default("Staff/Employee"), // Super Admin, Admin, HR Manager, PIC, Finance/Account, Manager/Supervisor, Staff/Employee
+  
   // Driving License Details
   drivingLicenseNumber: text("driving_license_number"),
   drivingClass: text("driving_class"),

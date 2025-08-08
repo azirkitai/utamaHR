@@ -129,6 +129,18 @@ export default function EmployeeDetailsPage() {
     enabled: !!id
   });
 
+  // Get current user data for role-based access
+  const { data: currentUser } = useQuery<any>({
+    queryKey: ["/api/user"],
+  });
+
+  // Check if current user can manage roles
+  const canManageRoles = () => {
+    if (!currentUser) return false;
+    const authorizedRoles = ["Super Admin", "Admin", "HR Manager", "PIC"];
+    return authorizedRoles.includes(currentUser.role);
+  };
+
   // Initialize forms when data loads
   useEffect(() => {
     if (employee) {
@@ -969,6 +981,36 @@ export default function EmployeeDetailsPage() {
                             </div>
                           )}
                         </div>
+
+                        {/* Role Dropdown - Only visible to authorized roles */}
+                        {canManageRoles() && (
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700 block">Role</Label>
+                            {isEditingPersonal ? (
+                              <Select 
+                                value={employeeForm.role || "Staff/Employee"} 
+                                onValueChange={(value) => setEmployeeForm({ ...employeeForm, role: value })}
+                              >
+                                <SelectTrigger className="mt-1" data-testid="select-employee-role">
+                                  <SelectValue placeholder="Select role" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Super Admin">Super Admin</SelectItem>
+                                  <SelectItem value="Admin">Admin</SelectItem>
+                                  <SelectItem value="HR Manager">HR Manager</SelectItem>
+                                  <SelectItem value="PIC">PIC</SelectItem>
+                                  <SelectItem value="Finance/Account">Finance/Account</SelectItem>
+                                  <SelectItem value="Manager/Supervisor">Manager/Supervisor</SelectItem>
+                                  <SelectItem value="Staff/Employee">Staff/Employee</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <div className="mt-1 p-2 bg-gray-50 rounded border">
+                                {employee?.role || "Staff/Employee"}
+                              </div>
+                            )}
+                          </div>
+                        )}
 
                         <div className="space-y-2">
                           <Label className="text-sm font-medium text-gray-700 block">Nationality</Label>
