@@ -1066,6 +1066,102 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // =================== EQUIPMENT ROUTES ===================
+  
+  // Get employee equipment
+  app.get("/api/equipment/:employeeId", authenticateToken, async (req, res) => {
+    try {
+      const { employeeId } = req.params;
+      const equipment = await storage.getEquipments(employeeId);
+      res.json(equipment);
+    } catch (error) {
+      console.error("Error fetching equipment:", error);
+      res.status(500).json({ error: "Gagal mendapatkan equipment" });
+    }
+  });
+
+  // Create equipment
+  app.post("/api/equipment", authenticateToken, async (req, res) => {
+    try {
+      const { employeeId, equipmentName, serialNumber, dateReceived, dateReturned, remarks } = req.body;
+
+      if (!employeeId || !equipmentName) {
+        return res.status(400).json({ 
+          error: "Employee ID dan nama equipment diperlukan" 
+        });
+      }
+
+      const newEquipment = await storage.createEquipment({
+        employeeId,
+        equipmentName,
+        serialNumber: serialNumber || null,
+        dateReceived: dateReceived ? new Date(dateReceived) : null,
+        dateReturned: dateReturned ? new Date(dateReturned) : null,
+        remarks: remarks || null,
+      });
+
+      res.status(201).json({
+        success: true,
+        equipment: newEquipment,
+        message: "Equipment berjaya ditambah",
+      });
+    } catch (error) {
+      console.error("Error creating equipment:", error);
+      res.status(500).json({ error: "Gagal menambah equipment" });
+    }
+  });
+
+  // Update equipment
+  app.put("/api/equipment/:id", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { equipmentName, serialNumber, dateReceived, dateReturned, remarks } = req.body;
+
+      const updates: any = {};
+      if (equipmentName !== undefined) updates.equipmentName = equipmentName;
+      if (serialNumber !== undefined) updates.serialNumber = serialNumber;
+      if (dateReceived !== undefined) updates.dateReceived = dateReceived ? new Date(dateReceived) : null;
+      if (dateReturned !== undefined) updates.dateReturned = dateReturned ? new Date(dateReturned) : null;
+      if (remarks !== undefined) updates.remarks = remarks;
+
+      const updatedEquipment = await storage.updateEquipment(id, updates);
+
+      if (!updatedEquipment) {
+        return res.status(404).json({ error: "Equipment tidak dijumpai" });
+      }
+
+      res.json({
+        success: true,
+        equipment: updatedEquipment,
+        message: "Equipment berjaya dikemaskini",
+      });
+    } catch (error) {
+      console.error("Error updating equipment:", error);
+      res.status(500).json({ error: "Gagal mengemaskini equipment" });
+    }
+  });
+
+  // Delete equipment
+  app.delete("/api/equipment/:id", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      const deleted = await storage.deleteEquipment(id);
+
+      if (!deleted) {
+        return res.status(404).json({ error: "Equipment tidak dijumpai" });
+      }
+
+      res.json({
+        success: true,
+        message: "Equipment berjaya dipadamkan",
+      });
+    } catch (error) {
+      console.error("Error deleting equipment:", error);
+      res.status(500).json({ error: "Gagal memadamkan equipment" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

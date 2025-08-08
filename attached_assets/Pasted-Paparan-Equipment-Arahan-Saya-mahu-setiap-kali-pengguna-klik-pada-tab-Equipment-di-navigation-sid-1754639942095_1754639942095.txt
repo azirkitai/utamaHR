@@ -1,0 +1,115 @@
+Paparan Equipment
+Arahan:
+Saya mahu setiap kali pengguna klik pada tab "Equipment" di navigation sidebar (Employee > Equipment), paparan berikut perlu dipaparkan:
+
+1. Paparan Table Senarai Equipment
+Table kosong jika tiada equipment.
+
+Column table:
+
+No.
+
+Equipment
+
+Date Received
+
+Date Returned
+
+Action (Edit, Delete, Upload file, dsb)
+
+Search bar di bahagian kanan atas table.
+
+2. Butang "Add"
+Di bahagian atas kanan table, letakkan butang "Add" untuk tambah equipment baru.
+
+3. Popup "Assign Equipment Form"
+Apabila klik butang "Add", keluar popup form (seperti gambar yang saya beri).
+
+Field dalam popup:
+
+Type (Equipment Type)
+
+Details (Equipment Details)
+
+Date Received
+
+Date Returned
+
+File Upload (pilih file)
+
+Button: Save dan Cancel
+
+4. Design/UI
+Pastikan layout, padding, jarak dan font semua selari dan sekata dengan tab lain (seperti Document/Compensation/Family Detail).
+
+Semua form/popup mesti ada heading, field size sama, label jelas dan tidak kemik.
+
+Pastikan UI responsive, kotak dan spacing seragam. Jangan ada saiz kotak atau button yang pelik-pelik.
+
+Warna dan icon selaras dengan design utama.
+
+5. Data Binding
+Data equipment perlu disimpan dalam database yang berkait dengan ID pekerja yang sedang login/pilih.
+
+Bila data disimpan, table perlu refresh terus tanpa reload page.
+
+Pastikan fungsi "Edit", "Delete", dan "Upload" file berfungsi.
+
+Jika mahu versi Inggeris, boleh guna ini:
+
+Prompt for Agent: Equipment Tab UI/UX
+Instruction:
+When the user clicks the "Equipment" tab under Employee in the navigation sidebar, display the following view:
+
+1. Equipment List Table
+Show a table (empty if no data).
+
+Columns:
+
+No.
+
+Equipment
+
+Date Received
+
+Date Returned
+
+Action (Edit, Delete, Upload file, etc.)
+
+Search bar at the top right of the table.
+
+2. "Add" Button
+Place an "Add" button at the top right of the table to add new equipment.
+
+3. "Assign Equipment Form" Popup
+Clicking "Add" brings up a popup form (just like my attached image).
+
+Fields:
+
+Type (Equipment Type)
+
+Details (Equipment Details)
+
+Date Received
+
+Date Returned
+
+File Upload (choose file)
+
+Save and Cancel buttons
+
+4. Design/UI
+Make sure the layout, padding, spacing, and fonts are consistent with all other tabs (like Document, Compensation, Family Detail).
+
+All forms/popups must have headings, equal field size, clear labels, and not look squashed.
+
+UI must be responsive, with aligned boxes and buttons (no odd sizes).
+
+Colors and icons must match the main theme.
+
+5. Data Binding
+Equipment data must be saved in the database and linked to the selected/active employee.
+
+After saving, the table should update immediately without page reload.
+
+Ensure Edit, Delete, and File Upload functions work.

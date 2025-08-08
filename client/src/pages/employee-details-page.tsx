@@ -42,6 +42,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import type { Employee, UpdateEmployee, WorkExperience, InsertWorkExperience, Employment, UpdateEmployment, CompanyAccess } from "@shared/schema";
 import { DocumentsTab } from "@/components/DocumentsTab";
+import { EquipmentTab } from "@/components/EquipmentTab";
 
 export default function EmployeeDetailsPage() {
   const { id } = useParams();
@@ -2819,8 +2820,13 @@ export default function EmployeeDetailsPage() {
                 <DocumentsTab employeeId={id!} />
               )}
 
+              {/* Equipment Tab */}
+              {activeTab === "equipment" && (
+                <EquipmentTab employeeId={id!} />
+              )}
+
               {/* Placeholder for other tabs */}
-              {!["personal-details", "employment", "contact", "family-detail", "compensation", "document"].includes(activeTab) && (
+              {!["personal-details", "employment", "contact", "family-detail", "compensation", "document", "equipment"].includes(activeTab) && (
                 <Card>
                   <CardHeader className="bg-gradient-to-r from-teal-500 to-emerald-500 text-white">
                     <CardTitle className="capitalize">
