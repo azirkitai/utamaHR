@@ -8,6 +8,7 @@ import AwsS3 from "@uppy/aws-s3";
 import type { UploadResult } from "@uppy/core";
 import { Button } from "@/components/ui/button";
 import { resizeImage, isValidImage, formatFileSize } from "@/lib/imageUtils";
+import { ImageCropModal } from "@/components/ImageCropModal";
 
 interface ObjectUploaderProps {
   maxNumberOfFiles?: number;
@@ -68,6 +69,10 @@ export function ObjectUploader({
   imageQuality = 0.8,
 }: ObjectUploaderProps) {
   const [showModal, setShowModal] = useState(false);
+  const [showCropModal, setShowCropModal] = useState(false);
+  const [selectedImageSrc, setSelectedImageSrc] = useState<string>("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  
   const [uppy] = useState(() =>
     new Uppy({
       restrictions: {
@@ -82,7 +87,7 @@ export function ObjectUploader({
         getUploadParameters: onGetUploadParameters,
       })
       .on('file-added', async (file) => {
-        if (resizeImages && file.type && file.type.startsWith('image/')) {
+        if (file.type && file.type.startsWith('image/')) {
           try {
             // Convert UppyFile to File object for processing
             const originalFile = new File([file.data], file.name || 'image', { type: file.type });
@@ -94,23 +99,14 @@ export function ObjectUploader({
               return;
             }
 
-            // Resize image
-            const resizedFile = await resizeImage(originalFile, {
-              maxWidth: maxImageWidth,
-              maxHeight: maxImageHeight,
-              quality: imageQuality,
-              format: 'jpeg' // Convert all to JPEG for consistency
-            });
-
-            // Update uppy file with resized data
-            uppy.setFileState(file.id, {
-              data: resizedFile,
-              size: resizedFile.size,
-              type: resizedFile.type,
-              name: resizedFile.name,
-            });
-
-            console.log(`✓ Gambar berjaya diproses: ${formatFileSize(originalFile.size)} → ${formatFileSize(resizedFile.size)} (${maxImageWidth}x${maxImageHeight}px square crop)`);
+            // Instead of auto-processing, show crop modal
+            setSelectedFile(originalFile);
+            setSelectedImageSrc(URL.createObjectURL(originalFile));
+            setShowCropModal(true);
+            setShowModal(false); // Close uppy modal
+            
+            // Remove the file from uppy for now - we'll re-add after cropping
+            uppy.removeFile(file.id);
             
           } catch (error) {
             console.error('Error processing image:', error);
@@ -125,6 +121,52 @@ export function ObjectUploader({
       })
   );
 
+  // Handle cropped image from crop modal
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    try {
+      if (!selectedFile) return;
+
+      // Create a new file from the cropped blob
+      const croppedFile = new File(
+        [croppedBlob], 
+        `${selectedFile.name.split('.')[0]}_cropped.jpg`,
+        { type: 'image/jpeg' }
+      );
+
+      // Add the cropped file to uppy and start upload
+      const fileId = uppy.addFile({
+        name: croppedFile.name,
+        type: croppedFile.type,
+        data: croppedFile,
+        source: 'Local',
+        isRemote: false,
+      });
+
+      console.log(`✓ Gambar telah dicrop: ${formatFileSize(croppedFile.size)} (300x300px bulat)`);
+
+      // Start upload immediately
+      uppy.upload();
+
+      // Clean up
+      setSelectedFile(null);
+      URL.revokeObjectURL(selectedImageSrc);
+      setSelectedImageSrc("");
+      
+    } catch (error) {
+      console.error('Error handling cropped image:', error);
+      alert('Ralat memproses gambar yang dicrop. Sila cuba lagi.');
+    }
+  };
+
+  const handleCloseCropModal = () => {
+    setShowCropModal(false);
+    if (selectedImageSrc) {
+      URL.revokeObjectURL(selectedImageSrc);
+      setSelectedImageSrc("");
+    }
+    setSelectedFile(null);
+  };
+
   return (
     <div>
       <Button onClick={() => setShowModal(true)} className={buttonClassName}>
@@ -136,6 +178,13 @@ export function ObjectUploader({
         open={showModal}
         onRequestClose={() => setShowModal(false)}
         proudlyDisplayPoweredByUppy={false}
+      />
+
+      <ImageCropModal
+        isOpen={showCropModal}
+        onClose={handleCloseCropModal}
+        imageSrc={selectedImageSrc}
+        onCropComplete={handleCropComplete}
       />
     </div>
   );
