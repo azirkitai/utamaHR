@@ -2234,11 +2234,41 @@ export default function EmployeeDetailsPage() {
                                 <SelectValue placeholder="Select bank" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="maybank">Maybank</SelectItem>
-                                <SelectItem value="cimb">CIMB Bank</SelectItem>
-                                <SelectItem value="public-bank">Public Bank</SelectItem>
-                                <SelectItem value="rhb">RHB Bank</SelectItem>
+                                <SelectItem value="affin-bank">Affin Bank Berhad / Affin Islamic Bank</SelectItem>
+                                <SelectItem value="alliance-bank">Alliance Bank Malaysia Berhad</SelectItem>
+                                <SelectItem value="al-rajhi">Al-Rajhi Banking & Investment Corp (M) Berhad</SelectItem>
+                                <SelectItem value="ambank">AmBank Berhad</SelectItem>
+                                <SelectItem value="bank-islam">Bank Islam Malaysia Berhad</SelectItem>
+                                <SelectItem value="bank-kerjasama">Bank Kerjasama Rakyat Malaysia</SelectItem>
+                                <SelectItem value="bank-muamalat">Bank Muamalat</SelectItem>
+                                <SelectItem value="bank-of-america">Bank of America</SelectItem>
+                                <SelectItem value="bank-of-china">Bank of China (M) Berhad</SelectItem>
+                                <SelectItem value="bank-of-tokyo">Bank of Tokyo-Mitsubishi UFJ (M) Berhad</SelectItem>
+                                <SelectItem value="bank-pertanian">Bank Pertanian Malaysia Berhad (Agrobank)</SelectItem>
+                                <SelectItem value="bank-simpanan">Bank Simpanan Nasional Berhad</SelectItem>
+                                <SelectItem value="cimb">CIMB Bank Berhad</SelectItem>
+                                <SelectItem value="citibank">Citibank Berhad</SelectItem>
+                                <SelectItem value="deutsche-bank">Deutsche Bank (M) Berhad</SelectItem>
                                 <SelectItem value="hong-leong">Hong Leong Bank</SelectItem>
+                                <SelectItem value="hsbc">HSBC Bank Malaysia Berhad</SelectItem>
+                                <SelectItem value="icbc">Industrial & Commercial Bank of China</SelectItem>
+                                <SelectItem value="jp-morgan">J.P. Morgan Chase Bank Berhad</SelectItem>
+                                <SelectItem value="kuwait-finance">Kuwait Finance House (M) Berhad</SelectItem>
+                                <SelectItem value="maybank">Maybank Bank Berhad</SelectItem>
+                                <SelectItem value="mizuho">Mizuho Corporate Bank Malaysia</SelectItem>
+                                <SelectItem value="ocbc">OCBC Bank (Malaysia) Berhad</SelectItem>
+                                <SelectItem value="public-bank">Public Bank Berhad</SelectItem>
+                                <SelectItem value="rhb">RHB Bank</SelectItem>
+                                <SelectItem value="standard-chartered">Standard Chartered Bank</SelectItem>
+                                <SelectItem value="sumitomo-mitsui">Sumitomo Mitsui Banking Corporation Malaysia berha</SelectItem>
+                                <SelectItem value="royal-bank-scotland">The Royal Bank of Scotland Berhad</SelectItem>
+                                <SelectItem value="united-overseas">United Overseas Bank (Malaysia) Berhad</SelectItem>
+                                <SelectItem value="bank-of-singapore">The Bank of Singapore Limited</SelectItem>
+                                <SelectItem value="post-office">Post Office Savings Bank</SelectItem>
+                                <SelectItem value="kfh-dana">KFH Dana Bank</SelectItem>
+                                <SelectItem value="baiduri">Baiduri Bank Sendirian Berhad</SelectItem>
+                                <SelectItem value="bank-islam-brunei">Bank Islam Brunei Darussalam</SelectItem>
+                                <SelectItem value="mbsb">MBSB Bank Berhad</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
