@@ -932,6 +932,140 @@ export function registerRoutes(app: Express): Server {
     });
   });
 
+  // =================== EMPLOYEE DOCUMENTS ROUTES ===================
+  
+  // Get employee documents
+  app.get("/api/employee-documents/:employeeId", authenticateToken, async (req, res) => {
+    try {
+      const { employeeId } = req.params;
+      const documents = await storage.getEmployeeDocuments(employeeId);
+      res.json(documents);
+    } catch (error) {
+      console.error("Error fetching employee documents:", error);
+      res.status(500).json({ error: "Gagal mendapatkan dokumen pekerja" });
+    }
+  });
+
+  // Get single employee document
+  app.get("/api/employee-documents/doc/:id", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const document = await storage.getEmployeeDocument(id);
+      
+      if (!document) {
+        return res.status(404).json({ error: "Dokumen tidak dijumpai" });
+      }
+      
+      res.json(document);
+    } catch (error) {
+      console.error("Error fetching employee document:", error);
+      res.status(500).json({ error: "Gagal mendapatkan dokumen" });
+    }
+  });
+
+  // Create employee document
+  app.post("/api/employee-documents", authenticateToken, async (req, res) => {
+    try {
+      const { employeeId, fileName, remarks, fileUrl } = req.body;
+
+      if (!employeeId || !fileName || !fileUrl) {
+        return res.status(400).json({ 
+          error: "Employee ID, nama fail dan URL fail diperlukan" 
+        });
+      }
+
+      // Process file URL through object storage service
+      const objectStorageService = new ObjectStorageService();
+      const processedFileUrl = await objectStorageService.trySetObjectEntityAclPolicy(
+        fileUrl,
+        {
+          owner: req.user!.id,
+          visibility: "private", // Documents are private by default
+        },
+      );
+
+      const newDocument = await storage.createEmployeeDocument({
+        employeeId,
+        fileName,
+        remarks: remarks || null,
+        fileUrl: processedFileUrl,
+        uploadedBy: req.user!.id,
+      });
+
+      res.status(201).json({
+        success: true,
+        document: newDocument,
+        message: "Dokumen berjaya disimpan",
+      });
+    } catch (error) {
+      console.error("Error creating employee document:", error);
+      res.status(500).json({ error: "Gagal menyimpan dokumen" });
+    }
+  });
+
+  // Update employee document
+  app.put("/api/employee-documents/:id", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { fileName, remarks, fileUrl } = req.body;
+
+      const updates: any = {};
+      if (fileName) updates.fileName = fileName;
+      if (remarks !== undefined) updates.remarks = remarks;
+      
+      // If new file URL provided, process it
+      if (fileUrl) {
+        const objectStorageService = new ObjectStorageService();
+        const processedFileUrl = await objectStorageService.trySetObjectEntityAclPolicy(
+          fileUrl,
+          {
+            owner: req.user!.id,
+            visibility: "private",
+          },
+        );
+        updates.fileUrl = processedFileUrl;
+      }
+
+      const updatedDocument = await storage.updateEmployeeDocument(id, updates);
+
+      if (!updatedDocument) {
+        return res.status(404).json({ error: "Dokumen tidak dijumpai" });
+      }
+
+      res.json({
+        success: true,
+        document: updatedDocument,
+        message: "Dokumen berjaya dikemaskini",
+      });
+    } catch (error) {
+      console.error("Error updating employee document:", error);
+      res.status(500).json({ error: "Gagal mengemaskini dokumen" });
+    }
+  });
+
+  // Delete employee document
+  app.delete("/api/employee-documents/:id", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      // Check if document exists before deleting
+      const document = await storage.getEmployeeDocument(id);
+      if (!document) {
+        return res.status(404).json({ error: "Dokumen tidak dijumpai" });
+      }
+
+      await storage.deleteEmployeeDocument(id);
+
+      res.json({
+        success: true,
+        message: "Dokumen berjaya dipadam",
+      });
+    } catch (error) {
+      console.error("Error deleting employee document:", error);
+      res.status(500).json({ error: "Gagal memadam dokumen" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -561,6 +561,29 @@ export type UpdateAppSetting = z.infer<typeof updateAppSettingSchema>;
 // Work Experience types
 export type WorkExperience = typeof workExperiences.$inferSelect;
 export type InsertWorkExperience = z.infer<typeof insertWorkExperienceSchema>;
+
+// Employee Documents table
+export const employeeDocuments = pgTable("employee_documents", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  employeeId: varchar("employee_id").notNull().references(() => employees.id, { onDelete: "cascade" }),
+  fileName: varchar("file_name").notNull(),
+  remarks: text("remarks"),
+  fileUrl: varchar("file_url").notNull(),
+  uploadedBy: varchar("uploaded_by").notNull(),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertEmployeeDocumentSchema = createInsertSchema(employeeDocuments).omit({
+  id: true,
+  uploadedAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type EmployeeDocument = typeof employeeDocuments.$inferSelect;
+export type InsertEmployeeDocument = z.infer<typeof insertEmployeeDocumentSchema>;
 export type UpdateWorkExperience = z.infer<typeof updateWorkExperienceSchema>;
 
 // Company Access schemas

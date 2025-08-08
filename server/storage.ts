@@ -49,6 +49,9 @@ import {
   // Work Experience types
   type WorkExperience,
   type InsertWorkExperience,
+  employeeDocuments,
+  type EmployeeDocument,
+  type InsertEmployeeDocument,
   type UpdateWorkExperience,
   // QR Code types
   type QrToken,
@@ -657,6 +660,38 @@ export class DatabaseStorage implements IStorage {
 
   async getActiveOfficeLocations(): Promise<OfficeLocation[]> {
     return await db.select().from(officeLocations).where(eq(officeLocations.isActive, "true"));
+  }
+
+  // =================== EMPLOYEE DOCUMENTS METHODS ===================
+  async getEmployeeDocuments(employeeId: string): Promise<EmployeeDocument[]> {
+    return db.select().from(employeeDocuments).where(eq(employeeDocuments.employeeId, employeeId)).orderBy(desc(employeeDocuments.createdAt));
+  }
+
+  async getEmployeeDocument(id: string): Promise<EmployeeDocument | undefined> {
+    const [result] = await db.select().from(employeeDocuments).where(eq(employeeDocuments.id, id));
+    return result;
+  }
+
+  async createEmployeeDocument(document: InsertEmployeeDocument): Promise<EmployeeDocument> {
+    const [result] = await db.insert(employeeDocuments).values({
+      ...document,
+      uploadedAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }).returning();
+    return result;
+  }
+
+  async updateEmployeeDocument(id: string, updates: Partial<InsertEmployeeDocument>): Promise<EmployeeDocument | undefined> {
+    const [result] = await db.update(employeeDocuments)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(employeeDocuments.id, id))
+      .returning();
+    return result;
+  }
+
+  async deleteEmployeeDocument(id: string): Promise<void> {
+    await db.delete(employeeDocuments).where(eq(employeeDocuments.id, id));
   }
 
   // =================== CLOCK-IN METHODS ===================
