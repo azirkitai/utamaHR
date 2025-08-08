@@ -261,7 +261,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
             <img 
               src={utamaHRLogo} 
               alt="UTAMA Human Resources" 
-              className="w-48 h-auto object-contain"
+              className="w-48 h-auto object-contain md:w-48 sm:w-40"
             />
           )}
           {isCollapsed && (
@@ -325,7 +325,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
                         </div>
                         {!isCollapsed && (
                           <>
-                            <span className="flex-1 text-sm font-medium">
+                            <span className="flex-1 text-sm font-medium md:text-sm text-xs leading-tight">
                               {item.label}
                             </span>
                             {item.badge && (
@@ -371,7 +371,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
                           </div>
                           {!isCollapsed && (
                             <>
-                              <span className="flex-1 text-sm font-medium">
+                              <span className="flex-1 text-sm font-medium md:text-sm text-xs leading-tight">
                                 {item.label}
                               </span>
                               {item.badge && (
@@ -413,7 +413,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
                               <div className="flex-shrink-0">
                                 {child.icon}
                               </div>
-                              <span className="text-xs font-medium">
+                              <span className="text-xs font-medium md:text-xs text-[10px] leading-tight">
                                 {child.label}
                               </span>
                             </div>

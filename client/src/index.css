@@ -52,6 +52,52 @@
   --spacing: 0.25rem;
 }
 
+/* Mobile Responsive Styles */
+@media screen and (max-width: 768px) {
+  /* Ensure proper font sizes on mobile */
+  html {
+    font-size: 14px;
+  }
+  
+  /* Mobile sidebar adjustments */
+  .mobile-sidebar {
+    width: 100% !important;
+    max-width: 280px;
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    z-index: 50;
+  }
+  
+  /* Mobile text sizes */
+  .mobile-text-xs {
+    font-size: 12px !important;
+    line-height: 1.4;
+  }
+  
+  .mobile-text-sm {
+    font-size: 13px !important;
+    line-height: 1.4;
+  }
+  
+  /* Menu item spacing adjustments */
+  .mobile-menu-item {
+    padding: 8px 12px;
+    min-height: 40px;
+  }
+  
+  /* Header adjustments for mobile */
+  .mobile-header {
+    padding: 12px 16px;
+  }
+  
+  /* Content padding for mobile */
+  .mobile-content {
+    padding: 16px;
+  }
+}
+
 .dark {
   --background: hsl(0 0% 0%);
   --foreground: hsl(200 6.6667% 91.1765%);
