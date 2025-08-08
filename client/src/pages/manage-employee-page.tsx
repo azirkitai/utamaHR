@@ -27,7 +27,13 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DashboardLayout } from "@/components/dashboard-layout";
-import type { Employee } from "@shared/schema";
+import type { Employee, Employment, Contact } from "@shared/schema";
+
+// Extended employee type with related data
+type EmployeeWithDetails = Employee & {
+  employment?: Employment;
+  contact?: Contact;
+};
 
 export default function ManageEmployeePage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -52,7 +58,7 @@ export default function ManageEmployeePage() {
   const { toast } = useToast();
   
   // Fetch employees from API
-  const { data: allEmployees = [], isLoading } = useQuery<Employee[]>({
+  const { data: allEmployees = [], isLoading } = useQuery<EmployeeWithDetails[]>({
     queryKey: ["/api/employees"],
   });
 
@@ -573,7 +579,6 @@ export default function ManageEmployeePage() {
                             <th className="text-left py-3 px-4 font-medium text-gray-700">Employee No.</th>
                             <th className="text-left py-3 px-4 font-medium text-gray-700">Designation</th>
                             <th className="text-left py-3 px-4 font-medium text-gray-700">Phone</th>
-                            <th className="text-left py-3 px-4 font-medium text-gray-700">Mobile</th>
                             <th className="text-left py-3 px-4 font-medium text-gray-700">Email</th>
                             <th className="text-left py-3 px-4 font-medium text-gray-700">Actions</th>
                           </tr>
@@ -581,7 +586,7 @@ export default function ManageEmployeePage() {
                         <tbody>
                           {isLoading ? (
                             <tr>
-                              <td colSpan={9} className="text-center py-8 text-gray-500">
+                              <td colSpan={8} className="text-center py-8 text-gray-500">
                                 Loading employees...
                               </td>
                             </tr>
@@ -607,11 +612,10 @@ export default function ManageEmployeePage() {
                                     </Badge>
                                   </div>
                                 </td>
-                                <td className="py-3 px-4">{employee.id || '-'}</td>
-                                <td className="py-3 px-4">N/A</td>
-                                <td className="py-3 px-4">N/A</td>
-                                <td className="py-3 px-4">N/A</td>
-                                <td className="py-3 px-4">N/A</td>
+                                <td className="py-3 px-4">{employee.employment?.employeeNo || employee.id || '-'}</td>
+                                <td className="py-3 px-4">{employee.employment?.designation || '-'}</td>
+                                <td className="py-3 px-4">{employee.contact?.phoneNumber || '-'}</td>
+                                <td className="py-3 px-4">{employee.contact?.email || employee.contact?.personalEmail || '-'}</td>
                                 <td className="py-3 px-4">
                                   <Button
                                     variant="ghost"
@@ -627,7 +631,7 @@ export default function ManageEmployeePage() {
                             ))
                           ) : (
                             <tr>
-                              <td colSpan={9} className="text-center py-8 text-gray-500">
+                              <td colSpan={8} className="text-center py-8 text-gray-500">
                                 No data available in table
                               </td>
                             </tr>
@@ -684,13 +688,12 @@ export default function ManageEmployeePage() {
                             <th className="text-left py-3 px-4 font-medium text-gray-700">Employee No.</th>
                             <th className="text-left py-3 px-4 font-medium text-gray-700">Designation</th>
                             <th className="text-left py-3 px-4 font-medium text-gray-700">Phone</th>
-                            <th className="text-left py-3 px-4 font-medium text-gray-700">Mobile</th>
                             <th className="text-left py-3 px-4 font-medium text-gray-700">Email</th>
                           </tr>
                         </thead>
                         <tbody>
                           <tr>
-                            <td colSpan={8} className="text-center py-8 text-gray-500">
+                            <td colSpan={7} className="text-center py-8 text-gray-500">
                               No data available in table
                             </td>
                           </tr>

@@ -105,12 +105,22 @@ export function registerRoutes(app: Express): Server {
       
       // Role-based access control
       if (currentUser.role === 'admin' || currentUser.role === 'hr') {
-        // Admin and HR can see all employees
-        employees = await storage.getAllEmployees();
+        // Admin and HR can see all employees with details
+        employees = await storage.getAllEmployeesWithDetails();
       } else {
         // Regular employees can only see their own employee record
         const employee = await storage.getEmployeeByUserId(currentUser.id);
-        employees = employee ? [employee] : [];
+        if (employee) {
+          const employmentData = await storage.getEmploymentByEmployeeId(employee.id);
+          const contactData = await storage.getContactByEmployeeId(employee.id);
+          employees = [{
+            ...employee,
+            employment: employmentData,
+            contact: contactData
+          }];
+        } else {
+          employees = [];
+        }
       }
       
       res.json(employees);

@@ -88,6 +88,7 @@ export interface IStorage {
   
   // =================== EMPLOYEE METHODS ===================
   getAllEmployees(): Promise<Employee[]>;
+  getAllEmployeesWithDetails(): Promise<any[]>;
   getEmployee(id: string): Promise<Employee | undefined>;
   getEmployeeByUserId(userId: string): Promise<Employee | undefined>;
   createEmployee(employee: InsertEmployee): Promise<Employee>;
@@ -210,6 +211,25 @@ export class DatabaseStorage implements IStorage {
   // =================== EMPLOYEE METHODS ===================
   async getAllEmployees(): Promise<Employee[]> {
     return await db.select().from(employees);
+  }
+
+  async getAllEmployeesWithDetails(): Promise<any[]> {
+    const employeesList = await db.select().from(employees);
+    
+    const employeesWithDetails = await Promise.all(
+      employeesList.map(async (emp) => {
+        const employmentData = await this.getEmploymentByEmployeeId(emp.id);
+        const contactData = await this.getContactByEmployeeId(emp.id);
+        
+        return {
+          ...emp,
+          employment: employmentData,
+          contact: contactData
+        };
+      })
+    );
+    
+    return employeesWithDetails;
   }
 
   async getEmployee(id: string): Promise<Employee | undefined> {
