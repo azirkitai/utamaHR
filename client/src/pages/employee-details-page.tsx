@@ -275,9 +275,10 @@ export default function EmployeeDetailsPage() {
               </div>
             </div>
 
-            {/* Navigation Tabs */}
-            <div className="mx-6 mt-4">
-              <div className="w-80 bg-white rounded-lg shadow-md border">
+            {/* Content Area with Navigation and Tab Content */}
+            <div className="flex gap-6 p-6">
+              {/* Left Navigation Tabs */}
+              <div className="w-80 bg-white rounded-lg shadow-md border h-fit">
                 <div className="p-4">
                   <nav className="space-y-1">
                     {navigationTabs.map((tab) => {
@@ -302,10 +303,9 @@ export default function EmployeeDetailsPage() {
                   </nav>
                 </div>
               </div>
-            </div>
 
-            {/* Tab Content Area */}
-            <div className="p-6">
+              {/* Right Tab Content Area */}
+              <div className="flex-1">
               {activeTab === "personal-details" && (
                 <Card>
                   <CardHeader className="bg-teal-500 text-white">
@@ -578,6 +578,7 @@ export default function EmployeeDetailsPage() {
                   </CardContent>
                 </Card>
               )}
+              </div>
             </div>
         </div>
       </div>
