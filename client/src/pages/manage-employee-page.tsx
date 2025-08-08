@@ -108,7 +108,7 @@ export default function ManageEmployeePage() {
         email: staffData.email
       });
       
-      return await employeeResponse.json();
+      return newEmployee;
     },
     onSuccess: () => {
       // Refresh employees list
