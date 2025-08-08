@@ -602,9 +602,9 @@ export default function SystemSettingPage() {
         throw new Error("Policy not found");
       }
 
-      // Sementara ini, kita guna employeeId dummy untuk testing
-      // Dalam implementasi sebenar, perlu ambil dari logged user
-      const employeeId = "test-employee-id"; 
+      // Ambil employeeId dari employee table
+      // Untuk testing, kita guna employeeId yang ada dalam sistem
+      const employeeId = "0e27650c-5127-45e8-93d8-0e2862b415d0"; // Employee ID untuk Azirkitai 
       
       if (enabled) {
         // Jika enable, create atau update leave policy di database
