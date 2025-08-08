@@ -713,6 +713,24 @@ export class DatabaseStorage implements IStorage {
       throw new Error("Failed to reset password");
     }
   }
+
+  // =================== WORK EXPERIENCE METHODS ===================
+  async getWorkExperiences(employeeId: string): Promise<WorkExperience[]> {
+    return await db.select().from(workExperiences).where(eq(workExperiences.employeeId, employeeId));
+  }
+
+  async createWorkExperience(insertWorkExperience: InsertWorkExperience): Promise<WorkExperience> {
+    const [workExperience] = await db
+      .insert(workExperiences)
+      .values(insertWorkExperience)
+      .returning();
+    return workExperience;
+  }
+
+  async deleteWorkExperience(id: string): Promise<boolean> {
+    const result = await db.delete(workExperiences).where(eq(workExperiences.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
 }
 
 export const storage = new DatabaseStorage();

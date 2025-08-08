@@ -738,6 +738,55 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // =================== WORK EXPERIENCE ROUTES ===================
+  // Get work experiences for an employee
+  app.get("/api/work-experiences/:employeeId", authenticateToken, async (req, res) => {
+    try {
+      const { employeeId } = req.params;
+      const workExperiences = await storage.getWorkExperiences(employeeId);
+      res.json(workExperiences);
+    } catch (error) {
+      console.error("Get work experiences error:", error);
+      res.status(500).json({ error: "Gagal mendapatkan pengalaman kerja" });
+    }
+  });
+
+  // Create work experience
+  app.post("/api/work-experiences", authenticateToken, async (req, res) => {
+    try {
+      const validationResult = insertWorkExperienceSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Data tidak sah", 
+          details: validationResult.error.issues 
+        });
+      }
+
+      const workExperience = await storage.createWorkExperience(validationResult.data);
+      res.status(201).json(workExperience);
+    } catch (error) {
+      console.error("Create work experience error:", error);
+      res.status(500).json({ error: "Gagal menambah pengalaman kerja" });
+    }
+  });
+
+  // Delete work experience
+  app.delete("/api/work-experiences/:id", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await storage.deleteWorkExperience(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Pengalaman kerja tidak dijumpai" });
+      }
+      
+      res.json({ success: true, message: "Pengalaman kerja telah dipadam" });
+    } catch (error) {
+      console.error("Delete work experience error:", error);
+      res.status(500).json({ error: "Gagal memadamkan pengalaman kerja" });
+    }
+  });
+
   // Public health check (no auth required)
   app.get("/api/health", (req, res) => {
     const envCheck = checkEnvironmentSecrets();
