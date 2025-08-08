@@ -11,6 +11,7 @@ export interface ResizeOptions {
 
 /**
  * Resizes an image file to specified dimensions while maintaining aspect ratio
+ * For profile pictures, creates a square crop centered on the image
  * @param file - The image file to resize
  * @param options - Resize options including max dimensions and quality
  * @returns Promise<File> - The resized image as a new File object
@@ -31,27 +32,33 @@ export async function resizeImage(file: File, options: ResizeOptions): Promise<F
         return;
       }
 
-      // Calculate new dimensions maintaining aspect ratio
-      let { width, height } = img;
-      
-      if (width > height) {
-        if (width > maxWidth) {
-          height = (height * maxWidth) / width;
-          width = maxWidth;
-        }
+      // For profile pictures, create square crop
+      const targetSize = Math.min(maxWidth, maxHeight);
+      canvas.width = targetSize;
+      canvas.height = targetSize;
+
+      // Calculate crop area (center crop to square)
+      const { width: imgWidth, height: imgHeight } = img;
+      let sourceX, sourceY, sourceSize;
+
+      if (imgWidth > imgHeight) {
+        // Landscape image - crop from center horizontally
+        sourceSize = imgHeight;
+        sourceX = (imgWidth - imgHeight) / 2;
+        sourceY = 0;
       } else {
-        if (height > maxHeight) {
-          width = (width * maxHeight) / height;
-          height = maxHeight;
-        }
+        // Portrait or square image - crop from center vertically
+        sourceSize = imgWidth;
+        sourceX = 0;
+        sourceY = (imgHeight - imgWidth) / 2;
       }
 
-      // Set canvas dimensions
-      canvas.width = width;
-      canvas.height = height;
-
-      // Draw resized image
-      ctx.drawImage(img, 0, 0, width, height);
+      // Draw cropped and resized image
+      ctx.drawImage(
+        img,
+        sourceX, sourceY, sourceSize, sourceSize, // Source rectangle (square crop)
+        0, 0, targetSize, targetSize // Destination rectangle
+      );
 
       // Convert to blob
       const mimeType = format === 'png' ? 'image/png' : 
@@ -67,7 +74,7 @@ export async function resizeImage(file: File, options: ResizeOptions): Promise<F
         const originalName = file.name.split('.').slice(0, -1).join('.');
         const extension = format === 'png' ? 'png' : 
                          format === 'webp' ? 'webp' : 'jpg';
-        const newFileName = `${originalName}_resized.${extension}`;
+        const newFileName = `${originalName}_profile.${extension}`;
 
         const resizedFile = new File([blob], newFileName, {
           type: mimeType,

@@ -110,7 +110,7 @@ export function ObjectUploader({
               name: resizedFile.name,
             });
 
-            console.log(`Image resized: ${formatFileSize(originalFile.size)} → ${formatFileSize(resizedFile.size)}`);
+            console.log(`✓ Gambar berjaya diproses: ${formatFileSize(originalFile.size)} → ${formatFileSize(resizedFile.size)} (${maxImageWidth}x${maxImageHeight}px square crop)`);
             
           } catch (error) {
             console.error('Error processing image:', error);

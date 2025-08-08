@@ -603,7 +603,10 @@ export default function EmployeeDetailsPage() {
                 <div className="flex items-center gap-6">
                   <div className="relative group">
                     <Avatar className="w-20 h-20 border-4 border-white cursor-pointer">
-                      <AvatarImage src={employee?.profileImageUrl || ""} />
+                      <AvatarImage 
+                        src={employee?.profileImageUrl || ""} 
+                        className="object-cover w-full h-full"
+                      />
                       <AvatarFallback className="bg-white text-teal-600 text-2xl font-bold">
                         {employee?.fullName?.charAt(0) || "?"}
                       </AvatarFallback>
