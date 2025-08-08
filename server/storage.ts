@@ -204,6 +204,7 @@ export interface IStorage {
 
   // =================== ATTENDANCE RECORD METHODS ===================
   getAttendanceRecords(params: { dateFrom?: Date; dateTo?: Date; employeeId?: string }): Promise<AttendanceRecord[]>;
+  createOrUpdateAttendanceRecord(data: Partial<InsertAttendanceRecord>): Promise<AttendanceRecord>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -305,6 +306,14 @@ export class DatabaseStorage implements IStorage {
   async deleteEmployee(id: string): Promise<boolean> {
     const result = await db.delete(employees).where(eq(employees.id, id));
     return (result.rowCount ?? 0) > 0;
+  }
+
+  async getEmployeeByUserId(userId: string): Promise<Employee | undefined> {
+    const [employee] = await db
+      .select()
+      .from(employees)
+      .where(eq(employees.userId, userId));
+    return employee || undefined;
   }
 
   // =================== EMPLOYMENT METHODS ===================
@@ -546,7 +555,10 @@ export class DatabaseStorage implements IStorage {
   async updateWorkExperience(id: string, updateWorkExperience: UpdateWorkExperience): Promise<WorkExperience | undefined> {
     const [record] = await db
       .update(workExperiences)
-      .set(updateWorkExperience)
+      .set({
+        ...updateWorkExperience,
+        updatedAt: new Date()
+      })
       .where(eq(workExperiences.id, id))
       .returning();
     return record || undefined;
@@ -844,8 +856,6 @@ export class DatabaseStorage implements IStorage {
 
   // =================== ATTENDANCE RECORD METHODS ===================
   async getAttendanceRecords(params: { dateFrom?: Date; dateTo?: Date; employeeId?: string }): Promise<AttendanceRecord[]> {
-    let query = db.select().from(attendanceRecords);
-    
     const conditions = [];
     
     // Add employeeId filter if provided
@@ -862,13 +872,59 @@ export class DatabaseStorage implements IStorage {
       conditions.push(sql`${attendanceRecords.date} <= ${params.dateTo.toISOString().split('T')[0]}`);
     }
     
-    // Apply conditions if any exist
+    // Build and execute query
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      return await db
+        .select()
+        .from(attendanceRecords)
+        .where(and(...conditions))
+        .orderBy(desc(attendanceRecords.date));
+    } else {
+      return await db
+        .select()
+        .from(attendanceRecords)
+        .orderBy(desc(attendanceRecords.date));
     }
-    
-    // Order by date descending (newest first)
-    return await query.orderBy(desc(attendanceRecords.date));
+  }
+
+  async createOrUpdateAttendanceRecord(data: Partial<InsertAttendanceRecord>): Promise<AttendanceRecord> {
+    if (!data.employeeId || !data.userId || !data.date) {
+      throw new Error("EmployeeId, userId, dan date diperlukan");
+    }
+
+    // Check if record exists for today
+    const today = data.date;
+    const [existingRecord] = await db
+      .select()
+      .from(attendanceRecords)
+      .where(and(
+        eq(attendanceRecords.employeeId, data.employeeId),
+        sql`DATE(${attendanceRecords.date}) = DATE(${today.toISOString()})`
+      ));
+
+    if (existingRecord) {
+      // Update existing record
+      const [updatedRecord] = await db
+        .update(attendanceRecords)
+        .set({
+          ...data,
+          updatedAt: new Date()
+        })
+        .where(eq(attendanceRecords.id, existingRecord.id))
+        .returning();
+      return updatedRecord;
+    } else {
+      // Create new record
+      const [newRecord] = await db
+        .insert(attendanceRecords)
+        .values({
+          ...data as InsertAttendanceRecord,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning();
+      return newRecord;
+    }
   }
 }
 

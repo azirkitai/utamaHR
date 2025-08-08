@@ -105,6 +105,98 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Clock-out endpoint with location tracking
+  app.post("/api/mobile-clockout", authenticateToken, async (req, res) => {
+    try {
+      const { latitude, longitude, selfieImageUrl } = req.body;
+      const user = req.user!;
+
+      // Validate location data
+      if (!latitude || !longitude) {
+        return res.status(400).json({ error: "Lokasi GPS diperlukan" });
+      }
+
+      // Get all active office locations
+      const activeLocations = await storage.getActiveOfficeLocations();
+      if (activeLocations.length === 0) {
+        return res.status(400).json({ 
+          error: "Tiada lokasi pejabat aktif ditetapkan" 
+        });
+      }
+
+      // Check location validation
+      let locationStatus = "invalid";
+      let nearestDistance = Infinity;
+      let nearestLocationId = null;
+      let locationMessage = "";
+
+      for (const location of activeLocations) {
+        const distance = calculateDistance(
+          parseFloat(latitude), 
+          parseFloat(longitude), 
+          parseFloat(location.latitude), 
+          parseFloat(location.longitude)
+        );
+
+        if (distance < nearestDistance) {
+          nearestDistance = distance;
+          nearestLocationId = location.id;
+        }
+
+        const maxDistance = parseFloat(location.radius);
+        if (distance <= maxDistance) {
+          locationStatus = "valid";
+          break;
+        }
+      }
+
+      if (locationStatus === "invalid") {
+        locationMessage = "Anda berada di luar kawasan pejabat. Sila berada dalam kawasan yang ditetapkan untuk clock out";
+      }
+
+      // Process selfie image path
+      const objectStorageService = new ObjectStorageService();
+      const selfieImagePath = objectStorageService.normalizeSelfieImagePath(selfieImageUrl);
+
+      // Update attendance record for today with clock-out information
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const employee = await storage.getEmployeeByUserId(user.id);
+      if (employee) {
+        await storage.createOrUpdateAttendanceRecord({
+          employeeId: employee.id,
+          userId: user.id,
+          date: today,
+          clockOutTime: new Date(),
+          clockOutLatitude: latitude,
+          clockOutLongitude: longitude,
+          clockOutLocationStatus: locationStatus,
+          clockOutDistance: nearestDistance.toString(),
+          clockOutOfficeLocationId: nearestLocationId,
+          clockOutImage: selfieImagePath
+        });
+      }
+
+      res.json({
+        success: true,
+        message: locationStatus === "valid" 
+          ? "Clock-out berjaya! Anda berada dalam kawasan pejabat." 
+          : locationMessage,
+        location: {
+          status: locationStatus,
+          distance: Math.round(nearestDistance),
+          message: locationMessage,
+          nearestOffice: nearestLocationId
+        }
+      });
+
+    } catch (error) {
+      console.error("Mobile clock-out error:", error);
+      res.status(500).json({ error: "Gagal melakukan clock-out" });
+    }
+  });
+
   // Staff user creation route (for admin/HR creating new staff accounts)
   app.post("/api/create-staff-user", authenticateToken, async (req, res) => {
     try {
@@ -661,6 +753,27 @@ export function registerRoutes(app: Express): Server {
       });
 
       const user = await storage.getUser(qrToken.userId);
+      
+      // Also create or update attendance record for today with location tracking
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const employee = await storage.getEmployeeByUserId(qrToken.userId);
+      if (employee) {
+        await storage.createOrUpdateAttendanceRecord({
+          employeeId: employee.id,
+          userId: qrToken.userId,
+          date: today,
+          clockInTime: new Date(),
+          clockInLatitude: latitude,
+          clockInLongitude: longitude,
+          clockInLocationStatus: locationStatus,
+          clockInDistance: nearestDistance.toString(),
+          clockInOfficeLocationId: nearestLocationId,
+          clockInImage: selfieImagePath,
+          status: locationStatus === "valid" ? "present" : "invalid_location"
+        });
+      }
 
       res.json({
         success: true,

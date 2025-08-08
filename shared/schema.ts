@@ -356,6 +356,18 @@ export const attendanceRecords = pgTable("attendance_records", {
   clockOutTime: timestamp("clock_out_time"),
   clockInImage: text("clock_in_image"), // Image path for clock in
   clockOutImage: text("clock_out_image"), // Image path for clock out
+  // Location tracking for clock-in
+  clockInLatitude: text("clock_in_latitude"), // GPS latitude for clock in
+  clockInLongitude: text("clock_in_longitude"), // GPS longitude for clock in
+  clockInLocationStatus: text("clock_in_location_status"), // valid, invalid
+  clockInDistance: text("clock_in_distance"), // distance from office in meters
+  clockInOfficeLocationId: varchar("clock_in_office_location_id").references(() => officeLocations.id),
+  // Location tracking for clock-out
+  clockOutLatitude: text("clock_out_latitude"), // GPS latitude for clock out
+  clockOutLongitude: text("clock_out_longitude"), // GPS longitude for clock out
+  clockOutLocationStatus: text("clock_out_location_status"), // valid, invalid
+  clockOutDistance: text("clock_out_distance"), // distance from office in meters
+  clockOutOfficeLocationId: varchar("clock_out_office_location_id").references(() => officeLocations.id),
   totalHours: decimal("total_hours", { precision: 4, scale: 2 }).default(sql`0`),
   notes: text("notes"), // Notes for the day
   status: text("status").default("present"), // present, absent, late, early_leave

@@ -37,7 +37,7 @@ export default function MyRecordPage() {
   });
 
   // Check if user has admin access to view other employees' data
-  const hasAdminAccess = user?.role && ['Super Admin', 'Admin', 'HR Manager', 'PIC'].includes(user.role);
+  const hasAdminAccess = (user as any)?.role && ['Super Admin', 'Admin', 'HR Manager', 'PIC'].includes((user as any).role);
 
   // Fetch attendance records from database
   const { data: attendanceRecords = [], isLoading: isLoadingAttendance } = useQuery({
@@ -793,7 +793,7 @@ export default function MyRecordPage() {
                           src={record.clockInImage} 
                           alt="Clock In" 
                           className="w-16 h-16 object-cover rounded cursor-pointer hover:scale-110 transition-transform"
-                          onClick={() => window.open(record.clockInImage, '_blank')}
+                          onClick={() => window.open(record.clockInImage || '', '_blank')}
                         />
                       ) : (
                         <span className="text-gray-400 text-xs">No image</span>
@@ -808,14 +808,14 @@ export default function MyRecordPage() {
                           src={record.clockOutImage} 
                           alt="Clock Out" 
                           className="w-16 h-16 object-cover rounded cursor-pointer hover:scale-110 transition-transform"
-                          onClick={() => window.open(record.clockOutImage, '_blank')}
+                          onClick={() => window.open(record.clockOutImage || '', '_blank')}
                         />
                       ) : (
                         <span className="text-gray-400 text-xs">No image</span>
                       )}
                     </TableCell>
                   )}
-                  <TableCell>{record.totalHours.toFixed(2)}h</TableCell>
+                  <TableCell>{record.totalHours ? parseFloat(record.totalHours).toFixed(2) : '0.00'}h</TableCell>
                   <TableCell>
                     <div className="flex gap-1">
                       <Button size="sm" variant="outline" className="h-6 w-6 p-0" data-testid={`button-view-${record.id}`}>
@@ -824,6 +824,18 @@ export default function MyRecordPage() {
                       <Button size="sm" variant="outline" className="h-6 w-6 p-0" data-testid={`button-edit-${record.id}`}>
                         <File className="h-3 w-3 text-gray-600" />
                       </Button>
+                      {!record.clockOutTime && (
+                        <Button 
+                          size="sm" 
+                          className="h-6 px-2 text-white text-xs"
+                          style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}
+                          onClick={() => window.location.href = '/mobile-clockout'}
+                          data-testid={`button-clock-out-${record.id}`}
+                        >
+                          <Clock className="h-3 w-3 mr-1" />
+                          Clock Out
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>

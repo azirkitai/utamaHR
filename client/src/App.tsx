@@ -27,6 +27,7 @@ import SalaryPayrollPage from "@/pages/salary-payroll-page";
 import PaymentVoucherPage from "@/pages/payment-voucher-page";
 import QRClockInPage from "@/pages/qr-clockin-page";
 import MobileClockInPage from "@/pages/mobile-clockin-page";
+import MobileClockOutPage from "@/pages/mobile-clockout-page";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "./lib/protected-route";
 
@@ -57,6 +58,7 @@ function Router() {
       <ProtectedRoute path="/system-setting" component={SystemSettingPage} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/mobile-clockin" component={MobileClockInPage} />
+      <ProtectedRoute path="/mobile-clockout" component={MobileClockOutPage} />
       <Route component={NotFound} />
     </Switch>
   );
