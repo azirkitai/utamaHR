@@ -564,7 +564,7 @@ export default function EmployeeDetailsPage() {
                     <h2 className="text-2xl font-bold">{employee?.fullName || "N/A"}</h2>
                     <div className="flex items-center gap-4 mt-2">
                       <span className="bg-blue-800 px-3 py-1 rounded text-sm">
-                        Employee No.
+                        {employment?.employeeNo || "Employee No."}
                       </span>
                       <span className="bg-green-600 px-3 py-1 rounded text-sm">N/A</span>
                     </div>
