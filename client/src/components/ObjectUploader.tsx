@@ -7,6 +7,7 @@ import "@uppy/dashboard/dist/style.min.css";
 import AwsS3 from "@uppy/aws-s3";
 import type { UploadResult } from "@uppy/core";
 import { Button } from "@/components/ui/button";
+import { resizeImage, isValidImage, formatFileSize } from "@/lib/imageUtils";
 
 interface ObjectUploaderProps {
   maxNumberOfFiles?: number;
@@ -20,6 +21,10 @@ interface ObjectUploaderProps {
   ) => void;
   buttonClassName?: string;
   children: ReactNode;
+  resizeImages?: boolean;
+  maxImageWidth?: number;
+  maxImageHeight?: number;
+  imageQuality?: number;
 }
 
 /**
@@ -57,6 +62,10 @@ export function ObjectUploader({
   onComplete,
   buttonClassName,
   children,
+  resizeImages = true,
+  maxImageWidth = 400,
+  maxImageHeight = 400,
+  imageQuality = 0.8,
 }: ObjectUploaderProps) {
   const [showModal, setShowModal] = useState(false);
   const [uppy] = useState(() =>
@@ -71,6 +80,44 @@ export function ObjectUploader({
       .use(AwsS3, {
         shouldUseMultipart: false,
         getUploadParameters: onGetUploadParameters,
+      })
+      .on('file-added', async (file) => {
+        if (resizeImages && file.type && file.type.startsWith('image/')) {
+          try {
+            // Convert UppyFile to File object for processing
+            const originalFile = new File([file.data], file.name || 'image', { type: file.type });
+            
+            // Validate image
+            if (!isValidImage(originalFile)) {
+              uppy.removeFile(file.id);
+              alert('Jenis fail tidak disokong. Sila pilih gambar (JPEG, PNG, WebP, atau GIF).');
+              return;
+            }
+
+            // Resize image
+            const resizedFile = await resizeImage(originalFile, {
+              maxWidth: maxImageWidth,
+              maxHeight: maxImageHeight,
+              quality: imageQuality,
+              format: 'jpeg' // Convert all to JPEG for consistency
+            });
+
+            // Update uppy file with resized data
+            uppy.setFileState(file.id, {
+              data: resizedFile,
+              size: resizedFile.size,
+              type: resizedFile.type,
+              name: resizedFile.name,
+            });
+
+            console.log(`Image resized: ${formatFileSize(originalFile.size)} → ${formatFileSize(resizedFile.size)}`);
+            
+          } catch (error) {
+            console.error('Error processing image:', error);
+            uppy.removeFile(file.id);
+            alert('Ralat memproses gambar. Sila cuba dengan gambar lain.');
+          }
+        }
       })
       .on("complete", (result) => {
         setShowModal(false); // Close modal after upload

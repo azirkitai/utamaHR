@@ -617,6 +617,10 @@ export default function EmployeeDetailsPage() {
                         onGetUploadParameters={handleGetProfileUploadParameters}
                         onComplete={handleProfileUploadComplete}
                         buttonClassName="bg-transparent hover:bg-transparent border-none p-2"
+                        resizeImages={true}
+                        maxImageWidth={300}
+                        maxImageHeight={300}
+                        imageQuality={0.9}
                       >
                         <Camera className="w-6 h-6 text-white" />
                       </ObjectUploader>
