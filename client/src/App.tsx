@@ -7,6 +7,7 @@ import NotFound from "@/pages/not-found";
 import DashboardHome from "@/pages/dashboard-home";
 import AuthPage from "@/pages/auth-page";
 import EmployeesPage from "@/pages/employees-page";
+import EmployeeDetailsPage from "@/pages/employee-details-page";
 import SystemSettingPage from "@/pages/system-setting-page";
 import MyRecordPage from "@/pages/my-record-page";
 import ApplyLeavePage from "@/pages/apply-leave-page";
@@ -34,6 +35,7 @@ function Router() {
     <Switch>
       <ProtectedRoute path="/" component={DashboardHome} />
       <ProtectedRoute path="/employees" component={EmployeesPage} />
+      <ProtectedRoute path="/employee-details/:id" component={EmployeeDetailsPage} />
       <ProtectedRoute path="/my-record" component={MyRecordPage} />
       <ProtectedRoute path="/apply/leave" component={ApplyLeavePage} />
       <ProtectedRoute path="/apply/claim" component={ApplyClaimPage} />

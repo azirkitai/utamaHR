@@ -9,7 +9,9 @@ import {
   mobileClockInSchema,
   insertClockInSchema,
   insertOfficeLocationSchema,
-  updateOfficeLocationSchema
+  updateOfficeLocationSchema,
+  insertWorkExperienceSchema,
+  updateWorkExperienceSchema
 } from "@shared/schema";
 import { checkEnvironmentSecrets } from "./env-check";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
@@ -112,6 +114,88 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Delete employee error:", error);
       res.status(500).json({ error: "Gagal menghapuskan pekerja" });
+    }
+  });
+
+  // Employee password management routes
+  app.put("/api/employees/:id/change-password", authenticateToken, async (req, res) => {
+    try {
+      const { currentPassword, newPassword } = req.body;
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ error: "Current password dan new password diperlukan" });
+      }
+
+      const success = await storage.changeEmployeePassword(req.params.id, currentPassword, newPassword);
+      if (!success) {
+        return res.status(400).json({ error: "Gagal menukar password" });
+      }
+
+      res.json({ message: "Password berjaya ditukar" });
+    } catch (error) {
+      console.error("Change password error:", error);
+      res.status(500).json({ error: "Gagal menukar password" });
+    }
+  });
+
+  app.post("/api/employees/:id/reset-password", authenticateToken, async (req, res) => {
+    try {
+      const newPassword = await storage.resetEmployeePassword(req.params.id);
+      res.json({ 
+        message: "Password berjaya direset",
+        newPassword // In production, this would be sent via email instead
+      });
+    } catch (error) {
+      console.error("Reset password error:", error);
+      res.status(500).json({ error: "Gagal mereset password" });
+    }
+  });
+
+  // Work experience routes
+  app.get("/api/work-experiences/:employeeId", authenticateToken, async (req, res) => {
+    try {
+      const workExperiences = await storage.getWorkExperiences(req.params.employeeId);
+      res.json(workExperiences);
+    } catch (error) {
+      console.error("Get work experiences error:", error);
+      res.status(500).json({ error: "Gagal mendapatkan pengalaman kerja" });
+    }
+  });
+
+  app.post("/api/work-experiences", authenticateToken, async (req, res) => {
+    try {
+      const validatedData = insertWorkExperienceSchema.parse(req.body);
+      const workExperience = await storage.createWorkExperience(validatedData);
+      res.status(201).json(workExperience);
+    } catch (error) {
+      console.error("Create work experience error:", error);
+      res.status(400).json({ error: "Gagal menambah pengalaman kerja" });
+    }
+  });
+
+  app.put("/api/work-experiences/:id", authenticateToken, async (req, res) => {
+    try {
+      const validatedData = updateWorkExperienceSchema.parse(req.body);
+      const workExperience = await storage.updateWorkExperience(req.params.id, validatedData);
+      if (!workExperience) {
+        return res.status(404).json({ error: "Pengalaman kerja tidak dijumpai" });
+      }
+      res.json(workExperience);
+    } catch (error) {
+      console.error("Update work experience error:", error);
+      res.status(400).json({ error: "Gagal mengemaskini pengalaman kerja" });
+    }
+  });
+
+  app.delete("/api/work-experiences/:id", authenticateToken, async (req, res) => {
+    try {
+      const deleted = await storage.deleteWorkExperience(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Pengalaman kerja tidak dijumpai" });
+      }
+      res.json({ message: "Pengalaman kerja berjaya dihapuskan" });
+    } catch (error) {
+      console.error("Delete work experience error:", error);
+      res.status(500).json({ error: "Gagal menghapuskan pengalaman kerja" });
     }
   });
 

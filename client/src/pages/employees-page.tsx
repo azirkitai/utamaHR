@@ -43,6 +43,7 @@ import {
   Plus,
   Edit,
   Trash2,
+  Eye,
   ArrowLeft
 } from "lucide-react";
 import { Link } from "wouter";
@@ -441,6 +442,15 @@ export default function EmployeesPage() {
                       <TableCell>{new Date(employee.joinDate).toLocaleDateString('ms-MY')}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end space-x-2">
+                          <Link href={`/employee-details/${employee.id}`}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              data-testid={`button-view-employee-${employee.id}`}
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </Link>
                           <Button
                             variant="outline"
                             size="sm"

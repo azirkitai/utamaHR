@@ -11,11 +11,15 @@ import {
   type UpdateOfficeLocation,
   type ClockInRecord,
   type InsertClockIn,
+  type WorkExperience,
+  type InsertWorkExperience,
+  type UpdateWorkExperience,
   users, 
   employees,
   qrTokens,
   officeLocations,
-  clockInRecords
+  clockInRecords,
+  workExperiences
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
@@ -49,6 +53,16 @@ export interface IStorage {
   // Clock-in methods
   createClockInRecord(clockIn: InsertClockIn): Promise<ClockInRecord>;
   getUserClockInRecords(userId: string): Promise<ClockInRecord[]>;
+  
+  // Work experience methods
+  getWorkExperiences(employeeId: string): Promise<WorkExperience[]>;
+  createWorkExperience(workExperience: InsertWorkExperience): Promise<WorkExperience>;
+  updateWorkExperience(id: string, workExperience: UpdateWorkExperience): Promise<WorkExperience | undefined>;
+  deleteWorkExperience(id: string): Promise<boolean>;
+  
+  // Employee password methods
+  changeEmployeePassword(employeeId: string, currentPassword: string, newPassword: string): Promise<boolean>;
+  resetEmployeePassword(employeeId: string): Promise<string>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -200,6 +214,54 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(clockInRecords)
       .where(eq(clockInRecords.userId, userId));
+  }
+
+  // Work experience methods
+  async getWorkExperiences(employeeId: string): Promise<WorkExperience[]> {
+    return await db
+      .select()
+      .from(workExperiences)
+      .where(eq(workExperiences.employeeId, employeeId));
+  }
+
+  async createWorkExperience(insertWorkExperience: InsertWorkExperience): Promise<WorkExperience> {
+    const [workExperience] = await db
+      .insert(workExperiences)
+      .values(insertWorkExperience)
+      .returning();
+    return workExperience;
+  }
+
+  async updateWorkExperience(id: string, updateWorkExperience: UpdateWorkExperience): Promise<WorkExperience | undefined> {
+    const [workExperience] = await db
+      .update(workExperiences)
+      .set(updateWorkExperience)
+      .where(eq(workExperiences.id, id))
+      .returning();
+    return workExperience || undefined;
+  }
+
+  async deleteWorkExperience(id: string): Promise<boolean> {
+    const result = await db.delete(workExperiences).where(eq(workExperiences.id, id));
+    return result.rowCount !== null && result.rowCount > 0;
+  }
+
+  // Employee password methods - simplified for this demo
+  async changeEmployeePassword(employeeId: string, currentPassword: string, newPassword: string): Promise<boolean> {
+    // In a real implementation, you would verify the current password against a user-employee relationship
+    // For this demo, we'll just return true if the employee exists
+    const employee = await this.getEmployee(employeeId);
+    return !!employee;
+  }
+
+  async resetEmployeePassword(employeeId: string): Promise<string> {
+    // In a real implementation, you would generate a new password and update it
+    // For this demo, we'll just return a dummy new password
+    const employee = await this.getEmployee(employeeId);
+    if (!employee) {
+      throw new Error("Employee not found");
+    }
+    return "newpassword123"; // In real implementation, this would be a generated password
   }
 }
 

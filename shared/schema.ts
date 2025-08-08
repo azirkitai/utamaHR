@@ -11,19 +11,63 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// Employee table for HR management
+// Employee table for HR management with complete details
 export const employees = pgTable("employees", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull(),
+  
+  // Personal Details
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  nric: text("nric").unique(),
+  nricOld: text("nric_old"),
+  placeOfBirth: text("place_of_birth"),
+  dateOfBirth: timestamp("date_of_birth"),
+  gender: text("gender"), // Male, Female
+  race: text("race"),
+  religion: text("religion"),
+  bloodType: text("blood_type"),
+  educationLevel: text("education_level"),
+  maritalStatus: text("marital_status"),
+  nationality: text("nationality"),
+  bumiStatus: text("bumi_status"),
+  familyMembers: text("family_members"),
+  
+  // Contact Info
   email: text("email").notNull().unique(),
   phone: text("phone"),
+  currentAddress: text("current_address"),
+  permanentAddress: text("permanent_address"),
+  
+  // Employment Info
+  employeeId: text("employee_id").unique(),
   position: text("position").notNull(),
   department: text("department").notNull(),
-  salary: text("salary"), // Store as text for simplicity
   joinDate: timestamp("join_date").defaultNow().notNull(),
+  employmentStatus: text("employment_status").notNull().default("active"), // Permanent, Contract, Probation, etc.
+  salary: text("salary"), // Store as text for simplicity
+  
+  // Driving License Details
+  drivingLicenseNumber: text("driving_license_number"),
+  drivingClass: text("driving_class"),
+  drivingExpiryDate: timestamp("driving_expiry_date"),
+  
+  // System fields
   status: text("status").notNull().default("active"), // active, inactive, terminated
+  profileImageUrl: text("profile_image_url"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Work Experience table
+export const workExperiences = pgTable("work_experiences", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  employeeId: varchar("employee_id").notNull().references(() => employees.id),
+  previousCompany: text("previous_company").notNull(),
+  position: text("position").notNull(),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date"),
+  period: text("period"), // Duration in months/years
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 // QR Code tokens for clock-in
@@ -77,6 +121,13 @@ export const insertEmployeeSchema = createInsertSchema(employees).omit({
 
 export const updateEmployeeSchema = insertEmployeeSchema.partial();
 
+export const insertWorkExperienceSchema = createInsertSchema(workExperiences).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const updateWorkExperienceSchema = insertWorkExperienceSchema.partial();
+
 export const loginSchema = z.object({
   username: z.string().min(1, "Username diperlukan"),
   password: z.string().min(1, "Password diperlukan"),
@@ -123,3 +174,6 @@ export type UpdateOfficeLocation = z.infer<typeof updateOfficeLocationSchema>;
 export type ClockInRecord = typeof clockInRecords.$inferSelect;
 export type InsertClockIn = z.infer<typeof insertClockInSchema>;
 export type MobileClockInData = z.infer<typeof mobileClockInSchema>;
+export type WorkExperience = typeof workExperiences.$inferSelect;
+export type InsertWorkExperience = z.infer<typeof insertWorkExperienceSchema>;
+export type UpdateWorkExperience = z.infer<typeof updateWorkExperienceSchema>;
