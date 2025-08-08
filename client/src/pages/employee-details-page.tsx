@@ -505,9 +505,9 @@ export default function EmployeeDetailsPage() {
                       </div>
                     </CardHeader>
                     <CardContent className="p-6">
-                      <div className="grid md:grid-cols-2 gap-6">
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700">First Name</Label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">First Name</Label>
                           {isEditingPersonal ? (
                             <Input
                               value={employeeForm.firstName || ""}
@@ -522,8 +522,8 @@ export default function EmployeeDetailsPage() {
                           )}
                         </div>
                         
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700">Last Name</Label>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Last Name</Label>
                           {isEditingPersonal ? (
                             <Input
                               value={employeeForm.lastName || ""}
@@ -538,8 +538,8 @@ export default function EmployeeDetailsPage() {
                           )}
                         </div>
 
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700">NRIC</Label>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">NRIC</Label>
                           {isEditingPersonal ? (
                             <Input
                               value={employeeForm.nric || ""}
@@ -554,8 +554,8 @@ export default function EmployeeDetailsPage() {
                           )}
                         </div>
 
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700">Date of Birth</Label>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Date of Birth</Label>
                           {isEditingPersonal ? (
                             <Input
                               type="date"
@@ -575,8 +575,8 @@ export default function EmployeeDetailsPage() {
                           )}
                         </div>
 
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700">NRIC (Old)</Label>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">NRIC (Old)</Label>
                           {isEditingPersonal ? (
                             <Input
                               value={employeeForm.nricOld || ""}
@@ -591,8 +591,8 @@ export default function EmployeeDetailsPage() {
                           )}
                         </div>
 
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700">Place of Birth</Label>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Place of Birth</Label>
                           {isEditingPersonal ? (
                             <Input
                               value={employeeForm.placeOfBirth || ""}
@@ -607,8 +607,8 @@ export default function EmployeeDetailsPage() {
                           )}
                         </div>
 
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700">Gender</Label>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Gender</Label>
                           {isEditingPersonal ? (
                             <Select value={employeeForm.gender || ""} onValueChange={(value) => setEmployeeForm({ ...employeeForm, gender: value })}>
                               <SelectTrigger className="mt-1">
@@ -626,8 +626,8 @@ export default function EmployeeDetailsPage() {
                           )}
                         </div>
 
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700">Race</Label>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Race</Label>
                           {isEditingPersonal ? (
                             <Select value={employeeForm.race || ""} onValueChange={(value) => setEmployeeForm({ ...employeeForm, race: value })}>
                               <SelectTrigger className="mt-1">
@@ -647,8 +647,8 @@ export default function EmployeeDetailsPage() {
                           )}
                         </div>
 
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700">Religion</Label>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Religion</Label>
                           {isEditingPersonal ? (
                             <Select value={employeeForm.religion || ""} onValueChange={(value) => setEmployeeForm({ ...employeeForm, religion: value })}>
                               <SelectTrigger className="mt-1">
@@ -669,8 +669,8 @@ export default function EmployeeDetailsPage() {
                           )}
                         </div>
 
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700">Blood Type</Label>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Blood Type</Label>
                           {isEditingPersonal ? (
                             <Select value={employeeForm.bloodType || ""} onValueChange={(value) => setEmployeeForm({ ...employeeForm, bloodType: value })}>
                               <SelectTrigger className="mt-1">
@@ -690,8 +690,8 @@ export default function EmployeeDetailsPage() {
                           )}
                         </div>
 
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700">Education Level</Label>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Education Level</Label>
                           {isEditingPersonal ? (
                             <Select value={employeeForm.educationLevel || ""} onValueChange={(value) => setEmployeeForm({ ...employeeForm, educationLevel: value })}>
                               <SelectTrigger className="mt-1">
@@ -713,8 +713,8 @@ export default function EmployeeDetailsPage() {
                           )}
                         </div>
 
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700">Marital Status</Label>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Marital Status</Label>
                           {isEditingPersonal ? (
                             <Select value={employeeForm.maritalStatus || ""} onValueChange={(value) => setEmployeeForm({ ...employeeForm, maritalStatus: value })}>
                               <SelectTrigger className="mt-1">
@@ -734,8 +734,8 @@ export default function EmployeeDetailsPage() {
                           )}
                         </div>
 
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700">Family Members</Label>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Family Members</Label>
                           {isEditingPersonal ? (
                             <Input
                               type="number"
@@ -751,8 +751,8 @@ export default function EmployeeDetailsPage() {
                           )}
                         </div>
 
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700">Nationality</Label>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Nationality</Label>
                           {isEditingPersonal ? (
                             <Select value={employeeForm.nationality || ""} onValueChange={(value) => setEmployeeForm({ ...employeeForm, nationality: value })}>
                               <SelectTrigger className="mt-1">
@@ -770,8 +770,8 @@ export default function EmployeeDetailsPage() {
                           )}
                         </div>
 
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700">Bumi Status</Label>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Bumi Status</Label>
                           {isEditingPersonal ? (
                             <Select value={employeeForm.bumiStatus || ""} onValueChange={(value) => setEmployeeForm({ ...employeeForm, bumiStatus: value })}>
                               <SelectTrigger className="mt-1">
@@ -833,9 +833,9 @@ export default function EmployeeDetailsPage() {
                       </div>
                     </CardHeader>
                     <CardContent className="p-6">
-                      <div className="grid md:grid-cols-2 gap-6">
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700">Driving License Number</Label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Driving License Number</Label>
                           {isEditingDriving ? (
                             <Input
                               value={employeeForm.drivingLicenseNumber || ""}
@@ -850,8 +850,8 @@ export default function EmployeeDetailsPage() {
                           )}
                         </div>
 
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700">Driving Class</Label>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Driving Class</Label>
                           {isEditingDriving ? (
                             <Select value={employeeForm.drivingClass || ""} onValueChange={(value) => setEmployeeForm({ ...employeeForm, drivingClass: value })}>
                               <SelectTrigger className="mt-1">
@@ -877,8 +877,8 @@ export default function EmployeeDetailsPage() {
                           )}
                         </div>
 
-                        <div className="md:col-span-2">
-                          <Label className="text-sm font-medium text-gray-700">Driving Expiry Date</Label>
+                        <div className="space-y-2 md:col-span-2 lg:col-span-1">
+                          <Label className="text-sm font-medium text-gray-700 block">Driving Expiry Date</Label>
                           {isEditingDriving ? (
                             <Input
                               type="date"
@@ -1096,9 +1096,9 @@ export default function EmployeeDetailsPage() {
                       </div>
                     </CardHeader>
                     <CardContent className="p-6">
-                      <div className="grid md:grid-cols-2 gap-6">
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700">Employee No.</Label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Employee No.</Label>
                           {isEditingEmployment ? (
                             <Input
                               value={employmentForm.employeeNo || ""}
@@ -1113,8 +1113,8 @@ export default function EmployeeDetailsPage() {
                           )}
                         </div>
 
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700">Company</Label>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Company</Label>
                           {isEditingEmployment ? (
                             <Select value={employmentForm.company || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, company: value })}>
                               <SelectTrigger className="mt-1">
@@ -1133,8 +1133,8 @@ export default function EmployeeDetailsPage() {
                           )}
                         </div>
 
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700">Designation</Label>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Designation</Label>
                           {isEditingEmployment ? (
                             <Input
                               value={employmentForm.designation || ""}
@@ -1149,8 +1149,8 @@ export default function EmployeeDetailsPage() {
                           )}
                         </div>
 
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700">Branch Location</Label>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Branch Location</Label>
                           {isEditingEmployment ? (
                             <Input
                               value={employmentForm.branchLocation || ""}
@@ -1165,8 +1165,8 @@ export default function EmployeeDetailsPage() {
                           )}
                         </div>
 
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700">Date Joining</Label>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Date Joining</Label>
                           {isEditingEmployment ? (
                             <Input
                               type="date"
@@ -1186,8 +1186,8 @@ export default function EmployeeDetailsPage() {
                           )}
                         </div>
 
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700">Date of Sign (LO)</Label>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Date of Sign (LO)</Label>
                           {isEditingEmployment ? (
                             <Input
                               type="date"
@@ -1207,8 +1207,8 @@ export default function EmployeeDetailsPage() {
                           )}
                         </div>
 
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700">Employee Type</Label>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Employee Type</Label>
                           {isEditingEmployment ? (
                             <Select value={employmentForm.employmentType || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, employmentType: value })}>
                               <SelectTrigger className="mt-1">
@@ -1228,8 +1228,8 @@ export default function EmployeeDetailsPage() {
                           )}
                         </div>
 
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700">Department</Label>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Department</Label>
                           {isEditingEmployment ? (
                             <Select value={employmentForm.department || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, department: value })}>
                               <SelectTrigger className="mt-1">
@@ -1251,8 +1251,8 @@ export default function EmployeeDetailsPage() {
                           )}
                         </div>
 
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700">Employee Status</Label>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Employee Status</Label>
                           {isEditingEmployment ? (
                             <Select value={employmentForm.employmentStatus || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, employmentStatus: value })}>
                               <SelectTrigger className="mt-1">
@@ -1272,8 +1272,8 @@ export default function EmployeeDetailsPage() {
                           )}
                         </div>
 
-                        <div>
-                          <Label className="text-sm font-medium text-gray-700">OKU Status</Label>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">OKU Status</Label>
                           {isEditingEmployment ? (
                             <Select value={employmentForm.okuStatus || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, okuStatus: value })}>
                               <SelectTrigger className="mt-1">
@@ -1649,15 +1649,15 @@ export default function EmployeeDetailsPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-6">
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div>
-                        <Label className="text-sm font-medium text-gray-700">Email</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-gray-700 block">Email</Label>
                         <div className="mt-1 p-2 bg-gray-50 rounded border">
                           N/A
                         </div>
                       </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-700">Phone</Label>
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-gray-700 block">Phone</Label>
                         <div className="mt-1 p-2 bg-gray-50 rounded border">
                           N/A
                         </div>
