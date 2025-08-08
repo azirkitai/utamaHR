@@ -16,8 +16,9 @@ export const employees = pgTable("employees", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   
   // Personal Details
-  firstName: text("first_name").notNull(),
-  lastName: text("last_name").notNull(),
+  name: text("name").notNull(), // Keep for backward compatibility
+  firstName: text("first_name"),
+  lastName: text("last_name"),
   nric: text("nric").unique(),
   nricOld: text("nric_old"),
   placeOfBirth: text("place_of_birth"),

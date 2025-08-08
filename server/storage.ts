@@ -96,10 +96,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createEmployee(insertEmployee: InsertEmployee): Promise<Employee> {
+    // Handle firstName and lastName splitting from name if not provided
+    let firstName = insertEmployee.firstName;
+    let lastName = insertEmployee.lastName;
+    
+    if (!firstName && !lastName && insertEmployee.name) {
+      const nameParts = insertEmployee.name.split(' ');
+      firstName = nameParts[0] || '';
+      lastName = nameParts.slice(1).join(' ') || '';
+    }
+    
+    // Ensure name is always provided
+    const name = insertEmployee.name || `${firstName || ''} ${lastName || ''}`.trim() || 'Unknown';
+    
     const [employee] = await db
       .insert(employees)
       .values({
         ...insertEmployee,
+        name,
+        firstName,
+        lastName,
         updatedAt: new Date(),
       })
       .returning();

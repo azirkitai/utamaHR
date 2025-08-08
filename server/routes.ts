@@ -81,7 +81,9 @@ export function registerRoutes(app: Express): Server {
 
   app.post("/api/employees", authenticateToken, async (req, res) => {
     try {
+      console.log("Request body:", req.body);
       const validatedData = insertEmployeeSchema.parse(req.body);
+      console.log("Validated data:", validatedData);
       const employee = await storage.createEmployee(validatedData);
       res.status(201).json(employee);
     } catch (error) {
