@@ -379,6 +379,12 @@ export const insertFamilyDetailsSchema = createInsertSchema(familyDetails).omit(
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  // Handle date fields to accept strings and convert to Date objects
+  dateOfBirth: z.preprocess(
+    (val) => val ? new Date(val as string | Date) : null,
+    z.date().nullable().optional()
+  ),
 });
 export const updateFamilyDetailsSchema = insertFamilyDetailsSchema.partial();
 
