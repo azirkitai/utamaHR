@@ -664,7 +664,7 @@ export class DatabaseStorage implements IStorage {
 
   // =================== EMPLOYEE DOCUMENTS METHODS ===================
   async getEmployeeDocuments(employeeId: string): Promise<EmployeeDocument[]> {
-    return db.select().from(employeeDocuments).where(eq(employeeDocuments.employeeId, employeeId)).orderBy(desc(employeeDocuments.createdAt));
+    return db.select().from(employeeDocuments).where(eq(employeeDocuments.employeeId, employeeId)).orderBy(employeeDocuments.createdAt);
   }
 
   async getEmployeeDocument(id: string): Promise<EmployeeDocument | undefined> {
