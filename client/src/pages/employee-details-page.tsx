@@ -486,22 +486,24 @@ export default function EmployeeDetailsPage() {
                 <div className="space-y-6">
                   {/* Personal Details Card */}
                   <Card>
-                    <CardHeader className="bg-gradient-to-r from-teal-500 to-emerald-500 text-white">
+                    <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white">
                       <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
                           <UserCheck className="w-5 h-5" />
                           Personal Details
                         </CardTitle>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setIsEditingPersonal(!isEditingPersonal)}
-                          className="text-white hover:bg-white/20"
-                          data-testid="button-edit-personal"
-                        >
-                          <Edit2 className="w-4 h-4 mr-2" />
-                          {isEditingPersonal ? "Cancel" : "Update"}
-                        </Button>
+                        {!isEditingPersonal ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsEditingPersonal(true)}
+                            className="bg-white text-teal-600 hover:bg-gray-50"
+                            data-testid="button-edit-personal"
+                          >
+                            <Edit2 className="w-4 h-4 mr-1" />
+                            Update
+                          </Button>
+                        ) : null}
                       </div>
                     </CardHeader>
                     <CardContent className="p-6">
@@ -814,22 +816,24 @@ export default function EmployeeDetailsPage() {
 
                   {/* Driving License Details Card */}
                   <Card>
-                    <CardHeader className="bg-gradient-to-r from-teal-500 to-emerald-500 text-white">
+                    <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white">
                       <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
                           <Car className="w-5 h-5" />
                           Driving License Details
                         </CardTitle>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setIsEditingDriving(!isEditingDriving)}
-                          className="text-white hover:bg-white/20"
-                          data-testid="button-edit-driving"
-                        >
-                          <Edit2 className="w-4 h-4 mr-2" />
-                          {isEditingDriving ? "Cancel" : "Update"}
-                        </Button>
+                        {!isEditingDriving ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsEditingDriving(true)}
+                            className="bg-white text-teal-600 hover:bg-gray-50"
+                            data-testid="button-edit-driving"
+                          >
+                            <Edit2 className="w-4 h-4 mr-1" />
+                            Update
+                          </Button>
+                        ) : null}
                       </div>
                     </CardHeader>
                     <CardContent className="p-6">
@@ -923,7 +927,7 @@ export default function EmployeeDetailsPage() {
 
                   {/* Work Experience Card */}
                   <Card>
-                    <CardHeader className="bg-gradient-to-r from-teal-500 to-emerald-500 text-white">
+                    <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white">
                       <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
                           <Building className="w-5 h-5" />
