@@ -208,9 +208,10 @@ export default function ManageEmployeePage() {
                           <Label htmlFor="company" className="text-sm font-medium">Company</Label>
                           <Input
                             id="company"
+                            placeholder="Company Name"
                             value={company}
-                            readOnly
-                            className="mt-1 bg-gray-100"
+                            onChange={(e) => setCompany(e.target.value)}
+                            className="mt-1"
                             data-testid="input-company"
                           />
                         </div>
