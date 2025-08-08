@@ -61,6 +61,10 @@ import {
   type UpdateOfficeLocation,
   type ClockInRecord,
   type InsertClockIn,
+  // Attendance types
+  type AttendanceRecord,
+  type InsertAttendanceRecord,
+  type UpdateAttendanceRecord,
   // Tables
   users, 
   employees,
@@ -78,6 +82,7 @@ import {
   qrTokens,
   officeLocations,
   clockInRecords,
+  attendanceRecords,
   leaveApplications,
   // Leave Application types
   type LeaveApplication,
@@ -196,6 +201,9 @@ export interface IStorage {
 
   // =================== DASHBOARD STATISTICS ===================
   getEmployeeStatistics(): Promise<{ activeCount: number; resignedCount: number; totalCount: number }>;
+
+  // =================== ATTENDANCE RECORD METHODS ===================
+  getAttendanceRecords(params: { dateFrom?: Date; dateTo?: Date; employeeId?: string }): Promise<AttendanceRecord[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -832,6 +840,35 @@ export class DatabaseStorage implements IStorage {
       resignedCount: resignedResult.count,
       totalCount: totalResult.count
     };
+  }
+
+  // =================== ATTENDANCE RECORD METHODS ===================
+  async getAttendanceRecords(params: { dateFrom?: Date; dateTo?: Date; employeeId?: string }): Promise<AttendanceRecord[]> {
+    let query = db.select().from(attendanceRecords);
+    
+    const conditions = [];
+    
+    // Add employeeId filter if provided
+    if (params.employeeId) {
+      conditions.push(eq(attendanceRecords.employeeId, params.employeeId));
+    }
+    
+    // Add date range filters
+    if (params.dateFrom) {
+      conditions.push(sql`${attendanceRecords.date} >= ${params.dateFrom.toISOString().split('T')[0]}`);
+    }
+    
+    if (params.dateTo) {
+      conditions.push(sql`${attendanceRecords.date} <= ${params.dateTo.toISOString().split('T')[0]}`);
+    }
+    
+    // Apply conditions if any exist
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+    
+    // Order by date descending (newest first)
+    return await query.orderBy(desc(attendanceRecords.date));
   }
 }
 

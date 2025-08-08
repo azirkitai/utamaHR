@@ -346,7 +346,45 @@ export const clockInRecords = pgTable("clock_in_records", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Attendance records for My Record page
+export const attendanceRecords = pgTable("attendance_records", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  employeeId: varchar("employee_id").notNull().references(() => employees.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  date: timestamp("date").notNull(), // Work date
+  clockInTime: timestamp("clock_in_time"),
+  clockOutTime: timestamp("clock_out_time"),
+  clockInImage: text("clock_in_image"), // Image path for clock in
+  clockOutImage: text("clock_out_image"), // Image path for clock out
+  totalHours: decimal("total_hours", { precision: 4, scale: 2 }).default(sql`0`),
+  notes: text("notes"), // Notes for the day
+  status: text("status").default("present"), // present, absent, late, early_leave
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // =================== VALIDATION SCHEMAS ===================
+
+// Attendance record schemas
+export const insertAttendanceRecordSchema = createInsertSchema(attendanceRecords).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  date: z.preprocess(
+    (val) => val ? new Date(val as string | Date) : new Date(),
+    z.date()
+  ),
+  clockInTime: z.preprocess(
+    (val) => val ? new Date(val as string | Date) : null,
+    z.date().nullable().optional()
+  ),
+  clockOutTime: z.preprocess(
+    (val) => val ? new Date(val as string | Date) : null,
+    z.date().nullable().optional()
+  ),
+});
+export const updateAttendanceRecordSchema = insertAttendanceRecordSchema.partial();
 
 // User schemas
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -662,3 +700,8 @@ export type UpdateOfficeLocation = z.infer<typeof updateOfficeLocationSchema>;
 export type ClockInRecord = typeof clockInRecords.$inferSelect;
 export type InsertClockIn = z.infer<typeof insertClockInSchema>;
 export type MobileClockInData = z.infer<typeof mobileClockInSchema>;
+
+// Attendance Record types  
+export type AttendanceRecord = typeof attendanceRecords.$inferSelect;
+export type InsertAttendanceRecord = z.infer<typeof insertAttendanceRecordSchema>;
+export type UpdateAttendanceRecord = z.infer<typeof updateAttendanceRecordSchema>;

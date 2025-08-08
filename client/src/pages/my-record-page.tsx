@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/dashboard-layout";
+import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -10,6 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { format, addDays, subDays } from "date-fns";
 import { CalendarIcon, Download, Filter, Search, ChevronLeft, ChevronRight, Calendar as CalendarLucide, Clock, FileText, CreditCard, Users, DollarSign, Image, StickyNote, Eye, File, Share } from "lucide-react";
+import type { AttendanceRecord } from "@shared/schema";
 
 type TabType = "leave" | "timeoff" | "claim" | "overtime" | "attendance" | "payment";
 
@@ -21,13 +24,41 @@ interface FilterState {
 }
 
 export default function MyRecordPage() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>("leave");
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showPictures, setShowPictures] = useState(false);
+  const [showNotes, setShowNotes] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     dateFrom: subDays(new Date(), 30),
     dateTo: new Date(),
     searchTerm: "",
     pageSize: 10
+  });
+
+  // Check if user has admin access to view other employees' data
+  const hasAdminAccess = user?.role && ['Super Admin', 'Admin', 'HR Manager', 'PIC'].includes(user.role);
+
+  // Fetch attendance records from database
+  const { data: attendanceRecords = [], isLoading: isLoadingAttendance } = useQuery({
+    queryKey: ['/api/attendance-records', filters.dateFrom, filters.dateTo, hasAdminAccess ? null : user?.id],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        dateFrom: format(filters.dateFrom, 'yyyy-MM-dd'),
+        dateTo: format(filters.dateTo, 'yyyy-MM-dd'),
+      });
+      
+      // Only add employeeId if user doesn't have admin access
+      if (!hasAdminAccess && user?.id) {
+        params.append('employeeId', user.id);
+      }
+      
+      const response = await fetch(`/api/attendance-records?${params}`);
+      if (!response.ok) throw new Error('Failed to fetch attendance records');
+      const data = await response.json();
+      return data as AttendanceRecord[];
+    },
+    enabled: !!user && activeTab === 'attendance'
   });
 
   const tabs = [
@@ -701,11 +732,19 @@ export default function MyRecordPage() {
 
       {/* Show Picture and Show Note buttons */}
       <div className="flex gap-4">
-        <Button variant="outline" data-testid="button-show-picture">
+        <Button 
+          variant={showPictures ? "default" : "outline"} 
+          onClick={() => setShowPictures(!showPictures)}
+          data-testid="button-show-picture"
+        >
           <Image className="h-4 w-4 mr-2 text-gray-600" />
           Show Picture
         </Button>
-        <Button variant="outline" data-testid="button-show-note">
+        <Button 
+          variant={showNotes ? "default" : "outline"} 
+          onClick={() => setShowNotes(!showNotes)}
+          data-testid="button-show-note"
+        >
           <StickyNote className="h-4 w-4 mr-2 text-gray-600" />
           Show Note
         </Button>
@@ -717,18 +756,79 @@ export default function MyRecordPage() {
           <TableHeader>
             <TableRow>
               <TableHead>No</TableHead>
+              {hasAdminAccess && <TableHead>Employee</TableHead>}
+              <TableHead>Date</TableHead>
               <TableHead>Clock In</TableHead>
+              {showPictures && <TableHead>Clock In Image</TableHead>}
               <TableHead>Clock Out</TableHead>
+              {showPictures && <TableHead>Clock Out Image</TableHead>}
               <TableHead>Total Hour(s)</TableHead>
               <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow>
-              <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                No data available in table
-              </TableCell>
-            </TableRow>
+            {isLoadingAttendance ? (
+              <TableRow>
+                <TableCell colSpan={hasAdminAccess ? (showPictures ? 8 : 6) : (showPictures ? 7 : 5)} className="text-center py-8 text-gray-500">
+                  Loading attendance records...
+                </TableCell>
+              </TableRow>
+            ) : attendanceRecords.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={hasAdminAccess ? (showPictures ? 8 : 6) : (showPictures ? 7 : 5)} className="text-center py-8 text-gray-500">
+                  No data available in table
+                </TableCell>
+              </TableRow>
+            ) : (
+              attendanceRecords.map((record, index) => (
+                <TableRow key={record.id}>
+                  <TableCell>{index + 1}</TableCell>
+                  {hasAdminAccess && <TableCell>{record.employeeId}</TableCell>}
+                  <TableCell>{format(new Date(record.date), 'dd/MM/yyyy')}</TableCell>
+                  <TableCell>{record.clockInTime ? format(new Date(record.clockInTime), 'HH:mm') : '-'}</TableCell>
+                  {showPictures && (
+                    <TableCell>
+                      {record.clockInImage ? (
+                        <img 
+                          src={record.clockInImage} 
+                          alt="Clock In" 
+                          className="w-16 h-16 object-cover rounded cursor-pointer hover:scale-110 transition-transform"
+                          onClick={() => window.open(record.clockInImage, '_blank')}
+                        />
+                      ) : (
+                        <span className="text-gray-400 text-xs">No image</span>
+                      )}
+                    </TableCell>
+                  )}
+                  <TableCell>{record.clockOutTime ? format(new Date(record.clockOutTime), 'HH:mm') : '-'}</TableCell>
+                  {showPictures && (
+                    <TableCell>
+                      {record.clockOutImage ? (
+                        <img 
+                          src={record.clockOutImage} 
+                          alt="Clock Out" 
+                          className="w-16 h-16 object-cover rounded cursor-pointer hover:scale-110 transition-transform"
+                          onClick={() => window.open(record.clockOutImage, '_blank')}
+                        />
+                      ) : (
+                        <span className="text-gray-400 text-xs">No image</span>
+                      )}
+                    </TableCell>
+                  )}
+                  <TableCell>{record.totalHours.toFixed(2)}h</TableCell>
+                  <TableCell>
+                    <div className="flex gap-1">
+                      <Button size="sm" variant="outline" className="h-6 w-6 p-0" data-testid={`button-view-${record.id}`}>
+                        <Eye className="h-3 w-3 text-gray-600" />
+                      </Button>
+                      <Button size="sm" variant="outline" className="h-6 w-6 p-0" data-testid={`button-edit-${record.id}`}>
+                        <File className="h-3 w-3 text-gray-600" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

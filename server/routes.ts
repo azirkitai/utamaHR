@@ -19,7 +19,10 @@ import {
   insertWorkExperienceSchema,
   updateWorkExperienceSchema,
   insertLeaveApplicationSchema,
-  updateLeaveApplicationSchema
+  updateLeaveApplicationSchema,
+  insertAttendanceRecordSchema,
+  updateAttendanceRecordSchema,
+  type AttendanceRecord
 } from "@shared/schema";
 import { checkEnvironmentSecrets } from "./env-check";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
@@ -71,6 +74,34 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Employee statistics error:", error);
       res.status(500).json({ error: "Gagal mengambil statistik pekerja" });
+    }
+  });
+
+  // Attendance records for My Record page
+  app.get("/api/attendance-records", authenticateToken, async (req, res) => {
+    try {
+      const { dateFrom, dateTo, employeeId } = req.query as {
+        dateFrom?: string;
+        dateTo?: string;
+        employeeId?: string;
+      };
+
+      // Check if user has admin access
+      const hasAdminAccess = req.user?.role && ['Super Admin', 'Admin', 'HR Manager', 'PIC'].includes(req.user.role);
+      
+      // If not admin and no employeeId provided, use current user's ID
+      const targetEmployeeId = hasAdminAccess ? employeeId : req.user!.id;
+
+      const records = await storage.getAttendanceRecords({
+        dateFrom: dateFrom ? new Date(dateFrom) : undefined,
+        dateTo: dateTo ? new Date(dateTo) : undefined,
+        employeeId: targetEmployeeId
+      });
+
+      res.json(records);
+    } catch (error) {
+      console.error("Attendance records error:", error);
+      res.status(500).json({ error: "Gagal mengambil rekod kehadiran" });
     }
   });
 
