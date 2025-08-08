@@ -86,20 +86,32 @@ export function registerRoutes(app: Express): Server {
         employeeId?: string;
       };
 
+      // Debug user information
+      console.log('=== RBAC DEBUG ===');
+      console.log('User ID:', req.user?.id);
+      console.log('User Role:', req.user?.role);
+      console.log('Requested Employee ID:', employeeId);
+      
       // Check if user has admin access
       const hasAdminAccess = req.user?.role && ['Super Admin', 'Admin', 'HR Manager', 'PIC'].includes(req.user.role);
+      console.log('Has Admin Access:', hasAdminAccess);
       
       let targetEmployeeId = employeeId;
       
       // For non-admin users, ALWAYS force to their own employee ID
       if (!hasAdminAccess) {
         const employee = await storage.getEmployeeByUserId(req.user!.id);
+        console.log('Found Employee for User:', employee?.id, employee?.fullName);
         if (!employee) {
           return res.status(404).json({ error: "Employee record tidak dijumpai" });
         }
         // Force to own employee ID regardless of what was requested
         targetEmployeeId = employee.id;
+        console.log('Forced Employee ID to:', targetEmployeeId);
       }
+      
+      console.log('Final Target Employee ID:', targetEmployeeId);
+      console.log('=== END RBAC DEBUG ===');
 
       const records = await storage.getAttendanceRecords({
         dateFrom: dateFrom ? new Date(dateFrom) : undefined,
