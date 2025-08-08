@@ -1,58 +1,53 @@
 import { useState, useEffect } from "react";
-import { useParams, useLocation, Link } from "wouter";
+import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import DashboardLayout from "@/components/dashboard-layout";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, User, Printer, KeyRound, RotateCcw, Plus, Edit2, Trash2, Loader2 } from "lucide-react";
-import type { Employee, UpdateEmployee, WorkExperience, InsertWorkExperience } from "@shared/schema";
+import { 
+  ArrowLeft, 
+  User, 
+  Printer, 
+  KeyRound, 
+  RotateCcw, 
+  Edit2,
+  UserCheck,
+  Phone,
+  Users,
+  DollarSign,
+  FileText,
+  Settings,
+  ShieldCheck,
+  Calendar,
+  Clock,
+  Building,
+  MapPin,
+  Mail
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { Employee, UpdateEmployee } from "@shared/schema";
 
 export default function EmployeeDetailsPage() {
   const { id } = useParams();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
-  // Dialog states
-  const [showChangePasswordDialog, setShowChangePasswordDialog] = useState(false);
-  const [showResetPasswordDialog, setShowResetPasswordDialog] = useState(false);
-  const [showAddWorkExperienceDialog, setShowAddWorkExperienceDialog] = useState(false);
-
+  // Active tab state for navigation
+  const [activeTab, setActiveTab] = useState("personal-details");
+  
   // Form states
   const [isEditing, setIsEditing] = useState(false);
   const [employeeForm, setEmployeeForm] = useState<Partial<Employee>>({});
-  const [passwordForm, setPasswordForm] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: ""
-  });
-  const [workExperienceForm, setWorkExperienceForm] = useState<Partial<InsertWorkExperience>>({
-    employeeId: id,
-    previousCompany: "",
-    position: "",
-    startDate: null,
-    endDate: null,
-    period: ""
-  });
 
   // Get employee details
-  const { data: employee, isLoading: employeeLoading, refetch: refetchEmployee } = useQuery({
+  const { data: employee, isLoading: employeeLoading } = useQuery({
     queryKey: ["/api/employees", id],
-    enabled: !!id
-  });
-
-  // Get work experiences
-  const { data: workExperiences, refetch: refetchWorkExperiences } = useQuery({
-    queryKey: ["/api/work-experiences", id],
     enabled: !!id
   });
 
@@ -74,128 +69,96 @@ export default function EmployeeDetailsPage() {
         title: "Berjaya",
         description: "Maklumat pekerja telah dikemaskini",
       });
-      refetchEmployee();
       setIsEditing(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/employees", id] });
     },
     onError: (error: Error) => {
       toast({
         title: "Ralat",
-        description: error.message || "Gagal mengemaskini maklumat pekerja",
+        description: `Gagal kemaskini maklumat: ${error.message}`,
         variant: "destructive",
       });
-    }
+    },
   });
 
-  // Change password mutation
-  const changePasswordMutation = useMutation({
-    mutationFn: async (data: typeof passwordForm) => {
-      const response = await apiRequest("PUT", `/api/employees/${id}/change-password`, data);
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Berjaya",
-        description: "Password telah ditukar",
-      });
-      setShowChangePasswordDialog(false);
-      setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
-    },
-    onError: (error: Error) => {
+  const handleSave = () => {
+    if (!employeeForm.name || !employeeForm.email) {
       toast({
         title: "Ralat",
-        description: error.message || "Gagal menukar password",
-        variant: "destructive",
-      });
-    }
-  });
-
-  // Reset password mutation
-  const resetPasswordMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest("POST", `/api/employees/${id}/reset-password`);
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Berjaya",
-        description: "Password telah direset",
-      });
-      setShowResetPasswordDialog(false);
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Ralat",
-        description: error.message || "Gagal mereset password",
-        variant: "destructive",
-      });
-    }
-  });
-
-  // Add work experience mutation
-  const addWorkExperienceMutation = useMutation({
-    mutationFn: async (data: InsertWorkExperience) => {
-      const response = await apiRequest("POST", "/api/work-experiences", data);
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Berjaya",
-        description: "Pengalaman kerja telah ditambah",
-      });
-      refetchWorkExperiences();
-      setShowAddWorkExperienceDialog(false);
-      setWorkExperienceForm({
-        employeeId: id,
-        previousCompany: "",
-        position: "",
-        startDate: null,
-        endDate: null,
-        period: ""
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Ralat",
-        description: error.message || "Gagal menambah pengalaman kerja",
-        variant: "destructive",
-      });
-    }
-  });
-
-  const handleSaveEmployee = () => {
-    if (employeeForm) {
-      updateEmployeeMutation.mutate(employeeForm);
-    }
-  };
-
-  const handleChangePassword = () => {
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      toast({
-        title: "Ralat",
-        description: "Password baharu dan pengesahan tidak sama",
+        description: "Sila isi nama dan email",
         variant: "destructive",
       });
       return;
     }
-    changePasswordMutation.mutate(passwordForm);
+
+    updateEmployeeMutation.mutate({
+      name: employeeForm.name,
+      firstName: employeeForm.firstName,
+      lastName: employeeForm.lastName,
+      email: employeeForm.email,
+      phone: employeeForm.phone,
+      position: employeeForm.position,
+      department: employeeForm.department,
+      company: employeeForm.company,
+    });
   };
 
-  const handleAddWorkExperience = () => {
-    if (workExperienceForm.employeeId && workExperienceForm.previousCompany && workExperienceForm.position) {
-      addWorkExperienceMutation.mutate(workExperienceForm as InsertWorkExperience);
-    }
-  };
-
-  const formatDate = (date: string | null) => {
-    if (!date) return "";
-    return new Date(date).toLocaleDateString('ms-MY');
-  };
+  const navigationTabs = [
+    {
+      id: "personal-details",
+      label: "Personal Detail",
+      icon: UserCheck,
+    },
+    {
+      id: "employment",
+      label: "Employment",
+      icon: Building,
+    },
+    {
+      id: "contact",
+      label: "Contact",
+      icon: Phone,
+    },
+    {
+      id: "family-detail",
+      label: "Family Detail",
+      icon: Users,
+    },
+    {
+      id: "compensation",
+      label: "Compensation",
+      icon: DollarSign,
+    },
+    {
+      id: "document",
+      label: "Document",
+      icon: FileText,
+    },
+    {
+      id: "equipment",
+      label: "Equipment",
+      icon: Settings,
+    },
+    {
+      id: "leave-policy",
+      label: "Leave Policy",
+      icon: Calendar,
+    },
+    {
+      id: "claim-policy",
+      label: "Claim Policy",
+      icon: ShieldCheck,
+    },
+  ];
 
   if (employeeLoading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center min-h-screen">
-          <Loader2 className="h-8 w-8 animate-spin text-border" />
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+            <p className="mt-2 text-gray-600">Loading employee details...</p>
+          </div>
         </div>
       </DashboardLayout>
     );
@@ -204,11 +167,15 @@ export default function EmployeeDetailsPage() {
   if (!employee) {
     return (
       <DashboardLayout>
-        <div className="p-6 text-center">
-          <h1 className="text-2xl font-bold text-gray-900">Pekerja tidak dijumpai</h1>
-          <Link href="/employees">
-            <Button className="mt-4">Kembali ke Senarai Pekerja</Button>
-          </Link>
+        <div className="text-center py-12">
+          <h2 className="text-xl font-semibold text-gray-900">Employee not found</h2>
+          <p className="text-gray-600 mt-2">The employee you're looking for doesn't exist.</p>
+          <Button 
+            onClick={() => setLocation("/employees")} 
+            className="mt-4"
+          >
+            Back to Employees
+          </Button>
         </div>
       </DashboardLayout>
     );
@@ -216,762 +183,407 @@ export default function EmployeeDetailsPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
+      <div className="min-h-screen bg-gray-50">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/employees">
-              <Button variant="outline" size="sm" data-testid="button-back-to-list">
+        <div className="bg-white border-b px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setLocation("/employees")}
+                className="text-blue-600 hover:text-blue-700"
+                data-testid="button-back-to-list"
+              >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Employee List
               </Button>
-            </Link>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-800 to-blue-900 bg-clip-text text-transparent">
-              Employee Detail
-            </h1>
-          </div>
-          
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" data-testid="button-print">
-              <Printer className="w-4 h-4 mr-2" />
-              Print
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setShowChangePasswordDialog(true)}
-              data-testid="button-change-password"
-            >
-              <KeyRound className="w-4 h-4 mr-2" />
-              Change Password
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setShowResetPasswordDialog(true)}
-              data-testid="button-reset-password"
-            >
-              <RotateCcw className="w-4 h-4 mr-2" />
-              Reset Password
-            </Button>
+              <div>
+                <h1 className="text-xl font-semibold text-gray-900">Employee Detail</h1>
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <span>Home</span>
+                  <span>›</span>
+                  <span>Employee</span>
+                  <span>›</span>
+                  <span>Detail</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-blue-600 text-white hover:bg-blue-700"
+                data-testid="button-print"
+              >
+                <Printer className="w-4 h-4 mr-2" />
+                Print
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-blue-600 text-white hover:bg-blue-700"
+                data-testid="button-change-password"
+              >
+                Change Password
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-red-600 text-white hover:bg-red-700"
+                data-testid="button-reset-password"
+              >
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Reset Password
+              </Button>
+            </div>
           </div>
         </div>
 
-        {/* Employee Header Card */}
-        <Card className="bg-gradient-to-r from-[#07A3B2] to-[#D9ECC7] text-white">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <Avatar className="w-20 h-20 border-4 border-white">
-                  <AvatarImage src={employee.profileImageUrl || ""} />
-                  <AvatarFallback className="bg-white text-blue-800 text-xl font-bold">
-                    {employee.firstName?.[0]}{employee.lastName?.[0]}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <h2 className="text-2xl font-bold">
-                    {employee.firstName} {employee.lastName}
-                  </h2>
-                  <p className="text-white/90 text-lg">{employee.employeeId} • {employee.position}</p>
-                  <p className="text-white/80">{employee.email}</p>
+        <div className="flex">
+          {/* Left Navigation Sidebar */}
+          <div className="w-64 bg-white border-r min-h-screen">
+            <div className="p-4">
+              <nav className="space-y-1">
+                {navigationTabs.map((tab) => {
+                  const IconComponent = tab.icon;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={cn(
+                        "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors",
+                        activeTab === tab.id
+                          ? "bg-teal-100 text-teal-700 border-r-2 border-teal-500"
+                          : "text-gray-700 hover:bg-gray-100"
+                      )}
+                      data-testid={`nav-tab-${tab.id}`}
+                    >
+                      <IconComponent className="w-4 h-4" />
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </nav>
+            </div>
+          </div>
+
+          {/* Main Content Area */}
+          <div className="flex-1">
+            {/* Employee Header Profile */}
+            <div className="bg-gradient-to-r from-teal-500 to-blue-600 text-white p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-6">
+                  <Avatar className="w-20 h-20 border-4 border-white">
+                    <AvatarImage src="/placeholder-avatar.png" />
+                    <AvatarFallback className="bg-white text-teal-600 text-2xl font-bold">
+                      {employee.name?.charAt(0) || "?"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h2 className="text-2xl font-bold">{employee.name || "N/A"}</h2>
+                    <div className="flex items-center gap-4 mt-2">
+                      <span className="bg-blue-800 px-3 py-1 rounded text-sm">
+                        {employee.employeeId || "N/A"}
+                      </span>
+                      <span className="bg-green-600 px-3 py-1 rounded text-sm">N/A</span>
+                    </div>
+                    <div className="flex items-center gap-1 mt-2 text-sm">
+                      <MapPin className="w-4 h-4" />
+                      <span>N/A</span>
+                    </div>
+                    <div className="flex items-center gap-1 mt-1 text-sm">
+                      <Mail className="w-4 h-4" />
+                      <span>{employee.email || "N/A"}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="text-right">
-                <div className="text-white/90">User Role</div>
-                <div className="font-semibold">{employee.position}</div>
-                <div className="text-white/90 mt-2">Department</div>
-                <div className="font-semibold">{employee.department}</div>
+                <div className="text-right">
+                  <div className="text-sm opacity-90">User Role</div>
+                  <div className="font-semibold">Human Resource</div>
+                  <div className="text-sm opacity-90 mt-2">Department</div>
+                  <div className="font-semibold">{employee.department || "Human Resource"}</div>
+                </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Main Content Tabs */}
-        <Tabs defaultValue="personal" className="space-y-6">
-          <TabsList className="grid grid-cols-5 w-full">
-            <TabsTrigger value="personal" data-testid="tab-personal">Personal Detail</TabsTrigger>
-            <TabsTrigger value="employment" data-testid="tab-employment">Employment</TabsTrigger>
-            <TabsTrigger value="contact" data-testid="tab-contact">Contact</TabsTrigger>
-            <TabsTrigger value="documents" data-testid="tab-documents">Document</TabsTrigger>
-            <TabsTrigger value="work-experience" data-testid="tab-work-experience">Work Experience</TabsTrigger>
-          </TabsList>
-
-          {/* Personal Details */}
-          <TabsContent value="personal">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="bg-gradient-to-r from-cyan-600 to-teal-600 bg-clip-text text-transparent">
-                  Personal Details
-                </CardTitle>
-                <Button
-                  variant={isEditing ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => isEditing ? handleSaveEmployee() : setIsEditing(true)}
-                  disabled={updateEmployeeMutation.isPending}
-                  data-testid="button-edit-personal"
-                >
-                  {updateEmployeeMutation.isPending ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : isEditing ? null : (
-                    <Edit2 className="w-4 h-4 mr-2" />
-                  )}
-                  {isEditing ? "Update" : "Update"}
-                </Button>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label>First Name</Label>
-                    <Input
-                      value={employeeForm.firstName || ""}
-                      onChange={(e) => setEmployeeForm(prev => ({...prev, firstName: e.target.value}))}
-                      disabled={!isEditing}
-                      data-testid="input-first-name"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Last Name</Label>
-                    <Input
-                      value={employeeForm.lastName || ""}
-                      onChange={(e) => setEmployeeForm(prev => ({...prev, lastName: e.target.value}))}
-                      disabled={!isEditing}
-                      data-testid="input-last-name"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label>NRIC</Label>
-                    <Input
-                      value={employeeForm.nric || ""}
-                      onChange={(e) => setEmployeeForm(prev => ({...prev, nric: e.target.value}))}
-                      disabled={!isEditing}
-                      data-testid="input-nric"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Date of Birth</Label>
-                    <Input
-                      type="date"
-                      value={employeeForm.dateOfBirth ? new Date(employeeForm.dateOfBirth).toISOString().split('T')[0] : ""}
-                      onChange={(e) => setEmployeeForm(prev => ({...prev, dateOfBirth: new Date(e.target.value)}))}
-                      disabled={!isEditing}
-                      data-testid="input-date-of-birth"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label>NRIC (Old)</Label>
-                    <Input
-                      value={employeeForm.nricOld || ""}
-                      onChange={(e) => setEmployeeForm(prev => ({...prev, nricOld: e.target.value}))}
-                      disabled={!isEditing}
-                      data-testid="input-nric-old"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Place of Birth</Label>
-                    <Input
-                      value={employeeForm.placeOfBirth || ""}
-                      onChange={(e) => setEmployeeForm(prev => ({...prev, placeOfBirth: e.target.value}))}
-                      disabled={!isEditing}
-                      data-testid="input-place-of-birth"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-6">
-                  <div className="space-y-2">
-                    <Label>Gender</Label>
-                    <Select 
-                      value={employeeForm.gender || ""} 
-                      onValueChange={(value) => setEmployeeForm(prev => ({...prev, gender: value}))}
-                      disabled={!isEditing}
-                    >
-                      <SelectTrigger data-testid="select-gender">
-                        <SelectValue placeholder="Select gender" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Male">Male</SelectItem>
-                        <SelectItem value="Female">Female</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Race</Label>
-                    <Select 
-                      value={employeeForm.race || ""} 
-                      onValueChange={(value) => setEmployeeForm(prev => ({...prev, race: value}))}
-                      disabled={!isEditing}
-                    >
-                      <SelectTrigger data-testid="select-race">
-                        <SelectValue placeholder="Select race" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Melayu">Melayu</SelectItem>
-                        <SelectItem value="Cina">Cina</SelectItem>
-                        <SelectItem value="India">India</SelectItem>
-                        <SelectItem value="Lain-lain">Lain-lain</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Religion</Label>
-                    <Select 
-                      value={employeeForm.religion || ""} 
-                      onValueChange={(value) => setEmployeeForm(prev => ({...prev, religion: value}))}
-                      disabled={!isEditing}
-                    >
-                      <SelectTrigger data-testid="select-religion">
-                        <SelectValue placeholder="Select religion" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Islam">Islam</SelectItem>
-                        <SelectItem value="Buddha">Buddha</SelectItem>
-                        <SelectItem value="Hindu">Hindu</SelectItem>
-                        <SelectItem value="Kristian">Kristian</SelectItem>
-                        <SelectItem value="Lain-lain">Lain-lain</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-6">
-                  <div className="space-y-2">
-                    <Label>Blood Type</Label>
-                    <Select 
-                      value={employeeForm.bloodType || ""} 
-                      onValueChange={(value) => setEmployeeForm(prev => ({...prev, bloodType: value}))}
-                      disabled={!isEditing}
-                    >
-                      <SelectTrigger data-testid="select-blood-type">
-                        <SelectValue placeholder="Select blood type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="A">A</SelectItem>
-                        <SelectItem value="B">B</SelectItem>
-                        <SelectItem value="AB">AB</SelectItem>
-                        <SelectItem value="O">O</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Education Level</Label>
-                    <Select 
-                      value={employeeForm.educationLevel || ""} 
-                      onValueChange={(value) => setEmployeeForm(prev => ({...prev, educationLevel: value}))}
-                      disabled={!isEditing}
-                    >
-                      <SelectTrigger data-testid="select-education-level">
-                        <SelectValue placeholder="Select education level" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="SPM">SPM</SelectItem>
-                        <SelectItem value="STPM">STPM</SelectItem>
-                        <SelectItem value="Diploma">Diploma</SelectItem>
-                        <SelectItem value="Degree">Degree</SelectItem>
-                        <SelectItem value="Master">Master</SelectItem>
-                        <SelectItem value="PhD">PhD</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Marital Status</Label>
-                    <Select 
-                      value={employeeForm.maritalStatus || ""} 
-                      onValueChange={(value) => setEmployeeForm(prev => ({...prev, maritalStatus: value}))}
-                      disabled={!isEditing}
-                    >
-                      <SelectTrigger data-testid="select-marital-status">
-                        <SelectValue placeholder="Select marital status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Single">Single</SelectItem>
-                        <SelectItem value="Married">Married</SelectItem>
-                        <SelectItem value="Divorced">Divorced</SelectItem>
-                        <SelectItem value="Widowed">Widowed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-6">
-                  <div className="space-y-2">
-                    <Label>Nationality</Label>
-                    <Input
-                      value={employeeForm.nationality || ""}
-                      onChange={(e) => setEmployeeForm(prev => ({...prev, nationality: e.target.value}))}
-                      disabled={!isEditing}
-                      placeholder="e.g., Malaysian"
-                      data-testid="input-nationality"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Bumi Status</Label>
-                    <Select 
-                      value={employeeForm.bumiStatus || ""} 
-                      onValueChange={(value) => setEmployeeForm(prev => ({...prev, bumiStatus: value}))}
-                      disabled={!isEditing}
-                    >
-                      <SelectTrigger data-testid="select-bumi-status">
-                        <SelectValue placeholder="Select Bumi status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Bumiputera">Bumiputera</SelectItem>
-                        <SelectItem value="Non-Bumiputera">Non-Bumiputera</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Family Members</Label>
-                    <Input
-                      type="number"
-                      value={employeeForm.familyMembers || ""}
-                      onChange={(e) => setEmployeeForm(prev => ({...prev, familyMembers: e.target.value}))}
-                      disabled={!isEditing}
-                      placeholder="Number of family members"
-                      data-testid="input-family-members"
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Employment Details */}
-          <TabsContent value="employment">
-            <Card>
-              <CardHeader>
-                <CardTitle className="bg-gradient-to-r from-cyan-600 to-teal-600 bg-clip-text text-transparent">
-                  Employment Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label>Employee ID</Label>
-                    <Input
-                      value={employeeForm.employeeId || ""}
-                      onChange={(e) => setEmployeeForm(prev => ({...prev, employeeId: e.target.value}))}
-                      disabled={!isEditing}
-                      data-testid="input-employee-id"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Position</Label>
-                    <Input
-                      value={employeeForm.position || ""}
-                      onChange={(e) => setEmployeeForm(prev => ({...prev, position: e.target.value}))}
-                      disabled={!isEditing}
-                      data-testid="input-position"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label>Department</Label>
-                    <Input
-                      value={employeeForm.department || ""}
-                      onChange={(e) => setEmployeeForm(prev => ({...prev, department: e.target.value}))}
-                      disabled={!isEditing}
-                      data-testid="input-department"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Date Joined</Label>
-                    <Input
-                      type="date"
-                      value={employeeForm.joinDate ? new Date(employeeForm.joinDate).toISOString().split('T')[0] : ""}
-                      onChange={(e) => setEmployeeForm(prev => ({...prev, joinDate: new Date(e.target.value)}))}
-                      disabled={!isEditing}
-                      data-testid="input-join-date"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label>Employment Status</Label>
-                    <Select 
-                      value={employeeForm.employmentStatus || ""} 
-                      onValueChange={(value) => setEmployeeForm(prev => ({...prev, employmentStatus: value}))}
-                      disabled={!isEditing}
-                    >
-                      <SelectTrigger data-testid="select-employment-status">
-                        <SelectValue placeholder="Select employment status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Permanent">Permanent</SelectItem>
-                        <SelectItem value="Contract">Contract</SelectItem>
-                        <SelectItem value="Probation">Probation</SelectItem>
-                        <SelectItem value="Intern">Intern</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Salary</Label>
-                    <Input
-                      type="number"
-                      value={employeeForm.salary || ""}
-                      onChange={(e) => setEmployeeForm(prev => ({...prev, salary: e.target.value}))}
-                      disabled={!isEditing}
-                      placeholder="Monthly salary (RM)"
-                      data-testid="input-salary"
-                    />
-                  </div>
-                </div>
-
-                {/* Driving License Details */}
-                <div className="border-t pt-6">
-                  <h4 className="text-lg font-semibold bg-gradient-to-r from-cyan-600 to-teal-600 bg-clip-text text-transparent mb-4">
-                    Driving License Details
-                  </h4>
-                  <div className="grid grid-cols-3 gap-6">
-                    <div className="space-y-2">
-                      <Label>Driving License Number</Label>
-                      <Input
-                        value={employeeForm.drivingLicenseNumber || ""}
-                        onChange={(e) => setEmployeeForm(prev => ({...prev, drivingLicenseNumber: e.target.value}))}
-                        disabled={!isEditing}
-                        placeholder="Driving License No"
-                        data-testid="input-driving-license-number"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Driving Class</Label>
-                      <Select 
-                        value={employeeForm.drivingClass || ""} 
-                        onValueChange={(value) => setEmployeeForm(prev => ({...prev, drivingClass: value}))}
-                        disabled={!isEditing}
+            {/* Tab Content Area */}
+            <div className="p-6">
+              {activeTab === "personal-details" && (
+                <Card>
+                  <CardHeader className="bg-teal-500 text-white">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center gap-2">
+                        <UserCheck className="w-5 h-5" />
+                        Personal Details
+                      </CardTitle>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setIsEditing(!isEditing)}
+                        className="text-white hover:bg-white/20"
+                        data-testid="button-edit-personal"
                       >
-                        <SelectTrigger data-testid="select-driving-class">
-                          <SelectValue placeholder="Select driving class" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="B2">B2</SelectItem>
-                          <SelectItem value="B">B</SelectItem>
-                          <SelectItem value="D">D</SelectItem>
-                          <SelectItem value="DA">DA</SelectItem>
-                          <SelectItem value="E">E</SelectItem>
-                          <SelectItem value="E1">E1</SelectItem>
-                          <SelectItem value="E2">E2</SelectItem>
-                        </SelectContent>
-                      </Select>
+                        <Edit2 className="w-4 h-4 mr-2" />
+                        {isEditing ? "Cancel" : "Update"}
+                      </Button>
                     </div>
-                    <div className="space-y-2">
-                      <Label>Driving Expiry Date</Label>
-                      <Input
-                        type="date"
-                        value={employeeForm.drivingExpiryDate ? new Date(employeeForm.drivingExpiryDate).toISOString().split('T')[0] : ""}
-                        onChange={(e) => setEmployeeForm(prev => ({...prev, drivingExpiryDate: new Date(e.target.value)}))}
-                        disabled={!isEditing}
-                        data-testid="input-driving-expiry-date"
-                      />
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">First Name</Label>
+                        {isEditing ? (
+                          <Input
+                            value={employeeForm.firstName || ""}
+                            onChange={(e) => setEmployeeForm({ ...employeeForm, firstName: e.target.value })}
+                            className="mt-1"
+                            data-testid="input-first-name"
+                          />
+                        ) : (
+                          <div className="mt-1 p-2 bg-gray-50 rounded border">
+                            {employee.firstName || "NRIC"}
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Last Name</Label>
+                        {isEditing ? (
+                          <Input
+                            value={employeeForm.lastName || ""}
+                            onChange={(e) => setEmployeeForm({ ...employeeForm, lastName: e.target.value })}
+                            className="mt-1"
+                            data-testid="input-last-name"
+                          />
+                        ) : (
+                          <div className="mt-1 p-2 bg-gray-50 rounded border">
+                            {employee.lastName || "SABRI"}
+                          </div>
+                        )}
+                      </div>
+
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">NRIC</Label>
+                        <div className="mt-1 p-2 bg-gray-50 rounded border">
+                          NRIC
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Date of Birth</Label>
+                        <div className="mt-1 p-2 bg-gray-50 rounded border">
+                          2025-08-08
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">NRIC (Old)</Label>
+                        <div className="mt-1 p-2 bg-gray-50 rounded border">
+                          NRIC (Old)
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">NRIC Color</Label>
+                        <Select>
+                          <SelectTrigger className="mt-1">
+                            <SelectValue placeholder="Select NRIC color" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="blue">Blue</SelectItem>
+                            <SelectItem value="red">Red</SelectItem>
+                            <SelectItem value="green">Green</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Place of Birth</Label>
+                        <Input
+                          placeholder="Place of Birth"
+                          className="mt-1"
+                          data-testid="input-place-birth"
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Gender</Label>
+                        <Select>
+                          <SelectTrigger className="mt-1">
+                            <SelectValue placeholder="Select sex" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="male">Male</SelectItem>
+                            <SelectItem value="female">Female</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Race</Label>
+                        <Select>
+                          <SelectTrigger className="mt-1">
+                            <SelectValue placeholder="Select race" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="malay">Malay</SelectItem>
+                            <SelectItem value="chinese">Chinese</SelectItem>
+                            <SelectItem value="indian">Indian</SelectItem>
+                            <SelectItem value="others">Others</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Religion</Label>
+                        <Select>
+                          <SelectTrigger className="mt-1">
+                            <SelectValue placeholder="Select religion" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="islam">Islam</SelectItem>
+                            <SelectItem value="christian">Christian</SelectItem>
+                            <SelectItem value="buddhist">Buddhist</SelectItem>
+                            <SelectItem value="hindu">Hindu</SelectItem>
+                            <SelectItem value="others">Others</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Blood Type</Label>
+                        <Select>
+                          <SelectTrigger className="mt-1">
+                            <SelectValue placeholder="Select blood type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="a">A</SelectItem>
+                            <SelectItem value="b">B</SelectItem>
+                            <SelectItem value="ab">AB</SelectItem>
+                            <SelectItem value="o">O</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Education Level</Label>
+                        <Input
+                          placeholder="Education Level"
+                          className="mt-1"
+                          data-testid="input-education"
+                        />
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
-          {/* Contact Information */}
-          <TabsContent value="contact">
-            <Card>
-              <CardHeader>
-                <CardTitle className="bg-gradient-to-r from-cyan-600 to-teal-600 bg-clip-text text-transparent">
-                  Contact Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label>Email</Label>
-                    <Input
-                      type="email"
-                      value={employeeForm.email || ""}
-                      onChange={(e) => setEmployeeForm(prev => ({...prev, email: e.target.value}))}
-                      disabled={!isEditing}
-                      data-testid="input-email"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Phone Number</Label>
-                    <Input
-                      value={employeeForm.phone || ""}
-                      onChange={(e) => setEmployeeForm(prev => ({...prev, phone: e.target.value}))}
-                      disabled={!isEditing}
-                      data-testid="input-phone"
-                    />
-                  </div>
-                </div>
+                    {isEditing && (
+                      <div className="flex justify-end gap-2 mt-6">
+                        <Button
+                          variant="outline"
+                          onClick={() => setIsEditing(false)}
+                          data-testid="button-cancel-edit"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={handleSave}
+                          disabled={updateEmployeeMutation.isPending}
+                          className="bg-teal-600 hover:bg-teal-700"
+                          data-testid="button-save-changes"
+                        >
+                          {updateEmployeeMutation.isPending ? "Saving..." : "Save Changes"}
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
 
-                <div className="space-y-2">
-                  <Label>Current Address</Label>
-                  <Textarea
-                    value={employeeForm.currentAddress || ""}
-                    onChange={(e) => setEmployeeForm(prev => ({...prev, currentAddress: e.target.value}))}
-                    disabled={!isEditing}
-                    placeholder="Current residential address"
-                    data-testid="textarea-current-address"
-                  />
-                </div>
+              {activeTab === "employment" && (
+                <Card>
+                  <CardHeader className="bg-teal-500 text-white">
+                    <CardTitle className="flex items-center gap-2">
+                      <Building className="w-5 h-5" />
+                      Employment Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Employee ID</Label>
+                        <div className="mt-1 p-2 bg-gray-50 rounded border">
+                          {employee.employeeId || "N/A"}
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Position</Label>
+                        <div className="mt-1 p-2 bg-gray-50 rounded border">
+                          {employee.position || "N/A"}
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Department</Label>
+                        <div className="mt-1 p-2 bg-gray-50 rounded border">
+                          {employee.department || "N/A"}
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Company</Label>
+                        <div className="mt-1 p-2 bg-gray-50 rounded border">
+                          {employee.company || "N/A"}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
-                <div className="space-y-2">
-                  <Label>Permanent Address</Label>
-                  <Textarea
-                    value={employeeForm.permanentAddress || ""}
-                    onChange={(e) => setEmployeeForm(prev => ({...prev, permanentAddress: e.target.value}))}
-                    disabled={!isEditing}
-                    placeholder="Permanent address"
-                    data-testid="textarea-permanent-address"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              {activeTab === "contact" && (
+                <Card>
+                  <CardHeader className="bg-teal-500 text-white">
+                    <CardTitle className="flex items-center gap-2">
+                      <Phone className="w-5 h-5" />
+                      Contact Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Email</Label>
+                        <div className="mt-1 p-2 bg-gray-50 rounded border">
+                          {employee.email || "N/A"}
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Phone</Label>
+                        <div className="mt-1 p-2 bg-gray-50 rounded border">
+                          {employee.phone || "N/A"}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
-          {/* Documents */}
-          <TabsContent value="documents">
-            <Card>
-              <CardHeader>
-                <CardTitle className="bg-gradient-to-r from-cyan-600 to-teal-600 bg-clip-text text-transparent">
-                  Document Management
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-gray-500">
-                  <p>Document management feature will be available soon.</p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Work Experience */}
-          <TabsContent value="work-experience">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="bg-gradient-to-r from-cyan-600 to-teal-600 bg-clip-text text-transparent">
-                  Work Experience
-                </CardTitle>
-                <Button
-                  onClick={() => setShowAddWorkExperienceDialog(true)}
-                  data-testid="button-add-work-experience"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add
-                </Button>
-              </CardHeader>
-              <CardContent>
-                {workExperiences && workExperiences.length > 0 ? (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>No.</TableHead>
-                        <TableHead>Previous Company</TableHead>
-                        <TableHead>Position</TableHead>
-                        <TableHead>Start Date</TableHead>
-                        <TableHead>End Date</TableHead>
-                        <TableHead>Period</TableHead>
-                        <TableHead>Action</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {workExperiences.map((experience: WorkExperience, index: number) => (
-                        <TableRow key={experience.id}>
-                          <TableCell>{index + 1}</TableCell>
-                          <TableCell>{experience.previousCompany}</TableCell>
-                          <TableCell>{experience.position}</TableCell>
-                          <TableCell>{formatDate(experience.startDate)}</TableCell>
-                          <TableCell>{formatDate(experience.endDate)}</TableCell>
-                          <TableCell>{experience.period}</TableCell>
-                          <TableCell>
-                            <Button variant="outline" size="sm" data-testid={`button-edit-experience-${experience.id}`}>
-                              <Edit2 className="w-3 h-3" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <p>No data available in table</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-
-        {/* Change Password Dialog */}
-        <Dialog open={showChangePasswordDialog} onOpenChange={setShowChangePasswordDialog}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Change Password</DialogTitle>
-              <DialogDescription>
-                Update password for this employee
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>User Name</Label>
-                <Input value={employee.firstName + "_" + employee.lastName} disabled />
-              </div>
-              <div className="space-y-2">
-                <Label>Current Password</Label>
-                <Input
-                  type="password"
-                  placeholder="Place current password..."
-                  value={passwordForm.currentPassword}
-                  onChange={(e) => setPasswordForm(prev => ({...prev, currentPassword: e.target.value}))}
-                  data-testid="input-current-password"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>New Password</Label>
-                <Input
-                  type="password"
-                  placeholder="Place new password..."
-                  value={passwordForm.newPassword}
-                  onChange={(e) => setPasswordForm(prev => ({...prev, newPassword: e.target.value}))}
-                  data-testid="input-new-password"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Confirm Password</Label>
-                <Input
-                  type="password"
-                  placeholder="Repeat new password..."
-                  value={passwordForm.confirmPassword}
-                  onChange={(e) => setPasswordForm(prev => ({...prev, confirmPassword: e.target.value}))}
-                  data-testid="input-confirm-password"
-                />
-              </div>
+              {/* Placeholder for other tabs */}
+              {activeTab !== "personal-details" && activeTab !== "employment" && activeTab !== "contact" && (
+                <Card>
+                  <CardHeader className="bg-teal-500 text-white">
+                    <CardTitle className="capitalize">
+                      {activeTab.replace("-", " ")} Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="text-center py-12 text-gray-500">
+                      <p>This section is under development.</p>
+                      <p className="text-sm mt-2">Coming soon...</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowChangePasswordDialog(false)} data-testid="button-cancel-password">
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleChangePassword}
-                disabled={changePasswordMutation.isPending}
-                data-testid="button-update-password"
-              >
-                {changePasswordMutation.isPending ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : null}
-                Update Password
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Reset Password Dialog */}
-        <Dialog open={showResetPasswordDialog} onOpenChange={setShowResetPasswordDialog}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Reset</DialogTitle>
-              <DialogDescription>
-                Are you sure you want to reset password for this user?
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowResetPasswordDialog(false)} data-testid="button-cancel-reset">
-                Cancel
-              </Button>
-              <Button 
-                onClick={() => resetPasswordMutation.mutate()}
-                disabled={resetPasswordMutation.isPending}
-                data-testid="button-reset-password-confirm"
-              >
-                {resetPasswordMutation.isPending ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : null}
-                Reset Password
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Add Work Experience Dialog */}
-        <Dialog open={showAddWorkExperienceDialog} onOpenChange={setShowAddWorkExperienceDialog}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Add Work Experience</DialogTitle>
-              <DialogDescription>
-                Add new work experience for this employee
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Previous Company</Label>
-                <Input
-                  placeholder="Company name"
-                  value={workExperienceForm.previousCompany || ""}
-                  onChange={(e) => setWorkExperienceForm(prev => ({...prev, previousCompany: e.target.value}))}
-                  data-testid="input-previous-company"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Position</Label>
-                <Input
-                  placeholder="Job position"
-                  value={workExperienceForm.position || ""}
-                  onChange={(e) => setWorkExperienceForm(prev => ({...prev, position: e.target.value}))}
-                  data-testid="input-work-position"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Start Date</Label>
-                  <Input
-                    type="date"
-                    value={workExperienceForm.startDate ? new Date(workExperienceForm.startDate).toISOString().split('T')[0] : ""}
-                    onChange={(e) => setWorkExperienceForm(prev => ({...prev, startDate: new Date(e.target.value)}))}
-                    data-testid="input-start-date"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>End Date</Label>
-                  <Input
-                    type="date"
-                    value={workExperienceForm.endDate ? new Date(workExperienceForm.endDate).toISOString().split('T')[0] : ""}
-                    onChange={(e) => setWorkExperienceForm(prev => ({...prev, endDate: new Date(e.target.value)}))}
-                    data-testid="input-end-date"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Period</Label>
-                <Input
-                  placeholder="e.g., 2 years 3 months"
-                  value={workExperienceForm.period || ""}
-                  onChange={(e) => setWorkExperienceForm(prev => ({...prev, period: e.target.value}))}
-                  data-testid="input-period"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowAddWorkExperienceDialog(false)} data-testid="button-cancel-work-experience">
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleAddWorkExperience}
-                disabled={addWorkExperienceMutation.isPending}
-                data-testid="button-save-work-experience"
-              >
-                {addWorkExperienceMutation.isPending ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : null}
-                Save
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );
