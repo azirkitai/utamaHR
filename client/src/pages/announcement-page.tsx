@@ -78,11 +78,7 @@ export default function AnnouncementPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [announcements, setAnnouncements] = useState<Announcement[]>(sampleAnnouncements);
 
-  // Get current user's employee data to check role
-  const { data: currentEmployee } = useQuery({
-    queryKey: ['/api/employees', user?.id],
-    enabled: !!user?.id
-  });
+  // User role is available from useAuth hook
   
   // Form states
   const [title, setTitle] = useState("");
@@ -135,9 +131,7 @@ export default function AnnouncementPage() {
 
   // Role-based access control function
   const canAccessAnnouncementActions = () => {
-    if (!currentEmployee || !Array.isArray(currentEmployee) || currentEmployee.length === 0) return false;
-    const employee = currentEmployee[0];
-    const role = employee?.role;
+    const role = (user as any)?.role;
     return role && ['Super Admin', 'Admin', 'HR Manager', 'PIC', 'Finance/Account', 'Manager/Supervisor'].includes(role);
   };
 
