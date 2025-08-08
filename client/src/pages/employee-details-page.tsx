@@ -26,7 +26,7 @@ import {
   FileText,
   Settings,
   ShieldCheck,
-
+  Calculator,
   Clock,
   Building,
   MapPin,
@@ -2203,8 +2203,346 @@ export default function EmployeeDetailsPage() {
                 </div>
               )}
 
+              {activeTab === "compensation" && (
+                <div className="space-y-6">
+                  {/* Bank Details Card */}
+                  <Card>
+                    <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="flex items-center gap-2">
+                          <Building className="w-5 h-5" />
+                          Bank Details
+                        </CardTitle>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="bg-white text-teal-600 hover:bg-gray-50"
+                          data-testid="button-edit-bank-details"
+                        >
+                          <Edit2 className="w-4 h-4 mr-1" />
+                          Update
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Bank</Label>
+                          <div className="mt-1 p-2 bg-gray-50 rounded border">
+                            <Select>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select bank" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="maybank">Maybank</SelectItem>
+                                <SelectItem value="cimb">CIMB Bank</SelectItem>
+                                <SelectItem value="public-bank">Public Bank</SelectItem>
+                                <SelectItem value="rhb">RHB Bank</SelectItem>
+                                <SelectItem value="hong-leong">Hong Leong Bank</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Account Number</Label>
+                          <div className="mt-1 p-2 bg-gray-50 rounded border">
+                            <Input placeholder="Account Number" />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Account Type</Label>
+                          <div className="mt-1 p-2 bg-gray-50 rounded border">
+                            <Select>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select account type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="savings">Savings Account</SelectItem>
+                                <SelectItem value="current">Current Account</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Branch</Label>
+                          <div className="mt-1 p-2 bg-gray-50 rounded border">
+                            <Input placeholder="Branch" />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Account Status</Label>
+                          <div className="mt-1 p-2 bg-gray-50 rounded border">
+                            <Select>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select account status" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="active">Active</SelectItem>
+                                <SelectItem value="inactive">Inactive</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Statutory Details Card */}
+                  <Card>
+                    <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="flex items-center gap-2">
+                          <FileText className="w-5 h-5" />
+                          Statutory Details
+                        </CardTitle>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="bg-white text-teal-600 hover:bg-gray-50"
+                          data-testid="button-edit-statutory-details"
+                        >
+                          <Edit2 className="w-4 h-4 mr-1" />
+                          Update
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-6 space-y-6">
+                      {/* Employee Provident Fund (EPF) */}
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Employee Provident Fund (EPF)</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700 block">EPF Number</Label>
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              <Input placeholder="EPF Number" />
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700 block">EPF Contribution Start Date</Label>
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              <Select>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="After 1 August 2001" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="after-aug-2001">After 1 August 2001</SelectItem>
+                                  <SelectItem value="before-aug-2001">Before 1 August 2001</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Social Security Organisation (SOCSO) */}
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Social Security Organisation (SOCSO)</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700 block">SOCSO Number</Label>
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              <Input placeholder="SOCSO Number" />
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700 block">SOCSO Contribution Start Age</Label>
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              <Input placeholder="SOCSO Contribution Start Age" />
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700 block">SOCSO Category</Label>
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              <Select>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="None" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="none">None</SelectItem>
+                                  <SelectItem value="category-1">Category 1</SelectItem>
+                                  <SelectItem value="category-2">Category 2</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Employment Insurance System (EIS) */}
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Employment Insurance System (EIS)</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700 block">Contribution Rate</Label>
+                            <div className="mt-1 p-2 bg-gray-50 rounded border flex items-center gap-4">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm">Employee 0.2%</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm">Employer 0.2%</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Income Tax Details Card */}
+                  <Card>
+                    <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="flex items-center gap-2">
+                          <Calculator className="w-5 h-5" />
+                          Income Tax Details
+                        </CardTitle>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="bg-white text-teal-600 hover:bg-gray-50"
+                          data-testid="button-edit-income-tax-details"
+                        >
+                          <Edit2 className="w-4 h-4 mr-1" />
+                          Update
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-6 space-y-6">
+                      {/* Children Information */}
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Children Information</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700 block">Employee has Child</Label>
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              <div className="flex items-center space-x-2">
+                                <input type="radio" id="child-yes" name="has-child" value="yes" className="radio" />
+                                <Label htmlFor="child-yes" className="text-sm">Yes</Label>
+                                <input type="radio" id="child-no" name="has-child" value="no" className="radio ml-4" />
+                                <Label htmlFor="child-no" className="text-sm">No</Label>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Spouse Information */}
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Spouse Information</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700 block">Spouse is Working</Label>
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              <div className="flex items-center space-x-2">
+                                <input type="radio" id="spouse-working" name="spouse-work" value="yes" className="radio" />
+                                <Label htmlFor="spouse-working" className="text-sm">Yes</Label>
+                                <input type="radio" id="spouse-not-working" name="spouse-work" value="no" className="radio ml-4" />
+                                <Label htmlFor="spouse-not-working" className="text-sm">No</Label>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700 block">Spouse Gender</Label>
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              <Select>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select Gender" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="male">Male</SelectItem>
+                                  <SelectItem value="female">Female</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700 block">Spouse is Disable</Label>
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              <div className="flex items-center space-x-2">
+                                <input type="radio" id="spouse-disable" name="spouse-disable" value="yes" className="radio" />
+                                <Label htmlFor="spouse-disable" className="text-sm">Yes</Label>
+                                <input type="radio" id="spouse-not-disable" name="spouse-disable" value="no" className="radio ml-4" />
+                                <Label htmlFor="spouse-not-disable" className="text-sm">No</Label>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Relief Information */}
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Relief Information</h3>
+                        <div className="grid grid-cols-1 gap-x-6 gap-y-5">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700 block">
+                              Contribution to Social Security Organisations (SOCSO) including contributions
+                              to the Employment Insurance System (SIP)
+                            </Label>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Employee Category */}
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Employee Category</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700 block">
+                              Determine whether employee is Returning Expert Programme (REP), Knowledge
+                              Worker or Specific Region (sarawak Malaysia) or neither
+                            </Label>
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              <Select>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="None" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="none">None</SelectItem>
+                                  <SelectItem value="rep">Returning Expert Programme (REP)</SelectItem>
+                                  <SelectItem value="knowledge-worker">Knowledge Worker</SelectItem>
+                                  <SelectItem value="sarawak">Specific Region (Sarawak Malaysia)</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Income Tax */}
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Income Tax</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700 block">Income Tax Number</Label>
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              <Input placeholder="Income Tax Number" />
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700 block">Value of Living Accommodation (VOLA)</Label>
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              <Input placeholder="0" type="number" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
               {/* Placeholder for other tabs */}
-              {!["personal-details", "employment", "contact", "family-detail"].includes(activeTab) && (
+              {!["personal-details", "employment", "contact", "family-detail", "compensation"].includes(activeTab) && (
                 <Card>
                   <CardHeader className="bg-gradient-to-r from-teal-500 to-emerald-500 text-white">
                     <CardTitle className="capitalize">
