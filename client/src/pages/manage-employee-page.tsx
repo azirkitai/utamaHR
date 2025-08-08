@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DashboardLayout } from "@/components/dashboard-layout";
+import type { Employee } from "@shared/schema";
 
 export default function ManageEmployeePage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -44,40 +46,22 @@ export default function ManageEmployeePage() {
   const [userRole, setUserRole] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   
-  // Sample employees data
-  const allEmployees = [
-    {
-      id: 1,
-      name: "madihah samsi",
-      employeeNo: "TEMP-7500*",
-      designation: "operator",
-      phone: "023222012",
-      mobile: "",
-      email: "",
-      status: "Active",
-      isActive: true
-    },
-    {
-      id: 2,
-      name: "SITI NADIAH SABRI",
-      employeeNo: "TEMP-7545*", 
-      designation: "",
-      phone: "019076434",
-      mobile: "",
-      email: "syedrhufyg@",
-      status: "Active",
-      isActive: true
-    }
-  ];
+  // Fetch employees from API
+  const { data: allEmployees = [], isLoading } = useQuery<Employee[]>({
+    queryKey: ["/api/employees"],
+  });
 
   const filteredEmployees = allEmployees.filter(employee => {
-    const matchesSearch = employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      employee.employeeNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      employee.designation.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = employee.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employee.employeeId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employee.position?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employee.email?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesTab = activeTab === "active" ? employee.isActive : !employee.isActive;
-    
-    return matchesSearch && matchesTab;
+    if (activeTab === "active") {
+      return matchesSearch && employee.status === "active";
+    } else {
+      return matchesSearch && employee.status !== "active";
+    }
   });
 
   const handleAddEmployee = () => {
@@ -471,10 +455,17 @@ export default function ManageEmployeePage() {
                             <th className="text-left py-3 px-4 font-medium text-gray-700">Phone</th>
                             <th className="text-left py-3 px-4 font-medium text-gray-700">Mobile</th>
                             <th className="text-left py-3 px-4 font-medium text-gray-700">Email</th>
+                            <th className="text-left py-3 px-4 font-medium text-gray-700">Actions</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {filteredEmployees.length > 0 ? (
+                          {isLoading ? (
+                            <tr>
+                              <td colSpan={9} className="text-center py-8 text-gray-500">
+                                Loading employees...
+                              </td>
+                            </tr>
+                          ) : filteredEmployees.length > 0 ? (
                             filteredEmployees.map((employee, index) => (
                               <tr key={employee.id} className="border-b hover:bg-gray-50">
                                 <td className="py-3 px-4">{index + 1}</td>
@@ -491,21 +482,32 @@ export default function ManageEmployeePage() {
                                     <Badge variant="secondary" className="bg-blue-600 text-white text-xs">
                                       Employee
                                     </Badge>
-                                    <Badge variant="secondary" className="bg-green-600 text-white text-xs">
-                                      Active
+                                    <Badge variant="secondary" className={`text-white text-xs ${employee.status === 'active' ? 'bg-green-600' : 'bg-red-600'}`}>
+                                      {employee.status === 'active' ? 'Active' : 'Inactive'}
                                     </Badge>
                                   </div>
                                 </td>
-                                <td className="py-3 px-4">{employee.employeeNo}</td>
-                                <td className="py-3 px-4">{employee.designation}</td>
-                                <td className="py-3 px-4">{employee.phone}</td>
-                                <td className="py-3 px-4">{employee.mobile}</td>
-                                <td className="py-3 px-4">{employee.email}</td>
+                                <td className="py-3 px-4">{employee.employeeId || '-'}</td>
+                                <td className="py-3 px-4">{employee.position || '-'}</td>
+                                <td className="py-3 px-4">{employee.phone || '-'}</td>
+                                <td className="py-3 px-4">{employee.phone || '-'}</td>
+                                <td className="py-3 px-4">{employee.email || '-'}</td>
+                                <td className="py-3 px-4">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => window.location.href = `/employee-details/${employee.id}`}
+                                    className="h-8 w-8 p-0 hover:bg-blue-100"
+                                    data-testid={`button-view-details-${employee.id}`}
+                                  >
+                                    <Eye className="h-4 w-4 text-blue-600" />
+                                  </Button>
+                                </td>
                               </tr>
                             ))
                           ) : (
                             <tr>
-                              <td colSpan={8} className="text-center py-8 text-gray-500">
+                              <td colSpan={9} className="text-center py-8 text-gray-500">
                                 No data available in table
                               </td>
                             </tr>
