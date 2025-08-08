@@ -281,10 +281,13 @@ export default function EmployeeDetailsPage() {
   };
 
   const handleProfileUploadComplete = async (result: any) => {
+    console.log("Profile upload complete result:", result);
     try {
       if (result.successful && result.successful.length > 0) {
         const uploadedFile = result.successful[0];
         const profileImageURL = uploadedFile.uploadURL;
+        
+        console.log("Updating profile with image URL:", profileImageURL);
 
         // Update employee profile with the new image URL
         const response = await apiRequest("PUT", `/api/employees/${id}/profile-image`, {
@@ -292,6 +295,8 @@ export default function EmployeeDetailsPage() {
         });
 
         if (response.ok) {
+          const data = await response.json();
+          console.log("Profile image update response:", data);
           toast({
             title: "Berjaya",
             description: "Gambar profil telah dikemaskini",
@@ -299,12 +304,15 @@ export default function EmployeeDetailsPage() {
           // Refresh employee data to show new profile image
           queryClient.invalidateQueries({ queryKey: ["/api/employees", id] });
         }
+      } else {
+        console.error("No successful uploads in result:", result);
+        throw new Error("Tiada fail berjaya dimuat naik");
       }
     } catch (error) {
       console.error("Error updating profile image:", error);
       toast({
         title: "Ralat",
-        description: "Gagal mengemaskini gambar profil",
+        description: `Gagal mengemaskini gambar profil: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       });
     }

@@ -84,7 +84,12 @@ export function ObjectUploader({
     })
       .use(AwsS3, {
         shouldUseMultipart: false,
-        getUploadParameters: onGetUploadParameters,
+        getUploadParameters: async (file) => {
+          console.log("Getting upload parameters for:", file.name);
+          const result = await onGetUploadParameters();
+          console.log("Upload parameters received:", result);
+          return result;
+        },
       })
       .on('file-added', async (file) => {
         if (file.type && file.type.startsWith('image/')) {
@@ -116,8 +121,15 @@ export function ObjectUploader({
         }
       })
       .on("complete", (result) => {
+        console.log("Upload completed:", result);
         setShowModal(false); // Close modal after upload
         onComplete?.(result);
+      })
+      .on("error", (error) => {
+        console.error("Upload error:", error);
+      })
+      .on("upload-error", (file, error, response) => {
+        console.error("Upload error for file:", file?.name, "Error:", error, "Response:", response);
       })
   );
 
