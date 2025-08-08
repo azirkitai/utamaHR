@@ -196,6 +196,51 @@ export default function DashboardHome() {
           </CardContent>
         </Card>
 
+        {/* Your Statistic */}
+        <Card>
+          <CardHeader className="bg-gradient-to-r from-[#07A3B2] to-[#D9ECC7] text-white rounded-t-lg">
+            <CardTitle className="text-xl font-semibold">Your Statistic</CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 hover:shadow-md transition-shadow">
+                <CardContent className="p-6 text-center">
+                  <div className="text-3xl font-bold text-green-600 mb-2" data-testid="stat-leave-approved">0</div>
+                  <div className="text-sm text-gray-600">Leave Approved</div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200 hover:shadow-md transition-shadow">
+                <CardContent className="p-6 text-center">
+                  <div className="text-3xl font-bold text-blue-600 mb-2" data-testid="stat-claim-approved">0</div>
+                  <div className="text-sm text-gray-600">Claim Approved</div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-br from-orange-50 to-yellow-50 border-orange-200 hover:shadow-md transition-shadow">
+                <CardContent className="p-6 text-center">
+                  <div className="text-3xl font-bold text-orange-600 mb-2" data-testid="stat-overtime-approved">0</div>
+                  <div className="text-sm text-gray-600">Overtime Approve</div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200 hover:shadow-md transition-shadow">
+                <CardContent className="p-6 text-center">
+                  <div className="text-3xl font-bold text-purple-600 mb-2" data-testid="stat-payroll-record">0</div>
+                  <div className="text-sm text-gray-600">Payroll Record</div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-br from-pink-50 to-rose-50 border-pink-200 hover:shadow-md transition-shadow">
+                <CardContent className="p-6 text-center">
+                  <div className="text-3xl font-bold text-pink-600 mb-2" data-testid="stat-payment-voucher">0</div>
+                  <div className="text-sm text-gray-600">Payment Voucher</div>
+                </CardContent>
+              </Card>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Pending Approval */}
         <Card>
           <CardHeader>
