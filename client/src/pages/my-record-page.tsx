@@ -42,22 +42,6 @@ export default function MyRecordPage() {
   // Fetch attendance records from database
   const { data: attendanceRecords = [], isLoading: isLoadingAttendance } = useQuery({
     queryKey: ['/api/attendance-records', filters.dateFrom, filters.dateTo, hasAdminAccess ? null : user?.id],
-    queryFn: async () => {
-      const params = new URLSearchParams({
-        dateFrom: format(filters.dateFrom, 'yyyy-MM-dd'),
-        dateTo: format(filters.dateTo, 'yyyy-MM-dd'),
-      });
-      
-      // Only add employeeId if user doesn't have admin access
-      if (!hasAdminAccess && user?.id) {
-        params.append('employeeId', user.id);
-      }
-      
-      const response = await fetch(`/api/attendance-records?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch attendance records');
-      const data = await response.json();
-      return data as AttendanceRecord[];
-    },
     enabled: !!user && activeTab === 'attendance'
   });
 

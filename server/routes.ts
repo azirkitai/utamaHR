@@ -89,8 +89,16 @@ export function registerRoutes(app: Express): Server {
       // Check if user has admin access
       const hasAdminAccess = req.user?.role && ['Super Admin', 'Admin', 'HR Manager', 'PIC'].includes(req.user.role);
       
-      // If not admin and no employeeId provided, use current user's ID
-      const targetEmployeeId = hasAdminAccess ? employeeId : req.user!.id;
+      let targetEmployeeId = employeeId;
+      
+      // If not admin and no employeeId provided, get employee ID from user ID
+      if (!hasAdminAccess && !employeeId) {
+        const employee = await storage.getEmployeeByUserId(req.user!.id);
+        if (!employee) {
+          return res.status(404).json({ error: "Employee record tidak dijumpai" });
+        }
+        targetEmployeeId = employee.id;
+      }
 
       const records = await storage.getAttendanceRecords({
         dateFrom: dateFrom ? new Date(dateFrom) : undefined,
