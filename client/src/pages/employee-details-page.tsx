@@ -44,6 +44,7 @@ import type { Employee, UpdateEmployee, WorkExperience, InsertWorkExperience, Em
 import { DocumentsTab } from "@/components/DocumentsTab";
 import { EquipmentTab } from "@/components/EquipmentTab";
 import { LeavePolicyTab } from "@/components/LeavePolicyTab";
+import { ClaimPolicyTab } from "@/components/ClaimPolicyTab";
 
 export default function EmployeeDetailsPage() {
   const { id } = useParams();
@@ -2831,8 +2832,13 @@ export default function EmployeeDetailsPage() {
                 <LeavePolicyTab employeeId={id!} />
               )}
 
+              {/* Claim Policy Tab */}
+              {activeTab === "claim-policy" && (
+                <ClaimPolicyTab employeeId={id!} />
+              )}
+
               {/* Placeholder for other tabs */}
-              {!["personal-details", "employment", "contact", "family-detail", "compensation", "document", "equipment", "leave-policy"].includes(activeTab) && (
+              {!["personal-details", "employment", "contact", "family-detail", "compensation", "document", "equipment", "leave-policy", "claim-policy"].includes(activeTab) && (
                 <Card>
                   <CardHeader className="bg-gradient-to-r from-teal-500 to-emerald-500 text-white">
                     <CardTitle className="capitalize">

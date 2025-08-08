@@ -1,0 +1,97 @@
+"Saya ingin create paparan ‘Document’ seperti screenshot yang dilampirkan. Selepas user tekan butang ‘Document’ pada navigation tab di sebelah kiri, paparan yang keluar adalah seperti berikut:
+
+Table yang mengandungi columns: No., Name, Remarks, Action.
+
+Ada butang ‘Add’ di sebelah kanan atas table untuk tambah dokumen baru.
+
+Bila klik butang ‘Add’, keluar popup form ‘Add Document’ dengan fields berikut:
+
+File Name (text)
+
+Remarks (text)
+
+File Upload (file picker)
+
+Butang ‘Save’ dan ‘Cancel’
+
+Semua design, warna, dan layout ikut screenshot yang saya bagi.
+
+Pastikan lebar table, font, padding, dan spacing selari, supaya nampak kemas.
+
+After user upload, dokumen dipaparkan dalam table.
+
+Sila pastikan pattern, jarak, dan susunan sama dengan screenshot."
+
+2. Equipment Tab
+Prompt untuk agent:
+
+"Selepas klik pada butang ‘Equipment’ pada navigation tab, saya mahu paparan yang sama seperti screenshot berikut:
+
+Table dengan columns: No., Equipment, Date Received, Date Returned, Action.
+
+Butang ‘Add’ di kanan atas, untuk tambah equipment.
+
+Bila klik ‘Add’, keluar popup ‘Assign Equipment Form’ yang ada fields berikut:
+
+Type (text)
+
+Details (text)
+
+Date Received (date picker)
+
+Date Returned (date picker)
+
+File Upload (file picker)
+
+Butang ‘Save’ dan ‘Cancel’
+
+Semua design, warna, font, dan spacing perlu sama dengan contoh screenshot.
+
+Pastikan table dan popup form konsisten dari segi lebar, jarak, dan padding.
+
+Paparan selepas data diisi akan terus update dalam table.
+
+Sila pastikan paparan kemas dan seragam."
+
+3. Leave Policy Tab
+Prompt untuk agent:
+
+"Bila user klik butang ‘Leave Policy’ pada navigation tab, paparan yang saya mahu adalah:
+
+Table dengan columns: Leave Type, Entitlement, Balance, Remarks, Action.
+
+Di kanan atas ada butang ‘Export’ dengan dropdown option: Download as Excel, Download as PDF.
+
+Layout, warna, font, dan saiz ikut screenshot yang saya bagi.
+
+Pastikan table sama lebar dan selari dengan modul-modul lain.
+
+Susunan, padding, dan spacing biar kemas dan konsisten.
+
+Sila pastikan UI, spacing dan design selari dengan tab lain."
+
+4. Claim Policy Tab
+Prompt untuk agent:
+
+"Selepas user tekan butang ‘Claim Policy’ pada navigation tab, paparan perlu:
+
+Table columns: Claim Type, Annual Limit, Balance, Remarks, Action (edit & switch), Included.
+
+Kanan atas ada butang ‘Export’ dengan pilihan Download as Excel/PDF.
+
+Semua UI, spacing, font, dan warna sama dengan screenshot saya.
+
+Pastikan column width, spacing, dan keseluruhan layout sama dengan tab lain untuk konsistensi.
+
+Tolong pastikan semua design pattern seragam."
+
+Nota tambahan untuk semua tab:
+
+Paparan mesti nampak kemas, seragam, dan konsisten dari segi font size, column width, padding, jarak antara elemen, dan penggunaan warna (matching corporate branding jika ada).
+
+Elakkan layout yang ‘tercampur’ besar/kecil atau terlalu sempit pada mana-mana table/form.
+
+Sila tambah validation supaya input tidak kosong dan file upload disimpan dalam database/server.
+
+Untuk table kosong, paparkan teks “No data available in table”.
+

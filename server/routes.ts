@@ -1258,6 +1258,102 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // =================== CLAIM POLICY ROUTES ===================
+  
+  // Get employee claim policies
+  app.get("/api/claim-policies/:employeeId", authenticateToken, async (req, res) => {
+    try {
+      const { employeeId } = req.params;
+      const claimPolicies = await storage.getClaimPolicies(employeeId);
+      res.json(claimPolicies);
+    } catch (error) {
+      console.error("Error fetching claim policies:", error);
+      res.status(500).json({ error: "Gagal mendapatkan polisi claim" });
+    }
+  });
+
+  // Create claim policy
+  app.post("/api/claim-policies", authenticateToken, async (req, res) => {
+    try {
+      const { employeeId, claimType, annualLimit, balance, remarks, isEnabled } = req.body;
+
+      if (!employeeId || !claimType) {
+        return res.status(400).json({ 
+          error: "Employee ID dan jenis claim diperlukan" 
+        });
+      }
+
+      const newClaimPolicy = await storage.createClaimPolicy({
+        employeeId,
+        claimType,
+        annualLimit: annualLimit || null,
+        balance: balance || null,
+        remarks: remarks || null,
+        isEnabled: isEnabled !== undefined ? isEnabled : true,
+      });
+
+      res.status(201).json({
+        success: true,
+        claimPolicy: newClaimPolicy,
+        message: "Polisi claim berjaya ditambah",
+      });
+    } catch (error) {
+      console.error("Error creating claim policy:", error);
+      res.status(500).json({ error: "Gagal menambah polisi claim" });
+    }
+  });
+
+  // Update claim policy
+  app.put("/api/claim-policies/:id", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { claimType, annualLimit, balance, remarks, isEnabled } = req.body;
+
+      const updates: any = {};
+      if (claimType !== undefined) updates.claimType = claimType;
+      if (annualLimit !== undefined) updates.annualLimit = annualLimit;
+      if (balance !== undefined) updates.balance = balance;
+      if (remarks !== undefined) updates.remarks = remarks;
+      if (isEnabled !== undefined) updates.isEnabled = isEnabled;
+
+      const updatedClaimPolicy = await storage.updateClaimPolicy(id, updates);
+
+      if (!updatedClaimPolicy) {
+        return res.status(404).json({ error: "Polisi claim tidak dijumpai" });
+      }
+
+      res.json({
+        success: true,
+        claimPolicy: updatedClaimPolicy,
+        message: "Polisi claim berjaya dikemaskini",
+      });
+    } catch (error) {
+      console.error("Error updating claim policy:", error);
+      res.status(500).json({ error: "Gagal mengemaskini polisi claim" });
+    }
+  });
+
+  // Delete claim policy
+  app.delete("/api/claim-policies/:id", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      const deleted = await storage.deleteClaimPolicy(id);
+
+      if (!deleted) {
+        return res.status(404).json({ error: "Polisi claim tidak dijumpai" });
+      }
+
+      res.json({
+        success: true,
+        message: "Polisi claim berjaya dipadamkan",
+      });
+    } catch (error) {
+      console.error("Error deleting claim policy:", error);
+      res.status(500).json({ error: "Gagal memadamkan polisi claim" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

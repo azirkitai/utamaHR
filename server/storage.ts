@@ -796,6 +796,36 @@ export class DatabaseStorage implements IStorage {
     const result = await db.delete(leavePolicy).where(eq(leavePolicy.id, id));
     return (result.rowCount ?? 0) > 0;
   }
+
+  // =================== CLAIM POLICY METHODS ===================
+  async getClaimPolicies(employeeId: string): Promise<ClaimPolicy[]> {
+    return await db.select().from(claimPolicy).where(eq(claimPolicy.employeeId, employeeId)).orderBy(desc(claimPolicy.createdAt));
+  }
+
+  async createClaimPolicy(insertClaimPolicy: InsertClaimPolicy): Promise<ClaimPolicy> {
+    const [result] = await db
+      .insert(claimPolicy)
+      .values(insertClaimPolicy)
+      .returning();
+    return result;
+  }
+
+  async updateClaimPolicy(id: string, updateData: UpdateClaimPolicy): Promise<ClaimPolicy | undefined> {
+    const [result] = await db
+      .update(claimPolicy)
+      .set({
+        ...updateData,
+        updatedAt: new Date()
+      })
+      .where(eq(claimPolicy.id, id))
+      .returning();
+    return result || undefined;
+  }
+
+  async deleteClaimPolicy(id: string): Promise<boolean> {
+    const result = await db.delete(claimPolicy).where(eq(claimPolicy.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
 }
 
 export const storage = new DatabaseStorage();
