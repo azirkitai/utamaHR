@@ -82,15 +82,6 @@ export function ObjectUploader({
       },
       autoProceed: false,
     })
-      .use(AwsS3, {
-        shouldUseMultipart: false,
-        getUploadParameters: async (file) => {
-          console.log("Getting upload parameters for:", file.name);
-          const result = await onGetUploadParameters();
-          console.log("Upload parameters received:", result);
-          return result;
-        },
-      })
       .on('file-added', async (file) => {
         if (file.type && file.type.startsWith('image/')) {
           try {
@@ -122,6 +113,8 @@ export function ObjectUploader({
       })
       .on("complete", (result) => {
         console.log("Upload completed:", result);
+        console.log("Successful uploads:", result.successful?.length || 0);
+        console.log("Failed uploads:", result.failed?.length || 0);
         setShowModal(false); // Close modal after upload
         onComplete?.(result);
       })
@@ -130,6 +123,10 @@ export function ObjectUploader({
       })
       .on("upload-error", (file, error, response) => {
         console.error("Upload error for file:", file?.name, "Error:", error, "Response:", response);
+        alert(`Upload gagal untuk ${file?.name}: ${error?.message || 'Unknown error'}`);
+      })
+      .on("upload-success", (file, response) => {
+        console.log("Upload success for file:", file?.name, "Response:", response);
       })
   );
 
@@ -156,8 +153,11 @@ export function ObjectUploader({
 
       console.log(`✓ Gambar telah dicrop: ${formatFileSize(croppedFile.size)} (300x300px bulat)`);
 
-      // Start upload immediately
-      uppy.upload();
+      // Close crop modal first
+      setShowCropModal(false);
+      
+      // Upload cropped file directly using our custom upload function
+      await uploadFileDirectly(croppedFile);
 
       // Clean up
       setSelectedFile(null);
@@ -167,6 +167,57 @@ export function ObjectUploader({
     } catch (error) {
       console.error('Error handling cropped image:', error);
       alert('Ralat memproses gambar yang dicrop. Sila cuba lagi.');
+    }
+  };
+
+  // Direct file upload function that bypasses Uppy for better control
+  const uploadFileDirectly = async (file: File) => {
+    try {
+      // Get upload URL from backend
+      const uploadParamsResponse = await onGetUploadParameters();
+      const uploadURL = uploadParamsResponse.url;
+      
+      console.log("Uploading file directly to:", uploadURL);
+      
+      // Upload file to the presigned URL
+      const uploadResponse = await fetch(uploadURL, {
+        method: "PUT",
+        body: file,
+        headers: {
+          'Content-Type': file.type,
+        },
+      });
+      
+      if (uploadResponse.ok) {
+        console.log("File uploaded successfully");
+        // Create a successful result object similar to Uppy's format
+        const result = {
+          successful: [{
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            uploadURL: uploadURL.split('?')[0], // Remove query parameters for clean URL
+          }],
+          failed: [],
+          uploadID: Date.now().toString(),
+        };
+        
+        // Call the completion handler
+        onComplete?.(result);
+      } else {
+        throw new Error(`Upload failed: ${uploadResponse.statusText}`);
+      }
+    } catch (error) {
+      console.error("Direct upload error:", error);
+      const result = {
+        successful: [],
+        failed: [{
+          file: { name: file.name },
+          error: error instanceof Error ? error.message : 'Upload failed',
+        }],
+        uploadID: Date.now().toString(),
+      };
+      onComplete?.(result);
     }
   };
 

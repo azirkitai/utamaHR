@@ -865,8 +865,10 @@ export function registerRoutes(app: Express): Server {
   // Get upload URL for object entity (for file uploads)
   app.post("/api/objects/upload", authenticateToken, async (req, res) => {
     try {
+      console.log("Getting upload URL for user:", req.user?.username);
       const objectStorageService = new ObjectStorageService();
       const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      console.log("Generated upload URL successfully");
       res.json({ uploadURL });
     } catch (error) {
       console.error("Error getting upload URL:", error);
