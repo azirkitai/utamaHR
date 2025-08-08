@@ -103,6 +103,27 @@ export default function ApplyLeavePage() {
     return days;
   };
 
+  // Helper function to check if a date is within the selected range
+  const isDateInRange = (dateInfo: { day: number; isCurrentMonth: boolean }) => {
+    if (!startDate || !endDate || !dateInfo.isCurrentMonth) return false;
+    
+    const currentDate = new Date(year, month, dateInfo.day);
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    return currentDate >= start && currentDate <= end;
+  };
+
+  // Helper function to check if a date is the start or end date
+  const isStartOrEndDate = (dateInfo: { day: number; isCurrentMonth: boolean }) => {
+    if (!dateInfo.isCurrentMonth) return false;
+    
+    const isStart = startDate && new Date(startDate).getDate() === dateInfo.day;
+    const isEnd = endDate && new Date(endDate).getDate() === dateInfo.day;
+    
+    return isStart || isEnd;
+  };
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -202,12 +223,13 @@ export default function ApplyLeavePage() {
                       dateInfo.isCurrentMonth 
                         ? "text-gray-900 hover:bg-blue-50" 
                         : "text-gray-400",
-                      // Highlight selected dates
-                      startDate && new Date(startDate).getDate() === dateInfo.day && dateInfo.isCurrentMonth
+                      // Highlight start and end dates
+                      isStartOrEndDate(dateInfo)
                         ? "bg-blue-600 text-white"
                         : "",
-                      endDate && new Date(endDate).getDate() === dateInfo.day && dateInfo.isCurrentMonth
-                        ? "bg-blue-600 text-white"
+                      // Highlight dates in range with lighter blue
+                      isDateInRange(dateInfo) && !isStartOrEndDate(dateInfo)
+                        ? "bg-blue-200 text-blue-800"
                         : ""
                     )}
                     onClick={() => {
