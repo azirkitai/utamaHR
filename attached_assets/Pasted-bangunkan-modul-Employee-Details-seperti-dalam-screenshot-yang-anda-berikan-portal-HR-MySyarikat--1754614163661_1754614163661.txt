@@ -1,0 +1,143 @@
+bangunkan modul Employee Details seperti dalam screenshot yang anda berikan (portal HR “MySyarikat”):
+
+Arahan kepada Agent: Modul "Employee Details"
+1. Fungsi & Objektif
+Modul ini membolehkan admin/HR atau user mengisi, mengemaskini, dan menyimpan maklumat lengkap setiap pekerja di dalam database sistem.
+
+Setiap pekerja mempunyai data unik masing-masing, dan data ini akan dihubungkan dengan modul lain seperti payroll, attendance, leave, dan lain-lain.
+
+2. Fields/Column yang perlu disediakan
+Personal Detail:
+
+First Name
+
+Last Name
+
+NRIC (baru & lama)
+
+Place of Birth
+
+Date of Birth
+
+Gender
+
+Race
+
+Religion
+
+Blood Type
+
+Education Level
+
+Marital Status
+
+Nationality
+
+Bumi Status
+
+Family Members
+
+Contact Info:
+
+Email
+
+Phone Number
+
+Address (Current & Permanent)
+
+Employment Info:
+
+Employee ID / Staff No.
+
+Position/Designation
+
+Department
+
+Date Joined
+
+Employment Status (Permanent/Contract/Probation/etc.)
+
+Salary Info (jika ada)
+
+Driving License Details:
+
+Driving License Number
+
+Driving Class
+
+Driving Expiry Date
+
+Work Experience:
+
+Previous Company
+
+Position
+
+Start Date
+
+End Date
+
+Period (duration in months/years)
+
+3. Fungsi Utama
+View, Update, & Save:
+User/admin boleh view maklumat, edit dan tekan Update untuk simpan ke database.
+
+Change Password:
+Sediakan fungsi pop-up/modal untuk tukar password (masukkan current, new, confirm password).
+
+Reset Password:
+Sediakan fungsi reset password, akan tanya untuk pengesahan sebelum reset.
+
+Add Work Experience:
+Butang untuk tambah pengalaman kerja baharu. Data akan muncul dalam bentuk table.
+
+4. Database Integration
+Semua maklumat mestilah boleh disimpan ke database mengikut userID yang unik.
+
+Pastikan data pekerja boleh diambil semula (fetch) dan di-edit/update bila-bila masa.
+
+5. User Interface
+Paparan “Personal Details” di atas, diikuti bahagian lain (contact, employment, driving license, work experience) dalam bentuk tab atau section.
+
+Paparan maklumat gradient background seperti yang dipilih user sebelum ini.
+
+Setiap maklumat mestilah auto-load bila buka page berdasarkan userID.
+
+Sediakan button untuk "Print", "Change Password", "Reset Password", "Update".
+
+6. Validation
+Field wajib diisi mesti ada pengesahan (validation).
+
+Pastikan NRIC, email, dan data sensitif lain disahkan (valid format).
+
+7. Security
+Data sensitif seperti password tidak boleh dipaparkan secara jelas, hanya boleh di-reset/tukar.
+
+Akses hanya kepada admin/HR dan user tersebut.
+
+8. Integration
+Data dari modul Employee Details akan digunakan untuk link ke attendance, payroll, leave, dan lain-lain (pastikan struktur database konsisten).
+
+9. Contoh Flow
+User/Admin login → klik Employee List → pilih nama → buka Employee Details page
+
+Boleh lihat semua data pekerja
+
+Boleh update mana-mana maklumat, tekan Update untuk simpan
+
+Boleh reset atau tukar password pekerja
+
+Boleh tambah pengalaman kerja (add work experience)
+
+Nota tambahan untuk design:
+
+Gunakan warna gradient mengikut tema yang user pilih (#07A3B2 ke #D9ECC7).
+
+Ikon/gambar profile placeholder seperti dalam screenshot.
+
+Table untuk work experience boleh scroll jika data banyak.
+
+Tugasan:
+Sila develop dan siapkan modul Employee Details mengikut spesifikasi di atas, pastikan integrasi penuh dengan database dan modul lain.
+
