@@ -54,9 +54,19 @@ export default function EmployeeDetailsPage() {
   const [isEditingEmployment, setIsEditingEmployment] = useState(false);
   const [isEditingApproval, setIsEditingApproval] = useState(false);
   const [isEditingYearly, setIsEditingYearly] = useState(false);
+  const [isEditingContact, setIsEditingContact] = useState(false);
   const [isWorkExperienceDialogOpen, setIsWorkExperienceDialogOpen] = useState(false);
   const [employeeForm, setEmployeeForm] = useState<Partial<Employee>>({});
   const [employmentForm, setEmploymentForm] = useState<Partial<Employment>>({});
+  const [contactForm, setContactForm] = useState({
+    phoneNumber: "",
+    email: "",
+    personalEmail: "",
+    address: "",
+    mailingAddress: "",
+    emergencyContactName: "",
+    emergencyContactPhone: ""
+  });
   
   // Date picker states
   const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>();
@@ -273,6 +283,34 @@ export default function EmployeeDetailsPage() {
     if (confirm("Adakah anda pasti untuk memadamkan pengalaman kerja ini?")) {
       deleteWorkExperienceMutation.mutate(workExperienceId);
     }
+  };
+
+  // Update contact mutation
+  const updateContactMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest("PUT", `/api/employees/${id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Berjaya",
+        description: "Maklumat contact telah dikemaskini",
+      });
+      setIsEditingContact(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/employees", id] });
+    },
+    onError: () => {
+      toast({
+        title: "Ralat",
+        description: "Gagal mengkemaskini maklumat contact",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSaveContact = () => {
+    const updatedData = { ...contactForm };
+    updateContactMutation.mutate(updatedData);
   };
 
   const navigationTabs = [
@@ -1652,30 +1690,178 @@ export default function EmployeeDetailsPage() {
               )}
 
               {activeTab === "contact" && (
-                <Card>
-                  <CardHeader className="bg-gradient-to-r from-teal-500 to-emerald-500 text-white">
-                    <CardTitle className="flex items-center gap-2">
-                      <Phone className="w-5 h-5" />
-                      Contact Information
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium text-gray-700 block">Email</Label>
-                        <div className="mt-1 p-2 bg-gray-50 rounded border">
-                          N/A
+                <div className="space-y-6">
+                  {/* Contact Details Card */}
+                  <Card>
+                    <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="flex items-center gap-2">
+                          <Phone className="w-5 h-5" />
+                          Contact Details
+                        </CardTitle>
+                        {!isEditingContact ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsEditingContact(true)}
+                            className="bg-white text-teal-600 hover:bg-gray-50"
+                            data-testid="button-edit-contact"
+                          >
+                            <Edit2 className="w-4 h-4 mr-1" />
+                            Update
+                          </Button>
+                        ) : null}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Phone Number</Label>
+                          {isEditingContact ? (
+                            <Input
+                              value={contactForm.phoneNumber || ""}
+                              onChange={(e) => setContactForm({ ...contactForm, phoneNumber: e.target.value })}
+                              className="mt-1"
+                              data-testid="input-phone-number"
+                            />
+                          ) : (
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              {contactForm.phoneNumber || "N/A"}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Email</Label>
+                          {isEditingContact ? (
+                            <Input
+                              type="email"
+                              value={contactForm.email || ""}
+                              onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                              className="mt-1"
+                              data-testid="input-email"
+                            />
+                          ) : (
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              {contactForm.email || "N/A"}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Personal Email</Label>
+                          {isEditingContact ? (
+                            <Input
+                              type="email"
+                              value={contactForm.personalEmail || ""}
+                              onChange={(e) => setContactForm({ ...contactForm, personalEmail: e.target.value })}
+                              className="mt-1"
+                              data-testid="input-personal-email"
+                            />
+                          ) : (
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              {contactForm.personalEmail || "N/A"}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Address</Label>
+                          {isEditingContact ? (
+                            <Input
+                              value={contactForm.address || ""}
+                              onChange={(e) => setContactForm({ ...contactForm, address: e.target.value })}
+                              className="mt-1"
+                              data-testid="input-address"
+                            />
+                          ) : (
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              {contactForm.address || "N/A"}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="space-y-2 md:col-span-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Mailing Address</Label>
+                          {isEditingContact ? (
+                            <Input
+                              value={contactForm.mailingAddress || ""}
+                              onChange={(e) => setContactForm({ ...contactForm, mailingAddress: e.target.value })}
+                              className="mt-1"
+                              data-testid="input-mailing-address"
+                            />
+                          ) : (
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              {contactForm.mailingAddress || "N/A"}
+                            </div>
+                          )}
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label className="text-sm font-medium text-gray-700 block">Phone</Label>
-                        <div className="mt-1 p-2 bg-gray-50 rounded border">
-                          N/A
+
+                      {/* Horizontal Line */}
+                      <div className="my-6 border-t border-gray-200"></div>
+
+                      {/* Emergency Contact Sub Header */}
+                      <div className="mb-4">
+                        <h3 className="text-lg font-semibold text-gray-800">Emergency Contact</h3>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Contact Name</Label>
+                          {isEditingContact ? (
+                            <Input
+                              value={contactForm.emergencyContactName || ""}
+                              onChange={(e) => setContactForm({ ...contactForm, emergencyContactName: e.target.value })}
+                              className="mt-1"
+                              data-testid="input-emergency-contact-name"
+                            />
+                          ) : (
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              {contactForm.emergencyContactName || "N/A"}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Contact Phone (Mobile)</Label>
+                          {isEditingContact ? (
+                            <Input
+                              value={contactForm.emergencyContactPhone || ""}
+                              onChange={(e) => setContactForm({ ...contactForm, emergencyContactPhone: e.target.value })}
+                              className="mt-1"
+                              data-testid="input-emergency-contact-phone"
+                            />
+                          ) : (
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              {contactForm.emergencyContactPhone || "N/A"}
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+
+                      {isEditingContact && (
+                        <div className="flex justify-end gap-2 mt-6">
+                          <Button
+                            variant="outline"
+                            onClick={() => setIsEditingContact(false)}
+                            data-testid="button-cancel-contact"
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            onClick={handleSaveContact}
+                            disabled={updateContactMutation.isPending}
+                            className="bg-teal-600 hover:bg-teal-700"
+                            data-testid="button-save-contact"
+                          >
+                            {updateContactMutation.isPending ? "Saving..." : "Save Changes"}
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
               )}
 
               {/* Placeholder for other tabs */}
