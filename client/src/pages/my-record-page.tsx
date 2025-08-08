@@ -9,7 +9,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format, addDays, subDays } from "date-fns";
-import { CalendarIcon, Download, Filter, Search, ChevronLeft, ChevronRight, Calendar as CalendarLucide, Clock, FileText, CreditCard, Users, DollarSign } from "lucide-react";
+import { CalendarIcon, Download, Filter, Search, ChevronLeft, ChevronRight, Calendar as CalendarLucide, Clock, FileText, CreditCard, Users, DollarSign, Image, StickyNote, Eye, File, Share } from "lucide-react";
 
 type TabType = "leave" | "timeoff" | "claim" | "overtime" | "attendance" | "payment";
 
@@ -702,10 +702,12 @@ export default function MyRecordPage() {
       {/* Show Picture and Show Note buttons */}
       <div className="flex gap-4">
         <Button variant="outline" data-testid="button-show-picture">
-          📷 Show Picture
+          <Image className="h-4 w-4 mr-2 text-gray-600" />
+          Show Picture
         </Button>
         <Button variant="outline" data-testid="button-show-note">
-          📝 Show Note
+          <StickyNote className="h-4 w-4 mr-2 text-gray-600" />
+          Show Note
         </Button>
       </div>
 
@@ -910,13 +912,13 @@ export default function MyRecordPage() {
                   Document for 2023
                   <div className="flex gap-1">
                     <Button size="sm" variant="outline" className="h-6 w-6 p-0" data-testid="button-view-ea">
-                      👁️
+                      <Eye className="h-3 w-3 text-gray-600" />
                     </Button>
                     <Button size="sm" variant="outline" className="h-6 w-6 p-0" data-testid="button-download-ea">
-                      📄
+                      <File className="h-3 w-3 text-gray-600" />
                     </Button>
                     <Button size="sm" variant="outline" className="h-6 w-6 p-0" data-testid="button-share-ea">
-                      📤
+                      <Share className="h-3 w-3 text-gray-600" />
                     </Button>
                   </div>
                 </TableCell>
