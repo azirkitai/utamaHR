@@ -172,6 +172,10 @@ export interface IStorage {
   // =================== CLOCK-IN METHODS ===================
   createClockInRecord(clockIn: InsertClockIn): Promise<ClockInRecord>;
   getUserClockInRecords(userId: string): Promise<ClockInRecord[]>;
+  
+  // =================== PASSWORD MANAGEMENT METHODS ===================
+  changeEmployeePassword(employeeId: string, currentPassword: string, newPassword: string): Promise<boolean>;
+  resetEmployeePassword(employeeId: string): Promise<string>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -646,6 +650,48 @@ export class DatabaseStorage implements IStorage {
 
   async getUserClockInRecords(userId: string): Promise<ClockInRecord[]> {
     return await db.select().from(clockInRecords).where(eq(clockInRecords.userId, userId));
+  }
+
+  // =================== PASSWORD MANAGEMENT METHODS ===================
+  async changeEmployeePassword(employeeId: string, currentPassword: string, newPassword: string): Promise<boolean> {
+    try {
+      // Get employee to find associated user
+      const employee = await this.getEmployee(employeeId);
+      if (!employee) return false;
+      
+      const user = await this.getUser(employee.userId);
+      if (!user) return false;
+      
+      // Verify current password (in production, this would be hashed)
+      if (user.password !== currentPassword) return false;
+      
+      // Update password (in production, this would be hashed)
+      const updatedUser = await this.updateUser(employee.userId, { password: newPassword });
+      return !!updatedUser;
+    } catch (error) {
+      console.error("Change password error:", error);
+      return false;
+    }
+  }
+
+  async resetEmployeePassword(employeeId: string): Promise<string> {
+    try {
+      // Get employee to find associated user
+      const employee = await this.getEmployee(employeeId);
+      if (!employee) throw new Error("Employee not found");
+      
+      // Generate new temporary password
+      const newPassword = Math.random().toString(36).slice(-8);
+      
+      // Update password (in production, this would be hashed)
+      const updatedUser = await this.updateUser(employee.userId, { password: newPassword });
+      if (!updatedUser) throw new Error("Failed to reset password");
+      
+      return newPassword;
+    } catch (error) {
+      console.error("Reset password error:", error);
+      throw new Error("Failed to reset password");
+    }
   }
 }
 

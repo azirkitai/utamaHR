@@ -175,13 +175,11 @@ export default function EmployeesPage() {
   const createForm = useForm<InsertEmployee>({
     resolver: zodResolver(insertEmployeeSchema),
     defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      position: "",
-      department: "",
-      salary: "",
-      status: "active",
+      userId: "",
+      fullName: "",
+      firstName: "",
+      lastName: "",
+      status: "employed",
     },
   });
 
@@ -189,13 +187,10 @@ export default function EmployeesPage() {
   const editForm = useForm<UpdateEmployee>({
     resolver: zodResolver(updateEmployeeSchema),
     defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      position: "",
-      department: "",
-      salary: "",
-      status: "active",
+      fullName: "",
+      firstName: "",
+      lastName: "",
+      status: "employed",
     },
   });
 
@@ -210,12 +205,9 @@ export default function EmployeesPage() {
   const handleEditEmployee = (employee: Employee) => {
     setEditingEmployee(employee);
     editForm.reset({
-      name: employee.name,
-      email: employee.email,
-      phone: employee.phone || "",
-      position: employee.position,
-      department: employee.department,
-      salary: employee.salary || "",
+      fullName: employee.fullName,
+      firstName: employee.firstName || "",
+      lastName: employee.lastName || "",
       status: employee.status,
     });
     setIsEditDialogOpen(true);
@@ -235,11 +227,11 @@ export default function EmployeesPage() {
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
-      active: { label: "Aktif", variant: "default" as const },
-      inactive: { label: "Tidak Aktif", variant: "secondary" as const },
-      terminated: { label: "Diberhentikan", variant: "destructive" as const },
+      employed: { label: "Employed", variant: "default" as const },
+      terminated: { label: "Terminated", variant: "destructive" as const },
+      retired: { label: "Retired", variant: "secondary" as const },
     };
-    const statusInfo = statusMap[status as keyof typeof statusMap] || statusMap.active;
+    const statusInfo = statusMap[status as keyof typeof statusMap] || statusMap.employed;
     return <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>;
   };
 
@@ -277,7 +269,7 @@ export default function EmployeesPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={createForm.control}
-                      name="name"
+                      name="fullName"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Nama Penuh</FormLabel>
@@ -290,12 +282,12 @@ export default function EmployeesPage() {
                     />
                     <FormField
                       control={createForm.control}
-                      name="email"
+                      name="firstName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel>Nama Pertama</FormLabel>
                           <FormControl>
-                            <Input {...field} type="email" data-testid="input-employee-email" />
+                            <Input {...field} data-testid="input-employee-first-name" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -306,12 +298,12 @@ export default function EmployeesPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={createForm.control}
-                      name="phone"
+                      name="lastName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Telefon (Optional)</FormLabel>
+                          <FormLabel>Nama Akhir</FormLabel>
                           <FormControl>
-                            <Input {...field} data-testid="input-employee-phone" />
+                            <Input {...field} data-testid="input-employee-last-name" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -319,12 +311,12 @@ export default function EmployeesPage() {
                     />
                     <FormField
                       control={createForm.control}
-                      name="position"
+                      name="userId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Jawatan</FormLabel>
+                          <FormLabel>User ID</FormLabel>
                           <FormControl>
-                            <Input {...field} data-testid="input-employee-position" />
+                            <Input {...field} data-testid="input-employee-user-id" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -335,54 +327,29 @@ export default function EmployeesPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={createForm.control}
-                      name="department"
+                      name="status"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Jabatan</FormLabel>
-                          <FormControl>
-                            <Input {...field} data-testid="input-employee-department" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={createForm.control}
-                      name="salary"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Gaji (Optional)</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="RM 3000" data-testid="input-employee-salary" />
-                          </FormControl>
+                          <FormLabel>Status</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-employee-status">
+                                <SelectValue placeholder="Pilih status" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="employed">Employed</SelectItem>
+                              <SelectItem value="terminated">Terminated</SelectItem>
+                              <SelectItem value="retired">Retired</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                   </div>
 
-                  <FormField
-                    control={createForm.control}
-                    name="status"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger data-testid="select-employee-status">
-                              <SelectValue placeholder="Pilih status" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="active">Aktif</SelectItem>
-                            <SelectItem value="inactive">Tidak Aktif</SelectItem>
-                            <SelectItem value="terminated">Diberhentikan</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+
 
                   <DialogFooter>
                     <Button 
@@ -434,12 +401,12 @@ export default function EmployeesPage() {
                 <TableBody>
                   {employees.map((employee) => (
                     <TableRow key={employee.id} data-testid={`row-employee-${employee.id}`}>
-                      <TableCell className="font-medium">{employee.name}</TableCell>
-                      <TableCell>{employee.email}</TableCell>
-                      <TableCell>{employee.position}</TableCell>
-                      <TableCell>{employee.department}</TableCell>
+                      <TableCell className="font-medium">{employee.fullName}</TableCell>
+                      <TableCell>N/A</TableCell>
+                      <TableCell>N/A</TableCell>
+                      <TableCell>N/A</TableCell>
                       <TableCell>{getStatusBadge(employee.status)}</TableCell>
-                      <TableCell>{new Date(employee.joinDate).toLocaleDateString('ms-MY')}</TableCell>
+                      <TableCell>{new Date(employee.createdAt).toLocaleDateString('ms-MY')}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end space-x-2">
                           <Link href={`/employee-details/${employee.id}`}>
@@ -493,7 +460,7 @@ export default function EmployeesPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={editForm.control}
-                    name="name"
+                    name="fullName"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Nama Penuh</FormLabel>
@@ -506,12 +473,12 @@ export default function EmployeesPage() {
                   />
                   <FormField
                     control={editForm.control}
-                    name="email"
+                    name="firstName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel>Nama Pertama</FormLabel>
                         <FormControl>
-                          <Input {...field} type="email" data-testid="input-edit-employee-email" />
+                          <Input {...field} data-testid="input-edit-employee-first-name" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -522,12 +489,12 @@ export default function EmployeesPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={editForm.control}
-                    name="phone"
+                    name="lastName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Telefon</FormLabel>
+                        <FormLabel>Nama Akhir</FormLabel>
                         <FormControl>
-                          <Input {...field} data-testid="input-edit-employee-phone" />
+                          <Input {...field} data-testid="input-edit-employee-last-name" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -535,70 +502,27 @@ export default function EmployeesPage() {
                   />
                   <FormField
                     control={editForm.control}
-                    name="position"
+                    name="status"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Jawatan</FormLabel>
-                        <FormControl>
-                          <Input {...field} data-testid="input-edit-employee-position" />
-                        </FormControl>
+                        <FormLabel>Status</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-edit-employee-status">
+                              <SelectValue placeholder="Pilih status" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="employed">Employed</SelectItem>
+                            <SelectItem value="terminated">Terminated</SelectItem>
+                            <SelectItem value="retired">Retired</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={editForm.control}
-                    name="department"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Jabatan</FormLabel>
-                        <FormControl>
-                          <Input {...field} data-testid="input-edit-employee-department" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={editForm.control}
-                    name="salary"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Gaji</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="RM 3000" data-testid="input-edit-employee-salary" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={editForm.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-edit-employee-status">
-                            <SelectValue placeholder="Pilih status" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="active">Aktif</SelectItem>
-                          <SelectItem value="inactive">Tidak Aktif</SelectItem>
-                          <SelectItem value="terminated">Diberhentikan</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
                 <DialogFooter>
                   <Button 

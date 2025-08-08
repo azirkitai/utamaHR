@@ -105,7 +105,8 @@ export function registerRoutes(app: Express): Server {
         employees = await storage.getAllEmployees();
       } else {
         // Regular employees can only see their own employee record
-        employees = await storage.getEmployeesByUserId(currentUser.id);
+        const employee = await storage.getEmployeeByUserId(currentUser.id);
+        employees = employee ? [employee] : [];
       }
       
       res.json(employees);

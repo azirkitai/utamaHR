@@ -30,6 +30,7 @@ import {
   MapPin,
   Mail
 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import type { Employee, UpdateEmployee } from "@shared/schema";
 
@@ -82,24 +83,19 @@ export default function EmployeeDetailsPage() {
   });
 
   const handleSave = () => {
-    if (!employeeForm.name || !employeeForm.email) {
+    if (!employeeForm.fullName) {
       toast({
         title: "Ralat",
-        description: "Sila isi nama dan email",
+        description: "Sila isi nama penuh",
         variant: "destructive",
       });
       return;
     }
 
     updateEmployeeMutation.mutate({
-      name: employeeForm.name,
+      fullName: employeeForm.fullName,
       firstName: employeeForm.firstName,
       lastName: employeeForm.lastName,
-      email: employeeForm.email,
-      phone: employeeForm.phone,
-      position: employeeForm.position,
-      department: employeeForm.department,
-      company: employeeForm.company,
     });
   };
 
@@ -277,14 +273,14 @@ export default function EmployeeDetailsPage() {
                   <Avatar className="w-20 h-20 border-4 border-white">
                     <AvatarImage src="/placeholder-avatar.png" />
                     <AvatarFallback className="bg-white text-teal-600 text-2xl font-bold">
-                      {employee.name?.charAt(0) || "?"}
+                      {employee.fullName?.charAt(0) || "?"}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h2 className="text-2xl font-bold">{employee.name || "N/A"}</h2>
+                    <h2 className="text-2xl font-bold">{employee.fullName || "N/A"}</h2>
                     <div className="flex items-center gap-4 mt-2">
                       <span className="bg-blue-800 px-3 py-1 rounded text-sm">
-                        {employee.employeeId || "N/A"}
+                        {employee.id || "N/A"}
                       </span>
                       <span className="bg-green-600 px-3 py-1 rounded text-sm">N/A</span>
                     </div>
@@ -294,7 +290,7 @@ export default function EmployeeDetailsPage() {
                     </div>
                     <div className="flex items-center gap-1 mt-1 text-sm">
                       <Mail className="w-4 h-4" />
-                      <span>{employee.email || "N/A"}</span>
+                      <span>{"N/A"}</span>
                     </div>
                   </div>
                 </div>
@@ -302,7 +298,7 @@ export default function EmployeeDetailsPage() {
                   <div className="text-sm opacity-90">User Role</div>
                   <div className="font-semibold">Human Resource</div>
                   <div className="text-sm opacity-90 mt-2">Department</div>
-                  <div className="font-semibold">{employee.department || "Human Resource"}</div>
+                  <div className="font-semibold">{"Human Resource"}</div>
                 </div>
               </div>
             </div>
@@ -342,7 +338,7 @@ export default function EmployeeDetailsPage() {
                           />
                         ) : (
                           <div className="mt-1 p-2 bg-gray-50 rounded border">
-                            {employee.firstName || "NRIC"}
+                            {employee.firstName || "N/A"}
                           </div>
                         )}
                       </div>
@@ -358,7 +354,7 @@ export default function EmployeeDetailsPage() {
                           />
                         ) : (
                           <div className="mt-1 p-2 bg-gray-50 rounded border">
-                            {employee.lastName || "SABRI"}
+                            {employee.lastName || "N/A"}
                           </div>
                         )}
                       </div>
@@ -512,25 +508,25 @@ export default function EmployeeDetailsPage() {
                       <div>
                         <Label className="text-sm font-medium text-gray-700">Employee ID</Label>
                         <div className="mt-1 p-2 bg-gray-50 rounded border">
-                          {employee.employeeId || "N/A"}
+                          {employee.id || "N/A"}
                         </div>
                       </div>
                       <div>
                         <Label className="text-sm font-medium text-gray-700">Position</Label>
                         <div className="mt-1 p-2 bg-gray-50 rounded border">
-                          {employee.position || "N/A"}
+                          N/A
                         </div>
                       </div>
                       <div>
                         <Label className="text-sm font-medium text-gray-700">Department</Label>
                         <div className="mt-1 p-2 bg-gray-50 rounded border">
-                          {employee.department || "N/A"}
+                          N/A
                         </div>
                       </div>
                       <div>
                         <Label className="text-sm font-medium text-gray-700">Company</Label>
                         <div className="mt-1 p-2 bg-gray-50 rounded border">
-                          {employee.company || "N/A"}
+                          N/A
                         </div>
                       </div>
                     </div>
@@ -551,13 +547,13 @@ export default function EmployeeDetailsPage() {
                       <div>
                         <Label className="text-sm font-medium text-gray-700">Email</Label>
                         <div className="mt-1 p-2 bg-gray-50 rounded border">
-                          {employee.email || "N/A"}
+                          N/A
                         </div>
                       </div>
                       <div>
                         <Label className="text-sm font-medium text-gray-700">Phone</Label>
                         <div className="mt-1 p-2 bg-gray-50 rounded border">
-                          {employee.phone || "N/A"}
+                          N/A
                         </div>
                       </div>
                     </div>
