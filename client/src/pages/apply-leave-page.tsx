@@ -36,8 +36,8 @@ export default function ApplyLeavePage() {
   const [leaveType, setLeaveType] = useState("");
   const [applicant, setApplicant] = useState("SITI NADIAH SABRI");
   const [reason, setReason] = useState("");
-  const [isStartFullDay, setIsStartFullDay] = useState(true);
-  const [isEndFullDay, setIsEndFullDay] = useState(true);
+  const [startDayType, setStartDayType] = useState("Full Day");
+  const [endDayType, setEndDayType] = useState("Full Day");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   // Calendar logic
@@ -63,7 +63,15 @@ export default function ApplyLeavePage() {
     const start = new Date(startDate);
     const end = new Date(endDate);
     const diffTime = Math.abs(end.getTime() - start.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    
+    // Adjust for half days
+    if (startDayType === "Half Day" && endDayType === "Half Day") {
+      diffDays = diffDays - 1; // Both are half days
+    } else if (startDayType === "Half Day" || endDayType === "Half Day") {
+      diffDays = diffDays - 0.5; // One is half day
+    }
+    
     return diffDays;
   };
 
@@ -138,8 +146,8 @@ export default function ApplyLeavePage() {
       leaveType,
       startDate,
       endDate,
-      isStartFullDay,
-      isEndFullDay,
+      startDayType,
+      endDayType,
       reason,
       uploadedFile,
       totalDays: calculateTotalDays()
@@ -308,7 +316,15 @@ export default function ApplyLeavePage() {
                     onChange={(e) => setStartDate(e.target.value)}
                     className="flex-1"
                   />
-                  <span className="text-sm text-gray-500">Full Day</span>
+                  <Select value={startDayType} onValueChange={setStartDayType}>
+                    <SelectTrigger className="w-28">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Full Day">Full Day</SelectItem>
+                      <SelectItem value="Half Day">Half Day</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
@@ -322,7 +338,15 @@ export default function ApplyLeavePage() {
                     onChange={(e) => setEndDate(e.target.value)}
                     className="flex-1"
                   />
-                  <span className="text-sm text-gray-500">Full Day</span>
+                  <Select value={endDayType} onValueChange={setEndDayType}>
+                    <SelectTrigger className="w-28">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Full Day">Full Day</SelectItem>
+                      <SelectItem value="Half Day">Half Day</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
