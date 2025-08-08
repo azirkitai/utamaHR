@@ -185,16 +185,30 @@ export default function EmployeeDetailsPage() {
   const handleSavePersonalDetails = () => {
     const updatedData = {
       ...employeeForm,
-      dateOfBirth: dateOfBirth || null,
+      // Ensure dateOfBirth is a Date object if it exists
+      dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
     };
+    // Remove undefined fields to avoid validation errors
+    Object.keys(updatedData).forEach(key => {
+      if (updatedData[key as keyof typeof updatedData] === undefined) {
+        delete updatedData[key as keyof typeof updatedData];
+      }
+    });
     updateEmployeeMutation.mutate(updatedData);
   };
 
   const handleSaveDrivingLicense = () => {
     const updatedData = {
       ...employeeForm,
-      drivingExpiryDate: drivingExpiryDate || null,
+      // Ensure drivingExpiryDate is a Date object if it exists
+      drivingExpiryDate: drivingExpiryDate ? new Date(drivingExpiryDate) : null,
     };
+    // Remove undefined fields to avoid validation errors
+    Object.keys(updatedData).forEach(key => {
+      if (updatedData[key as keyof typeof updatedData] === undefined) {
+        delete updatedData[key as keyof typeof updatedData];
+      }
+    });
     updateEmployeeMutation.mutate(updatedData);
   };
 
