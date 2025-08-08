@@ -487,6 +487,25 @@ export const insertWorkExperienceSchema = createInsertSchema(workExperiences).om
 });
 export const updateWorkExperienceSchema = insertWorkExperienceSchema.partial();
 
+// Leave Application schemas
+export const insertLeaveApplicationSchema = createInsertSchema(leaveApplications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  appliedDate: true,
+}).extend({
+  // Handle date fields to accept strings and convert to Date objects
+  startDate: z.preprocess(
+    (val) => val ? new Date(val as string | Date) : null,
+    z.date()
+  ),
+  endDate: z.preprocess(
+    (val) => val ? new Date(val as string | Date) : null,
+    z.date()
+  ),
+});
+export const updateLeaveApplicationSchema = insertLeaveApplicationSchema.partial();
+
 // QR Token schemas
 export const insertQrTokenSchema = createInsertSchema(qrTokens).omit({
   id: true,
@@ -587,6 +606,11 @@ export type UpdateAppSetting = z.infer<typeof updateAppSettingSchema>;
 // Work Experience types
 export type WorkExperience = typeof workExperiences.$inferSelect;
 export type InsertWorkExperience = z.infer<typeof insertWorkExperienceSchema>;
+
+// Leave Application types
+export type LeaveApplication = typeof leaveApplications.$inferSelect;
+export type InsertLeaveApplication = z.infer<typeof insertLeaveApplicationSchema>;
+export type UpdateLeaveApplication = z.infer<typeof updateLeaveApplicationSchema>;
 
 // Employee Documents table
 export const employeeDocuments = pgTable("employee_documents", {

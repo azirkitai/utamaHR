@@ -17,7 +17,9 @@ import {
   insertOfficeLocationSchema,
   updateOfficeLocationSchema,
   insertWorkExperienceSchema,
-  updateWorkExperienceSchema
+  updateWorkExperienceSchema,
+  insertLeaveApplicationSchema,
+  updateLeaveApplicationSchema
 } from "@shared/schema";
 import { checkEnvironmentSecrets } from "./env-check";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
@@ -1399,6 +1401,76 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error deleting claim policy:", error);
       res.status(500).json({ error: "Gagal memadamkan polisi claim" });
+    }
+  });
+
+  // =================== LEAVE APPLICATION ROUTES ===================
+  
+  // Get all leave applications (for admin/HR/managers)
+  app.get("/api/leave-applications", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      
+      // Check if user has admin privileges to view all applications
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      
+      let leaveApplications;
+      if (adminRoles.includes(currentUser.role)) {
+        // Admin can see all leave applications
+        leaveApplications = await storage.getAllLeaveApplications();
+      } else {
+        // Regular users can only see their own applications
+        const employee = await storage.getEmployeeByUserId(currentUser.id);
+        if (!employee) {
+          return res.status(404).json({ error: "Employee record tidak dijumpai" });
+        }
+        leaveApplications = await storage.getLeaveApplicationsByEmployeeId(employee.id);
+      }
+      
+      res.json(leaveApplications);
+    } catch (error) {
+      console.error("Get leave applications error:", error);
+      res.status(500).json({ error: "Gagal mendapatkan permohonan cuti" });
+    }
+  });
+
+  // Create new leave application
+  app.post("/api/leave-applications", authenticateToken, async (req, res) => {
+    try {
+      const validatedData = insertLeaveApplicationSchema.parse(req.body);
+      const leaveApplication = await storage.createLeaveApplication(validatedData);
+      res.status(201).json(leaveApplication);
+    } catch (error) {
+      console.error("Create leave application error:", error);
+      res.status(400).json({ error: "Gagal menambah permohonan cuti" });
+    }
+  });
+
+  // Update leave application (for approval/rejection)
+  app.put("/api/leave-applications/:id", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      
+      // Only admin roles can update leave applications (approve/reject)
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (!adminRoles.includes(currentUser.role)) {
+        return res.status(403).json({ error: "Tidak dibenarkan untuk mengemaskini permohonan cuti" });
+      }
+      
+      const validatedData = updateLeaveApplicationSchema.parse({
+        ...req.body,
+        reviewedBy: currentUser.id,
+        reviewedDate: new Date()
+      });
+      
+      const leaveApplication = await storage.updateLeaveApplication(req.params.id, validatedData);
+      if (!leaveApplication) {
+        return res.status(404).json({ error: "Permohonan cuti tidak dijumpai" });
+      }
+      res.json(leaveApplication);
+    } catch (error) {
+      console.error("Update leave application error:", error);
+      res.status(400).json({ error: "Gagal mengemaskini permohonan cuti" });
     }
   });
 

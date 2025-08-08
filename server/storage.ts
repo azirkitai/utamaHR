@@ -77,7 +77,12 @@ import {
   workExperiences,
   qrTokens,
   officeLocations,
-  clockInRecords
+  clockInRecords,
+  leaveApplications,
+  // Leave Application types
+  type LeaveApplication,
+  type InsertLeaveApplication,
+  type UpdateLeaveApplication
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -181,6 +186,13 @@ export interface IStorage {
   // =================== PASSWORD MANAGEMENT METHODS ===================
   changeEmployeePassword(employeeId: string, currentPassword: string, newPassword: string): Promise<boolean>;
   resetEmployeePassword(employeeId: string): Promise<string>;
+  
+  // =================== LEAVE APPLICATION METHODS ===================
+  getAllLeaveApplications(): Promise<LeaveApplication[]>;
+  getLeaveApplicationsByEmployeeId(employeeId: string): Promise<LeaveApplication[]>;
+  createLeaveApplication(leaveApplication: InsertLeaveApplication): Promise<LeaveApplication>;
+  updateLeaveApplication(id: string, leaveApplication: UpdateLeaveApplication): Promise<LeaveApplication | undefined>;
+  deleteLeaveApplication(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -757,6 +769,39 @@ export class DatabaseStorage implements IStorage {
 
   async deleteClaimPolicy(id: string): Promise<boolean> {
     const result = await db.delete(claimPolicy).where(eq(claimPolicy.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+  
+  // =================== LEAVE APPLICATION METHODS ===================
+  async getAllLeaveApplications(): Promise<LeaveApplication[]> {
+    return await db.select().from(leaveApplications).orderBy(desc(leaveApplications.appliedDate));
+  }
+  
+  async getLeaveApplicationsByEmployeeId(employeeId: string): Promise<LeaveApplication[]> {
+    return await db.select().from(leaveApplications)
+      .where(eq(leaveApplications.employeeId, employeeId))
+      .orderBy(desc(leaveApplications.appliedDate));
+  }
+  
+  async createLeaveApplication(insertLeaveApplication: InsertLeaveApplication): Promise<LeaveApplication> {
+    const [leaveApplication] = await db
+      .insert(leaveApplications)
+      .values(insertLeaveApplication)
+      .returning();
+    return leaveApplication;
+  }
+  
+  async updateLeaveApplication(id: string, updateLeaveApplication: UpdateLeaveApplication): Promise<LeaveApplication | undefined> {
+    const [leaveApplication] = await db
+      .update(leaveApplications)
+      .set(updateLeaveApplication)
+      .where(eq(leaveApplications.id, id))
+      .returning();
+    return leaveApplication || undefined;
+  }
+  
+  async deleteLeaveApplication(id: string): Promise<boolean> {
+    const result = await db.delete(leaveApplications).where(eq(leaveApplications.id, id));
     return (result.rowCount ?? 0) > 0;
   }
 }

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DashboardLayout } from "@/components/dashboard-layout";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/use-auth";
 
 const months = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -69,20 +72,93 @@ const pendingApplications = [
 ];
 
 export default function ApplyLeavePage() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
   // Fetch active leave policies from database
   const { data: activeLeaveTypes = [], isLoading: isLoadingLeaveTypes } = useQuery<string[]>({
     queryKey: ["/api/active-leave-policies"],
+  });
+
+  // Fetch all employees for role-based dropdown
+  const { data: allEmployees = [] } = useQuery({
+    queryKey: ["/api/employees"],
+    enabled: !!user
+  });
+
+  // Fetch leave applications for pending view
+  const { data: leaveApplications = [] } = useQuery({
+    queryKey: ["/api/leave-applications"],
+    enabled: !!user
   });
   const [currentDate, setCurrentDate] = useState(new Date());
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [leaveType, setLeaveType] = useState("");
-  const [applicant, setApplicant] = useState("SITI NADIAH SABRI");
+  const [applicant, setApplicant] = useState("");
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
   const [reason, setReason] = useState("");
   const [startDayType, setStartDayType] = useState("Full Day");
   const [endDayType, setEndDayType] = useState("Full Day");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
+
+  // Check if user can select other employees (role-based)
+  const canSelectOtherEmployees = user?.role && ['Super Admin', 'Admin', 'HR Manager', 'PIC'].includes(user.role);
+
+  // Set default applicant based on role and employee data
+  useEffect(() => {
+    if (user && allEmployees.length > 0 && !selectedEmployeeId) {
+      if (canSelectOtherEmployees) {
+        // Admin roles can select any employee, default to first employee
+        const firstEmployee = allEmployees[0];
+        setApplicant(firstEmployee?.fullName || "");
+        setSelectedEmployeeId(firstEmployee?.id || "");
+      } else {
+        // Regular users can only apply for themselves
+        const currentEmployee = allEmployees.find(emp => emp.userId === user.id);
+        if (currentEmployee) {
+          setApplicant(currentEmployee.fullName);
+          setSelectedEmployeeId(currentEmployee.id);
+        }
+      }
+    }
+  }, [user, allEmployees, canSelectOtherEmployees, selectedEmployeeId]);
+
+  // Create leave application mutation
+  const createLeaveApplicationMutation = useMutation({
+    mutationFn: async (leaveData: any) => {
+      return apiRequest("/api/leave-applications", {
+        method: "POST",
+        body: JSON.stringify(leaveData),
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Berjaya",
+        description: "Permohonan cuti telah dihantar",
+      });
+      // Reset form
+      setStartDate("");
+      setEndDate("");
+      setLeaveType("");
+      setReason("");
+      setStartDayType("Full Day");
+      setEndDayType("Full Day");
+      setUploadedFile(null);
+      // Keep selected employee for ease of use
+      // Refresh leave applications
+      queryClient.invalidateQueries({ queryKey: ["/api/leave-applications"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Ralat",
+        description: error.message || "Gagal menghantar permohonan cuti",
+        variant: "destructive",
+      });
+    },
+  });
 
   // Calendar logic
   const year = currentDate.getFullYear();
@@ -184,18 +260,29 @@ export default function ApplyLeavePage() {
   };
 
   const handleApply = () => {
-    // Handle form submission
-    console.log({
-      applicant,
-      leaveType,
-      startDate,
-      endDate,
-      startDayType,
-      endDayType,
-      reason,
-      uploadedFile,
-      totalDays: calculateTotalDays()
-    });
+    if (!leaveType || !startDate || !endDate || !reason || !selectedEmployeeId) {
+      toast({
+        title: "Ralat",
+        description: "Sila lengkapkan semua maklumat yang diperlukan",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const leaveData = {
+      employeeId: selectedEmployeeId,
+      applicant: applicant,
+      leaveType: leaveType,
+      startDate: new Date(startDate).toISOString(),
+      endDate: new Date(endDate).toISOString(),
+      startDayType: startDayType,
+      endDayType: endDayType,
+      totalDays: calculateTotalDays(),
+      reason: reason,
+      supportingDocument: uploadedFile?.name || null,
+    };
+
+    createLeaveApplicationMutation.mutate(leaveData);
   };
 
   return (
@@ -322,14 +409,14 @@ export default function ApplyLeavePage() {
                 // List view for pending applications
                 <div className="space-y-4">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-gray-900">Pending Applications</h3>
-                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                      {pendingApplications.length} Pending
+                    <h3 className="font-semibold text-gray-900">Leave Applications</h3>
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                      {leaveApplications.length} Applications
                     </Badge>
                   </div>
                   
-                  {pendingApplications.length > 0 ? (
-                    pendingApplications.map((app) => (
+                  {leaveApplications.length > 0 ? (
+                    leaveApplications.map((app: any) => (
                       <div key={app.id} className="border rounded-lg p-4 bg-white shadow-sm">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center space-x-3">
@@ -343,7 +430,15 @@ export default function ApplyLeavePage() {
                               <p className="text-sm text-gray-500">{app.leaveType}</p>
                             </div>
                           </div>
-                          <Badge variant="outline" className="border-yellow-500 text-yellow-700">
+                          <Badge 
+                            variant="outline" 
+                            className={cn(
+                              app.status === "Pending" ? "border-yellow-500 text-yellow-700" :
+                              app.status === "Approved" ? "border-green-500 text-green-700" :
+                              app.status === "Rejected" ? "border-red-500 text-red-700" :
+                              "border-gray-500 text-gray-700"
+                            )}
+                          >
                             {app.status}
                           </Badge>
                         </div>
@@ -375,7 +470,7 @@ export default function ApplyLeavePage() {
                     ))
                   ) : (
                     <div className="text-center py-8 text-gray-500">
-                      No pending applications found
+                      No leave applications found
                     </div>
                   )}
                 </div>
@@ -391,17 +486,42 @@ export default function ApplyLeavePage() {
               <CardTitle className="text-center">Apply Leave</CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-6">
-              {/* Applicant */}
+              {/* Applicant - Role Based */}
               <div>
                 <Label className="text-sm font-medium text-gray-700">Applicant</Label>
-                <Select value={applicant} onValueChange={setApplicant}>
+                <Select 
+                  value={selectedEmployeeId} 
+                  onValueChange={(value) => {
+                    setSelectedEmployeeId(value);
+                    const selectedEmployee = allEmployees.find(emp => emp.id === value);
+                    setApplicant(selectedEmployee?.fullName || "");
+                  }}
+                  disabled={!canSelectOtherEmployees && allEmployees.length === 0}
+                >
                   <SelectTrigger className="mt-1">
-                    <SelectValue />
+                    <SelectValue placeholder="Pilih pekerja" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="SITI NADIAH SABRI">SITI NADIAH SABRI</SelectItem>
-                    <SelectItem value="AHMAD ALI BIN HASSAN">AHMAD ALI BIN HASSAN</SelectItem>
-                    <SelectItem value="FARAH DIANA BINTI MOHD">FARAH DIANA BINTI MOHD</SelectItem>
+                    {canSelectOtherEmployees ? (
+                      // Admin roles can see all employees
+                      allEmployees.map(employee => (
+                        <SelectItem key={employee.id} value={employee.id}>
+                          {employee.fullName}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      // Regular users can only see themselves
+                      allEmployees
+                        .filter(emp => emp.userId === user?.id)
+                        .map(employee => (
+                          <SelectItem key={employee.id} value={employee.id}>
+                            {employee.fullName}
+                          </SelectItem>
+                        ))
+                    )}
+                    {allEmployees.length === 0 && (
+                      <div className="px-2 py-1.5 text-sm text-gray-500">No employees found</div>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -512,9 +632,9 @@ export default function ApplyLeavePage() {
               <Button 
                 onClick={handleApply}
                 className="w-full bg-slate-600 hover:bg-slate-700"
-                disabled={!startDate || !endDate || !leaveType}
+                disabled={!startDate || !endDate || !leaveType || !selectedEmployeeId || createLeaveApplicationMutation.isPending}
               >
-                Apply Now
+                {createLeaveApplicationMutation.isPending ? "Submitting..." : "Apply Now"}
               </Button>
             </CardContent>
           </Card>
