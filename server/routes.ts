@@ -94,7 +94,7 @@ async function processClockOut(
     const selfieImagePath = objectStorageService.normalizeSelfieImagePath(selfieImageUrl);
 
     // Mark QR token as used
-    await storage.markQrTokenAsUsed(qrToken.token);
+    await storage.markQrTokenAsUsed(token);
 
     // Calculate total hours
     const clockInTime = new Date(todayAttendance.clockInTime);
@@ -822,6 +822,14 @@ export function registerRoutes(app: Express): Server {
 
       const todayAttendance = await storage.getTodayAttendanceRecord(employee.id, today);
       
+      console.log("=== CLOCK-IN/OUT DEBUG ===");
+      console.log("Employee ID:", employee.id);
+      console.log("Today:", today.toISOString().split('T')[0]);
+      console.log("Today Attendance:", todayAttendance);
+      console.log("Clock In Time:", todayAttendance?.clockInTime);
+      console.log("Clock Out Time:", todayAttendance?.clockOutTime);
+      console.log("=== END DEBUG ===");
+      
       // If already clocked in today, check if clock out is needed
       if (todayAttendance && todayAttendance.clockInTime) {
         if (todayAttendance.clockOutTime) {
@@ -833,6 +841,7 @@ export function registerRoutes(app: Express): Server {
         }
         // Has clock-in but no clock-out, so this should be clock-out
         // Process as clock-out
+        console.log("Converting clock-in request to clock-out for user:", qrToken.userId);
         return await processClockOut(res, qrToken, todayAttendance, latitude, longitude, selfieImageUrl, storage);
       }
 
