@@ -105,8 +105,8 @@ const settingsMenuItems = [
   },
 ];
 
-// Leave policies data
-const leavePolicies = [
+// Initial leave policies data
+const initialLeavePolicies = [
   { id: "annual", name: "Annual Leave", entitlement: "12 Day(s)", enabled: true },
   { id: "medical", name: "Medical Leave", entitlement: "90 Day(s)", enabled: true },
   { id: "compassionate-paternity", name: "Compassionate Leave - Paternity Leave", entitlement: "7 Day(s)", enabled: true },
@@ -147,6 +147,9 @@ export default function SystemSettingPage() {
   const [location] = useLocation();
   const [activeTab, setActiveTab] = useState("leave");
   const [claimActiveTab, setClaimActiveTab] = useState("financial");
+  
+  // Leave policies state management
+  const [leavePolicies, setLeavePolicies] = useState(initialLeavePolicies);
   
   const [leaveApproval, setLeaveApproval] = useState({
     firstLevel: "",
@@ -579,6 +582,34 @@ export default function SystemSettingPage() {
 
   const handleSaveLeaveApproval = () => {
     console.log("Save leave approval:", leaveApproval);
+  };
+
+  // Handler untuk toggle leave policy switch
+  const handleToggleLeavePolicy = async (policyId: string, enabled: boolean) => {
+    // Update local state immediately
+    setLeavePolicies(prevPolicies => 
+      prevPolicies.map(policy => 
+        policy.id === policyId ? { ...policy, enabled } : policy
+      )
+    );
+    
+    try {
+      // Sila implementasi API call untuk save ke database
+      // Untuk sekarang, hanya log untuk testing
+      console.log(`Toggle leave policy ${policyId} to ${enabled}`);
+      
+      // TODO: Tambah API call untuk update database
+      // await apiRequest("PUT", `/api/leave-policy/${policyId}`, { included: enabled });
+      
+    } catch (error) {
+      console.error("Error updating leave policy:", error);
+      // Revert local state jika API call gagal
+      setLeavePolicies(prevPolicies => 
+        prevPolicies.map(policy => 
+          policy.id === policyId ? { ...policy, enabled: !enabled } : policy
+        )
+      );
+    }
   };
 
   const handleSaveTimeoffApproval = () => {
@@ -1545,6 +1576,7 @@ export default function SystemSettingPage() {
                     </Button>
                     <Switch 
                       checked={policy.enabled}
+                      onCheckedChange={(checked) => handleToggleLeavePolicy(policy.id, checked)}
                       className="data-[state=checked]:bg-blue-900"
                       data-testid={`switch-${policy.id}`}
                     />
