@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { ObjectUploader } from "@/components/ObjectUploader";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import DashboardLayout from "@/components/dashboard-layout";
@@ -34,7 +35,8 @@ import {
   Plus,
   Eye,
   Trash2,
-  Car
+  Car,
+  Camera
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
@@ -260,6 +262,51 @@ export default function EmployeeDetailsPage() {
       return `${displayYears} tahun`;
     } else {
       return `${displayMonths} bulan`;
+    }
+  };
+
+  // Profile picture upload handlers
+  const handleGetProfileUploadParameters = async () => {
+    try {
+      const response = await apiRequest("POST", "/api/objects/upload");
+      const data = await response.json();
+      return {
+        method: "PUT" as const,
+        url: data.uploadURL,
+      };
+    } catch (error) {
+      console.error("Error getting upload parameters:", error);
+      throw error;
+    }
+  };
+
+  const handleProfileUploadComplete = async (result: any) => {
+    try {
+      if (result.successful && result.successful.length > 0) {
+        const uploadedFile = result.successful[0];
+        const profileImageURL = uploadedFile.uploadURL;
+
+        // Update employee profile with the new image URL
+        const response = await apiRequest("PUT", `/api/employees/${id}/profile-image`, {
+          profileImageUrl: profileImageURL
+        });
+
+        if (response.ok) {
+          toast({
+            title: "Berjaya",
+            description: "Gambar profil telah dikemaskini",
+          });
+          // Refresh employee data to show new profile image
+          queryClient.invalidateQueries({ queryKey: ["/api/employees", id] });
+        }
+      }
+    } catch (error) {
+      console.error("Error updating profile image:", error);
+      toast({
+        title: "Ralat",
+        description: "Gagal mengemaskini gambar profil",
+        variant: "destructive",
+      });
     }
   };
 
@@ -554,12 +601,27 @@ export default function EmployeeDetailsPage() {
           <div className="bg-gradient-to-r from-teal-500 to-blue-600 text-white p-6 mx-6 mt-6 rounded-lg shadow-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-6">
-                  <Avatar className="w-20 h-20 border-4 border-white">
-                    <AvatarImage src="/placeholder-avatar.png" />
-                    <AvatarFallback className="bg-white text-teal-600 text-2xl font-bold">
-                      {employee?.fullName?.charAt(0) || "?"}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="relative group">
+                    <Avatar className="w-20 h-20 border-4 border-white cursor-pointer">
+                      <AvatarImage src={employee?.profileImageUrl || ""} />
+                      <AvatarFallback className="bg-white text-teal-600 text-2xl font-bold">
+                        {employee?.fullName?.charAt(0) || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                    {/* Upload Overlay */}
+                    <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <ObjectUploader
+                        maxNumberOfFiles={1}
+                        maxFileSize={5242880} // 5MB
+                        onGetUploadParameters={handleGetProfileUploadParameters}
+                        onComplete={handleProfileUploadComplete}
+                        buttonClassName="bg-transparent hover:bg-transparent border-none p-2"
+                      >
+                        <Camera className="w-6 h-6 text-white" />
+                      </ObjectUploader>
+                    </div>
+                  </div>
                   <div>
                     <h2 className="text-2xl font-bold">{employee?.fullName || "N/A"}</h2>
                     <div className="flex items-center gap-4 mt-2">

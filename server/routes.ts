@@ -837,6 +837,87 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // =================== OBJECT STORAGE ROUTES ===================
+  // The endpoint for serving private objects with authentication and ACL check
+  app.get("/objects/:objectPath(*)", authenticateToken, async (req, res) => {
+    const userId = req.user?.id;
+    const objectStorageService = new ObjectStorageService();
+    try {
+      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      const canAccess = await objectStorageService.canAccessObjectEntity({
+        objectFile,
+        userId: userId,
+        requestedPermission: "read" as any,
+      });
+      if (!canAccess) {
+        return res.sendStatus(401);
+      }
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error checking object access:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
+    }
+  });
+
+  // Get upload URL for object entity (for file uploads)
+  app.post("/api/objects/upload", authenticateToken, async (req, res) => {
+    try {
+      const objectStorageService = new ObjectStorageService();
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      res.json({ uploadURL });
+    } catch (error) {
+      console.error("Error getting upload URL:", error);
+      res.status(500).json({ error: "Gagal mendapatkan URL upload" });
+    }
+  });
+
+  // Update employee profile image
+  app.put("/api/employees/:id/profile-image", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      
+      // Only admin and HR can update employee profile images
+      if (currentUser.role !== 'admin' && currentUser.role !== 'hr') {
+        return res.status(403).json({ error: "Tidak dibenarkan untuk mengemaskini gambar profil" });
+      }
+
+      const { profileImageUrl } = req.body;
+      if (!profileImageUrl) {
+        return res.status(400).json({ error: "profileImageUrl diperlukan" });
+      }
+
+      const objectStorageService = new ObjectStorageService();
+      const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
+        profileImageUrl,
+        {
+          owner: req.params.id, // Employee ID as owner
+          visibility: "public", // Profile images are public
+        }
+      );
+
+      // Update employee record with profile image URL
+      const employee = await storage.updateEmployee(req.params.id, { 
+        profileImageUrl: objectPath 
+      });
+      
+      if (!employee) {
+        return res.status(404).json({ error: "Employee tidak dijumpai" });
+      }
+
+      res.json({ 
+        success: true, 
+        objectPath,
+        message: "Gambar profil berjaya dikemaskini" 
+      });
+    } catch (error) {
+      console.error("Error updating profile image:", error);
+      res.status(500).json({ error: "Gagal mengemaskini gambar profil" });
+    }
+  });
+
   // Public health check (no auth required)
   app.get("/api/health", (req, res) => {
     const envCheck = checkEnvironmentSecrets();
