@@ -91,12 +91,13 @@ export function registerRoutes(app: Express): Server {
       
       let targetEmployeeId = employeeId;
       
-      // If not admin and no employeeId provided, get employee ID from user ID
-      if (!hasAdminAccess && !employeeId) {
+      // For non-admin users, ALWAYS force to their own employee ID
+      if (!hasAdminAccess) {
         const employee = await storage.getEmployeeByUserId(req.user!.id);
         if (!employee) {
           return res.status(404).json({ error: "Employee record tidak dijumpai" });
         }
+        // Force to own employee ID regardless of what was requested
         targetEmployeeId = employee.id;
       }
 

@@ -48,7 +48,7 @@ export default function MyRecordPage() {
         dateTo: format(filters.dateTo, 'yyyy-MM-dd'),
       });
       
-      // Only add employeeId if admin and specific employee is requested
+      // Admin users can request specific employee data, non-admin users are automatically restricted to their own data by server
       if (hasAdminAccess && filters.searchTerm) {
         params.append('employeeId', filters.searchTerm);
       }
