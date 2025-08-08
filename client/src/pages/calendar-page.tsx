@@ -101,11 +101,7 @@ export default function CalendarPage() {
   const [currentMonth, setCurrentMonth] = useState("August 2025");
   const [currentWeek, setCurrentWeek] = useState("Aug 4 – 10, 2025");
 
-  // Get current user's employee data to check role
-  const { data: currentEmployee } = useQuery({
-    queryKey: ['/api/employees', user?.id],
-    enabled: !!user?.id
-  });
+  // User role is available from useAuth hook
   
   // Modal states
   const [isGenerateHolidayOpen, setIsGenerateHolidayOpen] = useState(false);
@@ -131,16 +127,12 @@ export default function CalendarPage() {
 
   // Role-based access control functions
   const canAccessHolidayButtons = () => {
-    if (!currentEmployee || !Array.isArray(currentEmployee) || currentEmployee.length === 0) return false;
-    const employee = currentEmployee[0];
-    const role = employee?.role;
+    const role = (user as any)?.role;
     return role && ['Super Admin', 'Admin', 'HR Manager', 'PIC'].includes(role);
   };
 
   const canAccessAddEvent = () => {
-    if (!currentEmployee || !Array.isArray(currentEmployee) || currentEmployee.length === 0) return false;
-    const employee = currentEmployee[0];
-    const role = employee?.role;
+    const role = (user as any)?.role;
     return role && ['Super Admin', 'Admin', 'HR Manager', 'PIC', 'Manager/Supervisor'].includes(role);
   };
 
