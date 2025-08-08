@@ -220,6 +220,28 @@ export const leavePolicy = pgTable("leave_policy", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Leave Applications Table 
+export const leaveApplications = pgTable("leave_applications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  employeeId: varchar("employee_id").notNull().references(() => employees.id),
+  applicant: text("applicant").notNull(),
+  leaveType: text("leave_type").notNull(),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  startDayType: text("start_day_type").notNull().default("Full Day"), // Full Day or Half Day
+  endDayType: text("end_day_type").notNull().default("Full Day"),
+  totalDays: decimal("total_days", { precision: 4, scale: 1 }).notNull(),
+  reason: text("reason").notNull(),
+  supportingDocument: text("supporting_document"), // file path/name
+  status: text("status").notNull().default("Pending"), // Pending, Approved, Rejected
+  appliedDate: timestamp("applied_date").defaultNow().notNull(),
+  reviewedBy: varchar("reviewed_by").references(() => users.id), // user ID who approved/rejected
+  reviewedDate: timestamp("reviewed_date"),
+  reviewComments: text("review_comments"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // 10. Claim Policy Table (Claim Policy tab)
 export const claimPolicy = pgTable("claim_policy", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
