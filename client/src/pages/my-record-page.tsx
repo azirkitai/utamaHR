@@ -9,7 +9,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format, addDays, subDays } from "date-fns";
-import { CalendarIcon, Download, Filter, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { CalendarIcon, Download, Filter, Search, ChevronLeft, ChevronRight, Calendar as CalendarLucide, Clock, FileText, CreditCard, Users, DollarSign } from "lucide-react";
 
 type TabType = "leave" | "timeoff" | "claim" | "overtime" | "attendance" | "payment";
 
@@ -31,12 +31,12 @@ export default function MyRecordPage() {
   });
 
   const tabs = [
-    { id: "leave", label: "Leave", icon: "🟢" },
-    { id: "timeoff", label: "Timeoff", icon: "🔵" },
-    { id: "claim", label: "Financial Claim", icon: "💰" },
-    { id: "overtime", label: "Overtime", icon: "⏰" },
-    { id: "attendance", label: "Attendance", icon: "📋" },
-    { id: "payment", label: "Payment", icon: "💳" }
+    { id: "leave", label: "Leave", icon: <CalendarLucide className="w-4 h-4 text-gray-600" /> },
+    { id: "timeoff", label: "Timeoff", icon: <Clock className="w-4 h-4 text-gray-600" /> },
+    { id: "claim", label: "Financial Claim", icon: <DollarSign className="w-4 h-4 text-gray-600" /> },
+    { id: "overtime", label: "Overtime", icon: <Clock className="w-4 h-4 text-gray-600" /> },
+    { id: "attendance", label: "Attendance", icon: <FileText className="w-4 h-4 text-gray-600" /> },
+    { id: "payment", label: "Payment", icon: <CreditCard className="w-4 h-4 text-gray-600" /> }
   ];
 
   const formatDateRange = () => {
