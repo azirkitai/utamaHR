@@ -505,7 +505,7 @@ export default function EmployeeDetailsPage() {
                       </div>
                     </CardHeader>
                     <CardContent className="p-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                         <div className="space-y-2">
                           <Label className="text-sm font-medium text-gray-700 block">First Name</Label>
                           {isEditingPersonal ? (
