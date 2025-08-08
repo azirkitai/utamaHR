@@ -430,10 +430,13 @@ export default function ManageEmployeePage() {
                               <SelectValue placeholder="Select user role" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="admin">Admin</SelectItem>
-                              <SelectItem value="hr">HR</SelectItem>
-                              <SelectItem value="employee">Employee</SelectItem>
-                              <SelectItem value="manager">Manager</SelectItem>
+                              <SelectItem value="Super Admin">Super Admin</SelectItem>
+                              <SelectItem value="Admin">Admin</SelectItem>
+                              <SelectItem value="HR Manager">HR Manager</SelectItem>
+                              <SelectItem value="PIC">PIC</SelectItem>
+                              <SelectItem value="Finance/Account">Finance/Account</SelectItem>
+                              <SelectItem value="Manager/Supervisor">Manager/Supervisor</SelectItem>
+                              <SelectItem value="Staff/Employee">Staff/Employee</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>

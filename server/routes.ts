@@ -66,8 +66,9 @@ export function registerRoutes(app: Express): Server {
     try {
       const currentUser = req.user!;
       
-      // Only admin and HR can create new staff user accounts
-      if (currentUser.role !== 'admin' && currentUser.role !== 'hr') {
+      // Only admin roles can create new staff user accounts
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (!adminRoles.includes(currentUser.role)) {
         return res.status(403).json({ error: "Tidak dibenarkan untuk membuat akaun staff baru" });
       }
       
@@ -105,9 +106,10 @@ export function registerRoutes(app: Express): Server {
       const currentUser = req.user!;
       let employees;
       
-      // Role-based access control
-      if (currentUser.role === 'admin' || currentUser.role === 'hr') {
-        // Admin and HR can see all employees with details
+      // Role-based access control for new role system
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (adminRoles.includes(currentUser.role)) {
+        // Admin roles can see all employees with details
         employees = await storage.getAllEmployeesWithDetails();
       } else {
         // Regular employees can only see their own employee record
@@ -142,8 +144,9 @@ export function registerRoutes(app: Express): Server {
       }
       
       // Role-based access control for individual employee access
-      if (currentUser.role === 'admin' || currentUser.role === 'hr') {
-        // Admin and HR can access any employee record
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (adminRoles.includes(currentUser.role)) {
+        // Admin roles can access any employee record
         res.json(employee);
       } else {
         // Regular employees can only access their own record
@@ -163,8 +166,9 @@ export function registerRoutes(app: Express): Server {
     try {
       const currentUser = req.user!;
       
-      // Only admin and HR can create new employee records
-      if (currentUser.role !== 'admin' && currentUser.role !== 'hr') {
+      // Only admin roles can create new employee records
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (!adminRoles.includes(currentUser.role)) {
         return res.status(403).json({ error: "Tidak dibenarkan untuk menambah pekerja baru" });
       }
       
@@ -197,8 +201,9 @@ export function registerRoutes(app: Express): Server {
       }
       
       // Role-based access control for updating
-      if (currentUser.role === 'admin' || currentUser.role === 'hr') {
-        // Admin and HR can update any employee record
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (adminRoles.includes(currentUser.role)) {
+        // Admin roles can update any employee record
       } else {
         // Regular employees can only update their own record
         if (existingEmployee.userId !== currentUser.id) {
@@ -219,9 +224,9 @@ export function registerRoutes(app: Express): Server {
     try {
       const currentUser = req.user!;
       
-      // Only admin can delete employee records
-      if (currentUser.role !== 'admin') {
-        return res.status(403).json({ error: "Hanya admin yang dibenarkan menghapuskan data pekerja" });
+      // Only Super Admin and Admin can delete employee records
+      if (currentUser.role !== 'Super Admin' && currentUser.role !== 'Admin') {
+        return res.status(403).json({ error: "Hanya Super Admin dan Admin yang dibenarkan menghapuskan data pekerja" });
       }
       
       const deleted = await storage.deleteEmployee(req.params.id);
@@ -275,7 +280,8 @@ export function registerRoutes(app: Express): Server {
       const employment = await storage.getEmploymentByEmployeeId(req.params.employeeId);
       
       // Role-based access control
-      if (currentUser.role === 'admin' || currentUser.role === 'hr') {
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (adminRoles.includes(currentUser.role)) {
         res.json(employment);
       } else {
         // Regular employees can only access their own employment record
@@ -294,8 +300,9 @@ export function registerRoutes(app: Express): Server {
     try {
       const currentUser = req.user!;
       
-      // Only admin and HR can create employment records
-      if (currentUser.role !== 'admin' && currentUser.role !== 'hr') {
+      // Only admin roles can create employment records
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (!adminRoles.includes(currentUser.role)) {
         return res.status(403).json({ error: "Tidak dibenarkan untuk menambah maklumat pekerjaan" });
       }
       
@@ -312,8 +319,9 @@ export function registerRoutes(app: Express): Server {
     try {
       const currentUser = req.user!;
       
-      // Only admin and HR can update employment records
-      if (currentUser.role !== 'admin' && currentUser.role !== 'hr') {
+      // Only admin roles can update employment records
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (!adminRoles.includes(currentUser.role)) {
         return res.status(403).json({ error: "Tidak dibenarkan untuk mengemaskini maklumat pekerjaan" });
       }
       
@@ -336,7 +344,8 @@ export function registerRoutes(app: Express): Server {
       const contact = await storage.getContactByEmployeeId(req.params.employeeId);
       
       // Role-based access control
-      if (currentUser.role === 'admin' || currentUser.role === 'hr') {
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (adminRoles.includes(currentUser.role)) {
         res.json(contact);
       } else {
         // Regular employees can only access their own contact record
@@ -355,8 +364,9 @@ export function registerRoutes(app: Express): Server {
     try {
       const currentUser = req.user!;
       
-      // Only admin and HR can create contact records
-      if (currentUser.role !== 'admin' && currentUser.role !== 'hr') {
+      // Only admin roles can create contact records
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (!adminRoles.includes(currentUser.role)) {
         return res.status(403).json({ error: "Tidak dibenarkan untuk menambah maklumat kontak" });
       }
       
@@ -373,8 +383,9 @@ export function registerRoutes(app: Express): Server {
     try {
       const currentUser = req.user!;
       
-      // Only admin and HR can update contact records
-      if (currentUser.role !== 'admin' && currentUser.role !== 'hr') {
+      // Only admin roles can update contact records
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (!adminRoles.includes(currentUser.role)) {
         return res.status(403).json({ error: "Tidak dibenarkan untuk mengemaskini maklumat kontak" });
       }
       
@@ -881,8 +892,9 @@ export function registerRoutes(app: Express): Server {
     try {
       const currentUser = req.user!;
       
-      // Only admin and HR can update employee profile images
-      if (currentUser.role !== 'admin' && currentUser.role !== 'hr') {
+      // Only admin roles can update employee profile images
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (!adminRoles.includes(currentUser.role)) {
         return res.status(403).json({ error: "Tidak dibenarkan untuk mengemaskini gambar profil" });
       }
 
