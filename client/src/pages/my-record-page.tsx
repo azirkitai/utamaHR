@@ -40,10 +40,39 @@ export default function MyRecordPage() {
   const hasAdminAccess = (user as any)?.role && ['Super Admin', 'Admin', 'HR Manager', 'PIC'].includes((user as any).role);
 
   // Fetch attendance records from database
-  const { data: attendanceRecords = [], isLoading: isLoadingAttendance } = useQuery({
-    queryKey: ['/api/attendance-records', filters.dateFrom, filters.dateTo, hasAdminAccess ? null : user?.id],
+  const { data: attendanceRecords = [], isLoading: isLoadingAttendance, error: attendanceError } = useQuery({
+    queryKey: ['/api/attendance-records', filters.dateFrom.toISOString(), filters.dateTo.toISOString(), hasAdminAccess ? null : user?.id],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        dateFrom: format(filters.dateFrom, 'yyyy-MM-dd'),
+        dateTo: format(filters.dateTo, 'yyyy-MM-dd'),
+      });
+      
+      // Only add employeeId if admin and specific employee is requested
+      if (hasAdminAccess && filters.searchTerm) {
+        params.append('employeeId', filters.searchTerm);
+      }
+      
+      console.log('Fetching attendance records with params:', params.toString());
+      const response = await fetch(`/api/attendance-records?${params}`);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Attendance records API error:', errorData);
+        throw new Error(errorData.error || 'Failed to fetch attendance records');
+      }
+      
+      const data = await response.json();
+      console.log('Attendance records fetched:', data.length, 'records');
+      return data as AttendanceRecord[];
+    },
     enabled: !!user && activeTab === 'attendance'
   });
+
+  // Log errors for debugging
+  if (attendanceError) {
+    console.error('Attendance query error:', attendanceError);
+  }
 
   const tabs = [
     { id: "leave", label: "Leave", icon: <CalendarLucide className="w-4 h-4 text-gray-600" /> },
