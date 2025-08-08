@@ -1162,6 +1162,102 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // =================== LEAVE POLICY ROUTES ===================
+  
+  // Get employee leave policies
+  app.get("/api/leave-policies/:employeeId", authenticateToken, async (req, res) => {
+    try {
+      const { employeeId } = req.params;
+      const leavePolicies = await storage.getLeavePolicies(employeeId);
+      res.json(leavePolicies);
+    } catch (error) {
+      console.error("Error fetching leave policies:", error);
+      res.status(500).json({ error: "Gagal mendapatkan polisi cuti" });
+    }
+  });
+
+  // Create leave policy
+  app.post("/api/leave-policies", authenticateToken, async (req, res) => {
+    try {
+      const { employeeId, leaveType, entitlement, balance, remarks, included } = req.body;
+
+      if (!employeeId || !leaveType) {
+        return res.status(400).json({ 
+          error: "Employee ID dan jenis cuti diperlukan" 
+        });
+      }
+
+      const newLeavePolicy = await storage.createLeavePolicy({
+        employeeId,
+        leaveType,
+        entitlement: entitlement || null,
+        balance: balance || null,
+        remarks: remarks || null,
+        included: included || false,
+      });
+
+      res.status(201).json({
+        success: true,
+        leavePolicy: newLeavePolicy,
+        message: "Polisi cuti berjaya ditambah",
+      });
+    } catch (error) {
+      console.error("Error creating leave policy:", error);
+      res.status(500).json({ error: "Gagal menambah polisi cuti" });
+    }
+  });
+
+  // Update leave policy
+  app.put("/api/leave-policies/:id", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { leaveType, entitlement, balance, remarks, included } = req.body;
+
+      const updates: any = {};
+      if (leaveType !== undefined) updates.leaveType = leaveType;
+      if (entitlement !== undefined) updates.entitlement = entitlement;
+      if (balance !== undefined) updates.balance = balance;
+      if (remarks !== undefined) updates.remarks = remarks;
+      if (included !== undefined) updates.included = included;
+
+      const updatedLeavePolicy = await storage.updateLeavePolicy(id, updates);
+
+      if (!updatedLeavePolicy) {
+        return res.status(404).json({ error: "Polisi cuti tidak dijumpai" });
+      }
+
+      res.json({
+        success: true,
+        leavePolicy: updatedLeavePolicy,
+        message: "Polisi cuti berjaya dikemaskini",
+      });
+    } catch (error) {
+      console.error("Error updating leave policy:", error);
+      res.status(500).json({ error: "Gagal mengemaskini polisi cuti" });
+    }
+  });
+
+  // Delete leave policy
+  app.delete("/api/leave-policies/:id", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      const deleted = await storage.deleteLeavePolicy(id);
+
+      if (!deleted) {
+        return res.status(404).json({ error: "Polisi cuti tidak dijumpai" });
+      }
+
+      res.json({
+        success: true,
+        message: "Polisi cuti berjaya dipadamkan",
+      });
+    } catch (error) {
+      console.error("Error deleting leave policy:", error);
+      res.status(500).json({ error: "Gagal memadamkan polisi cuti" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

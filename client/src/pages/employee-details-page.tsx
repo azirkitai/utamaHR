@@ -43,6 +43,7 @@ import { cn } from "@/lib/utils";
 import type { Employee, UpdateEmployee, WorkExperience, InsertWorkExperience, Employment, UpdateEmployment, CompanyAccess } from "@shared/schema";
 import { DocumentsTab } from "@/components/DocumentsTab";
 import { EquipmentTab } from "@/components/EquipmentTab";
+import { LeavePolicyTab } from "@/components/LeavePolicyTab";
 
 export default function EmployeeDetailsPage() {
   const { id } = useParams();
@@ -2825,8 +2826,13 @@ export default function EmployeeDetailsPage() {
                 <EquipmentTab employeeId={id!} />
               )}
 
+              {/* Leave Policy Tab */}
+              {activeTab === "leave-policy" && (
+                <LeavePolicyTab employeeId={id!} />
+              )}
+
               {/* Placeholder for other tabs */}
-              {!["personal-details", "employment", "contact", "family-detail", "compensation", "document", "equipment"].includes(activeTab) && (
+              {!["personal-details", "employment", "contact", "family-detail", "compensation", "document", "equipment", "leave-policy"].includes(activeTab) && (
                 <Card>
                   <CardHeader className="bg-gradient-to-r from-teal-500 to-emerald-500 text-white">
                     <CardTitle className="capitalize">

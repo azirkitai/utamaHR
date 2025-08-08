@@ -208,9 +208,10 @@ export const leavePolicy = pgTable("leave_policy", {
   employeeId: varchar("employee_id").notNull().references(() => employees.id),
   
   leaveType: text("leave_type"), // Annual Leave, Sick Leave, etc.
-  entitlement: decimal("entitlement", { precision: 5, scale: 2 }),
-  balance: decimal("balance", { precision: 5, scale: 2 }),
+  entitlement: integer("entitlement"), // How many days entitled
+  balance: integer("balance"), // Remaining balance
   remarks: text("remarks"),
+  included: boolean("included").default(false), // Whether this policy is included/enabled
   
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
