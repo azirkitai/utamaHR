@@ -454,7 +454,7 @@ export default function EmployeeDetailsPage() {
             {/* Content Area with Navigation and Tab Content */}
             <div className="flex gap-6 p-6">
               {/* Left Navigation Tabs */}
-              <div className="w-80 bg-white rounded-lg shadow-md border h-fit">
+              <div className="w-80 bg-white rounded-lg shadow-md border min-h-[500px] h-fit sticky top-6">
                 <div className="p-4">
                   <nav className="space-y-1">
                     {navigationTabs.map((tab) => {
