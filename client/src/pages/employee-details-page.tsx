@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import DashboardLayout from "@/components/dashboard-layout";
@@ -73,9 +73,9 @@ export default function EmployeeDetailsPage() {
     firstName: "",
     lastName: "",
     gender: "",
-    nric: "",
+    nricPassport: "",
     dateOfBirth: new Date(),
-    phoneNumber: "",
+    phoneNo: "",
     email: "",
     address: "",
     employmentStatus: "",
@@ -350,9 +350,9 @@ export default function EmployeeDetailsPage() {
         firstName: "",
         lastName: "",
         gender: "",
-        nric: "",
+        nricPassport: "",
         dateOfBirth: new Date(),
-        phoneNumber: "",
+        phoneNo: "",
         email: "",
         address: "",
         employmentStatus: "",
@@ -1984,6 +1984,9 @@ export default function EmployeeDetailsPage() {
                           <DialogContent className="sm:max-w-[600px]">
                             <DialogHeader>
                               <DialogTitle>Add Family Details</DialogTitle>
+                              <DialogDescription>
+                                Add family member information to the employee record.
+                              </DialogDescription>
                             </DialogHeader>
                             <div className="space-y-4 py-4">
                               <div className="text-lg font-medium text-gray-800 mb-4">Family Information</div>
@@ -2042,11 +2045,11 @@ export default function EmployeeDetailsPage() {
                                 </div>
 
                                 <div className="space-y-2">
-                                  <Label htmlFor="nric">NRIC/Passport</Label>
+                                  <Label htmlFor="nricPassport">NRIC/Passport</Label>
                                   <Input
-                                    id="nric"
-                                    value={familyForm.nric}
-                                    onChange={(e) => setFamilyForm({ ...familyForm, nric: e.target.value })}
+                                    id="nricPassport"
+                                    value={familyForm.nricPassport}
+                                    onChange={(e) => setFamilyForm({ ...familyForm, nricPassport: e.target.value })}
                                     placeholder="NRIC/Passport"
                                   />
                                 </div>
@@ -2065,11 +2068,11 @@ export default function EmployeeDetailsPage() {
                                 </div>
 
                                 <div className="space-y-2">
-                                  <Label htmlFor="phone">Phone No.</Label>
+                                  <Label htmlFor="phoneNo">Phone No.</Label>
                                   <Input
-                                    id="phone"
-                                    value={familyForm.phoneNumber}
-                                    onChange={(e) => setFamilyForm({ ...familyForm, phoneNumber: e.target.value })}
+                                    id="phoneNo"
+                                    value={familyForm.phoneNo}
+                                    onChange={(e) => setFamilyForm({ ...familyForm, phoneNo: e.target.value })}
                                     placeholder="Phone No."
                                   />
                                 </div>
@@ -2169,7 +2172,7 @@ export default function EmployeeDetailsPage() {
                                       : "N/A"
                                     }
                                   </td>
-                                  <td className="py-3 px-4">{member.phoneNumber || "N/A"}</td>
+                                  <td className="py-3 px-4">{member.phoneNo || "N/A"}</td>
                                   <td className="py-3 px-4">
                                     <div className="flex gap-2">
                                       <Button

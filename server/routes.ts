@@ -787,6 +787,54 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Family Members management routes
+  app.get("/api/family-members/:employeeId", authenticateToken, async (req, res) => {
+    try {
+      const { employeeId } = req.params;
+      const familyMembers = await storage.getFamilyDetails(employeeId);
+      res.json(familyMembers);
+    } catch (error) {
+      console.error("Get family members error:", error);
+      res.status(500).json({ error: "Gagal mendapatkan maklumat keluarga" });
+    }
+  });
+
+  app.post("/api/family-members", authenticateToken, async (req, res) => {
+    try {
+      const validationResult = insertFamilyDetailsSchema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        console.error("Family member validation error:", validationResult.error);
+        return res.status(400).json({ 
+          error: "Data tidak sah", 
+          details: validationResult.error.errors 
+        });
+      }
+
+      const familyMember = await storage.createFamilyDetails(validationResult.data);
+      res.status(201).json(familyMember);
+    } catch (error) {
+      console.error("Create family member error:", error);
+      res.status(500).json({ error: "Gagal menambah ahli keluarga" });
+    }
+  });
+
+  app.delete("/api/family-members/:id", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await storage.deleteFamilyDetails(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Ahli keluarga tidak dijumpai" });
+      }
+      
+      res.json({ success: true, message: "Ahli keluarga telah dipadam" });
+    } catch (error) {
+      console.error("Delete family member error:", error);
+      res.status(500).json({ error: "Gagal memadamkan ahli keluarga" });
+    }
+  });
+
   // Public health check (no auth required)
   app.get("/api/health", (req, res) => {
     const envCheck = checkEnvironmentSecrets();
