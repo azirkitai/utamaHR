@@ -904,6 +904,17 @@ export class DatabaseStorage implements IStorage {
     return await query.orderBy(desc(attendanceRecords.date));
   }
 
+  async getTodayAttendanceRecord(employeeId: string, date: Date): Promise<AttendanceRecord | undefined> {
+    const [record] = await db
+      .select()
+      .from(attendanceRecords)
+      .where(and(
+        eq(attendanceRecords.employeeId, employeeId),
+        sql`DATE(${attendanceRecords.date}) = DATE(${date.toISOString()})`
+      ));
+    return record || undefined;
+  }
+
   async createOrUpdateAttendanceRecord(data: Partial<InsertAttendanceRecord>): Promise<AttendanceRecord> {
     if (!data.employeeId || !data.userId || !data.date) {
       throw new Error("EmployeeId, userId, dan date diperlukan");

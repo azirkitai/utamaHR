@@ -45,6 +45,101 @@ function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: numbe
   return d;
 }
 
+// Helper function to process clock-out
+async function processClockOut(
+  res: any,
+  qrToken: any,
+  todayAttendance: AttendanceRecord,
+  latitude: string,
+  longitude: string,
+  selfieImageUrl: string,
+  storage: any
+) {
+  try {
+    // Get active office locations for validation
+    const activeLocations = await storage.getActiveOfficeLocations();
+    if (activeLocations.length === 0) {
+      return res.status(400).json({ 
+        error: "Tiada lokasi pejabat aktif ditetapkan" 
+      });
+    }
+
+    // Check location for clock-out
+    let locationStatus = "invalid";
+    let nearestDistance = Infinity;
+    let nearestLocationId = null;
+
+    for (const location of activeLocations) {
+      const distance = calculateDistance(
+        parseFloat(latitude), 
+        parseFloat(longitude), 
+        parseFloat(location.latitude), 
+        parseFloat(location.longitude)
+      );
+
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearestLocationId = location.id;
+      }
+
+      const maxDistance = parseFloat(location.radius);
+      if (distance <= maxDistance) {
+        locationStatus = "valid";
+        break;
+      }
+    }
+
+    // Process selfie image
+    const objectStorageService = new ObjectStorageService();
+    const selfieImagePath = objectStorageService.normalizeSelfieImagePath(selfieImageUrl);
+
+    // Mark QR token as used
+    await storage.markQrTokenAsUsed(qrToken.token);
+
+    // Calculate total hours
+    const clockInTime = new Date(todayAttendance.clockInTime);
+    const clockOutTime = new Date();
+    const totalHours = Math.round((clockOutTime.getTime() - clockInTime.getTime()) / (1000 * 60 * 60) * 100) / 100;
+
+    // Update attendance record with clock-out information
+    await storage.createOrUpdateAttendanceRecord({
+      employeeId: todayAttendance.employeeId,
+      userId: todayAttendance.userId,
+      date: todayAttendance.date,
+      clockOutTime: clockOutTime,
+      clockOutLatitude: latitude,
+      clockOutLongitude: longitude,
+      clockOutLocationStatus: locationStatus,
+      clockOutDistance: nearestDistance.toString(),
+      clockOutOfficeLocationId: nearestLocationId,
+      clockOutImage: selfieImagePath,
+      totalHours: totalHours.toString(),
+      status: locationStatus === "valid" ? "present" : "invalid_location"
+    });
+
+    const user = await storage.getUser(qrToken.userId);
+    
+    return res.json({
+      success: true,
+      isClockOut: true,
+      clockOutTime: clockOutTime,
+      locationStatus: locationStatus,
+      totalHours: totalHours,
+      user: {
+        username: user?.username
+      },
+      message: locationStatus === "valid" 
+        ? `Clock-out berjaya! Total jam kerja: ${totalHours} jam.` 
+        : `Clock-out di luar kawasan pejabat. Total jam kerja: ${totalHours} jam.`,
+      distance: Math.round(nearestDistance)
+    });
+
+  } catch (error) {
+    console.error("Process clock-out error:", error);
+    return res.status(500).json({ error: "Gagal melakukan clock-out" });
+  }
+}
+
 export function registerRoutes(app: Express): Server {
   // Setup authentication routes: /api/register, /api/login, /api/logout, /api/user
   setupAuth(app);
@@ -716,6 +811,31 @@ export function registerRoutes(app: Express): Server {
         });
       }
 
+      // Check if user already has an attendance record for today
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const employee = await storage.getEmployeeByUserId(qrToken.userId);
+      if (!employee) {
+        return res.status(400).json({ error: "Employee tidak dijumpai" });
+      }
+
+      const todayAttendance = await storage.getTodayAttendanceRecord(employee.id, today);
+      
+      // If already clocked in today, check if clock out is needed
+      if (todayAttendance && todayAttendance.clockInTime) {
+        if (todayAttendance.clockOutTime) {
+          // Already completed full cycle (clock in + clock out) for today
+          return res.status(400).json({ 
+            error: "Anda telah selesai clock-in dan clock-out untuk hari ini",
+            alreadyCompleted: true
+          });
+        }
+        // Has clock-in but no clock-out, so this should be clock-out
+        // Process as clock-out
+        return await processClockOut(res, qrToken, todayAttendance, latitude, longitude, selfieImageUrl, storage);
+      }
+
       // Get active office locations
       const activeLocations = await storage.getActiveOfficeLocations();
       if (activeLocations.length === 0) {
@@ -774,27 +894,20 @@ export function registerRoutes(app: Express): Server {
       });
 
       const user = await storage.getUser(qrToken.userId);
-      
-      // Also create or update attendance record for today with location tracking
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      const employee = await storage.getEmployeeByUserId(qrToken.userId);
-      if (employee) {
-        await storage.createOrUpdateAttendanceRecord({
-          employeeId: employee.id,
-          userId: qrToken.userId,
-          date: today,
-          clockInTime: new Date(),
-          clockInLatitude: latitude,
-          clockInLongitude: longitude,
-          clockInLocationStatus: locationStatus,
-          clockInDistance: nearestDistance.toString(),
-          clockInOfficeLocationId: nearestLocationId,
-          clockInImage: selfieImagePath,
-          status: locationStatus === "valid" ? "present" : "invalid_location"
-        });
-      }
+      // Create attendance record for today with location tracking
+      await storage.createOrUpdateAttendanceRecord({
+        employeeId: employee.id,
+        userId: qrToken.userId,
+        date: today,
+        clockInTime: new Date(),
+        clockInLatitude: latitude,
+        clockInLongitude: longitude,
+        clockInLocationStatus: locationStatus,
+        clockInDistance: nearestDistance.toString(),
+        clockInOfficeLocationId: nearestLocationId,
+        clockInImage: selfieImagePath,
+        status: locationStatus === "valid" ? "present" : "invalid_location"
+      });
 
       res.json({
         success: true,
