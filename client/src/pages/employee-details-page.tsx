@@ -7,8 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import DashboardLayout from "@/components/dashboard-layout";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -27,7 +26,7 @@ import {
   FileText,
   Settings,
   ShieldCheck,
-  Calendar as CalendarIcon,
+
   Clock,
   Building,
   MapPin,
@@ -39,7 +38,6 @@ import {
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
 import type { Employee, UpdateEmployee, WorkExperience, InsertWorkExperience } from "@shared/schema";
 
 export default function EmployeeDetailsPage() {
@@ -59,8 +57,6 @@ export default function EmployeeDetailsPage() {
   // Date picker states
   const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>();
   const [drivingExpiryDate, setDrivingExpiryDate] = useState<Date | undefined>();
-  const [dateOfBirthPopoverOpen, setDateOfBirthPopoverOpen] = useState(false);
-  const [drivingDatePopoverOpen, setDrivingDatePopoverOpen] = useState(false);
   
   // Work experience form states
   const [workExperienceForm, setWorkExperienceForm] = useState({
@@ -264,7 +260,7 @@ export default function EmployeeDetailsPage() {
     {
       id: "leave-policy",
       label: "Leave Policy",
-      icon: Calendar,
+      icon: Clock,
     },
     {
       id: "claim-policy",
@@ -977,10 +973,10 @@ export default function EmployeeDetailsPage() {
                                   <td className="py-3 px-4">{experience.previousCompany}</td>
                                   <td className="py-3 px-4">{experience.position}</td>
                                   <td className="py-3 px-4">
-                                    {experience.startDate ? format(new Date(experience.startDate), "MMM yyyy") : "-"}
+                                    {experience.startDate ? new Date(experience.startDate).toLocaleDateString('en-MY', { year: 'numeric', month: 'short' }) : "-"}
                                   </td>
                                   <td className="py-3 px-4">
-                                    {experience.endDate ? format(new Date(experience.endDate), "MMM yyyy") : "-"}
+                                    {experience.endDate ? new Date(experience.endDate).toLocaleDateString('en-MY', { year: 'numeric', month: 'short' }) : "-"}
                                   </td>
                                   <td className="py-3 px-4">{experience.period || "-"}</td>
                                   <td className="py-3 px-4">
