@@ -407,6 +407,16 @@ export const updateAppSettingSchema = insertAppSettingSchema.partial();
 export const insertWorkExperienceSchema = createInsertSchema(workExperiences).omit({
   id: true,
   createdAt: true,
+}).extend({
+  // Handle date fields to accept strings and convert to Date objects
+  startDate: z.preprocess(
+    (val) => val ? new Date(val as string | Date) : null,
+    z.date().nullable().optional()
+  ),
+  endDate: z.preprocess(
+    (val) => val ? new Date(val as string | Date) : null,
+    z.date().nullable().optional()
+  ),
 });
 export const updateWorkExperienceSchema = insertWorkExperienceSchema.partial();
 
