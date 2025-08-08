@@ -152,6 +152,7 @@ export function setupAuth(app: Express) {
     res.json({
       id: req.user!.id,
       username: req.user!.username,
+      role: req.user!.role,
     });
   });
 
