@@ -507,16 +507,18 @@ export default function EmployeeDetailsPage() {
                           {isEditingPersonal ? (
                             <Popover>
                               <PopoverTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  className={cn(
-                                    "w-full justify-start text-left font-normal mt-1",
-                                    !dateOfBirth && "text-muted-foreground"
-                                  )}
-                                >
-                                  <CalendarIcon className="mr-2 h-4 w-4" />
-                                  {dateOfBirth ? format(dateOfBirth, "PPP") : "Pick a date"}
-                                </Button>
+                                <div className="mt-1">
+                                  <Button
+                                    variant="outline"
+                                    className={cn(
+                                      "w-full justify-start text-left font-normal",
+                                      !dateOfBirth && "text-muted-foreground"
+                                    )}
+                                  >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {dateOfBirth ? format(dateOfBirth, "PPP") : "Pick a date"}
+                                  </Button>
+                                </div>
                               </PopoverTrigger>
                               <PopoverContent className="w-auto p-0" align="start">
                                 <Calendar
@@ -841,16 +843,18 @@ export default function EmployeeDetailsPage() {
                           {isEditingDriving ? (
                             <Popover>
                               <PopoverTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  className={cn(
-                                    "w-full justify-start text-left font-normal mt-1",
-                                    !drivingExpiryDate && "text-muted-foreground"
-                                  )}
-                                >
-                                  <CalendarIcon className="mr-2 h-4 w-4" />
-                                  {drivingExpiryDate ? format(drivingExpiryDate, "PPP") : "Pick a date"}
-                                </Button>
+                                <div className="mt-1">
+                                  <Button
+                                    variant="outline"
+                                    className={cn(
+                                      "w-full justify-start text-left font-normal",
+                                      !drivingExpiryDate && "text-muted-foreground"
+                                    )}
+                                  >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {drivingExpiryDate ? format(drivingExpiryDate, "PPP") : "Pick a date"}
+                                  </Button>
+                                </div>
                               </PopoverTrigger>
                               <PopoverContent className="w-auto p-0" align="start">
                                 <Calendar
@@ -944,16 +948,18 @@ export default function EmployeeDetailsPage() {
                                 </Label>
                                 <Popover>
                                   <PopoverTrigger asChild>
-                                    <Button
-                                      variant="outline"
-                                      className={cn(
-                                        "col-span-3 justify-start text-left font-normal",
-                                        !workExperienceForm.startDate && "text-muted-foreground"
-                                      )}
-                                    >
-                                      <CalendarIcon className="mr-2 h-4 w-4" />
-                                      {workExperienceForm.startDate ? format(workExperienceForm.startDate, "PPP") : "Pick a date"}
-                                    </Button>
+                                    <div className="col-span-3">
+                                      <Button
+                                        variant="outline"
+                                        className={cn(
+                                          "w-full justify-start text-left font-normal",
+                                          !workExperienceForm.startDate && "text-muted-foreground"
+                                        )}
+                                      >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {workExperienceForm.startDate ? format(workExperienceForm.startDate, "PPP") : "Pick a date"}
+                                      </Button>
+                                    </div>
                                   </PopoverTrigger>
                                   <PopoverContent className="w-auto p-0" align="start">
                                     <Calendar
@@ -971,16 +977,18 @@ export default function EmployeeDetailsPage() {
                                 </Label>
                                 <Popover>
                                   <PopoverTrigger asChild>
-                                    <Button
-                                      variant="outline"
-                                      className={cn(
-                                        "col-span-3 justify-start text-left font-normal",
-                                        !workExperienceForm.endDate && "text-muted-foreground"
-                                      )}
-                                    >
-                                      <CalendarIcon className="mr-2 h-4 w-4" />
-                                      {workExperienceForm.endDate ? format(workExperienceForm.endDate, "PPP") : "Pick a date"}
-                                    </Button>
+                                    <div className="col-span-3">
+                                      <Button
+                                        variant="outline"
+                                        className={cn(
+                                          "w-full justify-start text-left font-normal",
+                                          !workExperienceForm.endDate && "text-muted-foreground"
+                                        )}
+                                      >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {workExperienceForm.endDate ? format(workExperienceForm.endDate, "PPP") : "Pick a date"}
+                                      </Button>
+                                    </div>
                                   </PopoverTrigger>
                                   <PopoverContent className="w-auto p-0" align="start">
                                     <Calendar
