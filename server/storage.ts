@@ -872,55 +872,36 @@ export class DatabaseStorage implements IStorage {
       conditions.push(sql`${attendanceRecords.date} <= ${params.dateTo.toISOString().split('T')[0]}`);
     }
     
-    // Build and execute query with employee name
+    // Build basic query first
+    let query = db
+      .select({
+        // Attendance record fields
+        id: attendanceRecords.id,
+        employeeId: attendanceRecords.employeeId,
+        date: attendanceRecords.date,
+        clockInTime: attendanceRecords.clockInTime,
+        clockOutTime: attendanceRecords.clockOutTime,
+        clockInImage: attendanceRecords.clockInImage,
+        clockOutImage: attendanceRecords.clockOutImage,
+        totalHours: attendanceRecords.totalHours,
+        status: attendanceRecords.status,
+        notes: attendanceRecords.notes,
+        clockInLatitude: attendanceRecords.clockInLatitude,
+        clockInLongitude: attendanceRecords.clockInLongitude,
+        clockOutLatitude: attendanceRecords.clockOutLatitude,
+        clockOutLongitude: attendanceRecords.clockOutLongitude,
+        // Employee name field
+        employeeName: employees.fullName,
+      })
+      .from(attendanceRecords)
+      .leftJoin(employees, eq(attendanceRecords.employeeId, employees.id));
+    
+    // Add conditions and ordering
     if (conditions.length > 0) {
-      return await db
-        .select({
-          id: attendanceRecords.id,
-          employeeId: attendanceRecords.employeeId,
-          employeeName: employees.fullName,
-          date: attendanceRecords.date,
-          clockInTime: attendanceRecords.clockInTime,
-          clockOutTime: attendanceRecords.clockOutTime,
-          clockInImage: attendanceRecords.clockInImage,
-          clockOutImage: attendanceRecords.clockOutImage,
-          totalHours: attendanceRecords.totalHours,
-          status: attendanceRecords.status,
-          notes: attendanceRecords.notes,
-          locationLatitude: attendanceRecords.locationLatitude,
-          locationLongitude: attendanceRecords.locationLongitude,
-          distance: attendanceRecords.distance,
-          locationStatus: attendanceRecords.locationStatus,
-          officeLocationId: attendanceRecords.officeLocationId,
-        })
-        .from(attendanceRecords)
-        .leftJoin(employees, eq(attendanceRecords.employeeId, employees.id))
-        .where(and(...conditions))
-        .orderBy(desc(attendanceRecords.date));
-    } else {
-      return await db
-        .select({
-          id: attendanceRecords.id,
-          employeeId: attendanceRecords.employeeId,
-          employeeName: employees.fullName,
-          date: attendanceRecords.date,
-          clockInTime: attendanceRecords.clockInTime,
-          clockOutTime: attendanceRecords.clockOutTime,
-          clockInImage: attendanceRecords.clockInImage,
-          clockOutImage: attendanceRecords.clockOutImage,
-          totalHours: attendanceRecords.totalHours,
-          status: attendanceRecords.status,
-          notes: attendanceRecords.notes,
-          locationLatitude: attendanceRecords.locationLatitude,
-          locationLongitude: attendanceRecords.locationLongitude,
-          distance: attendanceRecords.distance,
-          locationStatus: attendanceRecords.locationStatus,
-          officeLocationId: attendanceRecords.officeLocationId,
-        })
-        .from(attendanceRecords)
-        .leftJoin(employees, eq(attendanceRecords.employeeId, employees.id))
-        .orderBy(desc(attendanceRecords.date));
+      query = query.where(and(...conditions));
     }
+    
+    return await query.orderBy(desc(attendanceRecords.date));
   }
 
   async createOrUpdateAttendanceRecord(data: Partial<InsertAttendanceRecord>): Promise<AttendanceRecord> {
