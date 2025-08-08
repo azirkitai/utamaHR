@@ -63,6 +63,17 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Employee statistics for pie chart
+  app.get("/api/employee-statistics", authenticateToken, async (req, res) => {
+    try {
+      const stats = await storage.getEmployeeStatistics();
+      res.json(stats);
+    } catch (error) {
+      console.error("Employee statistics error:", error);
+      res.status(500).json({ error: "Gagal mengambil statistik pekerja" });
+    }
+  });
+
   // Staff user creation route (for admin/HR creating new staff accounts)
   app.post("/api/create-staff-user", authenticateToken, async (req, res) => {
     try {

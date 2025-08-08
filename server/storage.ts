@@ -85,7 +85,7 @@ import {
   type UpdateLeaveApplication
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, count, sql } from "drizzle-orm";
 
 export interface IStorage {
   // =================== USER METHODS ===================
@@ -193,6 +193,9 @@ export interface IStorage {
   createLeaveApplication(leaveApplication: InsertLeaveApplication): Promise<LeaveApplication>;
   updateLeaveApplication(id: string, leaveApplication: UpdateLeaveApplication): Promise<LeaveApplication | undefined>;
   deleteLeaveApplication(id: string): Promise<boolean>;
+
+  // =================== DASHBOARD STATISTICS ===================
+  getEmployeeStatistics(): Promise<{ activeCount: number; resignedCount: number; totalCount: number }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -803,6 +806,32 @@ export class DatabaseStorage implements IStorage {
   async deleteLeaveApplication(id: string): Promise<boolean> {
     const result = await db.delete(leaveApplications).where(eq(leaveApplications.id, id));
     return (result.rowCount ?? 0) > 0;
+  }
+
+  // =================== DASHBOARD STATISTICS ===================
+  async getEmployeeStatistics(): Promise<{ activeCount: number; resignedCount: number; totalCount: number }> {
+    // Count active employees (status = 'employed')
+    const [activeResult] = await db
+      .select({ count: count() })
+      .from(employees)
+      .where(eq(employees.status, 'employed'));
+
+    // Count resigned employees (status = 'terminated' or 'retired')
+    const [resignedResult] = await db
+      .select({ count: count() })
+      .from(employees)
+      .where(sql`${employees.status} IN ('terminated', 'retired')`);
+
+    // Count total employees
+    const [totalResult] = await db
+      .select({ count: count() })
+      .from(employees);
+
+    return {
+      activeCount: activeResult.count,
+      resignedCount: resignedResult.count,
+      totalCount: totalResult.count
+    };
   }
 }
 

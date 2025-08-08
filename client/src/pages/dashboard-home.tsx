@@ -58,11 +58,11 @@ const authenticatedFetch = async (url: string, options: RequestInit = {}): Promi
   return response.json();
 };
 
-// Mock data for demo
-const employeeData = [
-  { name: 'Active', value: 45, color: '#0891b2' },
-  { name: 'Resign', value: 5, color: '#94a3b8' }
-];
+interface EmployeeStats {
+  activeCount: number;
+  resignedCount: number;
+  totalCount: number;
+}
 
 const weeklyData = [
   { day: 'Mon', clockIn: 8, onLeave: 2 },
@@ -74,10 +74,25 @@ const weeklyData = [
 
 export default function DashboardHome() {
   // Fetch dashboard data
-  const { data: dashboardData, isLoading } = useQuery<DashboardData>({
+  const { data: dashboardData, isLoading: isDashboardLoading } = useQuery<DashboardData>({
     queryKey: ["/api/dashboard"],
     queryFn: () => authenticatedFetch("/api/dashboard"),
   });
+
+  // Query untuk employee statistics
+  const { data: employeeStats, isLoading: isStatsLoading } = useQuery<EmployeeStats>({
+    queryKey: ["/api/employee-statistics"],
+    queryFn: () => authenticatedFetch('/api/employee-statistics'),
+  });
+
+  // Convert statistics to pie chart format
+  const employeeData = employeeStats ? [
+    { name: 'Active', value: employeeStats.activeCount, color: '#0891b2' },
+    { name: 'Resign', value: employeeStats.resignedCount, color: '#94a3b8' }
+  ] : [
+    { name: 'Active', value: 0, color: '#0891b2' },
+    { name: 'Resign', value: 0, color: '#94a3b8' }
+  ];
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -87,6 +102,16 @@ export default function DashboardHome() {
   };
 
   const userName = dashboardData?.user?.username || 'SITI NADIAH SABRI';
+
+  if (isDashboardLoading || isStatsLoading) {
+    return (
+      <DashboardLayout>
+        <div className="p-6 flex justify-center items-center">
+          <div>Loading...</div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -156,12 +181,12 @@ export default function DashboardHome() {
                 </div>
                 <div className="flex items-center justify-center space-x-4 mt-2">
                   <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-cyan-600 rounded-full"></div>
-                    <span className="text-xs text-gray-600">Active</span>
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#0891b2' }}></div>
+                    <span className="text-xs text-gray-600">Active ({employeeStats?.activeCount || 0})</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-slate-400 rounded-full"></div>
-                    <span className="text-xs text-gray-600">Resign</span>
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#94a3b8' }}></div>
+                    <span className="text-xs text-gray-600">Resign ({employeeStats?.resignedCount || 0})</span>
                   </div>
                 </div>
               </div>
