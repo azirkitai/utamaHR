@@ -183,11 +183,7 @@ export default function EmployeeDetailsPage() {
   };
 
   const handleSavePersonalDetails = () => {
-    const updatedData = {
-      ...employeeForm,
-      // Ensure dateOfBirth is a Date object if it exists
-      dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
-    };
+    const updatedData = { ...employeeForm };
     // Remove undefined fields to avoid validation errors
     Object.keys(updatedData).forEach(key => {
       if (updatedData[key as keyof typeof updatedData] === undefined) {
@@ -198,11 +194,7 @@ export default function EmployeeDetailsPage() {
   };
 
   const handleSaveDrivingLicense = () => {
-    const updatedData = {
-      ...employeeForm,
-      // Ensure drivingExpiryDate is a Date object if it exists
-      drivingExpiryDate: drivingExpiryDate ? new Date(drivingExpiryDate) : null,
-    };
+    const updatedData = { ...employeeForm };
     // Remove undefined fields to avoid validation errors
     Object.keys(updatedData).forEach(key => {
       if (updatedData[key as keyof typeof updatedData] === undefined) {
@@ -520,7 +512,11 @@ export default function EmployeeDetailsPage() {
                             <Input
                               type="date"
                               value={dateOfBirth ? dateOfBirth.toISOString().split('T')[0] : ""}
-                              onChange={(e) => setDateOfBirth(e.target.value ? new Date(e.target.value) : undefined)}
+                              onChange={(e) => {
+                                const dateValue = e.target.value ? new Date(e.target.value) : undefined;
+                                setDateOfBirth(dateValue);
+                                setEmployeeForm({ ...employeeForm, dateOfBirth: dateValue });
+                              }}
                               className="mt-1"
                               data-testid="input-date-birth"
                             />
@@ -839,7 +835,11 @@ export default function EmployeeDetailsPage() {
                             <Input
                               type="date"
                               value={drivingExpiryDate ? drivingExpiryDate.toISOString().split('T')[0] : ""}
-                              onChange={(e) => setDrivingExpiryDate(e.target.value ? new Date(e.target.value) : undefined)}
+                              onChange={(e) => {
+                                const dateValue = e.target.value ? new Date(e.target.value) : undefined;
+                                setDrivingExpiryDate(dateValue);
+                                setEmployeeForm({ ...employeeForm, drivingExpiryDate: dateValue });
+                              }}
                               className="mt-1"
                               data-testid="input-driving-expiry"
                             />
