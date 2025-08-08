@@ -58,7 +58,18 @@ export function registerRoutes(app: Express): Server {
   // Employee management routes
   app.get("/api/employees", authenticateToken, async (req, res) => {
     try {
-      const employees = await storage.getAllEmployees();
+      const currentUser = req.user!;
+      let employees;
+      
+      // Role-based access control
+      if (currentUser.role === 'admin' || currentUser.role === 'hr') {
+        // Admin and HR can see all employees
+        employees = await storage.getAllEmployees();
+      } else {
+        // Regular employees can only see their own employee record
+        employees = await storage.getEmployeesByUserId(currentUser.id);
+      }
+      
       res.json(employees);
     } catch (error) {
       console.error("Get employees error:", error);
@@ -68,11 +79,25 @@ export function registerRoutes(app: Express): Server {
 
   app.get("/api/employees/:id", authenticateToken, async (req, res) => {
     try {
+      const currentUser = req.user!;
       const employee = await storage.getEmployee(req.params.id);
+      
       if (!employee) {
         return res.status(404).json({ error: "Pekerja tidak dijumpai" });
       }
-      res.json(employee);
+      
+      // Role-based access control for individual employee access
+      if (currentUser.role === 'admin' || currentUser.role === 'hr') {
+        // Admin and HR can access any employee record
+        res.json(employee);
+      } else {
+        // Regular employees can only access their own record
+        if (employee.userId === currentUser.id) {
+          res.json(employee);
+        } else {
+          return res.status(403).json({ error: "Tidak dibenarkan mengakses data pekerja lain" });
+        }
+      }
     } catch (error) {
       console.error("Get employee error:", error);
       res.status(500).json({ error: "Gagal mendapatkan maklumat pekerja" });
@@ -81,10 +106,25 @@ export function registerRoutes(app: Express): Server {
 
   app.post("/api/employees", authenticateToken, async (req, res) => {
     try {
+      const currentUser = req.user!;
+      
+      // Only admin and HR can create new employee records
+      if (currentUser.role !== 'admin' && currentUser.role !== 'hr') {
+        return res.status(403).json({ error: "Tidak dibenarkan untuk menambah pekerja baru" });
+      }
+      
       console.log("Request body:", req.body);
       const validatedData = insertEmployeeSchema.parse(req.body);
-      console.log("Validated data:", validatedData);
-      const employee = await storage.createEmployee(validatedData);
+      
+      // Set userId if provided in request (for admin/HR assigning to specific user)
+      // Otherwise, employee record will be created without user linkage
+      const employeeData = {
+        ...validatedData,
+        // userId can be set by admin/HR when creating employee record for specific user
+      };
+      
+      console.log("Validated data:", employeeData);
+      const employee = await storage.createEmployee(employeeData);
       res.status(201).json(employee);
     } catch (error) {
       console.error("Create employee error:", error);
@@ -94,11 +134,25 @@ export function registerRoutes(app: Express): Server {
 
   app.put("/api/employees/:id", authenticateToken, async (req, res) => {
     try {
-      const validatedData = updateEmployeeSchema.parse(req.body);
-      const employee = await storage.updateEmployee(req.params.id, validatedData);
-      if (!employee) {
+      const currentUser = req.user!;
+      const existingEmployee = await storage.getEmployee(req.params.id);
+      
+      if (!existingEmployee) {
         return res.status(404).json({ error: "Pekerja tidak dijumpai" });
       }
+      
+      // Role-based access control for updating
+      if (currentUser.role === 'admin' || currentUser.role === 'hr') {
+        // Admin and HR can update any employee record
+      } else {
+        // Regular employees can only update their own record
+        if (existingEmployee.userId !== currentUser.id) {
+          return res.status(403).json({ error: "Tidak dibenarkan mengemaskini data pekerja lain" });
+        }
+      }
+      
+      const validatedData = updateEmployeeSchema.parse(req.body);
+      const employee = await storage.updateEmployee(req.params.id, validatedData);
       res.json(employee);
     } catch (error) {
       console.error("Update employee error:", error);
@@ -108,6 +162,13 @@ export function registerRoutes(app: Express): Server {
 
   app.delete("/api/employees/:id", authenticateToken, async (req, res) => {
     try {
+      const currentUser = req.user!;
+      
+      // Only admin can delete employee records
+      if (currentUser.role !== 'admin') {
+        return res.status(403).json({ error: "Hanya admin yang dibenarkan menghapuskan data pekerja" });
+      }
+      
       const deleted = await storage.deleteEmployee(req.params.id);
       if (!deleted) {
         return res.status(404).json({ error: "Pekerja tidak dijumpai" });
