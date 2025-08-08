@@ -59,6 +59,8 @@ export default function EmployeeDetailsPage() {
   // Date picker states
   const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>();
   const [drivingExpiryDate, setDrivingExpiryDate] = useState<Date | undefined>();
+  const [dateOfBirthPopoverOpen, setDateOfBirthPopoverOpen] = useState(false);
+  const [drivingDatePopoverOpen, setDrivingDatePopoverOpen] = useState(false);
   
   // Work experience form states
   const [workExperienceForm, setWorkExperienceForm] = useState({
@@ -505,7 +507,7 @@ export default function EmployeeDetailsPage() {
                         <div>
                           <Label className="text-sm font-medium text-gray-700">Date of Birth</Label>
                           {isEditingPersonal ? (
-                            <Popover>
+                            <Popover open={dateOfBirthPopoverOpen} onOpenChange={setDateOfBirthPopoverOpen}>
                               <PopoverTrigger asChild>
                                 <div className="mt-1">
                                   <Button
@@ -524,7 +526,10 @@ export default function EmployeeDetailsPage() {
                                 <Calendar
                                   mode="single"
                                   selected={dateOfBirth}
-                                  onSelect={setDateOfBirth}
+                                  onSelect={(date) => {
+                                    setDateOfBirth(date);
+                                    setDateOfBirthPopoverOpen(false);
+                                  }}
                                   initialFocus
                                 />
                               </PopoverContent>
@@ -841,7 +846,7 @@ export default function EmployeeDetailsPage() {
                         <div className="md:col-span-2">
                           <Label className="text-sm font-medium text-gray-700">Driving Expiry Date</Label>
                           {isEditingDriving ? (
-                            <Popover>
+                            <Popover open={drivingDatePopoverOpen} onOpenChange={setDrivingDatePopoverOpen}>
                               <PopoverTrigger asChild>
                                 <div className="mt-1">
                                   <Button
@@ -860,7 +865,10 @@ export default function EmployeeDetailsPage() {
                                 <Calendar
                                   mode="single"
                                   selected={drivingExpiryDate}
-                                  onSelect={setDrivingExpiryDate}
+                                  onSelect={(date) => {
+                                    setDrivingExpiryDate(date);
+                                    setDrivingDatePopoverOpen(false);
+                                  }}
                                   initialFocus
                                 />
                               </PopoverContent>
