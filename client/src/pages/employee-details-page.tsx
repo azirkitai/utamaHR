@@ -2510,6 +2510,43 @@ export default function EmployeeDetailsPage() {
                         </div>
                       </div>
 
+                      {/* Income Tax */}
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Income Tax</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700 block">Income Tax Number</Label>
+                            {isEditingStatutoryDetails ? (
+                              <Input
+                                placeholder="Income Tax Number"
+                                className="mt-1"
+                                data-testid="input-income-tax-number"
+                              />
+                            ) : (
+                              <div className="mt-1 p-2 bg-gray-50 rounded border">
+                                N/A
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700 block">Value of Living Accommodation (VOLA)</Label>
+                            {isEditingStatutoryDetails ? (
+                              <Input
+                                placeholder="0"
+                                type="number"
+                                className="mt-1"
+                                data-testid="input-vola"
+                              />
+                            ) : (
+                              <div className="mt-1 p-2 bg-gray-50 rounded border">
+                                0
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
                       {isEditingStatutoryDetails && (
                         <div className="flex justify-end gap-2 mt-6">
                           <Button
@@ -2663,25 +2700,7 @@ export default function EmployeeDetailsPage() {
                         </div>
                       </div>
 
-                      {/* Income Tax */}
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Income Tax</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-gray-700 block">Income Tax Number</Label>
-                            <div className="mt-1 p-2 bg-gray-50 rounded border">
-                              <Input placeholder="Income Tax Number" />
-                            </div>
-                          </div>
 
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-gray-700 block">Value of Living Accommodation (VOLA)</Label>
-                            <div className="mt-1 p-2 bg-gray-50 rounded border">
-                              <Input placeholder="0" type="number" />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
 
                       {isEditingIncomeTaxDetails && (
                         <div className="flex justify-end gap-2 mt-6">
