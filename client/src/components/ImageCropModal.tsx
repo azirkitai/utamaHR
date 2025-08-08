@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import Cropper from "react-easy-crop";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { ZoomIn, Upload, X } from "lucide-react";
@@ -138,6 +138,9 @@ export function ImageCropModal({ isOpen, onClose, imageSrc, onCropComplete }: Im
             <ZoomIn className="w-5 h-5 text-teal-600" />
             Crop Gambar Profile
           </DialogTitle>
+          <DialogDescription className="text-gray-600">
+            Drag dan zoom gambar untuk posisi terbaik dalam avatar bulat
+          </DialogDescription>
         </DialogHeader>
 
         <div className="relative flex-1 bg-black rounded-lg mx-6 overflow-hidden">
