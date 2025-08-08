@@ -594,12 +594,33 @@ export default function SystemSettingPage() {
     );
     
     try {
-      // Sila implementasi API call untuk save ke database
-      // Untuk sekarang, hanya log untuk testing
       console.log(`Toggle leave policy ${policyId} to ${enabled}`);
       
-      // TODO: Tambah API call untuk update database
-      // await apiRequest("PUT", `/api/leave-policy/${policyId}`, { included: enabled });
+      // Dapatkan policy yang dipilih
+      const selectedPolicy = leavePolicies.find(p => p.id === policyId);
+      if (!selectedPolicy) {
+        throw new Error("Policy not found");
+      }
+
+      // Sementara ini, kita guna employeeId dummy untuk testing
+      // Dalam implementasi sebenar, perlu ambil dari logged user
+      const employeeId = "test-employee-id"; 
+      
+      if (enabled) {
+        // Jika enable, create atau update leave policy di database
+        await apiRequest("POST", "/api/leave-policies", {
+          employeeId: employeeId,
+          leaveType: selectedPolicy.name,
+          entitlement: parseInt(selectedPolicy.entitlement.split(' ')[0]) || 0,
+          balance: parseInt(selectedPolicy.entitlement.split(' ')[0]) || 0,
+          remarks: `Auto-created from system settings`,
+          included: true
+        });
+      } else {
+        // Jika disable, update policy di database (set included = false)
+        // Untuk sekarang, kita buat API call simple
+        console.log(`Would disable policy ${policyId} in database`);
+      }
       
     } catch (error) {
       console.error("Error updating leave policy:", error);
