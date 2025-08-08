@@ -310,6 +310,16 @@ export const insertEmployeeSchema = createInsertSchema(employees).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  // Handle date fields to accept strings and convert to Date objects
+  dateOfBirth: z.preprocess(
+    (val) => val ? new Date(val as string | Date) : null,
+    z.date().nullable().optional()
+  ),
+  drivingExpiryDate: z.preprocess(
+    (val) => val ? new Date(val as string | Date) : null,
+    z.date().nullable().optional()
+  ),
 });
 export const updateEmployeeSchema = insertEmployeeSchema.partial();
 
