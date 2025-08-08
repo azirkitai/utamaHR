@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,16 +25,11 @@ const months = [
 
 const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-const leaveTypes = [
-  'Annual Leave',
-  'Sick Leave', 
-  'Emergency Leave',
-  'Maternity Leave',
-  'Study Leave',
-  'Unpaid Leave'
-];
-
 export default function ApplyLeavePage() {
+  // Fetch active leave policies from database
+  const { data: activeLeaveTypes = [], isLoading: isLoadingLeaveTypes } = useQuery<string[]>({
+    queryKey: ["/api/active-leave-policies"],
+  });
   const [currentDate, setCurrentDate] = useState(new Date());
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -264,14 +260,18 @@ export default function ApplyLeavePage() {
               {/* Categories */}
               <div>
                 <Label className="text-sm font-medium text-gray-700">Categories</Label>
-                <Select value={leaveType} onValueChange={setLeaveType}>
+                <Select value={leaveType} onValueChange={setLeaveType} disabled={isLoadingLeaveTypes}>
                   <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select leave type" />
+                    <SelectValue placeholder={isLoadingLeaveTypes ? "Loading..." : "Select leave type"} />
                   </SelectTrigger>
                   <SelectContent>
-                    {leaveTypes.map(type => (
-                      <SelectItem key={type} value={type}>{type}</SelectItem>
-                    ))}
+                    {activeLeaveTypes.length > 0 ? (
+                      activeLeaveTypes.map(type => (
+                        <SelectItem key={type} value={type}>{type}</SelectItem>
+                      ))
+                    ) : (
+                      <div className="px-2 py-1.5 text-sm text-gray-500">No active leave policies found</div>
+                    )}
                   </SelectContent>
                 </Select>
               </div>

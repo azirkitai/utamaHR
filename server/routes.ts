@@ -1188,6 +1188,20 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Get active leave policies for all employees (for Apply Leave dropdown)
+  app.get("/api/active-leave-policies", authenticateToken, async (req, res) => {
+    try {
+      const activeLeavePolicies = await storage.getActiveLeavePolicies();
+      // Return unique leave types that are included/active
+      const leaveTypes = activeLeavePolicies.map(policy => policy.leaveType).filter(type => type !== null && type !== undefined);
+      const uniqueLeaveTypes = Array.from(new Set(leaveTypes));
+      res.json(uniqueLeaveTypes);
+    } catch (error) {
+      console.error("Error fetching active leave policies:", error);
+      res.status(500).json({ error: "Gagal mendapatkan polisi cuti aktif" });
+    }
+  });
+
   // Create leave policy
   app.post("/api/leave-policies", authenticateToken, async (req, res) => {
     try {

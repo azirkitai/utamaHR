@@ -133,6 +133,7 @@ export interface IStorage {
   
   // =================== LEAVE POLICY METHODS ===================
   getLeavePolicies(employeeId: string): Promise<LeavePolicy[]>;
+  getActiveLeavePolicies(): Promise<LeavePolicy[]>;
   createLeavePolicy(leavePolicy: InsertLeavePolicy): Promise<LeavePolicy>;
   updateLeavePolicy(id: string, leavePolicy: UpdateLeavePolicy): Promise<LeavePolicy | undefined>;
   deleteLeavePolicy(id: string): Promise<boolean>;
@@ -693,6 +694,10 @@ export class DatabaseStorage implements IStorage {
   // =================== LEAVE POLICY METHODS ===================
   async getLeavePolicies(employeeId: string): Promise<LeavePolicy[]> {
     return await db.select().from(leavePolicy).where(eq(leavePolicy.employeeId, employeeId)).orderBy(desc(leavePolicy.createdAt));
+  }
+
+  async getActiveLeavePolicies(): Promise<LeavePolicy[]> {
+    return await db.select().from(leavePolicy).where(eq(leavePolicy.included, true)).orderBy(desc(leavePolicy.createdAt));
   }
 
   async createLeavePolicy(insertLeavePolicy: InsertLeavePolicy): Promise<LeavePolicy> {
