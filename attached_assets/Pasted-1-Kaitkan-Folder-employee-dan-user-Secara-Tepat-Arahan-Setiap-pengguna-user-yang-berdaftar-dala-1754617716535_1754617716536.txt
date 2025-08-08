@@ -1,0 +1,272 @@
+1. Kaitkan Folder employee dan user Secara Tepat
+Arahan:
+
+Setiap pengguna (user) yang berdaftar dalam sistem mempunyai maklumat login dalam folder user (cth: username, password, role). Dalam masa yang sama, setiap user perlu ada satu rekod penuh dalam folder employee yang menyimpan semua butiran pekerja (personal, contact, employment, compensation, family, dsb).
+
+Sila pastikan:
+
+Setiap data employee di-link-kan (di-relate) dengan user ID (user_id atau unique identifier) daripada folder user.
+
+Contoh: Jika user id = 101, maka dalam folder employee pastikan setiap rekod pekerja ada field user_id: 101 atau gunakan ID yang sama. Jangan gunakan data loose yang tiada kaitan, mesti refer dengan unique user_id dari login.
+
+2. Struktur Database/Tables untuk Employee Details (ikut navigation tab)
+Berdasarkan navigation tab dalam page Employee Details, bina struktur table/database seperti berikut:
+
+Contoh Struktur Database/Tables
+User Table (user):
+
+user_id (Primary key)
+
+username
+
+password (hashed)
+
+role
+
+email
+
+status (active/inactive)
+
+...etc
+
+Employee Table (employee):
+
+employee_id (Primary key)
+
+user_id (Foreign key dari user)
+
+full_name
+
+nric
+
+date_of_birth
+
+gender
+
+race
+
+religion
+
+marital_status
+
+blood_type
+
+nationality
+
+education_level
+
+status (employed/terminated/retired etc)
+
+...etc
+
+Employment Table:
+
+employment_id
+
+employee_id (Foreign key)
+
+company
+
+branch
+
+designation
+
+department
+
+join_date
+
+sign_date
+
+employment_type
+
+status
+
+...etc
+
+Contact Table:
+
+contact_id
+
+employee_id (Foreign key)
+
+phone
+
+mobile
+
+email
+
+address
+
+emergency_contact_name
+
+emergency_contact_phone
+
+...etc
+
+Family Table:
+
+family_id
+
+employee_id (Foreign key)
+
+relation
+
+name
+
+gender
+
+nric_passport
+
+date_of_birth
+
+phone
+
+email
+
+address
+
+employment_status
+
+oku_status
+
+...etc
+
+Compensation Table:
+
+compensation_id
+
+employee_id (Foreign key)
+
+bank
+
+account_number
+
+account_type
+
+branch
+
+account_status
+
+epf_number
+
+socso_number
+
+eis_number
+
+tax_number
+
+...etc
+
+Document Table:
+
+document_id
+
+employee_id (Foreign key)
+
+name
+
+remarks
+
+file_url / path
+
+...etc
+
+Equipment Table:
+
+equipment_id
+
+employee_id (Foreign key)
+
+equipment_name
+
+serial_number
+
+issue_date
+
+return_date
+
+remarks
+
+...etc
+
+Leave Policy Table:
+
+leave_policy_id
+
+employee_id (Foreign key)
+
+annual_leave
+
+sick_leave
+
+leave_approval
+
+...etc
+
+Claim Policy Table:
+
+claim_policy_id
+
+employee_id (Foreign key)
+
+claim_type
+
+claim_limit
+
+claim_approval
+
+...etc
+
+Disciplinary Table:
+
+disciplinary_id
+
+employee_id (Foreign key)
+
+incident_date
+
+type
+
+remarks
+
+...etc
+
+App Setting Table:
+(Jika ada app-specific settings untuk pekerja, masukkan ikut keperluan)
+
+3. Guideline Coding (untuk agent/developer)
+JANGAN cipta employee yang tiada kaitan dengan user_id.
+
+Untuk setiap pekerja baru, create user dahulu (login credentials), baru create employee dan pastikan simpan user_id sebagai foreign key dalam employee.
+
+Fetch data mesti guna user_id untuk dapatkan maklumat penuh employee dari semua table yang berkaitan (join by employee_id/user_id).
+
+Update/Delete juga mesti pastikan integrity antara user dan employee (jangan dibiarkan orphaned data).
+
+Navigation dalam portal mesti refer ke table yang tepat mengikut tab yang pengguna klik (Personal Detail, Employment, Contact, Family Detail, Compensation, Document, Equipment, Leave Policy, Claim Policy, Disciplinary, App Setting).
+
+4. Senang faham (Bahasa Melayu)
+Pastikan setiap pekerja dalam sistem ada ID user yang unik.
+
+Semua data pekerja dalam database mesti kaitkan dengan ID user tersebut.
+
+Ikut semua tab dalam page "Employee Details", dan buat table/database untuk setiap maklumat (personal, employment, contact, family, compensation, document, equipment, dsb).
+
+Jangan simpan data pekerja tanpa user_id yang sah.
+
+Contoh Prompt (boleh copy-paste)
+Sila pastikan struktur database HRMS mempunyai 2 entiti utama: user (untuk login credentials) dan employee (untuk maklumat pekerja).
+
+Link-kan setiap rekod dalam folder employee dengan ID dari folder user (cth: user_id).
+
+Semua data pekerja dalam table mesti berkait dengan user_id.
+
+Ikut navigation tab dalam page "Employee Details" seperti: Personal Detail, Employment, Contact, Family, Compensation, Document, Equipment, Leave Policy, Claim Policy, Disciplinary, App Setting. Buat table atau sub-table untuk setiap maklumat.
+
+Setiap table ada foreign key kepada employee_id/user_id.
+
+Jangan cipta data pekerja tanpa user_id yang sah.
+
+Semua fungsi tambah, update, padam, fetch data mesti ikut integrity dan relational database structure.
+
+Pastikan tiada data orphan. Setiap fungsi dalam sistem mesti refer pada user_id.
