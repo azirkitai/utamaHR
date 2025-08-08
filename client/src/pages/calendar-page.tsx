@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DashboardLayout } from "@/components/dashboard-layout";
+import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "@tanstack/react-query";
 
 interface Holiday {
   id: number;
@@ -91,12 +93,19 @@ const employees: Employee[] = [
 ];
 
 export default function CalendarPage() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("team");
   const [calendarView, setCalendarView] = useState("month");
   const [activityTab, setActivityTab] = useState("holiday");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentMonth, setCurrentMonth] = useState("August 2025");
   const [currentWeek, setCurrentWeek] = useState("Aug 4 – 10, 2025");
+
+  // Get current user's employee data to check role
+  const { data: currentEmployee } = useQuery({
+    queryKey: ['/api/employees', user?.id],
+    enabled: !!user?.id
+  });
   
   // Modal states
   const [isGenerateHolidayOpen, setIsGenerateHolidayOpen] = useState(false);
@@ -119,6 +128,21 @@ export default function CalendarPage() {
   const [eventDateEnd, setEventDateEnd] = useState("");
   const [eventTime, setEventTime] = useState("");
   const [selectedEmployee, setSelectedEmployee] = useState("");
+
+  // Role-based access control functions
+  const canAccessHolidayButtons = () => {
+    if (!currentEmployee || !Array.isArray(currentEmployee) || currentEmployee.length === 0) return false;
+    const employee = currentEmployee[0];
+    const role = employee?.role;
+    return role && ['Super Admin', 'Admin', 'HR Manager', 'PIC'].includes(role);
+  };
+
+  const canAccessAddEvent = () => {
+    if (!currentEmployee || !Array.isArray(currentEmployee) || currentEmployee.length === 0) return false;
+    const employee = currentEmployee[0];
+    const role = employee?.role;
+    return role && ['Super Admin', 'Admin', 'HR Manager', 'PIC', 'Manager/Supervisor'].includes(role);
+  };
 
   const generateCalendarDays = () => {
     const days = [];
@@ -242,15 +266,16 @@ export default function CalendarPage() {
                 </TabsList>
                 
                 <div className="flex gap-2">
-                  <Dialog open={isGenerateHolidayOpen} onOpenChange={setIsGenerateHolidayOpen}>
-                    <DialogTrigger asChild>
-                      <Button 
-                        className="bg-slate-700 hover:bg-slate-800 text-white"
-                        data-testid="button-generate-holiday"
-                      >
-                        Generate Holiday
-                      </Button>
-                    </DialogTrigger>
+                  {canAccessHolidayButtons() && (
+                    <Dialog open={isGenerateHolidayOpen} onOpenChange={setIsGenerateHolidayOpen}>
+                      <DialogTrigger asChild>
+                        <Button 
+                          className="bg-slate-700 hover:bg-slate-800 text-white"
+                          data-testid="button-generate-holiday"
+                        >
+                          Generate Holiday
+                        </Button>
+                      </DialogTrigger>
                     <DialogContent className="max-w-4xl">
                       <DialogHeader>
                         <DialogTitle>Generate Holiday</DialogTitle>
@@ -309,16 +334,18 @@ export default function CalendarPage() {
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
+                  )}
 
-                  <Dialog open={isAddHolidayOpen} onOpenChange={setIsAddHolidayOpen}>
-                    <DialogTrigger asChild>
-                      <Button 
-                        className="bg-slate-700 hover:bg-slate-800 text-white"
-                        data-testid="button-add-holiday"
-                      >
-                        Add Holiday
-                      </Button>
-                    </DialogTrigger>
+                  {canAccessHolidayButtons() && (
+                    <Dialog open={isAddHolidayOpen} onOpenChange={setIsAddHolidayOpen}>
+                      <DialogTrigger asChild>
+                        <Button 
+                          className="bg-slate-700 hover:bg-slate-800 text-white"
+                          data-testid="button-add-holiday"
+                        >
+                          Add Holiday
+                        </Button>
+                      </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
                         <DialogTitle>Create New Holiday</DialogTitle>
@@ -380,16 +407,18 @@ export default function CalendarPage() {
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
+                  )}
 
-                  <Dialog open={isAddEventOpen} onOpenChange={setIsAddEventOpen}>
-                    <DialogTrigger asChild>
-                      <Button 
-                        className="bg-slate-700 hover:bg-slate-800 text-white"
-                        data-testid="button-add-event"
-                      >
-                        Add Event
-                      </Button>
-                    </DialogTrigger>
+                  {canAccessAddEvent() && (
+                    <Dialog open={isAddEventOpen} onOpenChange={setIsAddEventOpen}>
+                      <DialogTrigger asChild>
+                        <Button 
+                          className="bg-slate-700 hover:bg-slate-800 text-white"
+                          data-testid="button-add-event"
+                        >
+                          Add Event
+                        </Button>
+                      </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
                         <DialogTitle>Create New Event</DialogTitle>
@@ -503,6 +532,7 @@ export default function CalendarPage() {
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
+                  )}
                 </div>
               </div>
 
