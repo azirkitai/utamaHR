@@ -8,7 +8,9 @@ import {
   Bell,
   Search,
   LogOut,
-  Settings
+  Settings,
+  Calendar,
+  Clock
 } from "lucide-react";
 
 interface DashboardLayoutProps {
@@ -42,22 +44,27 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Top Header */}
         <header className="bg-white shadow-sm border-b border-gray-200">
           <div className="flex items-center justify-between px-6 py-4">
-            {/* Left side - Date and Time */}
-            <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-600">
-                📅 {new Date().toLocaleDateString('en-GB', { 
+            {/* Left side - Company name, Date and Time */}
+            <div className="flex items-center space-x-6">
+              <div className="text-lg font-semibold text-gray-700">
+                UTAMA MEDGROUP
+              </div>
+              <div className="flex items-center space-x-1 text-sm text-gray-500">
+                <Calendar className="w-4 h-4" />
+                <span>{new Date().toLocaleDateString('en-GB', { 
                   day: '2-digit',
                   month: 'long', 
                   year: 'numeric',
                   weekday: 'long'
-                })}
+                })}</span>
               </div>
-              <div className="text-sm text-gray-600">
-                🕐 {new Date().toLocaleTimeString('en-GB', {
+              <div className="flex items-center space-x-1 text-sm text-gray-500">
+                <Clock className="w-4 h-4" />
+                <span>{new Date().toLocaleTimeString('en-GB', {
                   hour12: true,
                   hour: '2-digit',
                   minute: '2-digit'
-                })}
+                })}</span>
               </div>
             </div>
 
