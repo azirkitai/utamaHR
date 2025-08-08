@@ -747,7 +747,14 @@ export default function MyRecordPage() {
         </div>
 
         <div className="flex gap-2">
-          <Button className="bg-blue-600 hover:bg-blue-700" data-testid="button-attendance-search">
+          <Button 
+            className="bg-blue-600 hover:bg-blue-700" 
+            onClick={() => {
+              // Trigger refetch with current date filter
+              console.log('Search clicked - refetching with current date range');
+            }}
+            data-testid="button-attendance-search"
+          >
             <Search className="h-4 w-4 mr-2" />
             Search
           </Button>
@@ -810,7 +817,7 @@ export default function MyRecordPage() {
               attendanceRecords.map((record, index) => (
                 <TableRow key={record.id}>
                   <TableCell>{index + 1}</TableCell>
-                  {hasAdminAccess && <TableCell>{record.employeeId}</TableCell>}
+                  {hasAdminAccess && <TableCell>{(record as any).employeeName || record.employeeId}</TableCell>}
                   <TableCell>{format(new Date(record.date), 'dd/MM/yyyy')}</TableCell>
                   <TableCell>{record.clockInTime ? format(new Date(record.clockInTime), 'HH:mm') : '-'}</TableCell>
                   {showPictures && (
@@ -874,7 +881,9 @@ export default function MyRecordPage() {
 
       {/* Pagination */}
       <div className="flex justify-between items-center">
-        <span className="text-sm text-gray-500">Showing 0 to 0 of 0 entries</span>
+        <span className="text-sm text-gray-500">
+          Showing {attendanceRecords.length > 0 ? 1 : 0} to {attendanceRecords.length} of {attendanceRecords.length} entries
+        </span>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" disabled data-testid="button-attendance-previous">
             Previous

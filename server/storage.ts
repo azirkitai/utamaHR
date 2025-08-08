@@ -855,7 +855,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // =================== ATTENDANCE RECORD METHODS ===================
-  async getAttendanceRecords(params: { dateFrom?: Date; dateTo?: Date; employeeId?: string }): Promise<AttendanceRecord[]> {
+  async getAttendanceRecords(params: { dateFrom?: Date; dateTo?: Date; employeeId?: string }): Promise<any[]> {
     const conditions = [];
     
     // Add employeeId filter if provided
@@ -872,17 +872,53 @@ export class DatabaseStorage implements IStorage {
       conditions.push(sql`${attendanceRecords.date} <= ${params.dateTo.toISOString().split('T')[0]}`);
     }
     
-    // Build and execute query
+    // Build and execute query with employee name
     if (conditions.length > 0) {
       return await db
-        .select()
+        .select({
+          id: attendanceRecords.id,
+          employeeId: attendanceRecords.employeeId,
+          employeeName: employees.fullName,
+          date: attendanceRecords.date,
+          clockInTime: attendanceRecords.clockInTime,
+          clockOutTime: attendanceRecords.clockOutTime,
+          clockInImage: attendanceRecords.clockInImage,
+          clockOutImage: attendanceRecords.clockOutImage,
+          totalHours: attendanceRecords.totalHours,
+          status: attendanceRecords.status,
+          notes: attendanceRecords.notes,
+          locationLatitude: attendanceRecords.locationLatitude,
+          locationLongitude: attendanceRecords.locationLongitude,
+          distance: attendanceRecords.distance,
+          locationStatus: attendanceRecords.locationStatus,
+          officeLocationId: attendanceRecords.officeLocationId,
+        })
         .from(attendanceRecords)
+        .leftJoin(employees, eq(attendanceRecords.employeeId, employees.id))
         .where(and(...conditions))
         .orderBy(desc(attendanceRecords.date));
     } else {
       return await db
-        .select()
+        .select({
+          id: attendanceRecords.id,
+          employeeId: attendanceRecords.employeeId,
+          employeeName: employees.fullName,
+          date: attendanceRecords.date,
+          clockInTime: attendanceRecords.clockInTime,
+          clockOutTime: attendanceRecords.clockOutTime,
+          clockInImage: attendanceRecords.clockInImage,
+          clockOutImage: attendanceRecords.clockOutImage,
+          totalHours: attendanceRecords.totalHours,
+          status: attendanceRecords.status,
+          notes: attendanceRecords.notes,
+          locationLatitude: attendanceRecords.locationLatitude,
+          locationLongitude: attendanceRecords.locationLongitude,
+          distance: attendanceRecords.distance,
+          locationStatus: attendanceRecords.locationStatus,
+          officeLocationId: attendanceRecords.officeLocationId,
+        })
         .from(attendanceRecords)
+        .leftJoin(employees, eq(attendanceRecords.employeeId, employees.id))
         .orderBy(desc(attendanceRecords.date));
     }
   }
