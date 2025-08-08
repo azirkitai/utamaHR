@@ -15,7 +15,7 @@ import { Plus, Search, Edit, ChevronDown, Download } from "lucide-react";
 import { LeavePolicy } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-// import { LeavePolicyModal } from "./LeavePolicyModal";
+import { LeavePolicyModal } from "./LeavePolicyModal";
 
 interface LeavePolicyTabProps {
   employeeId: string;
@@ -280,22 +280,14 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
         </CardContent>
       </Card>
 
-      {/* Leave Policy Modal - TODO: Implement after backend routes */}
+      {/* Leave Policy Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg">
-            <h3 className="text-lg font-medium mb-4">
-              {editingPolicy ? "Edit Leave Policy" : "Add Leave Policy"}
-            </h3>
-            <p className="text-gray-600 mb-4">Modal implementation pending...</p>
-            <button
-              onClick={handleCloseModal}
-              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-            >
-              Close
-            </button>
-          </div>
-        </div>
+        <LeavePolicyModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          employeeId={employeeId}
+          leavePolicy={editingPolicy}
+        />
       )}
     </>
   );

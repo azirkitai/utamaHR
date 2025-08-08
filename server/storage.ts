@@ -766,6 +766,36 @@ export class DatabaseStorage implements IStorage {
     const result = await db.delete(workExperiences).where(eq(workExperiences.id, id));
     return (result.rowCount ?? 0) > 0;
   }
+
+  // =================== LEAVE POLICY METHODS ===================
+  async getLeavePolicies(employeeId: string): Promise<LeavePolicy[]> {
+    return await db.select().from(leavePolicy).where(eq(leavePolicy.employeeId, employeeId)).orderBy(desc(leavePolicy.createdAt));
+  }
+
+  async createLeavePolicy(insertLeavePolicy: InsertLeavePolicy): Promise<LeavePolicy> {
+    const [result] = await db
+      .insert(leavePolicy)
+      .values(insertLeavePolicy)
+      .returning();
+    return result;
+  }
+
+  async updateLeavePolicy(id: string, updateData: UpdateLeavePolicy): Promise<LeavePolicy | undefined> {
+    const [result] = await db
+      .update(leavePolicy)
+      .set({
+        ...updateData,
+        updatedAt: new Date()
+      })
+      .where(eq(leavePolicy.id, id))
+      .returning();
+    return result || undefined;
+  }
+
+  async deleteLeavePolicy(id: string): Promise<boolean> {
+    const result = await db.delete(leavePolicy).where(eq(leavePolicy.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
 }
 
 export const storage = new DatabaseStorage();
