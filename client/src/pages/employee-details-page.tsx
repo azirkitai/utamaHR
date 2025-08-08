@@ -84,7 +84,13 @@ export default function EmployeeDetailsPage() {
     enabled: !!id
   });
 
-  // Initialize form when employee data loads
+  // Get employment details for this employee
+  const { data: employment, isLoading: employmentLoading } = useQuery<Employment>({
+    queryKey: ["/api/employment", id],
+    enabled: !!id
+  });
+
+  // Initialize forms when data loads
   useEffect(() => {
     if (employee) {
       setEmployeeForm(employee);
@@ -92,6 +98,14 @@ export default function EmployeeDetailsPage() {
       setDrivingExpiryDate(employee.drivingExpiryDate ? new Date(employee.drivingExpiryDate) : undefined);
     }
   }, [employee]);
+
+  useEffect(() => {
+    if (employment) {
+      setEmploymentForm(employment);
+      setDateJoining(employment.dateJoining ? new Date(employment.dateJoining) : undefined);
+      setDateOfSign(employment.dateOfSign ? new Date(employment.dateOfSign) : undefined);
+    }
+  }, [employment]);
 
   // Update employee mutation
   const updateEmployeeMutation = useMutation({
@@ -112,6 +126,34 @@ export default function EmployeeDetailsPage() {
       toast({
         title: "Ralat",
         description: "Gagal mengemaskini maklumat pekerja",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update/Create employment mutation
+  const updateEmploymentMutation = useMutation({
+    mutationFn: async (data: any) => {
+      // Check if employment record exists
+      const method = employment?.id ? "PUT" : "POST";
+      const url = employment?.id ? `/api/employment/${employment.id}` : "/api/employment";
+      const response = await apiRequest(method, url, { ...data, employeeId: id });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Berjaya",
+        description: "Maklumat pekerjaan telah dikemaskini",
+      });
+      setIsEditingEmployment(false);
+      setIsEditingApproval(false);
+      setIsEditingYearly(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/employment", id] });
+    },
+    onError: () => {
+      toast({
+        title: "Ralat",
+        description: "Gagal mengemaskini maklumat pekerjaan",
         variant: "destructive",
       });
     },
@@ -1261,9 +1303,11 @@ export default function EmployeeDetailsPage() {
                           </Button>
                           <Button
                             className="bg-teal-600 hover:bg-teal-700"
+                            onClick={() => updateEmploymentMutation.mutate(employmentForm)}
+                            disabled={updateEmploymentMutation.isPending}
                             data-testid="button-save-employment"
                           >
-                            Save Changes
+                            {updateEmploymentMutation.isPending ? "Menyimpan..." : "Save Changes"}
                           </Button>
                         </div>
                       )}
@@ -1484,9 +1528,11 @@ export default function EmployeeDetailsPage() {
                           </Button>
                           <Button
                             className="bg-teal-600 hover:bg-teal-700"
+                            onClick={() => updateEmploymentMutation.mutate(employmentForm)}
+                            disabled={updateEmploymentMutation.isPending}
                             data-testid="button-save-approval"
                           >
-                            Save Changes
+                            {updateEmploymentMutation.isPending ? "Menyimpan..." : "Save Changes"}
                           </Button>
                         </div>
                       )}
@@ -1549,9 +1595,11 @@ export default function EmployeeDetailsPage() {
                           </Button>
                           <Button
                             className="bg-teal-600 hover:bg-teal-700"
+                            onClick={() => updateEmploymentMutation.mutate(employmentForm)}
+                            disabled={updateEmploymentMutation.isPending}
                             data-testid="button-save-yearly"
                           >
-                            Save Changes
+                            {updateEmploymentMutation.isPending ? "Menyimpan..." : "Save Changes"}
                           </Button>
                         </div>
                       )}
