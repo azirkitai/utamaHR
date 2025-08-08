@@ -22,7 +22,8 @@ import {
   Upload,
   ChevronDown,
   FileText,
-  Settings
+  Settings,
+  AlertTriangle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DashboardLayout } from "@/components/dashboard-layout";
@@ -130,6 +131,10 @@ export default function ManageEmployeePage() {
       return matchesSearch && employee.status !== "active";
     }
   });
+
+  // Check if passwords match
+  const passwordsMatch = password === confirmPassword;
+  const hasPasswordMismatch = password && confirmPassword && !passwordsMatch;
 
   const resetForm = () => {
     setFirstName("");
@@ -388,9 +393,15 @@ export default function ManageEmployeePage() {
                             placeholder="Enter Confirm Password"
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
-                            className="mt-1"
+                            className={`mt-1 ${hasPasswordMismatch ? 'border-red-500 focus:border-red-500' : ''}`}
                             data-testid="input-confirm-password"
                           />
+                          {hasPasswordMismatch && (
+                            <div className="flex items-center gap-2 mt-2 text-red-600 text-sm" data-testid="password-mismatch-warning">
+                              <AlertTriangle className="w-4 h-4" />
+                              <span>Password dan Confirm Password tidak sama</span>
+                            </div>
+                          )}
                         </div>
                         
                         <div>
@@ -419,7 +430,7 @@ export default function ManageEmployeePage() {
                         </Button>
                         <Button 
                           onClick={handleAddEmployee}
-                          disabled={!firstName || !lastName || !email || password !== confirmPassword || createStaffMutation.isPending}
+                          disabled={!firstName || !lastName || !email || !username || !password || !userRole || hasPasswordMismatch || createStaffMutation.isPending}
                           className="bg-slate-700 hover:bg-slate-800"
                           data-testid="button-add-staff"
                         >
