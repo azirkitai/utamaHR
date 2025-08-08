@@ -38,7 +38,7 @@ import {
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import type { Employee, UpdateEmployee, WorkExperience, InsertWorkExperience } from "@shared/schema";
+import type { Employee, UpdateEmployee, WorkExperience, InsertWorkExperience, Employment, UpdateEmployment, CompanyAccess } from "@shared/schema";
 
 export default function EmployeeDetailsPage() {
   const { id } = useParams();
@@ -51,12 +51,18 @@ export default function EmployeeDetailsPage() {
   // Form states
   const [isEditingPersonal, setIsEditingPersonal] = useState(false);
   const [isEditingDriving, setIsEditingDriving] = useState(false);
+  const [isEditingEmployment, setIsEditingEmployment] = useState(false);
+  const [isEditingApproval, setIsEditingApproval] = useState(false);
+  const [isEditingYearly, setIsEditingYearly] = useState(false);
   const [isWorkExperienceDialogOpen, setIsWorkExperienceDialogOpen] = useState(false);
   const [employeeForm, setEmployeeForm] = useState<Partial<Employee>>({});
+  const [employmentForm, setEmploymentForm] = useState<Partial<Employment>>({});
   
   // Date picker states
   const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>();
   const [drivingExpiryDate, setDrivingExpiryDate] = useState<Date | undefined>();
+  const [dateJoining, setDateJoining] = useState<Date | undefined>();
+  const [dateOfSign, setDateOfSign] = useState<Date | undefined>();
   
   // Work experience form states
   const [workExperienceForm, setWorkExperienceForm] = useState({
@@ -1024,42 +1030,566 @@ export default function EmployeeDetailsPage() {
               )}
 
               {activeTab === "employment" && (
-                <Card>
-                  <CardHeader className="bg-teal-500 text-white">
-                    <CardTitle className="flex items-center gap-2">
-                      <Building className="w-5 h-5" />
-                      Employment Information
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div>
-                        <Label className="text-sm font-medium text-gray-700">Employee ID</Label>
-                        <div className="mt-1 p-2 bg-gray-50 rounded border">
-                          {employee?.id || "N/A"}
+                <div className="space-y-6">
+                  {/* Employment Details Card */}
+                  <Card>
+                    <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="flex items-center gap-2">
+                          <Building className="w-5 h-5" />
+                          Employment Details
+                        </CardTitle>
+                        {!isEditingEmployment ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsEditingEmployment(true)}
+                            className="bg-white text-teal-600 hover:bg-gray-50"
+                            data-testid="button-edit-employment"
+                          >
+                            <Edit2 className="w-4 h-4 mr-1" />
+                            Update
+                          </Button>
+                        ) : null}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">Employee No.</Label>
+                          {isEditingEmployment ? (
+                            <Input
+                              value={employmentForm.employeeNo || ""}
+                              onChange={(e) => setEmploymentForm({ ...employmentForm, employeeNo: e.target.value })}
+                              className="mt-1"
+                              data-testid="input-employee-no"
+                            />
+                          ) : (
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              {employmentForm.employeeNo || "N/A"}
+                            </div>
+                          )}
+                        </div>
+
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">Company</Label>
+                          {isEditingEmployment ? (
+                            <Select value={employmentForm.company || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, company: value })}>
+                              <SelectTrigger className="mt-1">
+                                <SelectValue placeholder="Select company" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="UtamaHR Sdn Bhd">UtamaHR Sdn Bhd</SelectItem>
+                                <SelectItem value="Digital Solutions Sdn Bhd">Digital Solutions Sdn Bhd</SelectItem>
+                                <SelectItem value="Tech Innovation Sdn Bhd">Tech Innovation Sdn Bhd</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              {employmentForm.company || "N/A"}
+                            </div>
+                          )}
+                        </div>
+
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">Designation</Label>
+                          {isEditingEmployment ? (
+                            <Input
+                              value={employmentForm.designation || ""}
+                              onChange={(e) => setEmploymentForm({ ...employmentForm, designation: e.target.value })}
+                              className="mt-1"
+                              data-testid="input-designation"
+                            />
+                          ) : (
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              {employmentForm.designation || "N/A"}
+                            </div>
+                          )}
+                        </div>
+
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">Branch Location</Label>
+                          {isEditingEmployment ? (
+                            <Input
+                              value={employmentForm.branchLocation || ""}
+                              onChange={(e) => setEmploymentForm({ ...employmentForm, branchLocation: e.target.value })}
+                              className="mt-1"
+                              data-testid="input-branch-location"
+                            />
+                          ) : (
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              {employmentForm.branchLocation || "N/A"}
+                            </div>
+                          )}
+                        </div>
+
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">Date Joining</Label>
+                          {isEditingEmployment ? (
+                            <Input
+                              type="date"
+                              value={dateJoining ? dateJoining.toISOString().split('T')[0] : ""}
+                              onChange={(e) => {
+                                const dateValue = e.target.value ? new Date(e.target.value) : undefined;
+                                setDateJoining(dateValue);
+                                setEmploymentForm({ ...employmentForm, dateJoining: dateValue });
+                              }}
+                              className="mt-1"
+                              data-testid="input-date-joining"
+                            />
+                          ) : (
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              {employmentForm.dateJoining ? new Date(employmentForm.dateJoining).toLocaleDateString('en-MY') : "N/A"}
+                            </div>
+                          )}
+                        </div>
+
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">Date of Sign (LO)</Label>
+                          {isEditingEmployment ? (
+                            <Input
+                              type="date"
+                              value={dateOfSign ? dateOfSign.toISOString().split('T')[0] : ""}
+                              onChange={(e) => {
+                                const dateValue = e.target.value ? new Date(e.target.value) : undefined;
+                                setDateOfSign(dateValue);
+                                setEmploymentForm({ ...employmentForm, dateOfSign: dateValue });
+                              }}
+                              className="mt-1"
+                              data-testid="input-date-of-sign"
+                            />
+                          ) : (
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              {employmentForm.dateOfSign ? new Date(employmentForm.dateOfSign).toLocaleDateString('en-MY') : "N/A"}
+                            </div>
+                          )}
+                        </div>
+
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">Employee Type</Label>
+                          {isEditingEmployment ? (
+                            <Select value={employmentForm.employmentType || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, employmentType: value })}>
+                              <SelectTrigger className="mt-1">
+                                <SelectValue placeholder="Select employee type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Permanent">Permanent</SelectItem>
+                                <SelectItem value="Contract">Contract</SelectItem>
+                                <SelectItem value="Probation">Probation</SelectItem>
+                                <SelectItem value="Internship">Internship</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              {employmentForm.employmentType || "N/A"}
+                            </div>
+                          )}
+                        </div>
+
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">Department</Label>
+                          {isEditingEmployment ? (
+                            <Select value={employmentForm.department || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, department: value })}>
+                              <SelectTrigger className="mt-1">
+                                <SelectValue placeholder="Select department" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Human Resources">Human Resources</SelectItem>
+                                <SelectItem value="Information Technology">Information Technology</SelectItem>
+                                <SelectItem value="Finance">Finance</SelectItem>
+                                <SelectItem value="Marketing">Marketing</SelectItem>
+                                <SelectItem value="Operations">Operations</SelectItem>
+                                <SelectItem value="Sales">Sales</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              {employmentForm.department || "N/A"}
+                            </div>
+                          )}
+                        </div>
+
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">Employee Status</Label>
+                          {isEditingEmployment ? (
+                            <Select value={employmentForm.employmentStatus || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, employmentStatus: value })}>
+                              <SelectTrigger className="mt-1">
+                                <SelectValue placeholder="Select employee status" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Employed">Employed</SelectItem>
+                                <SelectItem value="Resigned">Resigned</SelectItem>
+                                <SelectItem value="Terminated">Terminated</SelectItem>
+                                <SelectItem value="Retired">Retired</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              {employmentForm.employmentStatus || "N/A"}
+                            </div>
+                          )}
+                        </div>
+
+                        <div>
+                          <Label className="text-sm font-medium text-gray-700">OKU Status</Label>
+                          {isEditingEmployment ? (
+                            <Select value={employmentForm.okuStatus || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, okuStatus: value })}>
+                              <SelectTrigger className="mt-1">
+                                <SelectValue placeholder="Select OKU status" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="No">No</SelectItem>
+                                <SelectItem value="Yes">Yes</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              {employmentForm.okuStatus || "N/A"}
+                            </div>
+                          )}
                         </div>
                       </div>
+
+                      {isEditingEmployment && (
+                        <div className="flex justify-end gap-2 mt-6">
+                          <Button
+                            variant="outline"
+                            onClick={() => setIsEditingEmployment(false)}
+                            data-testid="button-cancel-employment"
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            className="bg-teal-600 hover:bg-teal-700"
+                            data-testid="button-save-employment"
+                          >
+                            Save Changes
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Approval Details Card */}
+                  <Card>
+                    <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="flex items-center gap-2">
+                          <UserCheck className="w-5 h-5" />
+                          Approval Details
+                        </CardTitle>
+                        {!isEditingApproval ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsEditingApproval(true)}
+                            className="bg-white text-teal-600 hover:bg-gray-50"
+                            data-testid="button-edit-approval"
+                          >
+                            <Edit2 className="w-4 h-4 mr-1" />
+                            Update
+                          </Button>
+                        ) : null}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-6 space-y-6">
+                      {/* Leave Supervisor */}
                       <div>
-                        <Label className="text-sm font-medium text-gray-700">Position</Label>
-                        <div className="mt-1 p-2 bg-gray-50 rounded border">
-                          N/A
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">1) Leave Supervisor</h3>
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">First Approval</Label>
+                            {isEditingApproval ? (
+                              <Select value={employmentForm.leaveFirstApproval || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, leaveFirstApproval: value })}>
+                                <SelectTrigger className="mt-1">
+                                  <SelectValue placeholder="Select supervisor" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Ahmad Rahman">Ahmad Rahman</SelectItem>
+                                  <SelectItem value="Siti Nurhaliza">Siti Nurhaliza</SelectItem>
+                                  <SelectItem value="Tan Wei Ming">Tan Wei Ming</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <div className="mt-1 p-2 bg-gray-50 rounded border">
+                                {employmentForm.leaveFirstApproval || "N/A"}
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">Second Approval</Label>
+                            {isEditingApproval ? (
+                              <Select value={employmentForm.leaveSecondApproval || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, leaveSecondApproval: value })}>
+                                <SelectTrigger className="mt-1">
+                                  <SelectValue placeholder="Select supervisor" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Ahmad Rahman">Ahmad Rahman</SelectItem>
+                                  <SelectItem value="Siti Nurhaliza">Siti Nurhaliza</SelectItem>
+                                  <SelectItem value="Tan Wei Ming">Tan Wei Ming</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <div className="mt-1 p-2 bg-gray-50 rounded border">
+                                {employmentForm.leaveSecondApproval || "N/A"}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
+
+                      {/* Claim Supervisor */}
                       <div>
-                        <Label className="text-sm font-medium text-gray-700">Department</Label>
-                        <div className="mt-1 p-2 bg-gray-50 rounded border">
-                          N/A
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">2) Claim Supervisor</h3>
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">First Approval</Label>
+                            {isEditingApproval ? (
+                              <Select value={employmentForm.claimFirstApproval || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, claimFirstApproval: value })}>
+                                <SelectTrigger className="mt-1">
+                                  <SelectValue placeholder="Select supervisor" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Ahmad Rahman">Ahmad Rahman</SelectItem>
+                                  <SelectItem value="Siti Nurhaliza">Siti Nurhaliza</SelectItem>
+                                  <SelectItem value="Tan Wei Ming">Tan Wei Ming</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <div className="mt-1 p-2 bg-gray-50 rounded border">
+                                {employmentForm.claimFirstApproval || "N/A"}
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">Second Approval</Label>
+                            {isEditingApproval ? (
+                              <Select value={employmentForm.claimSecondApproval || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, claimSecondApproval: value })}>
+                                <SelectTrigger className="mt-1">
+                                  <SelectValue placeholder="Select supervisor" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Ahmad Rahman">Ahmad Rahman</SelectItem>
+                                  <SelectItem value="Siti Nurhaliza">Siti Nurhaliza</SelectItem>
+                                  <SelectItem value="Tan Wei Ming">Tan Wei Ming</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <div className="mt-1 p-2 bg-gray-50 rounded border">
+                                {employmentForm.claimSecondApproval || "N/A"}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
+
+                      {/* Overtime Supervisor */}
                       <div>
-                        <Label className="text-sm font-medium text-gray-700">Company</Label>
-                        <div className="mt-1 p-2 bg-gray-50 rounded border">
-                          N/A
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">3) Overtime Supervisor</h3>
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">First Approval</Label>
+                            {isEditingApproval ? (
+                              <Select value={employmentForm.overtimeFirstApproval || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, overtimeFirstApproval: value })}>
+                                <SelectTrigger className="mt-1">
+                                  <SelectValue placeholder="Select supervisor" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Ahmad Rahman">Ahmad Rahman</SelectItem>
+                                  <SelectItem value="Siti Nurhaliza">Siti Nurhaliza</SelectItem>
+                                  <SelectItem value="Tan Wei Ming">Tan Wei Ming</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <div className="mt-1 p-2 bg-gray-50 rounded border">
+                                {employmentForm.overtimeFirstApproval || "N/A"}
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">Second Approval</Label>
+                            {isEditingApproval ? (
+                              <Select value={employmentForm.overtimeSecondApproval || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, overtimeSecondApproval: value })}>
+                                <SelectTrigger className="mt-1">
+                                  <SelectValue placeholder="Select supervisor" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Ahmad Rahman">Ahmad Rahman</SelectItem>
+                                  <SelectItem value="Siti Nurhaliza">Siti Nurhaliza</SelectItem>
+                                  <SelectItem value="Tan Wei Ming">Tan Wei Ming</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <div className="mt-1 p-2 bg-gray-50 rounded border">
+                                {employmentForm.overtimeSecondApproval || "N/A"}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+
+                      {/* Timeoff Supervisor */}
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">4) Timeoff Supervisor</h3>
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">First Approval</Label>
+                            {isEditingApproval ? (
+                              <Select value={employmentForm.timeoffFirstApproval || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, timeoffFirstApproval: value })}>
+                                <SelectTrigger className="mt-1">
+                                  <SelectValue placeholder="Select supervisor" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Ahmad Rahman">Ahmad Rahman</SelectItem>
+                                  <SelectItem value="Siti Nurhaliza">Siti Nurhaliza</SelectItem>
+                                  <SelectItem value="Tan Wei Ming">Tan Wei Ming</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <div className="mt-1 p-2 bg-gray-50 rounded border">
+                                {employmentForm.timeoffFirstApproval || "N/A"}
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium text-gray-700">Second Approval</Label>
+                            {isEditingApproval ? (
+                              <Select value={employmentForm.timeoffSecondApproval || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, timeoffSecondApproval: value })}>
+                                <SelectTrigger className="mt-1">
+                                  <SelectValue placeholder="Select supervisor" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Ahmad Rahman">Ahmad Rahman</SelectItem>
+                                  <SelectItem value="Siti Nurhaliza">Siti Nurhaliza</SelectItem>
+                                  <SelectItem value="Tan Wei Ming">Tan Wei Ming</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <div className="mt-1 p-2 bg-gray-50 rounded border">
+                                {employmentForm.timeoffSecondApproval || "N/A"}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {isEditingApproval && (
+                        <div className="flex justify-end gap-2 mt-6">
+                          <Button
+                            variant="outline"
+                            onClick={() => setIsEditingApproval(false)}
+                            data-testid="button-cancel-approval"
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            className="bg-teal-600 hover:bg-teal-700"
+                            data-testid="button-save-approval"
+                          >
+                            Save Changes
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Yearly Form Card */}
+                  <Card>
+                    <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="flex items-center gap-2">
+                          <FileText className="w-5 h-5" />
+                          Yearly Form
+                        </CardTitle>
+                        {!isEditingYearly ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsEditingYearly(true)}
+                            className="bg-white text-teal-600 hover:bg-gray-50"
+                            data-testid="button-edit-yearly"
+                          >
+                            <Edit2 className="w-4 h-4 mr-1" />
+                            Update
+                          </Button>
+                        ) : null}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">EA Person in Charge</Label>
+                        {isEditingYearly ? (
+                          <Select value={employmentForm.eaPersonInCharge || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, eaPersonInCharge: value })}>
+                            <SelectTrigger className="mt-1">
+                              <SelectValue placeholder="Select EA person in charge" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Ahmad Rahman">Ahmad Rahman</SelectItem>
+                              <SelectItem value="Siti Nurhaliza">Siti Nurhaliza</SelectItem>
+                              <SelectItem value="Tan Wei Ming">Tan Wei Ming</SelectItem>
+                              <SelectItem value="Lim Swee Hock">Lim Swee Hock</SelectItem>
+                              <SelectItem value="Fatimah Zahra">Fatimah Zahra</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <div className="mt-1 p-2 bg-gray-50 rounded border">
+                            {employmentForm.eaPersonInCharge || "N/A"}
+                          </div>
+                        )}
+                      </div>
+
+                      {isEditingYearly && (
+                        <div className="flex justify-end gap-2 mt-6">
+                          <Button
+                            variant="outline"
+                            onClick={() => setIsEditingYearly(false)}
+                            data-testid="button-cancel-yearly"
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            className="bg-teal-600 hover:bg-teal-700"
+                            data-testid="button-save-yearly"
+                          >
+                            Save Changes
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Company Access Card */}
+                  <Card>
+                    <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white">
+                      <CardTitle className="flex items-center gap-2">
+                        <Building className="w-5 h-5" />
+                        Company Access
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <span className="text-sm font-medium text-gray-700">UtamaHR Sdn Bhd</span>
+                          <Button variant="outline" size="sm" className="bg-green-500 text-white hover:bg-green-600">
+                            Active
+                          </Button>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <span className="text-sm font-medium text-gray-700">Digital Solutions Sdn Bhd</span>
+                          <Button variant="outline" size="sm" className="bg-gray-500 text-white hover:bg-gray-600">
+                            Inactive
+                          </Button>
+                        </div>
+                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <span className="text-sm font-medium text-gray-700">Tech Innovation Sdn Bhd</span>
+                          <Button variant="outline" size="sm" className="bg-gray-500 text-white hover:bg-gray-600">
+                            Inactive
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               )}
 
               {activeTab === "contact" && (

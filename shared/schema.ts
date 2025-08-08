@@ -67,6 +67,31 @@ export const employment = pgTable("employment", {
   employmentStatus: text("employment_status").default("Employed"),
   okuStatus: text("oku_status").default("No"),
   
+  // Approval Details
+  leaveFirstApproval: text("leave_first_approval"),
+  leaveSecondApproval: text("leave_second_approval"),
+  claimFirstApproval: text("claim_first_approval"),
+  claimSecondApproval: text("claim_second_approval"),
+  overtimeFirstApproval: text("overtime_first_approval"),
+  overtimeSecondApproval: text("overtime_second_approval"),
+  timeoffFirstApproval: text("timeoff_first_approval"),
+  timeoffSecondApproval: text("timeoff_second_approval"),
+  
+  // Yearly Form
+  eaPersonInCharge: text("ea_person_in_charge"),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Company Access Table (for Yearly Form card)
+export const companyAccess = pgTable("company_access", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  employeeId: varchar("employee_id").notNull().references(() => employees.id),
+  
+  companyName: text("company_name").notNull(),
+  hasAccess: boolean("has_access").default(false),
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -328,6 +353,16 @@ export const insertEmploymentSchema = createInsertSchema(employment).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  // Handle date fields to accept strings and convert to Date objects
+  dateJoining: z.preprocess(
+    (val) => val ? new Date(val as string | Date) : null,
+    z.date().nullable().optional()
+  ),
+  dateOfSign: z.preprocess(
+    (val) => val ? new Date(val as string | Date) : null,
+    z.date().nullable().optional()
+  ),
 });
 export const updateEmploymentSchema = insertEmploymentSchema.partial();
 
@@ -521,6 +556,19 @@ export type UpdateAppSetting = z.infer<typeof updateAppSettingSchema>;
 export type WorkExperience = typeof workExperiences.$inferSelect;
 export type InsertWorkExperience = z.infer<typeof insertWorkExperienceSchema>;
 export type UpdateWorkExperience = z.infer<typeof updateWorkExperienceSchema>;
+
+// Company Access schemas
+export const insertCompanyAccessSchema = createInsertSchema(companyAccess).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const updateCompanyAccessSchema = insertCompanyAccessSchema.partial();
+
+// Company Access types
+export type CompanyAccess = typeof companyAccess.$inferSelect;
+export type InsertCompanyAccess = z.infer<typeof insertCompanyAccessSchema>;
+export type UpdateCompanyAccess = z.infer<typeof updateCompanyAccessSchema>;
 
 // QR Token types
 export type QrToken = typeof qrTokens.$inferSelect;
