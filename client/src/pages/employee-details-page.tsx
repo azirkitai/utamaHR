@@ -833,7 +833,7 @@ export default function EmployeeDetailsPage() {
                       </div>
                     </CardHeader>
                     <CardContent className="p-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                         <div className="space-y-2">
                           <Label className="text-sm font-medium text-gray-700 block">Driving License Number</Label>
                           {isEditingDriving ? (
@@ -877,7 +877,7 @@ export default function EmployeeDetailsPage() {
                           )}
                         </div>
 
-                        <div className="space-y-2 md:col-span-2 lg:col-span-1">
+                        <div className="space-y-2">
                           <Label className="text-sm font-medium text-gray-700 block">Driving Expiry Date</Label>
                           {isEditingDriving ? (
                             <Input
@@ -1096,7 +1096,7 @@ export default function EmployeeDetailsPage() {
                       </div>
                     </CardHeader>
                     <CardContent className="p-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                         <div className="space-y-2">
                           <Label className="text-sm font-medium text-gray-700 block">Employee No.</Label>
                           {isEditingEmployment ? (
@@ -1340,9 +1340,9 @@ export default function EmployeeDetailsPage() {
                       {/* Leave Supervisor */}
                       <div>
                         <h3 className="text-lg font-semibold text-gray-800 mb-4">1) Leave Supervisor</h3>
-                        <div className="grid md:grid-cols-2 gap-4">
-                          <div>
-                            <Label className="text-sm font-medium text-gray-700">First Approval</Label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700 block">First Approval</Label>
                             {isEditingApproval ? (
                               <Select value={employmentForm.leaveFirstApproval || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, leaveFirstApproval: value })}>
                                 <SelectTrigger className="mt-1">
@@ -1360,8 +1360,8 @@ export default function EmployeeDetailsPage() {
                               </div>
                             )}
                           </div>
-                          <div>
-                            <Label className="text-sm font-medium text-gray-700">Second Approval</Label>
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700 block">Second Approval</Label>
                             {isEditingApproval ? (
                               <Select value={employmentForm.leaveSecondApproval || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, leaveSecondApproval: value })}>
                                 <SelectTrigger className="mt-1">
@@ -1385,9 +1385,9 @@ export default function EmployeeDetailsPage() {
                       {/* Claim Supervisor */}
                       <div>
                         <h3 className="text-lg font-semibold text-gray-800 mb-4">2) Claim Supervisor</h3>
-                        <div className="grid md:grid-cols-2 gap-4">
-                          <div>
-                            <Label className="text-sm font-medium text-gray-700">First Approval</Label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700 block">First Approval</Label>
                             {isEditingApproval ? (
                               <Select value={employmentForm.claimFirstApproval || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, claimFirstApproval: value })}>
                                 <SelectTrigger className="mt-1">
@@ -1405,8 +1405,8 @@ export default function EmployeeDetailsPage() {
                               </div>
                             )}
                           </div>
-                          <div>
-                            <Label className="text-sm font-medium text-gray-700">Second Approval</Label>
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700 block">Second Approval</Label>
                             {isEditingApproval ? (
                               <Select value={employmentForm.claimSecondApproval || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, claimSecondApproval: value })}>
                                 <SelectTrigger className="mt-1">
@@ -1430,9 +1430,9 @@ export default function EmployeeDetailsPage() {
                       {/* Overtime Supervisor */}
                       <div>
                         <h3 className="text-lg font-semibold text-gray-800 mb-4">3) Overtime Supervisor</h3>
-                        <div className="grid md:grid-cols-2 gap-4">
-                          <div>
-                            <Label className="text-sm font-medium text-gray-700">First Approval</Label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700 block">First Approval</Label>
                             {isEditingApproval ? (
                               <Select value={employmentForm.overtimeFirstApproval || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, overtimeFirstApproval: value })}>
                                 <SelectTrigger className="mt-1">
@@ -1450,8 +1450,8 @@ export default function EmployeeDetailsPage() {
                               </div>
                             )}
                           </div>
-                          <div>
-                            <Label className="text-sm font-medium text-gray-700">Second Approval</Label>
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700 block">Second Approval</Label>
                             {isEditingApproval ? (
                               <Select value={employmentForm.overtimeSecondApproval || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, overtimeSecondApproval: value })}>
                                 <SelectTrigger className="mt-1">
@@ -1475,9 +1475,9 @@ export default function EmployeeDetailsPage() {
                       {/* Timeoff Supervisor */}
                       <div>
                         <h3 className="text-lg font-semibold text-gray-800 mb-4">4) Timeoff Supervisor</h3>
-                        <div className="grid md:grid-cols-2 gap-4">
-                          <div>
-                            <Label className="text-sm font-medium text-gray-700">First Approval</Label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700 block">First Approval</Label>
                             {isEditingApproval ? (
                               <Select value={employmentForm.timeoffFirstApproval || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, timeoffFirstApproval: value })}>
                                 <SelectTrigger className="mt-1">
@@ -1495,8 +1495,8 @@ export default function EmployeeDetailsPage() {
                               </div>
                             )}
                           </div>
-                          <div>
-                            <Label className="text-sm font-medium text-gray-700">Second Approval</Label>
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-gray-700 block">Second Approval</Label>
                             {isEditingApproval ? (
                               <Select value={employmentForm.timeoffSecondApproval || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, timeoffSecondApproval: value })}>
                                 <SelectTrigger className="mt-1">
@@ -1562,9 +1562,10 @@ export default function EmployeeDetailsPage() {
                       </div>
                     </CardHeader>
                     <CardContent className="p-6">
-                      <div>
-                        <Label className="text-sm font-medium text-gray-700">EA Person in Charge</Label>
-                        {isEditingYearly ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">EA Person in Charge</Label>
+                          {isEditingYearly ? (
                           <Select value={employmentForm.eaPersonInCharge || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, eaPersonInCharge: value })}>
                             <SelectTrigger className="mt-1">
                               <SelectValue placeholder="Select EA person in charge" />
@@ -1582,6 +1583,7 @@ export default function EmployeeDetailsPage() {
                             {employmentForm.eaPersonInCharge || "N/A"}
                           </div>
                         )}
+                        </div>
                       </div>
 
                       {isEditingYearly && (
@@ -1615,24 +1617,29 @@ export default function EmployeeDetailsPage() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-6">
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                          <span className="text-sm font-medium text-gray-700">UtamaHR Sdn Bhd</span>
-                          <Button variant="outline" size="sm" className="bg-green-500 text-white hover:bg-green-600">
-                            Active
-                          </Button>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">UtamaHR Sdn Bhd</Label>
+                          <div className="mt-1 p-2 bg-green-50 rounded border border-green-200 flex items-center justify-between">
+                            <span className="text-sm text-green-700">Company Access</span>
+                            <span className="text-xs bg-green-500 text-white px-2 py-1 rounded">Active</span>
+                          </div>
                         </div>
-                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                          <span className="text-sm font-medium text-gray-700">Digital Solutions Sdn Bhd</span>
-                          <Button variant="outline" size="sm" className="bg-gray-500 text-white hover:bg-gray-600">
-                            Inactive
-                          </Button>
+                        
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Digital Solutions Sdn Bhd</Label>
+                          <div className="mt-1 p-2 bg-gray-50 rounded border border-gray-200 flex items-center justify-between">
+                            <span className="text-sm text-gray-700">Company Access</span>
+                            <span className="text-xs bg-gray-500 text-white px-2 py-1 rounded">Inactive</span>
+                          </div>
                         </div>
-                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                          <span className="text-sm font-medium text-gray-700">Tech Innovation Sdn Bhd</span>
-                          <Button variant="outline" size="sm" className="bg-gray-500 text-white hover:bg-gray-600">
-                            Inactive
-                          </Button>
+                        
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Tech Innovation Sdn Bhd</Label>
+                          <div className="mt-1 p-2 bg-gray-50 rounded border border-gray-200 flex items-center justify-between">
+                            <span className="text-sm text-gray-700">Company Access</span>
+                            <span className="text-xs bg-gray-500 text-white px-2 py-1 rounded">Inactive</span>
+                          </div>
                         </div>
                       </div>
                     </CardContent>
@@ -1642,14 +1649,14 @@ export default function EmployeeDetailsPage() {
 
               {activeTab === "contact" && (
                 <Card>
-                  <CardHeader className="bg-teal-500 text-white">
+                  <CardHeader className="bg-gradient-to-r from-teal-500 to-emerald-500 text-white">
                     <CardTitle className="flex items-center gap-2">
                       <Phone className="w-5 h-5" />
                       Contact Information
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                       <div className="space-y-2">
                         <Label className="text-sm font-medium text-gray-700 block">Email</Label>
                         <div className="mt-1 p-2 bg-gray-50 rounded border">
@@ -1670,7 +1677,7 @@ export default function EmployeeDetailsPage() {
               {/* Placeholder for other tabs */}
               {activeTab !== "personal-details" && activeTab !== "employment" && activeTab !== "contact" && (
                 <Card>
-                  <CardHeader className="bg-teal-500 text-white">
+                  <CardHeader className="bg-gradient-to-r from-teal-500 to-emerald-500 text-white">
                     <CardTitle className="capitalize">
                       {activeTab.replace("-", " ")} Information
                     </CardTitle>
