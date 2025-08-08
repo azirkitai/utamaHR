@@ -451,65 +451,7 @@ export class DatabaseStorage implements IStorage {
     return (result.rowCount ?? 0) > 0;
   }
 
-  // =================== LEAVE POLICY METHODS ===================
-  async getLeavePolicies(employeeId: string): Promise<LeavePolicy[]> {
-    return await db.select().from(leavePolicy).where(eq(leavePolicy.employeeId, employeeId));
-  }
 
-  async createLeavePolicy(insertLeavePolicy: InsertLeavePolicy): Promise<LeavePolicy> {
-    const [record] = await db
-      .insert(leavePolicy)
-      .values(insertLeavePolicy)
-      .returning();
-    return record;
-  }
-
-  async updateLeavePolicy(id: string, updateLeavePolicy: UpdateLeavePolicy): Promise<LeavePolicy | undefined> {
-    const [record] = await db
-      .update(leavePolicy)
-      .set({
-        ...updateLeavePolicy,
-        updatedAt: new Date()
-      })
-      .where(eq(leavePolicy.id, id))
-      .returning();
-    return record || undefined;
-  }
-
-  async deleteLeavePolicy(id: string): Promise<boolean> {
-    const result = await db.delete(leavePolicy).where(eq(leavePolicy.id, id));
-    return (result.rowCount ?? 0) > 0;
-  }
-
-  // =================== CLAIM POLICY METHODS ===================
-  async getClaimPolicies(employeeId: string): Promise<ClaimPolicy[]> {
-    return await db.select().from(claimPolicy).where(eq(claimPolicy.employeeId, employeeId));
-  }
-
-  async createClaimPolicy(insertClaimPolicy: InsertClaimPolicy): Promise<ClaimPolicy> {
-    const [record] = await db
-      .insert(claimPolicy)
-      .values(insertClaimPolicy)
-      .returning();
-    return record;
-  }
-
-  async updateClaimPolicy(id: string, updateClaimPolicy: UpdateClaimPolicy): Promise<ClaimPolicy | undefined> {
-    const [record] = await db
-      .update(claimPolicy)
-      .set({
-        ...updateClaimPolicy,
-        updatedAt: new Date()
-      })
-      .where(eq(claimPolicy.id, id))
-      .returning();
-    return record || undefined;
-  }
-
-  async deleteClaimPolicy(id: string): Promise<boolean> {
-    const result = await db.delete(claimPolicy).where(eq(claimPolicy.id, id));
-    return (result.rowCount ?? 0) > 0;
-  }
 
   // =================== DISCIPLINARY METHODS ===================
   async getDisciplinaryRecords(employeeId: string): Promise<Disciplinary[]> {
@@ -573,10 +515,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createWorkExperience(insertWorkExperience: InsertWorkExperience): Promise<WorkExperience> {
-    const [record] = await db
-      .insert(workExperiences)
-      .values(insertWorkExperience)
-      .returning();
+    const [record] = await db.insert(workExperiences).values(insertWorkExperience).returning();
     return record;
   }
 
@@ -749,23 +688,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // =================== WORK EXPERIENCE METHODS ===================
-  async getWorkExperiences(employeeId: string): Promise<WorkExperience[]> {
-    return await db.select().from(workExperiences).where(eq(workExperiences.employeeId, employeeId));
-  }
 
-  async createWorkExperience(insertWorkExperience: InsertWorkExperience): Promise<WorkExperience> {
-    const [workExperience] = await db
-      .insert(workExperiences)
-      .values(insertWorkExperience)
-      .returning();
-    return workExperience;
-  }
-
-  async deleteWorkExperience(id: string): Promise<boolean> {
-    const result = await db.delete(workExperiences).where(eq(workExperiences.id, id));
-    return (result.rowCount ?? 0) > 0;
-  }
 
   // =================== LEAVE POLICY METHODS ===================
   async getLeavePolicies(employeeId: string): Promise<LeavePolicy[]> {
