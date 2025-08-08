@@ -55,6 +55,9 @@ export default function EmployeeDetailsPage() {
   const [isEditingApproval, setIsEditingApproval] = useState(false);
   const [isEditingYearly, setIsEditingYearly] = useState(false);
   const [isEditingContact, setIsEditingContact] = useState(false);
+  const [isEditingBankDetails, setIsEditingBankDetails] = useState(false);
+  const [isEditingStatutoryDetails, setIsEditingStatutoryDetails] = useState(false);
+  const [isEditingIncomeTaxDetails, setIsEditingIncomeTaxDetails] = useState(false);
   const [isWorkExperienceDialogOpen, setIsWorkExperienceDialogOpen] = useState(false);
   const [isFamilyDialogOpen, setIsFamilyDialogOpen] = useState(false);
   const [employeeForm, setEmployeeForm] = useState<Partial<Employee>>({});
@@ -2213,24 +2216,27 @@ export default function EmployeeDetailsPage() {
                           <Building className="w-5 h-5" />
                           Bank Details
                         </CardTitle>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="bg-white text-teal-600 hover:bg-gray-50"
-                          data-testid="button-edit-bank-details"
-                        >
-                          <Edit2 className="w-4 h-4 mr-1" />
-                          Update
-                        </Button>
+                        {!isEditingBankDetails ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsEditingBankDetails(true)}
+                            className="bg-white text-teal-600 hover:bg-gray-50"
+                            data-testid="button-edit-bank-details"
+                          >
+                            <Edit2 className="w-4 h-4 mr-1" />
+                            Update
+                          </Button>
+                        ) : null}
                       </div>
                     </CardHeader>
                     <CardContent className="p-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                         <div className="space-y-2">
                           <Label className="text-sm font-medium text-gray-700 block">Bank</Label>
-                          <div className="mt-1 p-2 bg-gray-50 rounded border">
+                          {isEditingBankDetails ? (
                             <Select>
-                              <SelectTrigger>
+                              <SelectTrigger className="mt-1">
                                 <SelectValue placeholder="Select bank" />
                               </SelectTrigger>
                               <SelectContent>
@@ -2271,21 +2277,33 @@ export default function EmployeeDetailsPage() {
                                 <SelectItem value="mbsb">MBSB Bank Berhad</SelectItem>
                               </SelectContent>
                             </Select>
-                          </div>
+                          ) : (
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              N/A
+                            </div>
+                          )}
                         </div>
                         
                         <div className="space-y-2">
                           <Label className="text-sm font-medium text-gray-700 block">Account Number</Label>
-                          <div className="mt-1 p-2 bg-gray-50 rounded border">
-                            <Input placeholder="Account Number" />
-                          </div>
+                          {isEditingBankDetails ? (
+                            <Input
+                              placeholder="Account Number"
+                              className="mt-1"
+                              data-testid="input-account-number"
+                            />
+                          ) : (
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              N/A
+                            </div>
+                          )}
                         </div>
 
                         <div className="space-y-2">
                           <Label className="text-sm font-medium text-gray-700 block">Account Type</Label>
-                          <div className="mt-1 p-2 bg-gray-50 rounded border">
+                          {isEditingBankDetails ? (
                             <Select>
-                              <SelectTrigger>
+                              <SelectTrigger className="mt-1">
                                 <SelectValue placeholder="Select account type" />
                               </SelectTrigger>
                               <SelectContent>
@@ -2293,21 +2311,33 @@ export default function EmployeeDetailsPage() {
                                 <SelectItem value="current">Current Account</SelectItem>
                               </SelectContent>
                             </Select>
-                          </div>
+                          ) : (
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              N/A
+                            </div>
+                          )}
                         </div>
 
                         <div className="space-y-2">
                           <Label className="text-sm font-medium text-gray-700 block">Branch</Label>
-                          <div className="mt-1 p-2 bg-gray-50 rounded border">
-                            <Input placeholder="Branch" />
-                          </div>
+                          {isEditingBankDetails ? (
+                            <Input
+                              placeholder="Branch"
+                              className="mt-1"
+                              data-testid="input-branch"
+                            />
+                          ) : (
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              N/A
+                            </div>
+                          )}
                         </div>
 
                         <div className="space-y-2">
                           <Label className="text-sm font-medium text-gray-700 block">Account Status</Label>
-                          <div className="mt-1 p-2 bg-gray-50 rounded border">
+                          {isEditingBankDetails ? (
                             <Select>
-                              <SelectTrigger>
+                              <SelectTrigger className="mt-1">
                                 <SelectValue placeholder="Select account status" />
                               </SelectTrigger>
                               <SelectContent>
@@ -2315,9 +2345,31 @@ export default function EmployeeDetailsPage() {
                                 <SelectItem value="inactive">Inactive</SelectItem>
                               </SelectContent>
                             </Select>
-                          </div>
+                          ) : (
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              N/A
+                            </div>
+                          )}
                         </div>
                       </div>
+
+                      {isEditingBankDetails && (
+                        <div className="flex justify-end gap-2 mt-6">
+                          <Button
+                            variant="outline"
+                            onClick={() => setIsEditingBankDetails(false)}
+                            data-testid="button-cancel-bank-details"
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            className="bg-teal-600 hover:bg-teal-700"
+                            data-testid="button-save-bank-details"
+                          >
+                            Save Changes
+                          </Button>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
 
@@ -2329,15 +2381,18 @@ export default function EmployeeDetailsPage() {
                           <FileText className="w-5 h-5" />
                           Statutory Details
                         </CardTitle>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="bg-white text-teal-600 hover:bg-gray-50"
-                          data-testid="button-edit-statutory-details"
-                        >
-                          <Edit2 className="w-4 h-4 mr-1" />
-                          Update
-                        </Button>
+                        {!isEditingStatutoryDetails ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsEditingStatutoryDetails(true)}
+                            className="bg-white text-teal-600 hover:bg-gray-50"
+                            data-testid="button-edit-statutory-details"
+                          >
+                            <Edit2 className="w-4 h-4 mr-1" />
+                            Update
+                          </Button>
+                        ) : null}
                       </div>
                     </CardHeader>
                     <CardContent className="p-6 space-y-6">
@@ -2347,16 +2402,24 @@ export default function EmployeeDetailsPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                           <div className="space-y-2">
                             <Label className="text-sm font-medium text-gray-700 block">EPF Number</Label>
-                            <div className="mt-1 p-2 bg-gray-50 rounded border">
-                              <Input placeholder="EPF Number" />
-                            </div>
+                            {isEditingStatutoryDetails ? (
+                              <Input
+                                placeholder="EPF Number"
+                                className="mt-1"
+                                data-testid="input-epf-number"
+                              />
+                            ) : (
+                              <div className="mt-1 p-2 bg-gray-50 rounded border">
+                                N/A
+                              </div>
+                            )}
                           </div>
 
                           <div className="space-y-2">
                             <Label className="text-sm font-medium text-gray-700 block">EPF Contribution Start Date</Label>
-                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                            {isEditingStatutoryDetails ? (
                               <Select>
-                                <SelectTrigger>
+                                <SelectTrigger className="mt-1">
                                   <SelectValue placeholder="After 1 August 2001" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -2364,7 +2427,11 @@ export default function EmployeeDetailsPage() {
                                   <SelectItem value="before-aug-2001">Before 1 August 2001</SelectItem>
                                 </SelectContent>
                               </Select>
-                            </div>
+                            ) : (
+                              <div className="mt-1 p-2 bg-gray-50 rounded border">
+                                After 1 August 2001
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -2375,23 +2442,39 @@ export default function EmployeeDetailsPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                           <div className="space-y-2">
                             <Label className="text-sm font-medium text-gray-700 block">SOCSO Number</Label>
-                            <div className="mt-1 p-2 bg-gray-50 rounded border">
-                              <Input placeholder="SOCSO Number" />
-                            </div>
+                            {isEditingStatutoryDetails ? (
+                              <Input
+                                placeholder="SOCSO Number"
+                                className="mt-1"
+                                data-testid="input-socso-number"
+                              />
+                            ) : (
+                              <div className="mt-1 p-2 bg-gray-50 rounded border">
+                                N/A
+                              </div>
+                            )}
                           </div>
 
                           <div className="space-y-2">
                             <Label className="text-sm font-medium text-gray-700 block">SOCSO Contribution Start Age</Label>
-                            <div className="mt-1 p-2 bg-gray-50 rounded border">
-                              <Input placeholder="SOCSO Contribution Start Age" />
-                            </div>
+                            {isEditingStatutoryDetails ? (
+                              <Input
+                                placeholder="SOCSO Contribution Start Age"
+                                className="mt-1"
+                                data-testid="input-socso-age"
+                              />
+                            ) : (
+                              <div className="mt-1 p-2 bg-gray-50 rounded border">
+                                N/A
+                              </div>
+                            )}
                           </div>
 
                           <div className="space-y-2">
                             <Label className="text-sm font-medium text-gray-700 block">SOCSO Category</Label>
-                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                            {isEditingStatutoryDetails ? (
                               <Select>
-                                <SelectTrigger>
+                                <SelectTrigger className="mt-1">
                                   <SelectValue placeholder="None" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -2400,7 +2483,11 @@ export default function EmployeeDetailsPage() {
                                   <SelectItem value="category-2">Category 2</SelectItem>
                                 </SelectContent>
                               </Select>
-                            </div>
+                            ) : (
+                              <div className="mt-1 p-2 bg-gray-50 rounded border">
+                                None
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -2422,6 +2509,24 @@ export default function EmployeeDetailsPage() {
                           </div>
                         </div>
                       </div>
+
+                      {isEditingStatutoryDetails && (
+                        <div className="flex justify-end gap-2 mt-6">
+                          <Button
+                            variant="outline"
+                            onClick={() => setIsEditingStatutoryDetails(false)}
+                            data-testid="button-cancel-statutory-details"
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            className="bg-teal-600 hover:bg-teal-700"
+                            data-testid="button-save-statutory-details"
+                          >
+                            Save Changes
+                          </Button>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
 
@@ -2433,15 +2538,18 @@ export default function EmployeeDetailsPage() {
                           <Calculator className="w-5 h-5" />
                           Income Tax Details
                         </CardTitle>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="bg-white text-teal-600 hover:bg-gray-50"
-                          data-testid="button-edit-income-tax-details"
-                        >
-                          <Edit2 className="w-4 h-4 mr-1" />
-                          Update
-                        </Button>
+                        {!isEditingIncomeTaxDetails ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsEditingIncomeTaxDetails(true)}
+                            className="bg-white text-teal-600 hover:bg-gray-50"
+                            data-testid="button-edit-income-tax-details"
+                          >
+                            <Edit2 className="w-4 h-4 mr-1" />
+                            Update
+                          </Button>
+                        ) : null}
                       </div>
                     </CardHeader>
                     <CardContent className="p-6 space-y-6">
@@ -2451,14 +2559,18 @@ export default function EmployeeDetailsPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                           <div className="space-y-2">
                             <Label className="text-sm font-medium text-gray-700 block">Employee has Child</Label>
-                            <div className="mt-1 p-2 bg-gray-50 rounded border">
-                              <div className="flex items-center space-x-2">
+{isEditingIncomeTaxDetails ? (
+                              <div className="flex items-center space-x-2 mt-1">
                                 <input type="radio" id="child-yes" name="has-child" value="yes" className="radio" />
                                 <Label htmlFor="child-yes" className="text-sm">Yes</Label>
                                 <input type="radio" id="child-no" name="has-child" value="no" className="radio ml-4" />
                                 <Label htmlFor="child-no" className="text-sm">No</Label>
                               </div>
-                            </div>
+                            ) : (
+                              <div className="mt-1 p-2 bg-gray-50 rounded border">
+                                No
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -2481,9 +2593,9 @@ export default function EmployeeDetailsPage() {
 
                           <div className="space-y-2">
                             <Label className="text-sm font-medium text-gray-700 block">Spouse Gender</Label>
-                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+{isEditingIncomeTaxDetails ? (
                               <Select>
-                                <SelectTrigger>
+                                <SelectTrigger className="mt-1">
                                   <SelectValue placeholder="Select Gender" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -2491,7 +2603,11 @@ export default function EmployeeDetailsPage() {
                                   <SelectItem value="female">Female</SelectItem>
                                 </SelectContent>
                               </Select>
-                            </div>
+                            ) : (
+                              <div className="mt-1 p-2 bg-gray-50 rounded border">
+                                N/A
+                              </div>
+                            )}
                           </div>
 
                           <div className="space-y-2">
@@ -2566,6 +2682,24 @@ export default function EmployeeDetailsPage() {
                           </div>
                         </div>
                       </div>
+
+                      {isEditingIncomeTaxDetails && (
+                        <div className="flex justify-end gap-2 mt-6">
+                          <Button
+                            variant="outline"
+                            onClick={() => setIsEditingIncomeTaxDetails(false)}
+                            data-testid="button-cancel-income-tax-details"
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            className="bg-teal-600 hover:bg-teal-700"
+                            data-testid="button-save-income-tax-details"
+                          >
+                            Save Changes
+                          </Button>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </div>
