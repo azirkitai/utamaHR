@@ -1263,6 +1263,28 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Delete leave policy by leave type (for system settings toggle)
+  app.delete("/api/leave-policies/:leaveType", authenticateToken, async (req, res) => {
+    try {
+      const { leaveType } = req.params;
+      
+      // Delete all leave policies with this leave type
+      const deleted = await storage.deleteLeavePolicyByType(leaveType);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Polisi cuti tidak dijumpai" });
+      }
+
+      res.json({ 
+        success: true,
+        message: `Polisi cuti ${leaveType} berjaya dipadamkan` 
+      });
+    } catch (error) {
+      console.error("Error deleting leave policy:", error);
+      res.status(500).json({ error: "Gagal memadamkan polisi cuti" });
+    }
+  });
+
   // Delete leave policy
   app.delete("/api/leave-policies/:id", authenticateToken, async (req, res) => {
     try {

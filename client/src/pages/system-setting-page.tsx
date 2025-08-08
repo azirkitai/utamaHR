@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -107,22 +107,22 @@ const settingsMenuItems = [
 
 // Initial leave policies data
 const initialLeavePolicies = [
-  { id: "annual", name: "Annual Leave", entitlement: "12 Day(s)", enabled: true },
-  { id: "medical", name: "Medical Leave", entitlement: "90 Day(s)", enabled: true },
-  { id: "compassionate-paternity", name: "Compassionate Leave - Paternity Leave", entitlement: "7 Day(s)", enabled: true },
-  { id: "compassionate-maternity", name: "Compassionate Leave - Maternity Leave", entitlement: "98 Day(s)", enabled: true },
-  { id: "compassionate-death", name: "Compassionate Leave - Death Of Family Member", entitlement: "3 Day(s)", enabled: true },
-  { id: "sick-spouse", name: "Sick (Spouse, Child, Parent)", entitlement: "4 Day(s)", enabled: true },
-  { id: "emergency", name: "Emergency Leave", entitlement: "5 Day(s)", enabled: true },
-  { id: "unpaid", name: "Unpaid Leave", entitlement: "30 Day(s)", enabled: true },
-  { id: "public-holiday", name: "Public Holiday", entitlement: "7 Day(s)", enabled: true },
-  { id: "leave-in-lieu", name: "Leave in Lieu", entitlement: "14 Day(s)", enabled: true },
-  { id: "exam", name: "Exam Leave", entitlement: "10 Day(s)", enabled: true },
-  { id: "special-marriage", name: "Special Leave - Marriage Leave", entitlement: "3 Day(s)", enabled: true },
-  { id: "special-umrah", name: "Special Leave - Umrah Leave", entitlement: "7 Day(s)", enabled: true },
-  { id: "special-hajj", name: "Special Leave - Hajj Leave/ Others", entitlement: "30 Day(s)", enabled: true },
-  { id: "carry-forward", name: "Carry Forward Leave", entitlement: "0 Day(s)", enabled: true },
-  { id: "hospitalization", name: "Hospitalization Leave", entitlement: "60 Day(s)", enabled: true },
+  { id: "annual", name: "Annual Leave", entitlement: "12 Day(s)", enabled: false },
+  { id: "medical", name: "Medical Leave", entitlement: "90 Day(s)", enabled: false },
+  { id: "compassionate-paternity", name: "Compassionate Leave - Paternity Leave", entitlement: "7 Day(s)", enabled: false },
+  { id: "compassionate-maternity", name: "Compassionate Leave - Maternity Leave", entitlement: "98 Day(s)", enabled: false },
+  { id: "compassionate-death", name: "Compassionate Leave - Death Of Family Member", entitlement: "3 Day(s)", enabled: false },
+  { id: "sick-spouse", name: "Sick (Spouse, Child, Parent)", entitlement: "4 Day(s)", enabled: false },
+  { id: "emergency", name: "Emergency Leave", entitlement: "5 Day(s)", enabled: false },
+  { id: "unpaid", name: "Unpaid Leave", entitlement: "30 Day(s)", enabled: false },
+  { id: "public-holiday", name: "Public Holiday", entitlement: "7 Day(s)", enabled: false },
+  { id: "leave-in-lieu", name: "Leave in Lieu", entitlement: "14 Day(s)", enabled: false },
+  { id: "exam", name: "Exam Leave", entitlement: "10 Day(s)", enabled: false },
+  { id: "special-marriage", name: "Special Leave - Marriage Leave", entitlement: "3 Day(s)", enabled: false },
+  { id: "special-umrah", name: "Special Leave - Umrah Leave", entitlement: "7 Day(s)", enabled: false },
+  { id: "special-hajj", name: "Special Leave - Hajj Leave/ Others", entitlement: "30 Day(s)", enabled: false },
+  { id: "carry-forward", name: "Carry Forward Leave", entitlement: "0 Day(s)", enabled: false },
+  { id: "hospitalization", name: "Hospitalization Leave", entitlement: "60 Day(s)", enabled: false },
 ];
 
 // Financial claim policies data
@@ -148,7 +148,6 @@ export default function SystemSettingPage() {
   const [activeTab, setActiveTab] = useState("leave");
   const [claimActiveTab, setClaimActiveTab] = useState("financial");
   
-  // Leave policies state management
   const [leavePolicies, setLeavePolicies] = useState(initialLeavePolicies);
   
   const [leaveApproval, setLeaveApproval] = useState({
@@ -569,6 +568,32 @@ export default function SystemSettingPage() {
 
   const currentSection = getCurrentSection();
 
+  // Load active leave policies from database to check which ones are enabled
+  const { data: activeLeaveTypesFromDB = [] } = useQuery<string[]>({
+    queryKey: ["/api/active-leave-policies"],
+    enabled: currentSection === "leave"
+  });
+
+  // Sync leave policies state with database data
+  useEffect(() => {
+    if (Array.isArray(activeLeaveTypesFromDB) && activeLeaveTypesFromDB.length > 0) {
+      setLeavePolicies(prevPolicies => 
+        prevPolicies.map(policy => ({
+          ...policy,
+          enabled: activeLeaveTypesFromDB.includes(policy.name)
+        }))
+      );
+    } else {
+      // Jika tiada data dari database, set semua jadi disabled
+      setLeavePolicies(prevPolicies => 
+        prevPolicies.map(policy => ({
+          ...policy,
+          enabled: false
+        }))
+      );
+    }
+  }, [activeLeaveTypesFromDB]);
+
   const handleInputChange = (field: string, value: string) => {
     setCompanyData(prev => ({
       ...prev,
@@ -617,10 +642,13 @@ export default function SystemSettingPage() {
           included: true
         });
       } else {
-        // Jika disable, update policy di database (set included = false)
-        // Untuk sekarang, kita buat API call simple
-        console.log(`Would disable policy ${policyId} in database`);
+        // Jika disable, delete/disable policy di database
+        await apiRequest("DELETE", `/api/leave-policies/${encodeURIComponent(selectedPolicy.name)}`, {});
+        console.log(`Disabled policy ${selectedPolicy.name} in database`);
       }
+
+      // Invalidate cache untuk refresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/active-leave-policies"] });
       
     } catch (error) {
       console.error("Error updating leave policy:", error);

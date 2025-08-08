@@ -725,6 +725,11 @@ export class DatabaseStorage implements IStorage {
     return (result.rowCount ?? 0) > 0;
   }
 
+  async deleteLeavePolicyByType(leaveType: string): Promise<boolean> {
+    const result = await db.delete(leavePolicy).where(eq(leavePolicy.leaveType, leaveType));
+    return (result.rowCount ?? 0) > 0;
+  }
+
   // =================== CLAIM POLICY METHODS ===================
   async getClaimPolicies(employeeId: string): Promise<ClaimPolicy[]> {
     return await db.select().from(claimPolicy).where(eq(claimPolicy.employeeId, employeeId)).orderBy(desc(claimPolicy.createdAt));
