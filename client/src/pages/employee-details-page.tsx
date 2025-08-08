@@ -236,38 +236,10 @@ export default function EmployeeDetailsPage() {
           </div>
         </div>
 
-        <div className="flex">
-          {/* Left Navigation Sidebar */}
-          <div className="w-64 bg-white border-r min-h-screen">
-            <div className="p-4">
-              <nav className="space-y-1">
-                {navigationTabs.map((tab) => {
-                  const IconComponent = tab.icon;
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={cn(
-                        "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors",
-                        activeTab === tab.id
-                          ? "bg-teal-100 text-teal-700 border-r-2 border-teal-500"
-                          : "text-gray-700 hover:bg-gray-100"
-                      )}
-                      data-testid={`nav-tab-${tab.id}`}
-                    >
-                      <IconComponent className="w-4 h-4" />
-                      {tab.label}
-                    </button>
-                  );
-                })}
-              </nav>
-            </div>
-          </div>
-
-          {/* Main Content Area */}
-          <div className="flex-1">
-            {/* Employee Header Profile */}
-            <div className="bg-gradient-to-r from-teal-500 to-blue-600 text-white p-6">
+        {/* Main Content Area */}
+        <div className="flex-1">
+          {/* Employee Header Profile */}
+          <div className="bg-gradient-to-r from-teal-500 to-blue-600 text-white p-6 mx-6 mt-6 rounded-lg shadow-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-6">
                   <Avatar className="w-20 h-20 border-4 border-white">
@@ -299,6 +271,35 @@ export default function EmployeeDetailsPage() {
                   <div className="font-semibold">Human Resource</div>
                   <div className="text-sm opacity-90 mt-2">Department</div>
                   <div className="font-semibold">{"Human Resource"}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Navigation Tabs */}
+            <div className="mx-6 mt-4">
+              <div className="w-80 bg-white rounded-lg shadow-md border">
+                <div className="p-4">
+                  <nav className="space-y-1">
+                    {navigationTabs.map((tab) => {
+                      const IconComponent = tab.icon;
+                      return (
+                        <button
+                          key={tab.id}
+                          onClick={() => setActiveTab(tab.id)}
+                          className={cn(
+                            "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors",
+                            activeTab === tab.id
+                              ? "bg-teal-100 text-teal-700 border-l-4 border-teal-500"
+                              : "text-gray-700 hover:bg-gray-100"
+                          )}
+                          data-testid={`nav-tab-${tab.id}`}
+                        >
+                          <IconComponent className="w-4 h-4" />
+                          {tab.label}
+                        </button>
+                      );
+                    })}
+                  </nav>
                 </div>
               </div>
             </div>
@@ -578,7 +579,6 @@ export default function EmployeeDetailsPage() {
                 </Card>
               )}
             </div>
-          </div>
         </div>
       </div>
     </DashboardLayout>
