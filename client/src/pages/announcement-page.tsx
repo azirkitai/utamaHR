@@ -1,10 +1,13 @@
 import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,12 +27,14 @@ import {
   AlignCenter,
   AlignRight,
   List,
-  ListOrdered
+  ListOrdered,
+  Send
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { useAuth } from "@/hooks/use-auth";
-import { useQuery } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface Announcement {
   id: number;
@@ -84,8 +89,16 @@ export default function AnnouncementPage() {
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("");
-  const [selectedEmployee, setSelectedEmployee] = useState("");
+  const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+
+  const { toast } = useToast();
+
+  // Fetch real employees from database
+  const { data: employeesData = [], isLoading: loadingEmployees } = useQuery({
+    queryKey: ["/api/employees"],
+    queryFn: () => fetch("/api/employees").then((res) => res.json()),
+  });
 
   const filteredAnnouncements = announcements.filter(announcement => {
     const matchesSearch = announcement.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -104,29 +117,86 @@ export default function AnnouncementPage() {
     }
   };
 
-  const handleSaveAnnouncement = () => {
-    if (!title || !message) return;
+  // Handle employee selection (multi-select)
+  const handleEmployeeSelect = (employeeId: string, checked: boolean) => {
+    if (employeeId === "all") {
+      if (checked) {
+        // Select all employees
+        const allEmployeeIds = employeesData.map((emp: any) => emp.id);
+        setSelectedEmployees(allEmployeeIds);
+      } else {
+        // Deselect all
+        setSelectedEmployees([]);
+      }
+    } else {
+      if (checked) {
+        setSelectedEmployees(prev => [...prev, employeeId]);
+      } else {
+        setSelectedEmployees(prev => prev.filter(id => id !== employeeId));
+      }
+    }
+  };
+
+  // Send announcement mutation
+  const sendAnnouncementMutation = useMutation({
+    mutationFn: async (announcementData: any) => {
+      return apiRequest("/api/announcements", {
+        method: "POST",
+        body: JSON.stringify(announcementData),
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Announcement sent successfully!",
+      });
+      // Reset form
+      setTitle("");
+      setMessage("");
+      setSelectedDepartment("");
+      setSelectedEmployees([]);
+      setUploadedFile(null);
+      setIsCreateModalOpen(false);
+      // Refresh announcements list
+      queryClient.invalidateQueries({ queryKey: ["/api/announcements"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send announcement",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSendAnnouncement = () => {
+    if (!title || !message) {
+      toast({
+        title: "Error",
+        description: "Please fill in both title and message",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (selectedEmployees.length === 0) {
+      toast({
+        title: "Error", 
+        description: "Please select at least one employee",
+        variant: "destructive",
+      });
+      return;
+    }
     
-    const newAnnouncement: Announcement = {
-      id: announcements.length + 1,
+    const announcementData = {
       title,
       message,
-      status: "New",
-      announcer: "SITI NADIAH SABRI",
       department: selectedDepartment === "all" ? "" : selectedDepartment,
-      createdDate: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
-      updatedDate: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+      targetEmployees: selectedEmployees,
+      attachment: uploadedFile?.name || null,
     };
     
-    setAnnouncements([...announcements, newAnnouncement]);
-    
-    // Reset form
-    setTitle("");
-    setMessage("");
-    setSelectedDepartment("");
-    setSelectedEmployee("");
-    setUploadedFile(null);
-    setIsCreateModalOpen(false);
+    sendAnnouncementMutation.mutate(announcementData);
   };
 
   // Role-based access control function
@@ -283,20 +353,60 @@ export default function AnnouncementPage() {
                         </Select>
                       </div>
                       
-                      {/* Select Employee */}
+                      {/* Select Employee - Multi-select */}
                       <div>
                         <Label className="text-sm font-medium">Select Employee</Label>
-                        <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
-                          <SelectTrigger className="mt-1" data-testid="select-employee">
-                            <SelectValue placeholder="Leave empty to indicate ...none..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">Leave empty to indicate ...none...</SelectItem>
-                            {employees.map(emp => (
-                              <SelectItem key={emp} value={emp}>{emp}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <div className="mt-1 border border-gray-300 rounded-md p-3 max-h-48 overflow-y-auto">
+                          <ScrollArea className="h-full">
+                            <div className="space-y-2">
+                              {/* All Employee option */}
+                              <div className="flex items-center space-x-2">
+                                <Checkbox 
+                                  id="all-employees"
+                                  checked={selectedEmployees.length === employeesData.length && employeesData.length > 0}
+                                  onCheckedChange={(checked) => handleEmployeeSelect("all", !!checked)}
+                                  data-testid="checkbox-all-employees"
+                                />
+                                <Label htmlFor="all-employees" className="text-sm font-medium text-blue-600">
+                                  All Employee ({employeesData.length})
+                                </Label>
+                              </div>
+                              
+                              <div className="border-t pt-2 mt-2">
+                                {loadingEmployees ? (
+                                  <div className="text-sm text-gray-500">Loading employees...</div>
+                                ) : employeesData.length > 0 ? (
+                                  employeesData.map((employee: any) => (
+                                    <div key={employee.id} className="flex items-center space-x-2">
+                                      <Checkbox 
+                                        id={`employee-${employee.id}`}
+                                        checked={selectedEmployees.includes(employee.id)}
+                                        onCheckedChange={(checked) => handleEmployeeSelect(employee.id, !!checked)}
+                                        data-testid={`checkbox-employee-${employee.id}`}
+                                      />
+                                      <Label 
+                                        htmlFor={`employee-${employee.id}`} 
+                                        className="text-sm flex-1 cursor-pointer"
+                                      >
+                                        {employee.fullName} ({employee.username})
+                                      </Label>
+                                    </div>
+                                  ))
+                                ) : (
+                                  <div className="text-sm text-gray-500">No employees found</div>
+                                )}
+                              </div>
+                              
+                              {selectedEmployees.length > 0 && (
+                                <div className="mt-2 pt-2 border-t">
+                                  <div className="text-xs text-gray-600">
+                                    {selectedEmployees.length} employee{selectedEmployees.length > 1 ? 's' : ''} selected
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </ScrollArea>
+                        </div>
                       </div>
                       
                       {/* Upload Attachment */}
@@ -328,12 +438,13 @@ export default function AnnouncementPage() {
                         Cancel
                       </Button>
                       <Button 
-                        onClick={handleSaveAnnouncement}
-                        disabled={!title || !message}
+                        onClick={handleSendAnnouncement}
+                        disabled={!title || !message || selectedEmployees.length === 0 || sendAnnouncementMutation.isPending}
                         className="bg-slate-700 hover:bg-slate-800"
-                        data-testid="button-save"
+                        data-testid="button-send"
                       >
-                        Save
+                        <Send className="w-4 h-4 mr-2" />
+                        {sendAnnouncementMutation.isPending ? "Sending..." : "Send"}
                       </Button>
                     </DialogFooter>
                   </DialogContent>

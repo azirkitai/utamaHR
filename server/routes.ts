@@ -227,6 +227,45 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Announcements endpoints
+  app.get("/api/announcements", authenticateToken, async (req, res) => {
+    try {
+      const currentUserId = req.user!.id;
+      const announcements = await storage.getAnnouncementsForUser(currentUserId);
+      res.json(announcements);
+    } catch (error) {
+      console.error("Get announcements error:", error);
+      res.status(500).json({ error: "Gagal mendapatkan pengumuman" });
+    }
+  });
+
+  app.post("/api/announcements", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = await storage.getUser(req.user!.id);
+      if (!currentUser || !['Super Admin', 'Admin', 'HR Manager', 'PIC', 'Finance/Account', 'Manager/Supervisor'].includes(currentUser.role)) {
+        return res.status(403).json({ error: "Akses ditolak - peranan tidak mencukupi" });
+      }
+
+      const { title, message, department, targetEmployees, attachment } = req.body;
+      
+      const announcementData = {
+        title,
+        message,
+        department: department || null,
+        targetEmployees,
+        attachment: attachment || null,
+        announcerId: req.user!.id,
+        announcerName: currentUser.username,
+      };
+
+      const announcement = await storage.createAnnouncement(announcementData);
+      res.json({ success: true, announcement });
+    } catch (error) {
+      console.error("Create announcement error:", error);
+      res.status(500).json({ error: "Gagal mencipta pengumuman" });
+    }
+  });
+
   // Employee statistics for pie chart
   app.get("/api/employee-statistics", authenticateToken, async (req, res) => {
     try {

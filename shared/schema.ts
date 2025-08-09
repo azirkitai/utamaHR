@@ -424,6 +424,30 @@ export const leavePolicySettings = pgTable("leave_policy_settings", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Announcements table
+export const announcements = pgTable('announcements', {
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  title: varchar('title', { length: 255 }).notNull(),
+  message: text('message').notNull(),
+  department: varchar('department', { length: 100 }),
+  targetEmployees: text('target_employees').array().notNull(), // Array of employee IDs
+  attachment: varchar('attachment', { length: 255 }),
+  announcerId: varchar('announcer_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  announcerName: varchar('announcer_name', { length: 255 }).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// User-Announcement junction table to track read status
+export const userAnnouncements = pgTable('user_announcements', {
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  announcementId: varchar('announcement_id').notNull().references(() => announcements.id, { onDelete: 'cascade' }),
+  isRead: boolean('is_read').default(false),
+  readAt: timestamp('read_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 // =================== VALIDATION SCHEMAS ===================
 
 // Attendance record schemas
@@ -472,6 +496,22 @@ export const insertEmployeeSchema = createInsertSchema(employees).omit({
   ),
 });
 export const updateEmployeeSchema = insertEmployeeSchema.partial();
+
+// Announcement schemas
+export const insertAnnouncementSchema = createInsertSchema(announcements).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export type InsertAnnouncement = z.infer<typeof insertAnnouncementSchema>;
+export type SelectAnnouncement = typeof announcements.$inferSelect;
+
+export const insertUserAnnouncementSchema = createInsertSchema(userAnnouncements).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertUserAnnouncement = z.infer<typeof insertUserAnnouncementSchema>;
+export type SelectUserAnnouncement = typeof userAnnouncements.$inferSelect;
 
 // Employment schemas
 export const insertEmploymentSchema = createInsertSchema(employment).omit({

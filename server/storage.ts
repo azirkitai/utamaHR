@@ -102,6 +102,13 @@ import {
   type LeavePolicySetting,
   type InsertLeavePolicySetting,
   type UpdateLeavePolicySetting,
+  // Announcement types
+  announcements,
+  userAnnouncements,
+  type SelectAnnouncement,
+  type InsertAnnouncement,
+  type SelectUserAnnouncement,
+  type InsertUserAnnouncement,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, sql, asc, ilike, or, gte, lte, inArray, not } from "drizzle-orm";
@@ -265,6 +272,12 @@ export interface IStorage {
     pendingPayroll: number;
     pendingVoucher: number;
   }>;
+
+  // =================== ANNOUNCEMENT METHODS ===================
+  getAnnouncementsForUser(userId: string): Promise<any[]>;
+  createAnnouncement(announcement: InsertAnnouncement): Promise<SelectAnnouncement>;
+  getUserAnnouncements(userId: string): Promise<SelectUserAnnouncement[]>;
+  markAnnouncementAsRead(userId: string, announcementId: string): Promise<SelectUserAnnouncement>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1446,6 +1459,143 @@ export class DatabaseStorage implements IStorage {
         pendingPayroll: 0,
         pendingVoucher: 0
       };
+    }
+  }
+
+  // =================== ANNOUNCEMENT METHODS ===================
+  async getAnnouncementsForUser(userId: string): Promise<any[]> {
+    try {
+      const allAnnouncements = await db
+        .select({
+          id: announcements.id,
+          title: announcements.title,
+          message: announcements.message,
+          department: announcements.department,
+          announcerName: announcements.announcerName,
+          createdAt: announcements.createdAt,
+          updatedAt: announcements.updatedAt,
+          attachment: announcements.attachment,
+        })
+        .from(announcements)
+        .where(
+          or(
+            sql`${userId} = ANY(${announcements.targetEmployees})`,
+            sql`array_length(${announcements.targetEmployees}, 1) = 0`
+          )
+        )
+        .orderBy(desc(announcements.createdAt));
+
+      // Check read status for each announcement
+      const announcementsWithStatus = await Promise.all(
+        allAnnouncements.map(async (announcement) => {
+          const [readStatus] = await db
+            .select()
+            .from(userAnnouncements)
+            .where(
+              and(
+                eq(userAnnouncements.userId, userId),
+                eq(userAnnouncements.announcementId, announcement.id)
+              )
+            );
+
+          return {
+            ...announcement,
+            status: readStatus?.isRead ? 'Read' : 'New',
+            createdDate: announcement.createdAt?.toLocaleDateString('en-GB', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric'
+            }),
+            updatedDate: announcement.updatedAt?.toLocaleDateString('en-GB', {
+              day: 'numeric', 
+              month: 'short',
+              year: 'numeric'
+            }),
+          };
+        })
+      );
+
+      return announcementsWithStatus;
+    } catch (error) {
+      console.error('Error getting announcements for user:', error);
+      throw error;
+    }
+  }
+
+  async createAnnouncement(announcement: InsertAnnouncement): Promise<SelectAnnouncement> {
+    try {
+      const [newAnnouncement] = await db
+        .insert(announcements)
+        .values(announcement)
+        .returning();
+
+      // Create user announcement records for all target employees
+      if (announcement.targetEmployees && announcement.targetEmployees.length > 0) {
+        const userAnnouncementRecords = announcement.targetEmployees.map(employeeId => ({
+          userId: employeeId,
+          announcementId: newAnnouncement.id,
+          isRead: false,
+        }));
+
+        await db.insert(userAnnouncements).values(userAnnouncementRecords);
+      }
+
+      return newAnnouncement;
+    } catch (error) {
+      console.error('Error creating announcement:', error);
+      throw error;
+    }
+  }
+
+  async getUserAnnouncements(userId: string): Promise<SelectUserAnnouncement[]> {
+    try {
+      const userAnnouncementRecords = await db
+        .select()
+        .from(userAnnouncements)
+        .where(eq(userAnnouncements.userId, userId))
+        .orderBy(desc(userAnnouncements.createdAt));
+
+      return userAnnouncementRecords;
+    } catch (error) {
+      console.error('Error getting user announcements:', error);
+      throw error;
+    }
+  }
+
+  async markAnnouncementAsRead(userId: string, announcementId: string): Promise<SelectUserAnnouncement> {
+    try {
+      const [existingRecord] = await db
+        .select()
+        .from(userAnnouncements)
+        .where(
+          and(
+            eq(userAnnouncements.userId, userId),
+            eq(userAnnouncements.announcementId, announcementId)
+          )
+        );
+
+      if (existingRecord) {
+        const [updated] = await db
+          .update(userAnnouncements)
+          .set({ isRead: true, readAt: new Date() })
+          .where(eq(userAnnouncements.id, existingRecord.id))
+          .returning();
+        return updated;
+      } else {
+        const [newRecord] = await db
+          .insert(userAnnouncements)
+          .values({
+            userId,
+            announcementId,
+            isRead: true,
+            readAt: new Date(),
+          })
+          .returning();
+        return newRecord;
+      }
+    } catch (error) {
+      console.error('Error marking announcement as read:', error);
+      throw error;
     }
   }
 }
