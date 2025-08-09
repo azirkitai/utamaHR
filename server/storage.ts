@@ -797,16 +797,22 @@ export class DatabaseStorage implements IStorage {
   // Get leave policies with entitlement calculation for employee
   async getEmployeeLeavePoliciesWithEntitlement(employeeId: string): Promise<any[]> {
     try {
+      console.log("🔍 Getting leave policies with entitlement for employee:", employeeId);
+      
       // Get employee to find their role
       const employee = await this.getEmployee(employeeId);
       if (!employee) {
         throw new Error("Employee not found");
       }
+      
+      console.log("👤 Employee found:", employee.fullName, "Role:", employee.role);
 
       // Get enabled company leave types
       const enabledLeaveTypes = await db.select()
         .from(companyLeaveTypes)
         .where(eq(companyLeaveTypes.enabled, true));
+
+      console.log("📋 Enabled leave types found:", enabledLeaveTypes.length);
 
       const result = [];
 
@@ -816,10 +822,18 @@ export class DatabaseStorage implements IStorage {
           .from(groupPolicySettings)
           .where(eq(groupPolicySettings.leaveType, leaveType.id));
 
+        // Map employee role to group policy role
+        let mappedRole = employee.role;
+        if (employee.role === 'Staff/Employee') {
+          mappedRole = 'Employee';
+        }
+        
         // Find employee's role entitlement
-        const employeePolicy = groupPolicies.find(gp => gp.role === employee.role);
+        const employeePolicy = groupPolicies.find(gp => gp.role === mappedRole);
         
         if (employeePolicy && employeePolicy.enabled) {
+          console.log(`✅ Found policy for ${leaveType.leaveType}: ${employeePolicy.entitlementDays} days`);
+          
           // Get leave policy settings for additional configuration
           const [policySettings] = await db.select()
             .from(leavePolicySettings)
@@ -836,9 +850,12 @@ export class DatabaseStorage implements IStorage {
             groupPolicy: employeePolicy,
             policySettings: policySettings || null
           });
+        } else {
+          console.log(`❌ No policy found for ${leaveType.leaveType} and role ${mappedRole}`);
         }
       }
 
+      console.log("📊 Final result:", result.length, "leave policies found");
       return result;
     } catch (error) {
       console.error("Error getting employee leave policies with entitlement:", error);
