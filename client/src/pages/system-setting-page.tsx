@@ -152,8 +152,7 @@ export default function SystemSettingPage() {
   
   // Get real leave policies data from API
   const { data: companyLeaveTypes = [] } = useQuery({
-    queryKey: ["/api/company-leave-types"],
-    queryFn: () => apiRequest("/api/company-leave-types", "GET")
+    queryKey: ["/api/company-leave-types"]
   });
 
   // Transform real data to match our UI format
@@ -741,7 +740,7 @@ export default function SystemSettingPage() {
   // Create mutation for updating company leave types
   const updateLeaveTypeMutation = useMutation({
     mutationFn: ({ leaveType, enabled }: { leaveType: string, enabled: boolean }) => 
-      apiRequest(`/api/company-leave-types/${encodeURIComponent(leaveType)}/toggle`, "PATCH", { enabled }),
+      apiRequest("PATCH", `/api/company-leave-types/${encodeURIComponent(leaveType)}/toggle`, { enabled }),
     onSuccess: () => {
       // Refresh data after successful update
       queryClient.invalidateQueries({ queryKey: ["/api/company-leave-types"] });
