@@ -574,6 +574,12 @@ export default function SystemSettingPage() {
     enabled: currentSection === "leave"
   });
 
+  // Fetch employees with approval roles (Super Admin, Admin, HR Manager, PIC)
+  const { data: approvalEmployees = [] } = useQuery<any[]>({
+    queryKey: ["/api/employees/approval-roles"],
+    enabled: true
+  });
+
   // Sync leave policies state with database data
   useEffect(() => {
     if (Array.isArray(activeLeaveTypesFromDB) && activeLeaveTypesFromDB.length > 0) {
@@ -1187,9 +1193,11 @@ export default function SystemSettingPage() {
                     <SelectValue placeholder="Select first financial approval" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="manager">Manager</SelectItem>
-                    <SelectItem value="supervisor">Supervisor</SelectItem>
-                    <SelectItem value="hr">HR</SelectItem>
+                    {approvalEmployees?.map((employee) => (
+                      <SelectItem key={employee.id} value={employee.id}>
+                        {employee.fullName} ({employee.role})
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -1332,9 +1340,11 @@ export default function SystemSettingPage() {
                     <SelectValue placeholder="Select first overtime approval" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="manager">Manager</SelectItem>
-                    <SelectItem value="supervisor">Supervisor</SelectItem>
-                    <SelectItem value="hr">HR</SelectItem>
+                    {approvalEmployees?.map((employee) => (
+                      <SelectItem key={employee.id} value={employee.id}>
+                        {employee.fullName} ({employee.role})
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -1556,9 +1566,11 @@ export default function SystemSettingPage() {
                     <SelectValue placeholder="Select first leave approval" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="manager">Manager</SelectItem>
-                    <SelectItem value="supervisor">Supervisor</SelectItem>
-                    <SelectItem value="hr">HR</SelectItem>
+                    {approvalEmployees?.map((employee) => (
+                      <SelectItem key={employee.id} value={employee.id}>
+                        {employee.fullName} ({employee.role})
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -1574,8 +1586,11 @@ export default function SystemSettingPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">None</SelectItem>
-                    <SelectItem value="director">Director</SelectItem>
-                    <SelectItem value="ceo">CEO</SelectItem>
+                    {approvalEmployees?.map((employee) => (
+                      <SelectItem key={employee.id} value={employee.id}>
+                        {employee.fullName} ({employee.role})
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -1657,9 +1672,11 @@ export default function SystemSettingPage() {
                     <SelectValue placeholder="Select first leave approval" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="manager">Manager</SelectItem>
-                    <SelectItem value="supervisor">Supervisor</SelectItem>
-                    <SelectItem value="hr">HR</SelectItem>
+                    {approvalEmployees?.map((employee) => (
+                      <SelectItem key={employee.id} value={employee.id}>
+                        {employee.fullName} ({employee.role})
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -1675,8 +1692,11 @@ export default function SystemSettingPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">None</SelectItem>
-                    <SelectItem value="director">Director</SelectItem>
-                    <SelectItem value="ceo">CEO</SelectItem>
+                    {approvalEmployees?.map((employee) => (
+                      <SelectItem key={employee.id} value={employee.id}>
+                        {employee.fullName} ({employee.role})
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -1883,9 +1903,11 @@ export default function SystemSettingPage() {
                 <SelectValue placeholder="Select First Payroll Approval" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="manager">Manager</SelectItem>
-                <SelectItem value="supervisor">Supervisor</SelectItem>
-                <SelectItem value="hr">HR Manager</SelectItem>
+                {approvalEmployees?.map((employee) => (
+                  <SelectItem key={employee.id} value={employee.id}>
+                    {employee.fullName} ({employee.role})
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

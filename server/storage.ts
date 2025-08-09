@@ -107,6 +107,7 @@ export interface IStorage {
   createEmployee(employee: InsertEmployee): Promise<Employee>;
   updateEmployee(id: string, employee: UpdateEmployee): Promise<Employee | undefined>;
   deleteEmployee(id: string): Promise<boolean>;
+  getEmployeesWithApprovalRoles(): Promise<Employee[]>;
   
   // =================== EMPLOYMENT METHODS ===================
   getEmploymentByEmployeeId(employeeId: string): Promise<Employment | undefined>;
@@ -308,6 +309,24 @@ export class DatabaseStorage implements IStorage {
   async deleteEmployee(id: string): Promise<boolean> {
     const result = await db.delete(employees).where(eq(employees.id, id));
     return (result.rowCount ?? 0) > 0;
+  }
+
+  async getEmployeesWithApprovalRoles(): Promise<Employee[]> {
+    // Join employees with users to get role information
+    const result = await db
+      .select({
+        id: employees.id,
+        fullName: employees.fullName,
+        userId: employees.userId,
+        role: users.role
+      })
+      .from(employees)
+      .innerJoin(users, eq(employees.userId, users.id))
+      .where(
+        sql`${users.role} IN ('Super Admin', 'Admin', 'HR Manager', 'PIC')`
+      );
+    
+    return result as any[];
   }
 
 

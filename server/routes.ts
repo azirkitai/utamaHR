@@ -390,6 +390,17 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Get employees with approval roles (Super Admin, Admin, HR Manager, PIC)
+  app.get("/api/employees/approval-roles", authenticateToken, async (req, res) => {
+    try {
+      const approvalEmployees = await storage.getEmployeesWithApprovalRoles();
+      res.json(approvalEmployees);
+    } catch (error) {
+      console.error("Error fetching approval employees:", error);
+      res.status(500).json({ error: "Gagal mendapatkan senarai pekerja dengan role approval" });
+    }
+  });
+
   app.get("/api/employees/:id", authenticateToken, async (req, res) => {
     try {
       const currentUser = req.user!;
