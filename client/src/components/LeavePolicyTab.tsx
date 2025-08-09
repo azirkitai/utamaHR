@@ -11,12 +11,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Plus, Search, Edit, ChevronDown, Download, Settings } from "lucide-react";
+import { Search, Edit, ChevronDown, Download } from "lucide-react";
 import { LeavePolicy } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { LeavePolicyModal } from "./LeavePolicyModal";
-import { GroupPolicyDialog } from "./GroupPolicyDialog";
+
 
 interface LeavePolicyTabProps {
   employeeId: string;
@@ -26,8 +26,7 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPolicy, setEditingPolicy] = useState<LeavePolicy | null>(null);
-  const [groupPolicyOpen, setGroupPolicyOpen] = useState(false);
-  const [selectedLeaveType, setSelectedLeaveType] = useState<string>("");
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -126,19 +125,9 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
     setIsModalOpen(true);
   };
 
-  const handleAddNew = () => {
-    setEditingPolicy(null);
-    setIsModalOpen(true);
-  };
-
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingPolicy(null);
-  };
-
-  const handleGroupPolicy = (leaveType: string) => {
-    setSelectedLeaveType(leaveType);
-    setGroupPolicyOpen(true);
   };
 
   const handleStatusToggle = (policyId: string, included: boolean) => {
@@ -208,16 +197,7 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* Add Button */}
-              <Button
-                onClick={handleAddNew}
-                className="bg-white text-teal-600 hover:bg-gray-100"
-                size="sm"
-                data-testid="button-add-leave-policy"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add
-              </Button>
+
             </div>
           </div>
         </CardHeader>
@@ -255,9 +235,6 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
                       Remarks
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Group Policy
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Action
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -268,7 +245,7 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredPolicies.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-4 py-12 text-center text-gray-500">
+                      <td colSpan={6} className="px-4 py-12 text-center text-gray-500">
                         {searchTerm ? "No leave policies found matching your search." : "No data available in table"}
                       </td>
                     </tr>
@@ -303,17 +280,6 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
                             <div className={`text-sm max-w-xs truncate ${isAccessible ? 'text-gray-900' : 'text-gray-500'}`}>
                               {policy.remarks || "N/A"}
                             </div>
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleGroupPolicy(policy.leaveType || "")}
-                              className="text-purple-600 hover:text-purple-700"
-                              data-testid={`button-group-policy-${policy.id}`}
-                            >
-                              <Settings className="w-4 h-4" />
-                            </Button>
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm">
                             <Button
@@ -379,12 +345,7 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
         />
       )}
 
-      {/* Group Policy Dialog */}
-      <GroupPolicyDialog
-        open={groupPolicyOpen}
-        onOpenChange={setGroupPolicyOpen}
-        leaveType={selectedLeaveType}
-      />
+
     </>
   );
 }
