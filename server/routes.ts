@@ -97,7 +97,7 @@ async function processClockOut(
     await storage.markQrTokenAsUsed(qrToken.token);
 
     // Calculate total hours
-    const clockInTime = new Date(todayAttendance.clockInTime);
+    const clockInTime = todayAttendance.clockInTime ? new Date(todayAttendance.clockInTime) : new Date();
     const clockOutTime = new Date();
     const totalHours = Math.round((clockOutTime.getTime() - clockInTime.getTime()) / (1000 * 60 * 60) * 100) / 100;
 
@@ -1717,6 +1717,7 @@ export function registerRoutes(app: Express): Server {
   // Get all leave applications (for admin/HR/managers)
   app.get("/api/leave-applications", authenticateToken, async (req, res) => {
     try {
+      console.log("Loading leave applications for user:", req.user?.id);
       const currentUser = req.user!;
       
       // Check if user has admin privileges to view all applications
@@ -1738,7 +1739,11 @@ export function registerRoutes(app: Express): Server {
       res.json(leaveApplications);
     } catch (error) {
       console.error("Get leave applications error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan permohonan cuti" });
+      console.error("Error stack:", error instanceof Error ? error.stack : 'Unknown error');
+      res.status(500).json({ 
+        error: "Gagal mendapatkan permohonan cuti",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 

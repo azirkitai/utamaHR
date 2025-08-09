@@ -542,16 +542,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createWorkExperience(insertWorkExperience: InsertWorkExperience): Promise<WorkExperience> {
-    const [record] = await db.insert(workExperiences).values([insertWorkExperience]).returning();
+    // Clean up null values for dates that might cause type issues
+    const cleanedData = {
+      ...insertWorkExperience,
+      startDate: insertWorkExperience.startDate || undefined,
+      endDate: insertWorkExperience.endDate || undefined,
+    };
+    const [record] = await db.insert(workExperiences).values(cleanedData).returning();
     return record;
   }
 
   async updateWorkExperience(id: string, updateWorkExperience: UpdateWorkExperience): Promise<WorkExperience | undefined> {
+    // Clean up null values for dates that might cause type issues
+    const cleanedData = {
+      ...updateWorkExperience,
+      startDate: updateWorkExperience.startDate || undefined,
+      endDate: updateWorkExperience.endDate || undefined,
+    };
     const [record] = await db
       .update(workExperiences)
-      .set({
-        ...updateWorkExperience
-      })
+      .set(cleanedData)
       .where(eq(workExperiences.id, id))
       .returning();
     return record || undefined;
