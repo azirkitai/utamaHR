@@ -242,6 +242,13 @@ export interface IStorage {
   getLeavePolicySettingByLeaveType(leaveType: string): Promise<LeavePolicySetting | undefined>;
   createOrUpdateLeavePolicySetting(setting: InsertLeavePolicySetting): Promise<LeavePolicySetting>;
   deleteLeavePolicySetting(id: string): Promise<boolean>;
+
+  // =================== DASHBOARD STATISTICS METHODS ===================
+  getDashboardStatistics(): Promise<{
+    totalClockIns: number;
+    totalOnLeave: number;
+    totalLeaveApproved: number;
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -847,11 +854,11 @@ export class DatabaseStorage implements IStorage {
 
           // Sum up total days used from approved applications
           const totalUsedDays = approvedApplications.reduce((sum, app) => {
-            return sum + (app.totalDays || 0);
+            return sum + (Number(app.totalDays) || 0);
           }, 0);
 
           // Calculate actual balance: entitlement - used days
-          const actualBalance = Math.max(0, employeePolicy.entitlementDays - totalUsedDays);
+          const actualBalance = Math.max(0, (employeePolicy.entitlementDays || 0) - totalUsedDays);
           
           console.log(`📊 Leave balance calculation for ${leaveType.leaveType}: Entitlement=${employeePolicy.entitlementDays}, Used=${totalUsedDays}, Balance=${actualBalance}`);
           
@@ -1072,11 +1079,11 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(employees, eq(attendanceRecords.employeeId, employees.id));
     
     // Add conditions and ordering
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
+    const finalQuery = conditions.length > 0 
+      ? query.where(and(...conditions))
+      : query;
     
-    return await query.orderBy(desc(attendanceRecords.date));
+    return await finalQuery.orderBy(desc(attendanceRecords.date));
   }
 
   async getTodayAttendanceRecord(employeeId: string, date: Date): Promise<AttendanceRecord | undefined> {
@@ -1272,6 +1279,64 @@ export class DatabaseStorage implements IStorage {
       .delete(leavePolicySettings)
       .where(eq(leavePolicySettings.id, id));
     return (result.rowCount ?? 0) > 0;
+  }
+
+  // =================== DASHBOARD STATISTICS METHODS ===================
+  async getDashboardStatistics(): Promise<{
+    totalClockIns: number;
+    totalOnLeave: number;
+    totalLeaveApproved: number;
+  }> {
+    try {
+      // Get today's date in YYYY-MM-DD format
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Count clock-ins for today
+      const [clockInResult] = await db.select({
+        count: count(clockInRecords.id)
+      })
+      .from(clockInRecords)
+      .where(sql`DATE(${clockInRecords.clockInTime}) = ${today}`);
+
+      // Count employees currently on leave (approved leave applications for today)
+      const [onLeaveResult] = await db.select({
+        count: count(leaveApplications.id)
+      })
+      .from(leaveApplications)
+      .where(
+        and(
+          eq(leaveApplications.status, 'Approved'),
+          sql`${today} >= DATE(${leaveApplications.startDate})`,
+          sql`${today} <= DATE(${leaveApplications.endDate})`
+        )
+      );
+
+      // Count total approved leave applications this year
+      const currentYear = new Date().getFullYear();
+      const [approvedLeaveResult] = await db.select({
+        count: count(leaveApplications.id)
+      })
+      .from(leaveApplications)
+      .where(
+        and(
+          eq(leaveApplications.status, 'Approved'),
+          sql`EXTRACT(YEAR FROM ${leaveApplications.appliedDate}) = ${currentYear}`
+        )
+      );
+
+      return {
+        totalClockIns: clockInResult?.count || 0,
+        totalOnLeave: onLeaveResult?.count || 0,
+        totalLeaveApproved: approvedLeaveResult?.count || 0
+      };
+    } catch (error) {
+      console.error("Error fetching dashboard statistics:", error);
+      return {
+        totalClockIns: 0,
+        totalOnLeave: 0,
+        totalLeaveApproved: 0
+      };
+    }
   }
 }
 

@@ -85,6 +85,16 @@ export default function DashboardHome() {
     queryFn: () => authenticatedFetch('/api/employee-statistics'),
   });
 
+  // Query untuk dashboard statistics (clock in, leave data)
+  const { data: dashboardStats, isLoading: isDashboardStatsLoading } = useQuery<{
+    totalClockIns: number;
+    totalOnLeave: number;
+    totalLeaveApproved: number;
+  }>({
+    queryKey: ["/api/dashboard-statistics"],
+    queryFn: () => authenticatedFetch('/api/dashboard-statistics'),
+  });
+
   // Convert statistics to pie chart format
   const employeeData = employeeStats ? [
     { name: 'Active', value: employeeStats.activeCount, color: '#0891b2' },
@@ -103,7 +113,7 @@ export default function DashboardHome() {
 
   const userName = dashboardData?.user?.username || 'SITI NADIAH SABRI';
 
-  if (isDashboardLoading || isStatsLoading) {
+  if (isDashboardLoading || isStatsLoading || isDashboardStatsLoading) {
     return (
       <DashboardLayout>
         <div className="p-6 flex justify-center items-center">
@@ -199,7 +209,9 @@ export default function DashboardHome() {
               <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200">
                   <CardContent className="p-6 text-center">
-                    <div className="text-3xl font-bold text-blue-600 mb-2">0</div>
+                    <div className="text-3xl font-bold text-blue-600 mb-2" data-testid="total-clock-ins">
+                      {dashboardStats?.totalClockIns || 0}
+                    </div>
                     <div className="text-sm text-gray-600 mb-1">Total</div>
                     <div className="text-xs text-gray-500">Clock In</div>
                   </CardContent>
@@ -207,7 +219,9 @@ export default function DashboardHome() {
 
                 <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
                   <CardContent className="p-6 text-center">
-                    <div className="text-3xl font-bold text-green-600 mb-2">0</div>
+                    <div className="text-3xl font-bold text-green-600 mb-2" data-testid="total-on-leave">
+                      {dashboardStats?.totalOnLeave || 0}
+                    </div>
                     <div className="text-sm text-gray-600 mb-1">Total</div>
                     <div className="text-xs text-gray-500">On Leave</div>
                   </CardContent>
@@ -215,7 +229,9 @@ export default function DashboardHome() {
 
                 <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200">
                   <CardContent className="p-6 text-center">
-                    <div className="text-3xl font-bold text-purple-600 mb-2">0</div>
+                    <div className="text-3xl font-bold text-purple-600 mb-2" data-testid="total-leave-approved">
+                      {dashboardStats?.totalLeaveApproved || 0}
+                    </div>
                     <div className="text-sm text-gray-600 mb-1">Total Leave</div>
                     <div className="text-xs text-gray-500">Approved</div>
                   </CardContent>

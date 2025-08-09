@@ -189,6 +189,17 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Dashboard statistics endpoint  
+  app.get("/api/dashboard-statistics", authenticateToken, async (req, res) => {
+    try {
+      const statistics = await storage.getDashboardStatistics();
+      res.json(statistics);
+    } catch (error) {
+      console.error("Dashboard statistics error:", error);
+      res.status(500).json({ error: "Gagal mendapatkan statistik dashboard" });
+    }
+  });
+
   // Employee statistics for pie chart
   app.get("/api/employee-statistics", authenticateToken, async (req, res) => {
     try {
