@@ -75,9 +75,21 @@ export default function LeaveApprovalPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch all leave applications from database
+  // Fetch leave applications based on active tab
   const { data: leaveApplications = [], isLoading, error } = useQuery<LeaveRecord[]>({
-    queryKey: ["/api/leave-applications"], 
+    queryKey: ["/api/leave-applications", activeTab], 
+    queryFn: async () => {
+      const mode = activeTab === 'approval' ? 'approval' : 'report';
+      const response = await fetch(`/api/leave-applications?mode=${mode}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('utamahr_token')}`
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch leave applications');
+      }
+      return response.json();
+    },
     staleTime: 0, // No cache - always fresh data
     refetchOnWindowFocus: true,
     refetchOnMount: true,
@@ -109,7 +121,7 @@ export default function LeaveApprovalPage() {
         variant: "default",
       });
       // Refetch leave applications to get updated data
-      queryClient.invalidateQueries({ queryKey: ["/api/leave-applications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leave-applications", activeTab] });
     },
     onError: (error: Error) => {
       toast({

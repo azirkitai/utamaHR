@@ -1787,11 +1787,18 @@ export function registerRoutes(app: Express): Server {
     try {
       console.log("Loading leave applications for user:", req.user?.id);
       const currentUser = req.user!;
+      const { mode } = req.query; // mode: 'approval' or 'report'
       
       // Get current user's employee record
       const currentEmployee = await storage.getEmployeeByUserId(currentUser.id);
       if (!currentEmployee) {
         return res.status(404).json({ error: "Employee record tidak dijumpai" });
+      }
+
+      // For report mode, return all applications for reporting purposes
+      if (mode === 'report') {
+        const allApplications = await storage.getAllLeaveApplications();
+        return res.json(allApplications);
       }
 
       // Get leave approval settings
