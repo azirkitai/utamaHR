@@ -105,19 +105,19 @@ export default function ApplyLeavePage() {
   const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
 
   // Check if user can select other employees (role-based)
-  const canSelectOtherEmployees = user?.role && ['Super Admin', 'Admin', 'HR Manager', 'PIC'].includes(user.role);
+  const canSelectOtherEmployees = user && (user as any).role && ['Super Admin', 'Admin', 'HR Manager', 'PIC'].includes((user as any).role);
 
   // Set default applicant based on role and employee data
   useEffect(() => {
-    if (user && allEmployees.length > 0 && !selectedEmployeeId) {
+    if (user && allEmployees && (allEmployees as any[]).length > 0 && !selectedEmployeeId) {
       if (canSelectOtherEmployees) {
         // Admin roles can select any employee, default to first employee
-        const firstEmployee = allEmployees[0];
+        const firstEmployee = (allEmployees as any[])[0];
         setApplicant(firstEmployee?.fullName || "");
         setSelectedEmployeeId(firstEmployee?.id || "");
       } else {
         // Regular users can only apply for themselves
-        const currentEmployee = allEmployees.find(emp => emp.userId === user.id);
+        const currentEmployee = (allEmployees as any[]).find((emp: any) => emp.userId === user.id);
         if (currentEmployee) {
           setApplicant(currentEmployee.fullName);
           setSelectedEmployeeId(currentEmployee.id);
@@ -129,8 +129,12 @@ export default function ApplyLeavePage() {
   // Create leave application mutation
   const createLeaveApplicationMutation = useMutation({
     mutationFn: async (leaveData: any) => {
+      console.log("Frontend: Sending leave application data:", leaveData);
       return apiRequest("/api/leave-applications", {
         method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(leaveData),
       });
     },
@@ -411,12 +415,12 @@ export default function ApplyLeavePage() {
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="font-semibold text-gray-900">Leave Applications</h3>
                     <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                      {leaveApplications.length} Applications
+                      {(leaveApplications as any[])?.length || 0} Applications
                     </Badge>
                   </div>
                   
-                  {leaveApplications.length > 0 ? (
-                    leaveApplications.map((app: any) => (
+                  {(leaveApplications as any[])?.length > 0 ? (
+                    (leaveApplications as any[]).map((app: any) => (
                       <div key={app.id} className="border rounded-lg p-4 bg-white shadow-sm">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center space-x-3">
@@ -493,7 +497,7 @@ export default function ApplyLeavePage() {
                   value={selectedEmployeeId} 
                   onValueChange={(value) => {
                     setSelectedEmployeeId(value);
-                    const selectedEmployee = allEmployees.find(emp => emp.id === value);
+                    const selectedEmployee = (allEmployees as any[]).find((emp: any) => emp.id === value);
                     setApplicant(selectedEmployee?.fullName || "");
                   }}
                   disabled={!canSelectOtherEmployees && allEmployees.length === 0}
@@ -504,22 +508,22 @@ export default function ApplyLeavePage() {
                   <SelectContent>
                     {canSelectOtherEmployees ? (
                       // Admin roles can see all employees
-                      allEmployees.map(employee => (
+                      (allEmployees as any[]).map((employee: any) => (
                         <SelectItem key={employee.id} value={employee.id}>
                           {employee.fullName}
                         </SelectItem>
                       ))
                     ) : (
                       // Regular users can only see themselves
-                      allEmployees
-                        .filter(emp => emp.userId === user?.id)
-                        .map(employee => (
+                      (allEmployees as any[])
+                        .filter((emp: any) => emp.userId === user?.id)
+                        .map((employee: any) => (
                           <SelectItem key={employee.id} value={employee.id}>
                             {employee.fullName}
                           </SelectItem>
                         ))
                     )}
-                    {allEmployees.length === 0 && (
+                    {(allEmployees as any[]).length === 0 && (
                       <div className="px-2 py-1.5 text-sm text-gray-500">No employees found</div>
                     )}
                   </SelectContent>
