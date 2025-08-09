@@ -49,6 +49,11 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
     enabled: !!employeeId,
   });
 
+  // Fetch enabled company leave types (this determines what leave types are "switched on" for the company)
+  const { data: enabledCompanyLeaveTypes = [] } = useQuery({
+    queryKey: ['/api/company-leave-types/enabled'],
+  });
+
   // Fetch all group policy settings
   const { data: allGroupSettings = [] } = useQuery({
     queryKey: ["/api/group-policy-settings"],
@@ -78,8 +83,15 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
   // Get employee role
   const employeeRole = employmentData?.designation || null;
 
-  // Helper function to check if employee is allowed for a leave type
-  const isLeaveTypeAllowed = (leaveType: string) => {
+  // Helper function to check if a leave type is enabled for the company
+  const isLeaveTypeEnabledForCompany = (leaveType: string) => {
+    return enabledCompanyLeaveTypes.some(
+      (companyType: any) => companyType.leaveType === leaveType && companyType.enabled
+    );
+  };
+
+  // Helper function to check if employee is allowed for a leave type based on role
+  const isLeaveTypeAllowedForRole = (leaveType: string) => {
     if (!leaveType || !employeeRole) return true; // Allow if no restrictions set
     
     // Get group settings for this leave type
@@ -94,14 +106,18 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
     return leaveTypeSettings.some((setting: any) => setting.role === employeeRole);
   };
 
-  // Filter policies based on search and role-based access
+  // Filter policies based on search, company-wide enabled types, and role-based access
   const filteredPolicies = leavePolicies.filter((policy) => {
     const matchesSearch = policy.leaveType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          policy.remarks?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const hasAccess = isLeaveTypeAllowed(policy.leaveType || "");
+    // Check if leave type is enabled for the company (switched on in system settings)
+    const isEnabledForCompany = isLeaveTypeEnabledForCompany(policy.leaveType || "");
     
-    return matchesSearch && hasAccess;
+    // Check if employee has role-based access
+    const hasRoleAccess = isLeaveTypeAllowedForRole(policy.leaveType || "");
+    
+    return matchesSearch && isEnabledForCompany && hasRoleAccess;
   });
 
   const handleEdit = (policy: LeavePolicy) => {

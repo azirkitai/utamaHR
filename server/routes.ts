@@ -28,6 +28,9 @@ import {
   insertGroupPolicySettingSchema,
   updateGroupPolicySettingSchema,
   groupPolicySettings,
+  insertCompanyLeaveTypeSchema,
+  updateCompanyLeaveTypeSchema,
+  companyLeaveTypes,
   type AttendanceRecord
 } from "@shared/schema";
 import { checkEnvironmentSecrets } from "./env-check";
@@ -47,7 +50,8 @@ import {
   workExperiences,
   leaveApplications,
   attendanceRecords,
-  groupPolicySettings
+  groupPolicySettings,
+  companyLeaveTypes
 } from "@shared/schema";
 
 // Calculate distance between two GPS coordinates using Haversine formula
@@ -2085,6 +2089,61 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error fetching approval settings:", error);
       res.status(500).json({ error: "Failed to fetch approval settings" });
+    }
+  });
+
+  // =================== COMPANY LEAVE TYPES ROUTES ===================
+  
+  // Get all company leave types
+  app.get("/api/company-leave-types", authenticateToken, async (req, res) => {
+    try {
+      const companyLeaveTypes = await storage.getCompanyLeaveTypes();
+      res.json(companyLeaveTypes);
+    } catch (error) {
+      console.error("Error fetching company leave types:", error);
+      res.status(500).json({ error: "Gagal mendapatkan jenis cuti syarikat" });
+    }
+  });
+
+  // Get enabled company leave types
+  app.get("/api/company-leave-types/enabled", authenticateToken, async (req, res) => {
+    try {
+      const enabledTypes = await storage.getEnabledCompanyLeaveTypes();
+      res.json(enabledTypes);
+    } catch (error) {
+      console.error("Error fetching enabled leave types:", error);
+      res.status(500).json({ error: "Gagal mendapatkan jenis cuti yang diaktifkan" });
+    }
+  });
+
+  // Create company leave type
+  app.post("/api/company-leave-types", authenticateToken, async (req, res) => {
+    try {
+      const validatedData = insertCompanyLeaveTypeSchema.parse(req.body);
+      const newType = await storage.createCompanyLeaveType(validatedData);
+      res.status(201).json(newType);
+    } catch (error) {
+      console.error("Error creating company leave type:", error);
+      res.status(500).json({ error: "Gagal mencipta jenis cuti syarikat" });
+    }
+  });
+
+  // Toggle company leave type (enable/disable)
+  app.patch("/api/company-leave-types/:leaveType/toggle", authenticateToken, async (req, res) => {
+    try {
+      const { leaveType } = req.params;
+      const { enabled } = req.body;
+      
+      const updatedType = await storage.toggleCompanyLeaveType(leaveType, enabled);
+      
+      if (!updatedType) {
+        return res.status(404).json({ error: "Jenis cuti tidak dijumpai" });
+      }
+      
+      res.json(updatedType);
+    } catch (error) {
+      console.error("Error toggling company leave type:", error);
+      res.status(500).json({ error: "Gagal mengubah status jenis cuti" });
     }
   });
 

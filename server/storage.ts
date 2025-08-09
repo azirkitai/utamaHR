@@ -91,7 +91,12 @@ import {
   // Leave Application types
   type LeaveApplication,
   type InsertLeaveApplication,
-  type UpdateLeaveApplication
+  type UpdateLeaveApplication,
+  // Company Leave Types
+  companyLeaveTypes,
+  type CompanyLeaveType,
+  type InsertCompanyLeaveType,
+  type UpdateCompanyLeaveType,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, sql, asc, ilike } from "drizzle-orm";
@@ -212,6 +217,14 @@ export interface IStorage {
   // =================== ATTENDANCE RECORD METHODS ===================
   getAttendanceRecords(params: { dateFrom?: Date; dateTo?: Date; employeeId?: string }): Promise<AttendanceRecord[]>;
   createOrUpdateAttendanceRecord(data: Partial<InsertAttendanceRecord>): Promise<AttendanceRecord>;
+
+  // =================== COMPANY LEAVE TYPES METHODS ===================
+  getCompanyLeaveTypes(): Promise<CompanyLeaveType[]>;
+  getEnabledCompanyLeaveTypes(): Promise<CompanyLeaveType[]>;
+  createCompanyLeaveType(companyLeaveType: InsertCompanyLeaveType): Promise<CompanyLeaveType>;
+  updateCompanyLeaveType(id: string, companyLeaveType: UpdateCompanyLeaveType): Promise<CompanyLeaveType | undefined>;
+  deleteCompanyLeaveType(id: string): Promise<boolean>;
+  toggleCompanyLeaveType(leaveType: string, enabled: boolean): Promise<CompanyLeaveType | undefined>;
 
   // =================== GROUP POLICY SETTINGS METHODS ===================
   getGroupPolicySettings(leaveType: string): Promise<GroupPolicySetting[]>;
@@ -1013,6 +1026,52 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return newRecord;
     }
+  }
+
+  // =================== COMPANY LEAVE TYPES METHODS ===================
+  async getCompanyLeaveTypes(): Promise<CompanyLeaveType[]> {
+    return await db.select().from(companyLeaveTypes).orderBy(companyLeaveTypes.leaveType);
+  }
+
+  async getEnabledCompanyLeaveTypes(): Promise<CompanyLeaveType[]> {
+    return await db.select().from(companyLeaveTypes).where(eq(companyLeaveTypes.enabled, true)).orderBy(companyLeaveTypes.leaveType);
+  }
+
+  async createCompanyLeaveType(insertCompanyLeaveType: InsertCompanyLeaveType): Promise<CompanyLeaveType> {
+    const [result] = await db
+      .insert(companyLeaveTypes)
+      .values(insertCompanyLeaveType)
+      .returning();
+    return result;
+  }
+
+  async updateCompanyLeaveType(id: string, updateData: UpdateCompanyLeaveType): Promise<CompanyLeaveType | undefined> {
+    const [result] = await db
+      .update(companyLeaveTypes)
+      .set({
+        ...updateData,
+        updatedAt: new Date()
+      })
+      .where(eq(companyLeaveTypes.id, id))
+      .returning();
+    return result || undefined;
+  }
+
+  async deleteCompanyLeaveType(id: string): Promise<boolean> {
+    const result = await db.delete(companyLeaveTypes).where(eq(companyLeaveTypes.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async toggleCompanyLeaveType(leaveType: string, enabled: boolean): Promise<CompanyLeaveType | undefined> {
+    const [result] = await db
+      .update(companyLeaveTypes)
+      .set({
+        enabled,
+        updatedAt: new Date()
+      })
+      .where(eq(companyLeaveTypes.leaveType, leaveType))
+      .returning();
+    return result || undefined;
   }
 
   // =================== GROUP POLICY SETTINGS METHODS ===================

@@ -385,7 +385,18 @@ export const approvalSettings = pgTable("approval_settings", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// 17. Group Policy Settings Table (for storing role-based leave policy configurations)
+// 17. Company Leave Types Table (for storing company-wide enabled leave types)
+export const companyLeaveTypes = pgTable("company_leave_types", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  leaveType: text("leave_type").notNull().unique(), // The leave type name
+  enabled: boolean("enabled").default(true), // Whether this leave type is enabled for the company
+  entitlementDays: integer("entitlement_days").default(0), // Default entitlement days
+  description: text("description"), // Description of the leave type
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// 18. Group Policy Settings Table (for storing role-based leave policy configurations)
 export const groupPolicySettings = pgTable("group_policy_settings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   leaveType: text("leave_type").notNull(), // The leave type this setting applies to
@@ -607,6 +618,14 @@ export const insertApprovalSettingSchema = createInsertSchema(approvalSettings).
 });
 export const updateApprovalSettingSchema = insertApprovalSettingSchema.partial();
 
+// Company Leave Types schemas
+export const insertCompanyLeaveTypeSchema = createInsertSchema(companyLeaveTypes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const updateCompanyLeaveTypeSchema = insertCompanyLeaveTypeSchema.partial();
+
 // Group Policy Settings schemas
 export const insertGroupPolicySettingSchema = createInsertSchema(groupPolicySettings).omit({
   id: true,
@@ -767,6 +786,11 @@ export type UpdateAttendanceRecord = z.infer<typeof updateAttendanceRecordSchema
 export type ApprovalSetting = typeof approvalSettings.$inferSelect;
 export type InsertApprovalSetting = z.infer<typeof insertApprovalSettingSchema>;
 export type UpdateApprovalSetting = z.infer<typeof updateApprovalSettingSchema>;
+
+// Company Leave Types types
+export type CompanyLeaveType = typeof companyLeaveTypes.$inferSelect;
+export type InsertCompanyLeaveType = z.infer<typeof insertCompanyLeaveTypeSchema>;
+export type UpdateCompanyLeaveType = z.infer<typeof updateCompanyLeaveTypeSchema>;
 
 // Group Policy Settings types
 export type GroupPolicySetting = typeof groupPolicySettings.$inferSelect;
