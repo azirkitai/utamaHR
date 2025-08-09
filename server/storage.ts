@@ -90,7 +90,7 @@ import {
   type UpdateLeaveApplication
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, count, sql } from "drizzle-orm";
+import { eq, and, desc, count, sql, asc, ilike } from "drizzle-orm";
 
 export interface IStorage {
   // =================== USER METHODS ===================
@@ -147,6 +147,8 @@ export interface IStorage {
   createLeavePolicy(leavePolicy: InsertLeavePolicy): Promise<LeavePolicy>;
   updateLeavePolicy(id: string, leavePolicy: UpdateLeavePolicy): Promise<LeavePolicy | undefined>;
   deleteLeavePolicy(id: string): Promise<boolean>;
+  deleteLeavePolicyByEmployeeAndType(employeeId: string, leaveType: string): Promise<boolean>;
+  deleteLeavePolicyByType(leaveType: string): Promise<boolean>;
   
   // =================== CLAIM POLICY METHODS ===================
   getClaimPolicies(employeeId: string): Promise<ClaimPolicy[]>;
@@ -765,6 +767,17 @@ export class DatabaseStorage implements IStorage {
 
   async deleteLeavePolicyByType(leaveType: string): Promise<boolean> {
     const result = await db.delete(leavePolicy).where(eq(leavePolicy.leaveType, leaveType));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async deleteLeavePolicyByEmployeeAndType(employeeId: string, leaveType: string): Promise<boolean> {
+    const result = await db.delete(leavePolicy)
+      .where(
+        and(
+          eq(leavePolicy.employeeId, employeeId),
+          eq(leavePolicy.leaveType, leaveType)
+        )
+      );
     return (result.rowCount ?? 0) > 0;
   }
 

@@ -651,7 +651,7 @@ export default function SystemSettingPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/active-leave-policies"] });
       
     } catch (error) {
-      console.error("Error updating leave policy:", error);
+      console.error("Error saving leave policy:", error);
       // Revert local state jika API call gagal
       setLeavePolicies(prevPolicies => 
         prevPolicies.map(policy => 
