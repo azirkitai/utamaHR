@@ -113,7 +113,7 @@ export default function AnnouncementPage() {
       message,
       status: "New",
       announcer: "SITI NADIAH SABRI",
-      department: selectedDepartment,
+      department: selectedDepartment === "all" ? "" : selectedDepartment,
       createdDate: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
       updatedDate: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
     };
@@ -275,7 +275,7 @@ export default function AnnouncementPage() {
                             <SelectValue placeholder="Leave empty to indicate for everyone." />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">Leave empty to indicate for everyone.</SelectItem>
+                            <SelectItem value="all">Leave empty to indicate for everyone.</SelectItem>
                             {departments.map(dept => (
                               <SelectItem key={dept} value={dept}>{dept}</SelectItem>
                             ))}
@@ -291,7 +291,7 @@ export default function AnnouncementPage() {
                             <SelectValue placeholder="Leave empty to indicate ...none..." />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">Leave empty to indicate ...none...</SelectItem>
+                            <SelectItem value="none">Leave empty to indicate ...none...</SelectItem>
                             {employees.map(emp => (
                               <SelectItem key={emp} value={emp}>{emp}</SelectItem>
                             ))}
