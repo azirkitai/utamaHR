@@ -1844,7 +1844,10 @@ export function registerRoutes(app: Express): Server {
             
         } else {
           // Regular employees see only their own applications
+          console.log("DEBUG: User is not an approver, getting own applications only");
+          console.log("Employee ID for filtering:", currentEmployee.id);
           leaveApplications = await storage.getLeaveApplicationsByEmployeeId(currentEmployee.id);
+          console.log("Filtered applications count:", leaveApplications.length);
         }
       }
       
