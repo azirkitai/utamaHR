@@ -834,6 +834,27 @@ export class DatabaseStorage implements IStorage {
         if (employeePolicy && employeePolicy.enabled) {
           console.log(`✅ Found policy for ${leaveType.leaveType}: ${employeePolicy.entitlementDays} days`);
           
+          // Calculate used leave days from approved applications for this employee and leave type
+          const approvedApplications = await db.select()
+            .from(leaveApplications)
+            .where(
+              and(
+                eq(leaveApplications.employeeId, employeeId),
+                eq(leaveApplications.leaveType, leaveType.leaveType),
+                eq(leaveApplications.status, 'Approved')
+              )
+            );
+
+          // Sum up total days used from approved applications
+          const totalUsedDays = approvedApplications.reduce((sum, app) => {
+            return sum + (app.totalDays || 0);
+          }, 0);
+
+          // Calculate actual balance: entitlement - used days
+          const actualBalance = Math.max(0, employeePolicy.entitlementDays - totalUsedDays);
+          
+          console.log(`📊 Leave balance calculation for ${leaveType.leaveType}: Entitlement=${employeePolicy.entitlementDays}, Used=${totalUsedDays}, Balance=${actualBalance}`);
+          
           // Get leave policy settings for additional configuration
           const [policySettings] = await db.select()
             .from(leavePolicySettings)
@@ -841,9 +862,10 @@ export class DatabaseStorage implements IStorage {
 
           result.push({
             id: leaveType.id,
-            leaveType: leaveType.leaveType, // Use leaveType field instead of name
+            leaveType: leaveType.leaveType,
             entitlement: employeePolicy.entitlementDays,
-            balance: employeePolicy.entitlementDays, // TODO: Calculate actual balance based on used leave
+            balance: actualBalance, // Real balance calculation
+            usedDays: totalUsedDays, // Track used days
             remarks: policySettings?.leaveRemark || "Standard leave entitlement",
             action: "✓",
             included: true,
