@@ -200,6 +200,18 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // User statistics endpoint  
+  app.get("/api/user-statistics", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      const statistics = await storage.getUserStatistics(currentUser.id);
+      res.json(statistics);
+    } catch (error) {
+      console.error("User statistics error:", error);
+      res.status(500).json({ error: "Gagal mendapatkan statistik pengguna" });
+    }
+  });
+
   // Employee statistics for pie chart
   app.get("/api/employee-statistics", authenticateToken, async (req, res) => {
     try {

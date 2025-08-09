@@ -249,6 +249,14 @@ export interface IStorage {
     totalOnLeave: number;
     totalLeaveApproved: number;
   }>;
+  
+  getUserStatistics(userId: string): Promise<{
+    leaveApproved: number;
+    claimApproved: number;
+    overtimeApproved: number;
+    payrollRecord: number;
+    paymentVoucher: number;
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1335,6 +1343,59 @@ export class DatabaseStorage implements IStorage {
         totalClockIns: 0,
         totalOnLeave: 0,
         totalLeaveApproved: 0
+      };
+    }
+  }
+
+  // Get user-specific statistics 
+  async getUserStatistics(userId: string): Promise<{
+    leaveApproved: number;
+    claimApproved: number;
+    overtimeApproved: number;
+    payrollRecord: number;
+    paymentVoucher: number;
+  }> {
+    try {
+      // Get employee record for this user
+      const employee = await this.getEmployeeByUserId(userId);
+      if (!employee) {
+        return {
+          leaveApproved: 0,
+          claimApproved: 0,
+          overtimeApproved: 0,
+          payrollRecord: 0,
+          paymentVoucher: 0
+        };
+      }
+
+      // Count approved leave applications for this user
+      const [leaveResult] = await db.select({
+        count: count(leaveApplications.id),
+        totalDays: sql<number>`COALESCE(SUM(CAST(${leaveApplications.totalDays} AS INTEGER)), 0)`
+      })
+      .from(leaveApplications)
+      .where(
+        and(
+          eq(leaveApplications.employeeId, employee.id),
+          eq(leaveApplications.status, 'Approved')
+        )
+      );
+
+      return {
+        leaveApproved: Number(leaveResult?.totalDays || 0), // Total days approved
+        claimApproved: 0, // TODO: Implement when claim system is ready
+        overtimeApproved: 0, // TODO: Implement when overtime system is ready
+        payrollRecord: 0, // TODO: Implement when payroll system is ready
+        paymentVoucher: 0 // TODO: Implement when payment voucher system is ready
+      };
+    } catch (error) {
+      console.error("Error fetching user statistics:", error);
+      return {
+        leaveApproved: 0,
+        claimApproved: 0,
+        overtimeApproved: 0,
+        payrollRecord: 0,
+        paymentVoucher: 0
       };
     }
   }
