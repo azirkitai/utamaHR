@@ -32,6 +32,16 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DashboardLayout } from "@/components/dashboard-layout";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -91,6 +101,8 @@ export default function AnnouncementPage() {
   const [selectedDepartment, setSelectedDepartment] = useState("");
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [announcementToDelete, setAnnouncementToDelete] = useState<number | null>(null);
 
   const { toast } = useToast();
 
@@ -220,8 +232,42 @@ export default function AnnouncementPage() {
   };
 
   const handleDeleteAnnouncement = (id: number) => {
-    setAnnouncements(announcements.filter(a => a.id !== id));
-    console.log("Delete announcement:", id);
+    setAnnouncementToDelete(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  // Delete announcement mutation
+  const deleteAnnouncementMutation = useMutation({
+    mutationFn: async (announcementId: number) => {
+      return apiRequest("DELETE", `/api/announcements/${announcementId}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Announcement deleted successfully!",
+      });
+      // Refresh announcements list
+      queryClient.invalidateQueries({ queryKey: ["/api/announcements"] });
+      // Remove from local state
+      setAnnouncements(prev => prev.filter(ann => ann.id !== announcementToDelete));
+      setDeleteConfirmOpen(false);
+      setAnnouncementToDelete(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete announcement",
+        variant: "destructive",
+      });
+      setDeleteConfirmOpen(false);
+      setAnnouncementToDelete(null);
+    },
+  });
+
+  const confirmDeleteAnnouncement = () => {
+    if (announcementToDelete !== null) {
+      deleteAnnouncementMutation.mutate(announcementToDelete);
+    }
   };
 
   return (
@@ -646,6 +692,37 @@ export default function AnnouncementPage() {
             </Tabs>
           </div>
         </div>
+        
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm Delete Announcement</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this announcement? This action cannot be undone and will remove the announcement from all users' view.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel 
+                onClick={() => {
+                  setDeleteConfirmOpen(false);
+                  setAnnouncementToDelete(null);
+                }}
+                data-testid="button-cancel-delete"
+              >
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={confirmDeleteAnnouncement}
+                className="bg-red-600 hover:bg-red-700 text-white"
+                disabled={deleteAnnouncementMutation.isPending}
+                data-testid="button-confirm-delete"
+              >
+                {deleteAnnouncementMutation.isPending ? "Deleting..." : "Delete"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DashboardLayout>
   );

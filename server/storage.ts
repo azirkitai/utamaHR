@@ -278,6 +278,7 @@ export interface IStorage {
   createAnnouncement(announcement: InsertAnnouncement): Promise<SelectAnnouncement>;
   getUserAnnouncements(userId: string): Promise<SelectUserAnnouncement[]>;
   markAnnouncementAsRead(userId: string, announcementId: string): Promise<SelectUserAnnouncement>;
+  deleteAnnouncement(announcementId: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -641,10 +642,10 @@ export class DatabaseStorage implements IStorage {
     // Clean up null values for dates that might cause type issues
     const cleanedData = {
       ...insertWorkExperience,
-      startDate: insertWorkExperience.startDate || undefined,
-      endDate: insertWorkExperience.endDate || undefined,
+      startDate: insertWorkExperience.startDate || null,
+      endDate: insertWorkExperience.endDate || null,
     };
-    const [record] = await db.insert(workExperiences).values([cleanedData]).returning();
+    const [record] = await db.insert(workExperiences).values(cleanedData).returning();
     return record;
   }
 
@@ -1595,6 +1596,23 @@ export class DatabaseStorage implements IStorage {
       }
     } catch (error) {
       console.error('Error marking announcement as read:', error);
+      throw error;
+    }
+  }
+
+  async deleteAnnouncement(announcementId: string): Promise<boolean> {
+    try {
+      // Delete user-announcement records first (due to foreign key constraints)
+      await db.delete(userAnnouncements)
+        .where(eq(userAnnouncements.announcementId, announcementId));
+
+      // Delete the announcement
+      const result = await db.delete(announcements)
+        .where(eq(announcements.id, announcementId));
+
+      return (result.rowCount || 0) > 0;
+    } catch (error) {
+      console.error('Error deleting announcement:', error);
       throw error;
     }
   }

@@ -266,6 +266,27 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  app.delete("/api/announcements/:id", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = await storage.getUser(req.user!.id);
+      if (!currentUser || !['Super Admin', 'Admin', 'HR Manager', 'PIC', 'Finance/Account', 'Manager/Supervisor'].includes(currentUser.role)) {
+        return res.status(403).json({ error: "Access denied - insufficient role" });
+      }
+
+      const { id } = req.params;
+      const deleted = await storage.deleteAnnouncement(id);
+      
+      if (deleted) {
+        res.json({ success: true, message: "Announcement deleted successfully" });
+      } else {
+        res.status(404).json({ error: "Announcement not found" });
+      }
+    } catch (error) {
+      console.error("Delete announcement error:", error);
+      res.status(500).json({ error: "Failed to delete announcement" });
+    }
+  });
+
   // Employee statistics for pie chart
   app.get("/api/employee-statistics", authenticateToken, async (req, res) => {
     try {
