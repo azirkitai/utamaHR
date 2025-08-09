@@ -189,6 +189,15 @@ export default function SystemSettingPage() {
   const [expandedPolicyId, setExpandedPolicyId] = useState<string | null>(null);
   const [showUpdatePolicyDialog, setShowUpdatePolicyDialog] = useState(false);
   const [selectedPolicy, setSelectedPolicy] = useState<any>(null);
+  
+  // Group Policy settings state
+  const [groupPolicySettings, setGroupPolicySettings] = useState({
+    "Board Of Director": { selected: false, days: "12" },
+    "HOD/Manager": { selected: false, days: "12" },
+    "Finance/Account": { selected: false, days: "12" },
+    "Human Resource": { selected: false, days: "12" },
+    "Employee": { selected: false, days: "12" }
+  });
   const [newPolicyForm, setNewPolicyForm] = useState({
     claimName: "",
     mileageBased: false,
@@ -726,6 +735,26 @@ export default function SystemSettingPage() {
   const handleUpdatePolicy = (policy: any) => {
     setSelectedPolicy(policy);
     setShowUpdatePolicyDialog(true);
+  };
+
+  const handleGroupPolicyToggle = (roleName: string) => {
+    setGroupPolicySettings(prev => ({
+      ...prev,
+      [roleName]: {
+        ...prev[roleName],
+        selected: !prev[roleName].selected
+      }
+    }));
+  };
+
+  const handleGroupPolicyDaysChange = (roleName: string, newDays: string) => {
+    setGroupPolicySettings(prev => ({
+      ...prev,
+      [roleName]: {
+        ...prev[roleName],
+        days: newDays
+      }
+    }));
   };
 
   const handleSaveTimeoffApproval = async () => {
@@ -1832,24 +1861,20 @@ export default function SystemSettingPage() {
                       <div className="space-y-3">
                         <label className="text-sm font-medium text-gray-700 block">Group Policy</label>
                         <div className="space-y-3">
-                          {[
-                            { name: "Board Of Director", days: "12", selected: false },
-                            { name: "HOD/Manager", days: "12", selected: false },
-                            { name: "Finance/Account", days: "12", selected: false },
-                            { name: "Human Resource", days: "12", selected: false },
-                            { name: "Employee", days: "12", selected: false }
-                          ].map((role, index) => (
-                            <div key={role.name} className="flex items-center justify-between p-3 bg-white rounded border">
+                          {Object.entries(groupPolicySettings).map(([roleName, settings]) => (
+                            <div key={roleName} className="flex items-center justify-between p-3 bg-white rounded border">
                               <div className="flex items-center space-x-3">
                                 <Switch 
-                                  checked={role.selected}
+                                  checked={settings.selected}
+                                  onCheckedChange={() => handleGroupPolicyToggle(roleName)}
                                   className="data-[state=checked]:bg-blue-900"
                                 />
-                                <Label className="text-sm font-medium">{role.name}</Label>
+                                <Label className="text-sm font-medium">{roleName}</Label>
                               </div>
                               <Input 
                                 type="number"
-                                defaultValue={role.days}
+                                value={settings.days}
+                                onChange={(e) => handleGroupPolicyDaysChange(roleName, e.target.value)}
                                 className="w-16 h-8 text-center"
                               />
                             </div>
