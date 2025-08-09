@@ -320,6 +320,31 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  app.get("/api/announcements/attachment/:id", authenticateToken, async (req, res) => {
+    try {
+      const announcementId = req.params.id;
+      const announcement = await storage.getAnnouncementById(announcementId);
+      
+      if (!announcement || !announcement.attachment) {
+        return res.status(404).json({ error: "Attachment not found" });
+      }
+
+      // For now, we'll simulate file serving - in production this would be from cloud storage
+      res.setHeader('Content-Disposition', `attachment; filename="${announcement.attachment}"`);
+      res.setHeader('Content-Type', 'application/octet-stream');
+      
+      // This is a placeholder - in real implementation, you would stream the actual file
+      res.json({ 
+        message: "File download simulation", 
+        filename: announcement.attachment,
+        note: "In production, this would stream the actual file from cloud storage"
+      });
+    } catch (error) {
+      console.error("Download attachment error:", error);
+      res.status(500).json({ error: "Failed to download attachment" });
+    }
+  });
+
   // Employee statistics for pie chart
   app.get("/api/employee-statistics", authenticateToken, async (req, res) => {
     try {

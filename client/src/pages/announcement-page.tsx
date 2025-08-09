@@ -28,7 +28,8 @@ import {
   AlignRight,
   List,
   ListOrdered,
-  Send
+  Send,
+  Download
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DashboardLayout } from "@/components/dashboard-layout";
@@ -832,9 +833,26 @@ export default function AnnouncementPage() {
                 {selectedAnnouncement.attachment && (
                   <div>
                     <label className="text-sm font-medium text-gray-700 mb-2 block">Attachment</label>
-                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2">
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2 hover:bg-blue-100 cursor-pointer transition-colors">
                       <Upload className="h-4 w-4 text-blue-600" />
-                      <span className="text-sm text-blue-800">{selectedAnnouncement.attachment}</span>
+                      <a 
+                        href={`/api/announcements/attachment/${selectedAnnouncement.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-800 hover:text-blue-900 hover:underline flex-1"
+                        data-testid="link-attachment"
+                      >
+                        {selectedAnnouncement.attachment}
+                      </a>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800"
+                        onClick={() => window.open(`/api/announcements/attachment/${selectedAnnouncement.id}`, '_blank')}
+                        data-testid="button-download-attachment"
+                      >
+                        <Download className="h-3 w-3" />
+                      </Button>
                     </div>
                   </div>
                 )}

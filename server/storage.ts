@@ -278,6 +278,7 @@ export interface IStorage {
   getAllAnnouncements(): Promise<any[]>;
   createAnnouncement(announcement: InsertAnnouncement): Promise<SelectAnnouncement>;
   updateAnnouncement(announcementId: string, updates: Partial<InsertAnnouncement>): Promise<SelectAnnouncement>;
+  getAnnouncementById(announcementId: string): Promise<SelectAnnouncement | null>;
   getUserAnnouncements(userId: string): Promise<SelectUserAnnouncement[]>;
   markAnnouncementAsRead(userId: string, announcementId: string): Promise<SelectUserAnnouncement>;
   deleteAnnouncement(announcementId: string): Promise<boolean>;
@@ -1613,6 +1614,21 @@ export class DatabaseStorage implements IStorage {
       return updatedAnnouncement;
     } catch (error) {
       console.error('Error updating announcement:', error);
+      throw error;
+    }
+  }
+
+  async getAnnouncementById(announcementId: string): Promise<SelectAnnouncement | null> {
+    try {
+      const [announcement] = await db
+        .select()
+        .from(announcements)
+        .where(eq(announcements.id, announcementId))
+        .limit(1);
+
+      return announcement || null;
+    } catch (error) {
+      console.error('Error getting announcement by ID:', error);
       throw error;
     }
   }
