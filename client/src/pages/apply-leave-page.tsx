@@ -130,13 +130,14 @@ export default function ApplyLeavePage() {
   const createLeaveApplicationMutation = useMutation({
     mutationFn: async (leaveData: any) => {
       console.log("Frontend: Sending leave application data:", leaveData);
-      return apiRequest("/api/leave-applications", {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(leaveData),
-      });
+      try {
+        const response = await apiRequest("POST", "/api/leave-applications", leaveData);
+        console.log("Frontend: Leave application response:", response);
+        return await response.json();
+      } catch (error) {
+        console.error("Frontend: Leave application error:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       toast({
