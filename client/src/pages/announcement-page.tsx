@@ -346,6 +346,42 @@ export default function AnnouncementPage() {
     });
   };
 
+  const handleDownloadAttachment = async (announcementId: string, filename: string) => {
+    try {
+      const response = await fetch(`/api/announcements/attachment/${announcementId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}` || '',
+        },
+      });
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to download attachment",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to download attachment",
+        variant: "destructive",
+      });
+    }
+  };
+
   const confirmDeleteAnnouncement = () => {
     if (announcementToDelete !== null) {
       deleteAnnouncementMutation.mutate(announcementToDelete);
@@ -835,20 +871,18 @@ export default function AnnouncementPage() {
                     <label className="text-sm font-medium text-gray-700 mb-2 block">Attachment</label>
                     <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2 hover:bg-blue-100 cursor-pointer transition-colors">
                       <Upload className="h-4 w-4 text-blue-600" />
-                      <a 
-                        href={`/api/announcements/attachment/${selectedAnnouncement.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-blue-800 hover:text-blue-900 hover:underline flex-1"
-                        data-testid="link-attachment"
+                      <button
+                        onClick={() => handleDownloadAttachment(selectedAnnouncement.id, selectedAnnouncement.attachment!)}
+                        className="text-sm text-blue-800 hover:text-blue-900 hover:underline flex-1 text-left"
+                        data-testid="button-attachment"
                       >
                         {selectedAnnouncement.attachment}
-                      </a>
+                      </button>
                       <Button
                         size="sm"
                         variant="ghost"
                         className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800"
-                        onClick={() => window.open(`/api/announcements/attachment/${selectedAnnouncement.id}`, '_blank')}
+                        onClick={() => handleDownloadAttachment(selectedAnnouncement.id, selectedAnnouncement.attachment!)}
                         data-testid="button-download-attachment"
                       >
                         <Download className="h-3 w-3" />

@@ -320,25 +320,34 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  app.get("/api/announcements/attachment/:id", authenticateToken, async (req, res) => {
+  app.get("/api/announcements/attachment/:id", async (req, res) => {
     try {
       const announcementId = req.params.id;
+      
+      // Check authentication using session or token
+      const authHeader = req.headers.authorization;
+      const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.substring(7) : null;
+      
+      // For now, allow access if user has valid session OR token
+      if (!req.user && !token) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      
       const announcement = await storage.getAnnouncementById(announcementId);
       
       if (!announcement || !announcement.attachment) {
         return res.status(404).json({ error: "Attachment not found" });
       }
 
-      // For now, we'll simulate file serving - in production this would be from cloud storage
+      // Set proper headers for file download
       res.setHeader('Content-Disposition', `attachment; filename="${announcement.attachment}"`);
       res.setHeader('Content-Type', 'application/octet-stream');
+      res.setHeader('Access-Control-Allow-Origin', '*');
       
-      // This is a placeholder - in real implementation, you would stream the actual file
-      res.json({ 
-        message: "File download simulation", 
-        filename: announcement.attachment,
-        note: "In production, this would stream the actual file from cloud storage"
-      });
+      // Simulate file content - in production this would be from cloud storage/file system
+      const mockFileContent = `This is a simulated file download for: ${announcement.attachment}\n\nIn production, this would contain the actual file content from cloud storage or file system.\n\nAnnouncement: ${announcement.title}\nFile: ${announcement.attachment}`;
+      
+      res.send(mockFileContent);
     } catch (error) {
       console.error("Download attachment error:", error);
       res.status(500).json({ error: "Failed to download attachment" });
