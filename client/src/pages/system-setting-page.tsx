@@ -628,6 +628,63 @@ export default function SystemSettingPage() {
     }
   }, [activeLeaveTypesFromDB]);
 
+  // Load existing group policy settings when a policy is expanded
+  useEffect(() => {
+    if (expandedPolicyId) {
+      const loadGroupPolicySettings = async () => {
+        try {
+          const token = localStorage.getItem("utamahr_token");
+          if (!token) return;
+
+          const response = await fetch(`/api/group-policy-settings/${encodeURIComponent(expandedPolicyId)}`, {
+            headers: {
+              "Authorization": `Bearer ${token}`,
+            },
+          });
+          
+          if (response.ok) {
+            const existingSettings = await response.json();
+            
+            // Reset all roles to false first
+            setGroupPolicySettings(prev => {
+              const resetSettings = Object.keys(prev).reduce((acc, role) => {
+                acc[role] = { selected: false, days: prev[role].days };
+                return acc;
+              }, {} as typeof prev);
+              
+              // Then set existing settings to true with their entitlement days
+              existingSettings.forEach((setting: any) => {
+                if (resetSettings[setting.role]) {
+                  resetSettings[setting.role] = {
+                    selected: true,
+                    days: setting.entitlementDays.toString()
+                  };
+                }
+              });
+              
+              return resetSettings;
+            });
+            
+            console.log(`📥 Memuat tetapan group policy untuk ${expandedPolicyId}:`, existingSettings);
+          }
+        } catch (error) {
+          console.error("Error loading group policy settings:", error);
+        }
+      };
+
+      loadGroupPolicySettings();
+    } else {
+      // Reset all selections when no policy is expanded
+      setGroupPolicySettings(prev => {
+        const resetSettings = Object.keys(prev).reduce((acc, role) => {
+          acc[role] = { selected: false, days: prev[role].days };
+          return acc;
+        }, {} as typeof prev);
+        return resetSettings;
+      });
+    }
+  }, [expandedPolicyId]);
+
   const handleInputChange = (field: string, value: string) => {
     setCompanyData(prev => ({
       ...prev,
@@ -747,17 +804,92 @@ export default function SystemSettingPage() {
     setShowUpdatePolicyDialog(true);
   };
 
-  const handleGroupPolicyToggle = (roleName: keyof typeof groupPolicySettings) => {
+  const handleGroupPolicyToggle = async (roleName: keyof typeof groupPolicySettings) => {
+    const currentPolicy = groupPolicySettings[roleName];
+    const willBeSelected = !currentPolicy.selected;
+    
+    // Update local state first
     setGroupPolicySettings(prev => ({
       ...prev,
       [roleName]: {
         ...prev[roleName],
-        selected: !prev[roleName].selected
+        selected: willBeSelected
       }
     }));
+    
+    // If toggling ON, save to database to grant entitlement
+    if (willBeSelected && expandedPolicyId) {
+      try {
+        const token = localStorage.getItem("utamahr_token");
+        if (!token) {
+          alert("Sila log masuk semula.");
+          return;
+        }
+
+        const response = await fetch("/api/group-policy-settings", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            leaveType: expandedPolicyId,
+            role: roleName,
+            entitlementDays: parseInt(currentPolicy.days) || 0,
+            enabled: true
+          }),
+        });
+        
+        if (response.ok) {
+          console.log(`✅ Role ${roleName} diberi kelayakan ${currentPolicy.days} hari untuk ${expandedPolicyId}`);
+        } else {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Gagal menyimpan tetapan dasar kumpulan");
+        }
+      } catch (error) {
+        console.error("Error saving group policy:", error);
+        alert("Gagal menyimpan tetapan. Sila cuba lagi.");
+        // Revert state on error
+        setGroupPolicySettings(prev => ({
+          ...prev,
+          [roleName]: {
+            ...prev[roleName],
+            selected: !willBeSelected
+          }
+        }));
+      }
+    } 
+    // If toggling OFF, remove from database 
+    else if (!willBeSelected && expandedPolicyId) {
+      try {
+        const token = localStorage.getItem("utamahr_token");
+        if (!token) {
+          alert("Sila log masuk semula.");
+          return;
+        }
+
+        const response = await fetch(`/api/group-policy-settings/${encodeURIComponent(expandedPolicyId)}/${encodeURIComponent(roleName)}`, {
+          method: "DELETE",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+        
+        if (response.ok) {
+          console.log(`❌ Role ${roleName} dikeluarkan dari kelayakan ${expandedPolicyId}`);
+        } else {
+          console.error("Gagal mengeluarkan tetapan dasar kumpulan");
+        }
+      } catch (error) {
+        console.error("Error removing group policy:", error);
+      }
+    }
   };
 
-  const handleGroupPolicyDaysChange = (roleName: keyof typeof groupPolicySettings, newDays: string) => {
+  const handleGroupPolicyDaysChange = async (roleName: keyof typeof groupPolicySettings, newDays: string) => {
+    const currentPolicy = groupPolicySettings[roleName];
+    
+    // Update local state first
     setGroupPolicySettings(prev => ({
       ...prev,
       [roleName]: {
@@ -765,6 +897,41 @@ export default function SystemSettingPage() {
         days: newDays
       }
     }));
+    
+    // If the role is already selected/enabled and we have a leave type, update the database
+    if (currentPolicy.selected && expandedPolicyId) {
+      try {
+        const token = localStorage.getItem("utamahr_token");
+        if (!token) {
+          alert("Sila log masuk semula.");
+          return;
+        }
+
+        const response = await fetch("/api/group-policy-settings", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            leaveType: expandedPolicyId,
+            role: roleName,
+            entitlementDays: parseInt(newDays) || 0,
+            enabled: true
+          }),
+        });
+        
+        if (response.ok) {
+          console.log(`📝 Role ${roleName} kelayakan dikemaskini kepada ${newDays} hari untuk ${expandedPolicyId}`);
+        } else {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Gagal mengemas kini tetapan dasar kumpulan");
+        }
+      } catch (error) {
+        console.error("Error updating group policy days:", error);
+        // Note: We don't revert here as user may still be typing
+      }
+    }
   };
 
   const handleSaveTimeoffApproval = async () => {
