@@ -158,8 +158,8 @@ export default function SystemSettingPage() {
   // Transform real data to match our UI format
   const leavePolicies = Array.isArray(companyLeaveTypes) ? companyLeaveTypes.map((leaveType: any) => ({
     id: leaveType.id,
-    name: leaveType.name,
-    entitlement: `${leaveType.defaultDays || 0} Day(s)`,
+    name: leaveType.leaveType,
+    entitlement: `${leaveType.entitlementDays || 0} Day(s)`,
     enabled: leaveType.enabled || false
   })) : [];
   
