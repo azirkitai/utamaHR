@@ -76,7 +76,7 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
   });
 
   // Get employee role
-  const employeeRole = employmentData?.position || null;
+  const employeeRole = employmentData?.designation || null;
 
   // Helper function to check if employee is allowed for a leave type
   const isLeaveTypeAllowed = (leaveType: string) => {
