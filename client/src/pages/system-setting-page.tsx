@@ -187,8 +187,6 @@ export default function SystemSettingPage() {
   const [showCreatePolicyDialog, setShowCreatePolicyDialog] = useState(false);
   const [policyType, setPolicyType] = useState<"financial" | "overtime">("financial");
   const [expandedPolicyId, setExpandedPolicyId] = useState<string | null>(null);
-  const [showUpdatePolicyDialog, setShowUpdatePolicyDialog] = useState(false);
-  const [selectedPolicy, setSelectedPolicy] = useState<any>(null);
   
   // Group Policy settings state
   const [groupPolicySettings, setGroupPolicySettings] = useState({
@@ -799,10 +797,7 @@ export default function SystemSettingPage() {
     setExpandedPolicyId(expandedPolicyId === policyId ? null : policyId);
   };
 
-  const handleUpdatePolicy = (policy: any) => {
-    setSelectedPolicy(policy);
-    setShowUpdatePolicyDialog(true);
-  };
+;
 
   const handleGroupPolicyToggle = async (roleName: keyof typeof groupPolicySettings) => {
     const currentPolicy = groupPolicySettings[roleName];
@@ -2038,6 +2033,13 @@ export default function SystemSettingPage() {
                   {/* Expanded Details */}
                   {expandedPolicyId === policy.id && (
                     <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-4">
+                      {/* Auto-save notification */}
+                      <div className="bg-blue-50 border-l-4 border-blue-400 p-2 rounded">
+                        <p className="text-sm text-blue-700">
+                          💾 All changes are saved automatically
+                        </p>
+                      </div>
+                      
                       {/* Group Policy Section */}
                       <div className="space-y-3">
                         <label className="text-sm font-medium text-gray-700 block">Group Policy</label>
@@ -2200,14 +2202,7 @@ export default function SystemSettingPage() {
                           size="sm"
                           onClick={() => setExpandedPolicyId(null)}
                         >
-                          Cancel
-                        </Button>
-                        <Button 
-                          size="sm"
-                          className="bg-blue-900 hover:bg-blue-800 text-white"
-                          onClick={() => handleUpdatePolicy(policy)}
-                        >
-                          Update Leave
+                          Close
                         </Button>
                       </div>
                     </div>
@@ -4147,154 +4142,6 @@ export default function SystemSettingPage() {
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               ) : null}
               Update Location
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Update Leave Policy Dialog */}
-      <Dialog open={showUpdatePolicyDialog} onOpenChange={setShowUpdatePolicyDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-white p-3 rounded-t-lg" style={{ background: "linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)" }}>
-              Update Leave Policy
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-6">
-            {selectedPolicy && (
-              <>
-                <div className="text-lg font-semibold">{selectedPolicy.name}</div>
-                
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">Group Policy</label>
-                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-                      {[
-                        { name: "Board Of Director", days: "12" },
-                        { name: "HOD/Manager", days: "12" },
-                        { name: "Finance/Account", days: "12" },
-                        { name: "Human Resource", days: "12" },
-                        { name: "Employee", days: "12" }
-                      ].map((role, index) => (
-                        <div key={role.name} className="flex items-center space-x-2">
-                          <span className={`w-3 h-3 rounded-full border-2 ${index === 0 ? 'border-blue-600 bg-blue-600' : 'border-gray-300'}`}></span>
-                          <span className="text-sm flex-1">{role.days}</span>
-                          <span className="text-xs text-gray-500">{role.name}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Exclude Employee</Label>
-                    <Input 
-                      placeholder="Choose employees to exclude"
-                      className="w-full"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="flex items-center justify-between p-3 border rounded">
-                      <div>
-                        <Label className="text-sm font-medium">Upload Attachment</Label>
-                      </div>
-                      <Switch 
-                        checked={true}
-                        className="data-[state=checked]:bg-blue-900"
-                      />
-                    </div>
-                    <div className="flex items-center justify-between p-3 border rounded">
-                      <div>
-                        <Label className="text-sm font-medium">Reason</Label>
-                      </div>
-                      <Switch 
-                        checked={false}
-                        className="data-[state=checked]:bg-blue-900"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 border rounded">
-                    <div>
-                      <Label className="text-sm font-medium">Carry Forward</Label>
-                    </div>
-                    <Switch 
-                      checked={true}
-                      className="data-[state=checked]:bg-blue-900"
-                    />
-                  </div>
-
-                  <div className="p-3 border rounded space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-sm font-medium">Pro-Rated</Label>
-                      <div className="flex items-center space-x-2">
-                        <Switch 
-                          checked={true}
-                          className="data-[state=checked]:bg-blue-900"
-                        />
-                        <Select defaultValue="round-up">
-                          <SelectTrigger className="w-32 h-8">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="round-up">Round Up</SelectItem>
-                            <SelectItem value="round-down">Round Down</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <Select defaultValue="1-day">
-                          <SelectTrigger className="w-24 h-8">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="1-day">1.0 Day</SelectItem>
-                            <SelectItem value="half-day">0.5 Day</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">Day Limit</Label>
-                      <div className="flex items-center space-x-2">
-                        <Input 
-                          type="number" 
-                          className="w-20 h-8" 
-                          defaultValue="5"
-                        />
-                        <span className="text-sm text-gray-500">days before Application</span>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">Leave Remark</Label>
-                      <Input 
-                        placeholder="Leave Remarks"
-                        defaultValue="Leave Remarks"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-
-          <DialogFooter>
-            <Button 
-              variant="outline"
-              onClick={() => setShowUpdatePolicyDialog(false)}
-            >
-              Cancel
-            </Button>
-            <Button 
-              className="bg-blue-900 hover:bg-blue-800 text-white"
-              onClick={() => {
-                // Handle save logic here
-                setShowUpdatePolicyDialog(false);
-              }}
-            >
-              Save
             </Button>
           </DialogFooter>
         </DialogContent>
