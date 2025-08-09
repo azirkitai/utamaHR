@@ -613,12 +613,18 @@ export default function SystemSettingPage() {
 
   const handleSaveLeaveApproval = async () => {
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Sila log masuk semula.");
+        return;
+      }
+
       const response = await fetch("/api/approval-settings", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
-        credentials: "include", // Include session cookies
         body: JSON.stringify({
           type: "leave",
           firstLevelApprovalId: leaveApproval.firstLevel,
@@ -628,10 +634,10 @@ export default function SystemSettingPage() {
       
       if (response.ok) {
         console.log("Leave approval settings saved successfully");
-        // Show success message to user
         alert("Tetapan kelulusan cuti berjaya disimpan!");
       } else {
-        throw new Error("Failed to save approval settings");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to save approval settings");
       }
     } catch (error) {
       console.error("Error saving leave approval:", error);
@@ -693,12 +699,18 @@ export default function SystemSettingPage() {
 
   const handleSaveTimeoffApproval = async () => {
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Sila log masuk semula.");
+        return;
+      }
+
       const response = await fetch("/api/approval-settings", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
-        credentials: "include", // Include session cookies
         body: JSON.stringify({
           type: "timeoff",
           firstLevelApprovalId: timeoffApproval.firstLevel,
@@ -710,7 +722,8 @@ export default function SystemSettingPage() {
         console.log("Timeoff approval settings saved successfully");
         alert("Tetapan kelulusan timeoff berjaya disimpan!");
       } else {
-        throw new Error("Failed to save approval settings");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to save approval settings");
       }
     } catch (error) {
       console.error("Error saving timeoff approval:", error);
@@ -724,10 +737,17 @@ export default function SystemSettingPage() {
 
   const handleSaveFinancialApproval = async () => {
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Sila log masuk semula.");
+        return;
+      }
+
       const response = await fetch("/api/approval-settings", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify({
           type: "financial",
@@ -740,7 +760,8 @@ export default function SystemSettingPage() {
         console.log("Financial approval settings saved successfully");
         alert("Tetapan kelulusan kewangan berjaya disimpan!");
       } else {
-        throw new Error("Failed to save approval settings");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to save approval settings");
       }
     } catch (error) {
       console.error("Error saving financial approval:", error);
@@ -754,10 +775,17 @@ export default function SystemSettingPage() {
 
   const handleSaveOvertimeApproval = async () => {
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Sila log masuk semula.");
+        return;
+      }
+
       const response = await fetch("/api/approval-settings", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify({
           type: "overtime",
@@ -770,7 +798,8 @@ export default function SystemSettingPage() {
         console.log("Overtime approval settings saved successfully");
         alert("Tetapan kelulusan kerja lebih masa berjaya disimpan!");
       } else {
-        throw new Error("Failed to save approval settings");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to save approval settings");
       }
     } catch (error) {
       console.error("Error saving overtime approval:", error);
