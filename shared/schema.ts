@@ -375,6 +375,16 @@ export const attendanceRecords = pgTable("attendance_records", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// 16. Approval Settings Table (for storing system-wide approval configurations)
+export const approvalSettings = pgTable("approval_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  type: text("type").notNull(), // 'leave', 'timeoff', 'financial', 'overtime', 'payment'
+  firstLevelApprovalId: varchar("first_level_approval_id").references(() => employees.id),
+  secondLevelApprovalId: varchar("second_level_approval_id").references(() => employees.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // =================== VALIDATION SCHEMAS ===================
 
 // Attendance record schemas
@@ -578,6 +588,14 @@ export const insertOfficeLocationSchema = createInsertSchema(officeLocations).om
 });
 export const updateOfficeLocationSchema = insertOfficeLocationSchema.partial();
 
+// Approval Settings schemas
+export const insertApprovalSettingSchema = createInsertSchema(approvalSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const updateApprovalSettingSchema = insertApprovalSettingSchema.partial();
+
 // Clock-in schemas
 export const insertClockInSchema = createInsertSchema(clockInRecords).omit({
   id: true,
@@ -725,3 +743,8 @@ export type MobileClockInData = z.infer<typeof mobileClockInSchema>;
 export type AttendanceRecord = typeof attendanceRecords.$inferSelect;
 export type InsertAttendanceRecord = z.infer<typeof insertAttendanceRecordSchema>;
 export type UpdateAttendanceRecord = z.infer<typeof updateAttendanceRecordSchema>;
+
+// Approval Settings types
+export type ApprovalSetting = typeof approvalSettings.$inferSelect;
+export type InsertApprovalSetting = z.infer<typeof insertApprovalSettingSchema>;
+export type UpdateApprovalSetting = z.infer<typeof updateApprovalSettingSchema>;

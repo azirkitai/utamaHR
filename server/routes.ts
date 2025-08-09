@@ -22,6 +22,9 @@ import {
   updateLeaveApplicationSchema,
   insertAttendanceRecordSchema,
   updateAttendanceRecordSchema,
+  insertApprovalSettingSchema,
+  updateApprovalSettingSchema,
+  approvalSettings,
   type AttendanceRecord
 } from "@shared/schema";
 import { checkEnvironmentSecrets } from "./env-check";
@@ -143,6 +146,24 @@ async function processClockOut(
     });
   }
 }
+
+import { Router } from "express";
+import { db } from "./db";
+import { eq, desc, and, sql } from "drizzle-orm";
+import { 
+  users, 
+  employees, 
+  employment, 
+  contact, 
+  familyDetails, 
+  qrTokens, 
+  officeLocations, 
+  clockInRecords, 
+  workExperiences,
+  leaveApplications,
+  attendanceRecords,
+  approvalSettings
+} from "@shared/schema";
 
 export function registerRoutes(app: Express): Server {
   // Setup authentication routes: /api/register, /api/login, /api/logout, /api/user
@@ -1855,6 +1876,76 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Update leave application error:", error);
       res.status(400).json({ error: "Gagal mengemaskini permohonan cuti" });
+    }
+  });
+
+  // =================== APPROVAL SETTINGS ROUTES ===================
+
+  // POST /api/approval-settings - Save approval settings
+  app.post("/api/approval-settings", authenticateToken, async (req, res) => {
+    try {
+      const { type, firstLevelApprovalId, secondLevelApprovalId } = req.body;
+      
+      // Check if approval setting already exists for this type
+      const [existingSetting] = await db
+        .select()
+        .from(approvalSettings)
+        .where(eq(approvalSettings.type, type));
+      
+      if (existingSetting) {
+        // Update existing setting
+        const [updatedSetting] = await db
+          .update(approvalSettings)
+          .set({
+            firstLevelApprovalId: firstLevelApprovalId === "none" ? null : firstLevelApprovalId,
+            secondLevelApprovalId: secondLevelApprovalId === "none" ? null : secondLevelApprovalId,
+            updatedAt: sql`now()`,
+          })
+          .where(eq(approvalSettings.id, existingSetting.id))
+          .returning();
+        
+        return res.json(updatedSetting);
+      } else {
+        // Create new setting
+        const [newSetting] = await db
+          .insert(approvalSettings)
+          .values({
+            type,
+            firstLevelApprovalId: firstLevelApprovalId === "none" ? null : firstLevelApprovalId,
+            secondLevelApprovalId: secondLevelApprovalId === "none" ? null : secondLevelApprovalId,
+          })
+          .returning();
+        
+        return res.json(newSetting);
+      }
+    } catch (error) {
+      console.error("Error saving approval settings:", error);
+      res.status(500).json({ error: "Failed to save approval settings" });
+    }
+  });
+
+  // GET /api/approval-settings/:type - Get approval settings by type
+  app.get("/api/approval-settings/:type", authenticateToken, async (req, res) => {
+    try {
+      const { type } = req.params;
+      
+      const [setting] = await db
+        .select()
+        .from(approvalSettings)
+        .where(eq(approvalSettings.type, type));
+      
+      if (!setting) {
+        return res.json({
+          type,
+          firstLevelApprovalId: null,
+          secondLevelApprovalId: null,
+        });
+      }
+      
+      res.json(setting);
+    } catch (error) {
+      console.error("Error fetching approval settings:", error);
+      res.status(500).json({ error: "Failed to fetch approval settings" });
     }
   });
 

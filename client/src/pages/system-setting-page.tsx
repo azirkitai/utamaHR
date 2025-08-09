@@ -611,8 +611,32 @@ export default function SystemSettingPage() {
     console.log("Update company data:", companyData);
   };
 
-  const handleSaveLeaveApproval = () => {
-    console.log("Save leave approval:", leaveApproval);
+  const handleSaveLeaveApproval = async () => {
+    try {
+      const response = await fetch("/api/approval-settings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // Include session cookies
+        body: JSON.stringify({
+          type: "leave",
+          firstLevelApprovalId: leaveApproval.firstLevel,
+          secondLevelApprovalId: leaveApproval.secondLevel,
+        }),
+      });
+      
+      if (response.ok) {
+        console.log("Leave approval settings saved successfully");
+        // Show success message to user
+        alert("Tetapan kelulusan cuti berjaya disimpan!");
+      } else {
+        throw new Error("Failed to save approval settings");
+      }
+    } catch (error) {
+      console.error("Error saving leave approval:", error);
+      alert("Gagal menyimpan tetapan kelulusan cuti. Sila cuba lagi.");
+    }
   };
 
   // Handler untuk toggle leave policy switch
@@ -667,24 +691,91 @@ export default function SystemSettingPage() {
     }
   };
 
-  const handleSaveTimeoffApproval = () => {
-    console.log("Save timeoff approval:", timeoffApproval);
+  const handleSaveTimeoffApproval = async () => {
+    try {
+      const response = await fetch("/api/approval-settings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // Include session cookies
+        body: JSON.stringify({
+          type: "timeoff",
+          firstLevelApprovalId: timeoffApproval.firstLevel,
+          secondLevelApprovalId: timeoffApproval.secondLevel,
+        }),
+      });
+      
+      if (response.ok) {
+        console.log("Timeoff approval settings saved successfully");
+        alert("Tetapan kelulusan timeoff berjaya disimpan!");
+      } else {
+        throw new Error("Failed to save approval settings");
+      }
+    } catch (error) {
+      console.error("Error saving timeoff approval:", error);
+      alert("Gagal menyimpan tetapan kelulusan timeoff. Sila cuba lagi.");
+    }
   };
 
   const handleSaveTimeoffSettings = () => {
     console.log("Save timeoff settings:", timeoffSettings);
   };
 
-  const handleSaveFinancialApproval = () => {
-    console.log("Save financial approval:", financialApproval);
+  const handleSaveFinancialApproval = async () => {
+    try {
+      const response = await fetch("/api/approval-settings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: "financial",
+          firstLevelApprovalId: financialApproval.firstLevel,
+          secondLevelApprovalId: financialApproval.secondLevel,
+        }),
+      });
+      
+      if (response.ok) {
+        console.log("Financial approval settings saved successfully");
+        alert("Tetapan kelulusan kewangan berjaya disimpan!");
+      } else {
+        throw new Error("Failed to save approval settings");
+      }
+    } catch (error) {
+      console.error("Error saving financial approval:", error);
+      alert("Gagal menyimpan tetapan kelulusan kewangan. Sila cuba lagi.");
+    }
   };
 
   const handleSaveFinancialSettings = () => {
     console.log("Save financial settings:", financialSettings);
   };
 
-  const handleSaveOvertimeApproval = () => {
-    console.log("Save overtime approval:", overtimeApproval);
+  const handleSaveOvertimeApproval = async () => {
+    try {
+      const response = await fetch("/api/approval-settings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: "overtime",
+          firstLevelApprovalId: overtimeApproval.firstLevel,
+          secondLevelApprovalId: overtimeApproval.secondLevel,
+        }),
+      });
+      
+      if (response.ok) {
+        console.log("Overtime approval settings saved successfully");
+        alert("Tetapan kelulusan kerja lebih masa berjaya disimpan!");
+      } else {
+        throw new Error("Failed to save approval settings");
+      }
+    } catch (error) {
+      console.error("Error saving overtime approval:", error);
+      alert("Gagal menyimpan tetapan kelulusan kerja lebih masa. Sila cuba lagi.");
+    }
   };
 
   const handleSaveOvertimeSettings = () => {
