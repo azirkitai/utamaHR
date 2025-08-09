@@ -313,17 +313,22 @@ export class DatabaseStorage implements IStorage {
 
   async getEmployeesWithApprovalRoles(): Promise<Employee[]> {
     // Join employees with users to get role information
+    // Check both users.role and employees.role for approval roles
     const result = await db
       .select({
         id: employees.id,
         fullName: employees.fullName,
         userId: employees.userId,
-        role: users.role
+        role: sql`CASE 
+          WHEN ${employees.role} IN ('Super Admin', 'Admin', 'HR Manager', 'PIC') THEN ${employees.role}
+          WHEN ${users.role} IN ('Super Admin', 'Admin', 'HR Manager', 'PIC') THEN ${users.role}
+          ELSE ${employees.role}
+        END`.as('role')
       })
       .from(employees)
       .innerJoin(users, eq(employees.userId, users.id))
       .where(
-        sql`${users.role} IN ('Super Admin', 'Admin', 'HR Manager', 'PIC')`
+        sql`(${users.role} IN ('Super Admin', 'Admin', 'HR Manager', 'PIC') OR ${employees.role} IN ('Super Admin', 'Admin', 'HR Manager', 'PIC'))`
       );
     
     return result as any[];
