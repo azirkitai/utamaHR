@@ -121,9 +121,9 @@ export default function LeaveApprovalPage() {
   const [selectedLeaveType, setSelectedLeaveType] = useState("all");
   const [selectedLeaveStatus, setSelectedLeaveStatus] = useState("all");
 
-  // Fetch all leave applications from database
+  // Fetch all leave applications from database (for approval)
   const { data: leaveApplications = [], isLoading, error } = useQuery({
-    queryKey: ["/api/leave-applications"], 
+    queryKey: ["/api/all-leave-applications"], 
     staleTime: 30000, // Cache for 30 seconds
     refetchOnWindowFocus: true,
   });

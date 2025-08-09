@@ -1714,27 +1714,18 @@ export function registerRoutes(app: Express): Server {
 
   // =================== LEAVE APPLICATION ROUTES ===================
   
-  // Get all leave applications (for admin/HR/managers)
+  // Get leave applications - for regular users (own applications only) 
   app.get("/api/leave-applications", authenticateToken, async (req, res) => {
     try {
       console.log("Loading leave applications for user:", req.user?.id);
       const currentUser = req.user!;
       
-      // Check if user has admin privileges to view all applications
-      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
-      
-      let leaveApplications;
-      if (adminRoles.includes(currentUser.role)) {
-        // Admin can see all leave applications
-        leaveApplications = await storage.getAllLeaveApplications();
-      } else {
-        // Regular users can only see their own applications
-        const employee = await storage.getEmployeeByUserId(currentUser.id);
-        if (!employee) {
-          return res.status(404).json({ error: "Employee record tidak dijumpai" });
-        }
-        leaveApplications = await storage.getLeaveApplicationsByEmployeeId(employee.id);
+      // Regular users can only see their own applications
+      const employee = await storage.getEmployeeByUserId(currentUser.id);
+      if (!employee) {
+        return res.status(404).json({ error: "Employee record tidak dijumpai" });
       }
+      const leaveApplications = await storage.getLeaveApplicationsByEmployeeId(employee.id);
       
       res.json(leaveApplications);
     } catch (error) {
@@ -1742,6 +1733,34 @@ export function registerRoutes(app: Express): Server {
       console.error("Error stack:", error instanceof Error ? error.stack : 'Unknown error');
       res.status(500).json({ 
         error: "Gagal mendapatkan permohonan cuti",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Get ALL leave applications (for admin/HR approval page)
+  app.get("/api/all-leave-applications", authenticateToken, async (req, res) => {
+    try {
+      console.log("Loading ALL leave applications for approval - User:", req.user?.id, req.user?.role);
+      const currentUser = req.user!;
+      
+      // Check if user has admin privileges to view all applications
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      
+      if (!adminRoles.includes(currentUser.role)) {
+        return res.status(403).json({ error: "Akses ditolak - perlu kebenaran admin" });
+      }
+
+      // Admin can see all leave applications
+      const allLeaveApplications = await storage.getAllLeaveApplications();
+      console.log(`Found ${allLeaveApplications.length} total leave applications`);
+      
+      res.json(allLeaveApplications);
+    } catch (error) {
+      console.error("Get all leave applications error:", error);
+      console.error("Error stack:", error instanceof Error ? error.stack : 'Unknown error');
+      res.status(500).json({ 
+        error: "Gagal mendapatkan semua permohonan cuti",
         details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
