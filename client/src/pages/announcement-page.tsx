@@ -348,11 +348,10 @@ export default function AnnouncementPage() {
 
   const handleDownloadAttachment = async (announcementId: string, filename: string) => {
     try {
+      // Use session-based authentication (cookies) instead of token
       const response = await fetch(`/api/announcements/attachment/${announcementId}`, {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}` || '',
-        },
+        credentials: 'include', // Include session cookies
       });
       
       if (response.ok) {
@@ -360,15 +359,21 @@ export default function AnnouncementPage() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = filename;
+        a.download = filename.replace(/[^\w\s.-]/g, '_'); // Clean filename for download
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
+        
+        toast({
+          title: "Success",
+          description: "Attachment downloaded successfully",
+        });
       } else {
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
         toast({
           title: "Error",
-          description: "Failed to download attachment",
+          description: errorData.error || "Failed to download attachment",
           variant: "destructive",
         });
       }

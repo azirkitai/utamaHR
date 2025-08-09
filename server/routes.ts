@@ -324,12 +324,8 @@ export function registerRoutes(app: Express): Server {
     try {
       const announcementId = req.params.id;
       
-      // Check authentication using session or token
-      const authHeader = req.headers.authorization;
-      const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.substring(7) : null;
-      
-      // For now, allow access if user has valid session OR token
-      if (!req.user && !token) {
+      // Check session-based authentication
+      if (!req.user) {
         return res.status(401).json({ error: "Authentication required" });
       }
       
@@ -339,8 +335,11 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).json({ error: "Attachment not found" });
       }
 
+      // Clean filename to prevent header issues
+      const cleanFilename = announcement.attachment.replace(/[^\w\s.-]/g, '_');
+      
       // Set proper headers for file download
-      res.setHeader('Content-Disposition', `attachment; filename="${announcement.attachment}"`);
+      res.setHeader('Content-Disposition', `attachment; filename="${cleanFilename}"`);
       res.setHeader('Content-Type', 'application/octet-stream');
       res.setHeader('Access-Control-Allow-Origin', '*');
       
