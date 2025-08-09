@@ -655,6 +655,12 @@ export default function SystemSettingPage() {
     enabled: true
   });
 
+  // Fetch leave policy settings for current expanded policy
+  const { data: currentLeavePolicySettings } = useQuery({
+    queryKey: ["/api/leave-policy-settings", expandedPolicyId],
+    enabled: !!expandedPolicyId
+  });
+
   // Fetch current leave approval settings
   const { data: currentLeaveSettings } = useQuery({
     queryKey: ["/api/approval-settings/leave"],
@@ -794,6 +800,24 @@ export default function SystemSettingPage() {
       toast({
         title: "❌ Error",
         description: "Failed to update leave policy. Please try again.",
+        variant: "destructive",
+        duration: 3000,
+      });
+    }
+  });
+
+  // Create mutation for updating leave policy settings
+  const updateLeavePolicySettingMutation = useMutation({
+    mutationFn: ({ leaveType, field, value }: { leaveType: string, field: string, value: any }) => 
+      apiRequest("PATCH", `/api/leave-policy-settings/${encodeURIComponent(leaveType)}`, { [field]: value }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/leave-policy-settings", expandedPolicyId] });
+    },
+    onError: (error) => {
+      console.error("Gagal mengemas kini tetapan polisi cuti:", error);
+      toast({
+        title: "❌ Error",
+        description: "Failed to update leave policy setting. Please try again.",
         variant: "destructive",
         duration: 3000,
       });
@@ -2158,21 +2182,42 @@ export default function SystemSettingPage() {
                         <div className="flex items-center justify-between p-3 bg-white rounded border">
                           <Label className="text-sm font-medium">Upload Attachment</Label>
                           <Switch 
-                            checked={true}
+                            checked={currentLeavePolicySettings?.uploadAttachment ?? true}
+                            onCheckedChange={(checked) => 
+                              updateLeavePolicySettingMutation.mutate({
+                                leaveType: expandedPolicyId!,
+                                field: "uploadAttachment",
+                                value: checked
+                              })
+                            }
                             className="data-[state=checked]:bg-blue-900"
                           />
                         </div>
                         <div className="flex items-center justify-between p-3 bg-white rounded border">
                           <Label className="text-sm font-medium">Reason</Label>
                           <Switch 
-                            checked={false}
+                            checked={currentLeavePolicySettings?.requireReason ?? false}
+                            onCheckedChange={(checked) => 
+                              updateLeavePolicySettingMutation.mutate({
+                                leaveType: expandedPolicyId!,
+                                field: "requireReason",
+                                value: checked
+                              })
+                            }
                             className="data-[state=checked]:bg-blue-900"
                           />
                         </div>
                         <div className="flex items-center justify-between p-3 bg-white rounded border">
                           <Label className="text-sm font-medium">Carry Forward</Label>
                           <Switch 
-                            checked={true}
+                            checked={currentLeavePolicySettings?.carryForward ?? true}
+                            onCheckedChange={(checked) => 
+                              updateLeavePolicySettingMutation.mutate({
+                                leaveType: expandedPolicyId!,
+                                field: "carryForward",
+                                value: checked
+                              })
+                            }
                             className="data-[state=checked]:bg-blue-900"
                           />
                         </div>
@@ -2184,10 +2229,26 @@ export default function SystemSettingPage() {
                           <Label className="text-sm font-medium">Pro-Rated</Label>
                           <div className="flex items-center space-x-2">
                             <Switch 
-                              checked={true}
+                              checked={currentLeavePolicySettings?.proRated ?? true}
+                              onCheckedChange={(checked) => 
+                                updateLeavePolicySettingMutation.mutate({
+                                  leaveType: expandedPolicyId!,
+                                  field: "proRated",
+                                  value: checked
+                                })
+                              }
                               className="data-[state=checked]:bg-blue-900"
                             />
-                            <Select defaultValue="round-up">
+                            <Select 
+                              value={currentLeavePolicySettings?.roundingMethod ?? "round-up"}
+                              onValueChange={(value) => 
+                                updateLeavePolicySettingMutation.mutate({
+                                  leaveType: expandedPolicyId!,
+                                  field: "roundingMethod",
+                                  value
+                                })
+                              }
+                            >
                               <SelectTrigger className="w-32 h-8 text-xs">
                                 <SelectValue />
                               </SelectTrigger>
@@ -2196,7 +2257,16 @@ export default function SystemSettingPage() {
                                 <SelectItem value="round-down">Round Down</SelectItem>
                               </SelectContent>
                             </Select>
-                            <Select defaultValue="1-day">
+                            <Select 
+                              value={currentLeavePolicySettings?.minimumUnit ?? "1-day"}
+                              onValueChange={(value) => 
+                                updateLeavePolicySettingMutation.mutate({
+                                  leaveType: expandedPolicyId!,
+                                  field: "minimumUnit",
+                                  value
+                                })
+                              }
+                            >
                               <SelectTrigger className="w-24 h-8 text-xs">
                                 <SelectValue />
                               </SelectTrigger>
@@ -2217,7 +2287,14 @@ export default function SystemSettingPage() {
                             <Input 
                               type="number" 
                               className="w-20 h-8" 
-                              defaultValue="5"
+                              value={currentLeavePolicySettings?.dayLimit ?? 5}
+                              onChange={(e) => 
+                                updateLeavePolicySettingMutation.mutate({
+                                  leaveType: expandedPolicyId!,
+                                  field: "dayLimit",
+                                  value: parseInt(e.target.value) || 5
+                                })
+                              }
                             />
                             <span className="text-sm text-gray-500">days before Application</span>
                           </div>
@@ -2226,7 +2303,14 @@ export default function SystemSettingPage() {
                           <Label className="text-sm font-medium">Leave Remark</Label>
                           <Input 
                             placeholder="Leave Remarks"
-                            defaultValue="Leave Remarks"
+                            value={currentLeavePolicySettings?.leaveRemark ?? "Leave Remarks"}
+                            onChange={(e) => 
+                              updateLeavePolicySettingMutation.mutate({
+                                leaveType: expandedPolicyId!,
+                                field: "leaveRemark",
+                                value: e.target.value
+                              })
+                            }
                           />
                         </div>
                       </div>

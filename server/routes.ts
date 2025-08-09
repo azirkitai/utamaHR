@@ -2207,6 +2207,98 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // =================== LEAVE POLICY SETTINGS ROUTES ===================
+  
+  // Get all leave policy settings
+  app.get("/api/leave-policy-settings", authenticateToken, async (req, res) => {
+    try {
+      const settings = await storage.getLeavePolicySettings();
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching leave policy settings:", error);
+      res.status(500).json({ error: "Gagal mendapatkan tetapan polisi cuti" });
+    }
+  });
+
+  // Get leave policy setting by leave type
+  app.get("/api/leave-policy-settings/:leaveType", authenticateToken, async (req, res) => {
+    try {
+      const leaveType = decodeURIComponent(req.params.leaveType);
+      const setting = await storage.getLeavePolicySettingByLeaveType(leaveType);
+      
+      if (!setting) {
+        // Return default settings if not found
+        const defaultSetting = {
+          leaveType,
+          uploadAttachment: true,
+          requireReason: false,
+          carryForward: true,
+          proRated: true,
+          roundingMethod: "round-up",
+          minimumUnit: "1-day",
+          dayLimit: 5,
+          leaveRemark: "Leave Remarks",
+          excludedEmployees: []
+        };
+        return res.json(defaultSetting);
+      }
+      
+      res.json(setting);
+    } catch (error) {
+      console.error("Error fetching leave policy setting:", error);
+      res.status(500).json({ error: "Gagal mendapatkan tetapan polisi cuti" });
+    }
+  });
+
+  // Create or update leave policy setting
+  app.post("/api/leave-policy-settings", authenticateToken, async (req, res) => {
+    try {
+      const setting = await storage.createOrUpdateLeavePolicySetting(req.body);
+      res.status(201).json(setting);
+    } catch (error) {
+      console.error("Error creating/updating leave policy setting:", error);
+      res.status(500).json({ error: "Gagal menyimpan tetapan polisi cuti" });
+    }
+  });
+
+  // Update specific leave policy setting field
+  app.patch("/api/leave-policy-settings/:leaveType", authenticateToken, async (req, res) => {
+    try {
+      const leaveType = decodeURIComponent(req.params.leaveType);
+      
+      // Get existing setting or create with defaults
+      let existing = await storage.getLeavePolicySettingByLeaveType(leaveType);
+      
+      if (!existing) {
+        // Create with defaults first
+        existing = await storage.createOrUpdateLeavePolicySetting({
+          leaveType,
+          uploadAttachment: true,
+          requireReason: false,
+          carryForward: true,
+          proRated: true,
+          roundingMethod: "round-up",
+          minimumUnit: "1-day",
+          dayLimit: 5,
+          leaveRemark: "Leave Remarks",
+          excludedEmployees: []
+        });
+      }
+
+      // Update with new values
+      const updated = await storage.createOrUpdateLeavePolicySetting({
+        ...existing,
+        ...req.body,
+        leaveType // Ensure leaveType is preserved
+      });
+      
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating leave policy setting:", error);
+      res.status(500).json({ error: "Gagal mengemas kini tetapan polisi cuti" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

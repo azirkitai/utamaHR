@@ -97,6 +97,11 @@ import {
   type CompanyLeaveType,
   type InsertCompanyLeaveType,
   type UpdateCompanyLeaveType,
+  // Leave Policy Settings
+  leavePolicySettings,
+  type LeavePolicySetting,
+  type InsertLeavePolicySetting,
+  type UpdateLeavePolicySetting,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, sql, asc, ilike } from "drizzle-orm";
@@ -231,6 +236,12 @@ export interface IStorage {
   createOrUpdateGroupPolicySetting(setting: InsertGroupPolicySetting): Promise<GroupPolicySetting>;
   deleteGroupPolicySetting(leaveType: string, role: string): Promise<boolean>;
   getAllGroupPolicySettings(): Promise<GroupPolicySetting[]>;
+  
+  // =================== LEAVE POLICY SETTINGS METHODS ===================
+  getLeavePolicySettings(): Promise<LeavePolicySetting[]>;
+  getLeavePolicySettingByLeaveType(leaveType: string): Promise<LeavePolicySetting | undefined>;
+  createOrUpdateLeavePolicySetting(setting: InsertLeavePolicySetting): Promise<LeavePolicySetting>;
+  deleteLeavePolicySetting(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1125,6 +1136,51 @@ export class DatabaseStorage implements IStorage {
 
   async getAllGroupPolicySettings(): Promise<GroupPolicySetting[]> {
     return await db.select().from(groupPolicySettings);
+  }
+
+  // =================== LEAVE POLICY SETTINGS METHODS ===================
+  async getLeavePolicySettings(): Promise<LeavePolicySetting[]> {
+    return await db.select().from(leavePolicySettings).orderBy(leavePolicySettings.leaveType);
+  }
+
+  async getLeavePolicySettingByLeaveType(leaveType: string): Promise<LeavePolicySetting | undefined> {
+    const [result] = await db
+      .select()
+      .from(leavePolicySettings)
+      .where(eq(leavePolicySettings.leaveType, leaveType));
+    return result || undefined;
+  }
+
+  async createOrUpdateLeavePolicySetting(setting: InsertLeavePolicySetting): Promise<LeavePolicySetting> {
+    // Check if setting already exists
+    const existing = await this.getLeavePolicySettingByLeaveType(setting.leaveType);
+
+    if (existing) {
+      // Update existing setting
+      const [updated] = await db
+        .update(leavePolicySettings)
+        .set({
+          ...setting,
+          updatedAt: new Date()
+        })
+        .where(eq(leavePolicySettings.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      // Create new setting
+      const [created] = await db
+        .insert(leavePolicySettings)
+        .values(setting)
+        .returning();
+      return created;
+    }
+  }
+
+  async deleteLeavePolicySetting(id: string): Promise<boolean> {
+    const result = await db
+      .delete(leavePolicySettings)
+      .where(eq(leavePolicySettings.id, id));
+    return (result.rowCount ?? 0) > 0;
   }
 }
 

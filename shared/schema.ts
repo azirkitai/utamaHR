@@ -407,6 +407,23 @@ export const groupPolicySettings = pgTable("group_policy_settings", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// 19. Leave Policy Settings Table (for storing detailed leave policy configurations)
+export const leavePolicySettings = pgTable("leave_policy_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  leaveType: text("leave_type").notNull().unique(), // The leave type this setting applies to
+  uploadAttachment: boolean("upload_attachment").default(true), // Allow attachment upload
+  requireReason: boolean("require_reason").default(false), // Require reason for leave
+  carryForward: boolean("carry_forward").default(true), // Allow carry forward
+  proRated: boolean("pro_rated").default(true), // Enable pro-rated calculation
+  roundingMethod: text("rounding_method").default("round-up"), // round-up, round-down
+  minimumUnit: text("minimum_unit").default("1-day"), // 1-day, half-day
+  dayLimit: integer("day_limit").default(5), // Days before application limit
+  leaveRemark: text("leave_remark").default("Leave Remarks"), // Default leave remark
+  excludedEmployees: text("excluded_employees").array().default(sql`'{}'`), // Array of excluded employee IDs
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // =================== VALIDATION SCHEMAS ===================
 
 // Attendance record schemas
@@ -796,3 +813,16 @@ export type UpdateCompanyLeaveType = z.infer<typeof updateCompanyLeaveTypeSchema
 export type GroupPolicySetting = typeof groupPolicySettings.$inferSelect;
 export type InsertGroupPolicySetting = z.infer<typeof insertGroupPolicySettingSchema>;
 export type UpdateGroupPolicySetting = z.infer<typeof updateGroupPolicySettingSchema>;
+
+// Leave Policy Settings schemas
+export const insertLeavePolicySettingSchema = createInsertSchema(leavePolicySettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const updateLeavePolicySettingSchema = insertLeavePolicySettingSchema.partial();
+
+// Leave Policy Settings types
+export type LeavePolicySetting = typeof leavePolicySettings.$inferSelect;
+export type InsertLeavePolicySetting = z.infer<typeof insertLeavePolicySettingSchema>;
+export type UpdateLeavePolicySetting = z.infer<typeof updateLeavePolicySettingSchema>;
