@@ -77,7 +77,7 @@ export default function ApplyLeavePage() {
   const queryClient = useQueryClient();
 
   // Fetch enabled company leave types
-  const { data: enabledCompanyLeaveTypes = [], isLoading: isLoadingLeaveTypes } = useQuery({
+  const { data: enabledCompanyLeaveTypes = [], isLoading: isLoadingLeaveTypes } = useQuery<any[]>({
     queryKey: ["/api/company-leave-types/enabled"],
   });
   
@@ -85,7 +85,7 @@ export default function ApplyLeavePage() {
   const activeLeaveTypes = enabledCompanyLeaveTypes.map((type: any) => type.leaveType).filter(Boolean);
 
   // Fetch all employees for role-based dropdown
-  const { data: allEmployees = [] } = useQuery({
+  const { data: allEmployees = [] } = useQuery<any[]>({
     queryKey: ["/api/employees"],
     enabled: !!user
   });
@@ -543,7 +543,7 @@ export default function ApplyLeavePage() {
                   </SelectTrigger>
                   <SelectContent>
                     {activeLeaveTypes.length > 0 ? (
-                      activeLeaveTypes.map(type => (
+                      activeLeaveTypes.map((type: string) => (
                         <SelectItem key={type} value={type}>{type}</SelectItem>
                       ))
                     ) : (
