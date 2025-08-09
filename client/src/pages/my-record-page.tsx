@@ -12,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { format, addDays, subDays } from "date-fns";
 import { CalendarIcon, Download, Filter, Search, ChevronLeft, ChevronRight, Calendar as CalendarLucide, Clock, FileText, CreditCard, Users, DollarSign, Image, StickyNote, Eye, File, Share } from "lucide-react";
-import type { AttendanceRecord } from "@shared/schema";
+import type { AttendanceRecord, LeaveApplication } from "@shared/schema";
 
 type TabType = "leave" | "timeoff" | "claim" | "overtime" | "attendance" | "payment";
 
@@ -83,9 +83,45 @@ export default function MyRecordPage() {
     enabled: !!user && activeTab === 'attendance'
   });
 
+  // Fetch leave applications from database 
+  const { data: leaveApplications = [], isLoading: isLoadingLeave, error: leaveError } = useQuery({
+    queryKey: ['/api/leave-applications', filters.dateFrom.toISOString(), filters.dateTo.toISOString()],
+    queryFn: async () => {
+      console.log('Fetching leave applications...');
+      
+      // Get JWT token from localStorage  
+      const token = localStorage.getItem('utamahr_token');
+      if (!token) {
+        console.error('No JWT token found in localStorage');
+        throw new Error('No authentication token found - please login again');
+      }
+      
+      const response = await fetch(`/api/leave-applications`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Leave applications API error:', errorData);
+        throw new Error(errorData.error || 'Failed to fetch leave applications');
+      }
+      
+      const data = await response.json();
+      console.log('Leave applications fetched:', data.length, 'records');
+      return data as LeaveApplication[];
+    },
+    enabled: !!user && activeTab === 'leave'
+  });
+
   // Log errors for debugging
   if (attendanceError) {
     console.error('Attendance query error:', attendanceError);
+  }
+  if (leaveError) {
+    console.error('Leave applications query error:', leaveError);
   }
 
   const tabs = [
@@ -260,18 +296,49 @@ export default function MyRecordPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow>
-              <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                No data available in table
-              </TableCell>
-            </TableRow>
+            {isLoadingLeave ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                  Loading leave records...
+                </TableCell>
+              </TableRow>
+            ) : leaveApplications.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                  No leave records found
+                </TableCell>
+              </TableRow>
+            ) : (
+              leaveApplications.map((leave, index) => (
+                <TableRow key={leave.id}>
+                  <TableCell data-testid={`leave-row-${index}-no`}>{index + 1}</TableCell>
+                  <TableCell data-testid={`leave-row-${index}-name`}>{leave.applicant}</TableCell>
+                  <TableCell data-testid={`leave-row-${index}-status`}>
+                    <Badge 
+                      variant={leave.status === 'Approved' ? 'default' : 
+                              leave.status === 'Rejected' ? 'destructive' :
+                              leave.status === 'Approved [Level 1]' ? 'secondary' : 'outline'}
+                      className={leave.status === 'Approved' ? 'bg-green-100 text-green-800 border-green-200' : ''}
+                    >
+                      {leave.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell data-testid={`leave-row-${index}-type`}>{leave.leaveType}</TableCell>
+                  <TableCell data-testid={`leave-row-${index}-start`}>{format(new Date(leave.startDate), 'dd/MM/yyyy')}</TableCell>
+                  <TableCell data-testid={`leave-row-${index}-end`}>{format(new Date(leave.endDate), 'dd/MM/yyyy')}</TableCell>
+                  <TableCell data-testid={`leave-row-${index}-days`}>{leave.totalDays}</TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
 
       {/* Pagination */}
       <div className="flex justify-between items-center">
-        <span className="text-sm text-gray-500">Showing 0 to 0 of 0 entries</span>
+        <span className="text-sm text-gray-500">
+          Showing {leaveApplications.length > 0 ? '1' : '0'} to {leaveApplications.length} of {leaveApplications.length} entries
+        </span>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" disabled data-testid="button-previous">
             Previous
