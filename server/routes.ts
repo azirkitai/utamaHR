@@ -30,6 +30,21 @@ import {
 import { checkEnvironmentSecrets } from "./env-check";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { randomUUID } from "crypto";
+import { db } from "./db";
+import { eq, desc, and, sql } from "drizzle-orm";
+import { 
+  users, 
+  employees, 
+  employment, 
+  contact, 
+  familyDetails, 
+  qrTokens, 
+  officeLocations, 
+  clockInRecords, 
+  workExperiences,
+  leaveApplications,
+  attendanceRecords
+} from "@shared/schema";
 
 // Calculate distance between two GPS coordinates using Haversine formula
 function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -146,24 +161,6 @@ async function processClockOut(
     });
   }
 }
-
-import { Router } from "express";
-import { db } from "./db";
-import { eq, desc, and, sql } from "drizzle-orm";
-import { 
-  users, 
-  employees, 
-  employment, 
-  contact, 
-  familyDetails, 
-  qrTokens, 
-  officeLocations, 
-  clockInRecords, 
-  workExperiences,
-  leaveApplications,
-  attendanceRecords,
-  approvalSettings
-} from "@shared/schema";
 
 export function registerRoutes(app: Express): Server {
   // Setup authentication routes: /api/register, /api/login, /api/logout, /api/user

@@ -614,10 +614,18 @@ export default function SystemSettingPage() {
   const handleSaveLeaveApproval = async () => {
     try {
       const token = localStorage.getItem("token");
+      console.log("Token from localStorage:", token);
+      
       if (!token) {
         alert("Sila log masuk semula.");
         return;
       }
+
+      console.log("Sending request with data:", {
+        type: "leave",
+        firstLevelApprovalId: leaveApproval.firstLevel,
+        secondLevelApprovalId: leaveApproval.secondLevel,
+      });
 
       const response = await fetch("/api/approval-settings", {
         method: "POST",
@@ -632,16 +640,21 @@ export default function SystemSettingPage() {
         }),
       });
       
+      console.log("Response status:", response.status);
+      console.log("Response headers:", response.headers);
+      
       if (response.ok) {
-        console.log("Leave approval settings saved successfully");
+        const result = await response.json();
+        console.log("Success result:", result);
         alert("Tetapan kelulusan cuti berjaya disimpan!");
       } else {
         const errorData = await response.json();
+        console.log("Error response:", errorData);
         throw new Error(errorData.error || "Failed to save approval settings");
       }
     } catch (error) {
       console.error("Error saving leave approval:", error);
-      alert("Gagal menyimpan tetapan kelulusan cuti. Sila cuba lagi.");
+      alert(`Gagal menyimpan tetapan kelulusan cuti: ${error.message}`);
     }
   };
 
