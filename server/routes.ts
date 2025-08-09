@@ -298,6 +298,28 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  app.put("/api/announcements/:id", authenticateToken, async (req, res) => {
+    try {
+      const announcementId = req.params.id;
+      const { title, message } = req.body;
+      
+      if (!title || !message) {
+        return res.status(400).json({ error: "Title and message are required" });
+      }
+
+      const updatedAnnouncement = await storage.updateAnnouncement(announcementId, {
+        title,
+        message,
+        updatedAt: new Date(),
+      });
+
+      res.json({ success: true, announcement: updatedAnnouncement });
+    } catch (error) {
+      console.error("Update announcement error:", error);
+      res.status(500).json({ error: "Failed to update announcement" });
+    }
+  });
+
   // Employee statistics for pie chart
   app.get("/api/employee-statistics", authenticateToken, async (req, res) => {
     try {

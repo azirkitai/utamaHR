@@ -277,6 +277,7 @@ export interface IStorage {
   getAnnouncementsForUser(userId: string): Promise<any[]>;
   getAllAnnouncements(): Promise<any[]>;
   createAnnouncement(announcement: InsertAnnouncement): Promise<SelectAnnouncement>;
+  updateAnnouncement(announcementId: string, updates: Partial<InsertAnnouncement>): Promise<SelectAnnouncement>;
   getUserAnnouncements(userId: string): Promise<SelectUserAnnouncement[]>;
   markAnnouncementAsRead(userId: string, announcementId: string): Promise<SelectUserAnnouncement>;
   deleteAnnouncement(announcementId: string): Promise<boolean>;
@@ -1597,6 +1598,21 @@ export class DatabaseStorage implements IStorage {
       }
     } catch (error) {
       console.error('Error marking announcement as read:', error);
+      throw error;
+    }
+  }
+
+  async updateAnnouncement(announcementId: string, updates: Partial<InsertAnnouncement>): Promise<SelectAnnouncement> {
+    try {
+      const [updatedAnnouncement] = await db
+        .update(announcements)
+        .set(updates)
+        .where(eq(announcements.id, announcementId))
+        .returning();
+
+      return updatedAnnouncement;
+    } catch (error) {
+      console.error('Error updating announcement:', error);
       throw error;
     }
   }

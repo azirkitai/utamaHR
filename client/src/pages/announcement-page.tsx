@@ -47,7 +47,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 interface Announcement {
-  id: number;
+  id: string;
   title: string;
   message: string;
   status: 'New' | 'Read';
@@ -93,9 +93,13 @@ export default function AnnouncementPage() {
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [announcementToDelete, setAnnouncementToDelete] = useState<number | null>(null);
+  const [announcementToDelete, setAnnouncementToDelete] = useState<string | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editMessage, setEditMessage] = useState("");
 
   const { toast } = useToast();
 
@@ -118,7 +122,7 @@ export default function AnnouncementPage() {
   useEffect(() => {
     if (announcementsData && Array.isArray(announcementsData)) {
       const formattedAnnouncements = announcementsData.map((announcement: any) => ({
-        id: parseInt(announcement.id),
+        id: announcement.id, // Keep as string to match database
         title: announcement.title || '',
         message: announcement.message || '',
         status: announcement.status || 'New' as const,
@@ -237,7 +241,7 @@ export default function AnnouncementPage() {
     return hasAccess;
   };
 
-  const handleViewAnnouncement = (id: number) => {
+  const handleViewAnnouncement = (id: string) => {
     const announcement = announcements.find(a => a.id === id);
     if (announcement) {
       setSelectedAnnouncement(announcement);
@@ -250,18 +254,24 @@ export default function AnnouncementPage() {
     }
   };
 
-  const handleEditAnnouncement = (id: number) => {
-    console.log("Edit announcement:", id);
+  const handleEditAnnouncement = (id: string) => {
+    const announcement = announcements.find(a => a.id === id);
+    if (announcement) {
+      setEditingAnnouncement(announcement);
+      setEditTitle(announcement.title);
+      setEditMessage(announcement.message);
+      setEditDialogOpen(true);
+    }
   };
 
-  const handleDeleteAnnouncement = (id: number) => {
+  const handleDeleteAnnouncement = (id: string) => {
     setAnnouncementToDelete(id);
     setDeleteConfirmOpen(true);
   };
 
   // Delete announcement mutation
   const deleteAnnouncementMutation = useMutation({
-    mutationFn: async (announcementId: number) => {
+    mutationFn: async (announcementId: string) => {
       return apiRequest("DELETE", `/api/announcements/${announcementId}`);
     },
     onSuccess: () => {
@@ -286,6 +296,54 @@ export default function AnnouncementPage() {
       setAnnouncementToDelete(null);
     },
   });
+
+  // Edit announcement mutation
+  const editAnnouncementMutation = useMutation({
+    mutationFn: async (data: { id: string; title: string; message: string }) => {
+      return apiRequest("PUT", `/api/announcements/${data.id}`, {
+        title: data.title,
+        message: data.message,
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Announcement updated successfully!",
+      });
+      // Refresh announcements list
+      queryClient.invalidateQueries({ queryKey: ["/api/announcements"] });
+      setEditDialogOpen(false);
+      setEditingAnnouncement(null);
+      setEditTitle("");
+      setEditMessage("");
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update announcement",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSaveEdit = () => {
+    if (!editTitle.trim() || !editMessage.trim()) {
+      toast({
+        title: "Error",
+        description: "Please fill in both title and message",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!editingAnnouncement) return;
+
+    editAnnouncementMutation.mutate({
+      id: editingAnnouncement.id,
+      title: editTitle,
+      message: editMessage,
+    });
+  };
 
   const confirmDeleteAnnouncement = () => {
     if (announcementToDelete !== null) {
@@ -793,6 +851,67 @@ export default function AnnouncementPage() {
                 data-testid="button-close-view"
               >
                 Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Announcement Dialog */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-semibold text-gray-900">
+                Edit Announcement
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              {/* Title */}
+              <div>
+                <Label htmlFor="edit-title" className="text-sm font-medium">Title</Label>
+                <Input
+                  id="edit-title"
+                  placeholder="Title"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="mt-1"
+                  data-testid="input-edit-announcement-title"
+                />
+              </div>
+              
+              {/* Message */}
+              <div>
+                <Label className="text-sm font-medium">Message</Label>
+                <Textarea
+                  placeholder="Enter your message..."
+                  value={editMessage}
+                  onChange={(e) => setEditMessage(e.target.value)}
+                  className="min-h-[120px] mt-1"
+                  data-testid="textarea-edit-announcement-message"
+                />
+              </div>
+            </div>
+
+            <DialogFooter className="gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setEditDialogOpen(false);
+                  setEditingAnnouncement(null);
+                  setEditTitle("");
+                  setEditMessage("");
+                }}
+                data-testid="button-cancel-edit"
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSaveEdit}
+                disabled={!editTitle.trim() || !editMessage.trim() || editAnnouncementMutation.isPending}
+                className="bg-teal-600 hover:bg-teal-700 text-white"
+                data-testid="button-save-edit"
+              >
+                {editAnnouncementMutation.isPending ? "Saving..." : "Save Changes"}
               </Button>
             </DialogFooter>
           </DialogContent>
