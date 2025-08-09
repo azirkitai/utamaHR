@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,12 +26,20 @@ type TabType = "approval" | "report" | "summary" | "history";
 
 interface LeaveRecord {
   id: string;
-  name: string;
-  status: "Pending" | "Approved" | "Rejected";
+  employeeId: string;
+  applicant: string;
   leaveType: string;
   startDate: string;
   endDate: string;
-  days: number;
+  startDayType: string;
+  endDayType: string;
+  totalDays: string;
+  reason: string;
+  status: "Pending" | "Approved" | "Rejected";
+  supportingDocument?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  appliedDate: string;
   // Additional fields for different tabs
   balanceCarryForward?: number;
   balanceAnnualLeave?: number;
@@ -112,6 +121,13 @@ export default function LeaveApprovalPage() {
   const [selectedLeaveType, setSelectedLeaveType] = useState("all");
   const [selectedLeaveStatus, setSelectedLeaveStatus] = useState("all");
 
+  // Fetch all leave applications from database
+  const { data: leaveApplications = [], isLoading, error } = useQuery({
+    queryKey: ["/api/leave-applications"], 
+    staleTime: 30000, // Cache for 30 seconds
+    refetchOnWindowFocus: true,
+  });
+
   const getPageTitle = () => {
     switch (activeTab) {
       case "approval":
@@ -173,25 +189,37 @@ export default function LeaveApprovalPage() {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {sampleData.length === 0 ? (
+        {isLoading ? (
           <TableRow>
             <TableCell colSpan={9} className="text-center py-8 text-gray-500">
-              No data available in table
+              Loading leave applications...
+            </TableCell>
+          </TableRow>
+        ) : error ? (
+          <TableRow>
+            <TableCell colSpan={9} className="text-center py-8 text-red-500">
+              Error loading data: {error instanceof Error ? error.message : 'Unknown error'}
+            </TableCell>
+          </TableRow>
+        ) : leaveApplications.length === 0 ? (
+          <TableRow>
+            <TableCell colSpan={9} className="text-center py-8 text-gray-500">
+              No leave applications found
             </TableCell>
           </TableRow>
         ) : (
-          sampleData.map((record, index) => (
+          leaveApplications.map((record: LeaveRecord, index: number) => (
             <TableRow key={record.id}>
               <TableCell>
                 <input type="checkbox" className="rounded border-gray-300" />
               </TableCell>
               <TableCell>{index + 1}</TableCell>
-              <TableCell className="font-medium">{record.name}</TableCell>
+              <TableCell className="font-medium">{record.applicant}</TableCell>
               <TableCell>{getStatusBadge(record.status)}</TableCell>
               <TableCell>{record.leaveType}</TableCell>
-              <TableCell>{record.startDate}</TableCell>
-              <TableCell>{record.endDate}</TableCell>
-              <TableCell>{record.days}</TableCell>
+              <TableCell>{new Date(record.startDate).toLocaleDateString()}</TableCell>
+              <TableCell>{new Date(record.endDate).toLocaleDateString()}</TableCell>
+              <TableCell>{record.totalDays}</TableCell>
               <TableCell>
                 <div className="flex items-center space-x-2">
                   <Button size="sm" variant="outline" className="h-8 w-8 p-0">
