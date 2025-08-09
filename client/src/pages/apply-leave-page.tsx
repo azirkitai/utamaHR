@@ -76,10 +76,13 @@ export default function ApplyLeavePage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch active leave policies from database
-  const { data: activeLeaveTypes = [], isLoading: isLoadingLeaveTypes } = useQuery<string[]>({
-    queryKey: ["/api/active-leave-policies"],
+  // Fetch enabled company leave types
+  const { data: enabledCompanyLeaveTypes = [], isLoading: isLoadingLeaveTypes } = useQuery({
+    queryKey: ["/api/company-leave-types/enabled"],
   });
+  
+  // Extract leave type names for dropdown
+  const activeLeaveTypes = enabledCompanyLeaveTypes.map((type: any) => type.leaveType).filter(Boolean);
 
   // Fetch all employees for role-based dropdown
   const { data: allEmployees = [] } = useQuery({
