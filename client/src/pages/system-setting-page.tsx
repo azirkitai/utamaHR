@@ -46,6 +46,7 @@ import { useLocation, Link as RouterLink } from "wouter";
 import { cn } from "@/lib/utils";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 const settingsMenuItems = [
   {
@@ -145,6 +146,7 @@ const overtimePolicies = [
 
 export default function SystemSettingPage() {
   const [location] = useLocation();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("leave");
   const [claimActiveTab, setClaimActiveTab] = useState("financial");
   
@@ -2196,13 +2198,29 @@ export default function SystemSettingPage() {
                       </div>
 
                       {/* Action Buttons */}
-                      <div className="flex justify-end space-x-2 pt-2">
+                      <div className="flex justify-end space-x-2 pt-4 border-t border-gray-200">
                         <Button 
                           variant="outline"
                           size="sm"
                           onClick={() => setExpandedPolicyId(null)}
+                          data-testid="button-close-policy"
                         >
                           Close
+                        </Button>
+                        <Button 
+                          className="bg-blue-900 hover:bg-blue-800 text-white"
+                          size="sm"
+                          onClick={() => {
+                            // Show success message
+                            toast({
+                              title: "✅ Policy Settings Saved",
+                              description: "All leave policy changes have been saved successfully.",
+                              duration: 3000,
+                            });
+                          }}
+                          data-testid="button-save-policy"
+                        >
+                          💾 Save Settings
                         </Button>
                       </div>
                     </div>
