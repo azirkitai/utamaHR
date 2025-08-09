@@ -613,7 +613,7 @@ export default function SystemSettingPage() {
 
   const handleSaveLeaveApproval = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("utamahr_token");
       console.log("Token from localStorage:", token);
       
       if (!token) {
@@ -712,7 +712,7 @@ export default function SystemSettingPage() {
 
   const handleSaveTimeoffApproval = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("utamahr_token");
       if (!token) {
         alert("Sila log masuk semula.");
         return;
@@ -750,7 +750,7 @@ export default function SystemSettingPage() {
 
   const handleSaveFinancialApproval = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("utamahr_token");
       if (!token) {
         alert("Sila log masuk semula.");
         return;
@@ -788,7 +788,7 @@ export default function SystemSettingPage() {
 
   const handleSaveOvertimeApproval = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("utamahr_token");
       if (!token) {
         alert("Sila log masuk semula.");
         return;
