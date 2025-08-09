@@ -192,10 +192,11 @@ export default function SystemSettingPage() {
   
   // Group Policy settings state
   const [groupPolicySettings, setGroupPolicySettings] = useState({
-    "Board Of Director": { selected: false, days: "12" },
-    "HOD/Manager": { selected: false, days: "12" },
-    "Finance/Account": { selected: false, days: "12" },
-    "Human Resource": { selected: false, days: "12" },
+    "Super Admin": { selected: false, days: "12" },
+    "Admin": { selected: false, days: "12" },
+    "HR Manager": { selected: false, days: "12" },
+    "PIC": { selected: false, days: "12" },
+    "Manager/Supervisor": { selected: false, days: "12" },
     "Employee": { selected: false, days: "12" }
   });
   
