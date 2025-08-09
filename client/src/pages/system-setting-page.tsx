@@ -1829,9 +1829,9 @@ export default function SystemSettingPage() {
                   {expandedPolicyId === policy.id && (
                     <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-4">
                       {/* Group Policy Section */}
-                      <div>
-                        <label className="text-sm font-medium text-gray-700 mb-3 block">Group Policy</label>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div className="space-y-3">
+                        <label className="text-sm font-medium text-gray-700 block">Group Policy</label>
+                        <div className="space-y-3">
                           {[
                             { name: "Board Of Director", days: "12", selected: false },
                             { name: "HOD/Manager", days: "12", selected: false },
