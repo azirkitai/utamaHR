@@ -1831,7 +1831,7 @@ export default function SystemSettingPage() {
                       {/* Group Policy Section */}
                       <div>
                         <label className="text-sm font-medium text-gray-700 mb-3 block">Group Policy</label>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                           {[
                             { name: "Board Of Director", days: "12", selected: false },
                             { name: "HOD/Manager", days: "12", selected: false },
@@ -1839,12 +1839,19 @@ export default function SystemSettingPage() {
                             { name: "Human Resource", days: "12", selected: false },
                             { name: "Employee", days: "12", selected: false }
                           ].map((role, index) => (
-                            <div key={role.name} className="text-center">
-                              <div className="flex items-center justify-center space-x-2 mb-1">
-                                <span className={`w-4 h-4 rounded-full border-2 ${role.selected ? 'border-blue-600 bg-blue-600' : 'border-gray-300'}`}></span>
-                                <span className="text-lg font-medium">{role.days}</span>
+                            <div key={role.name} className="flex items-center justify-between p-3 bg-white rounded border">
+                              <div className="flex items-center space-x-3">
+                                <Switch 
+                                  checked={role.selected}
+                                  className="data-[state=checked]:bg-blue-900"
+                                />
+                                <Label className="text-sm font-medium">{role.name}</Label>
                               </div>
-                              <div className="text-xs text-gray-600">{role.name}</div>
+                              <Input 
+                                type="number"
+                                defaultValue={role.days}
+                                className="w-16 h-8 text-center"
+                              />
                             </div>
                           ))}
                         </div>
