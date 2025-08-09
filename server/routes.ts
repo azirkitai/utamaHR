@@ -320,11 +320,12 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  app.get("/api/announcements/attachment/:id", async (req, res) => {
+  app.get("/api/announcements/attachment/:id", authenticateToken, async (req, res) => {
     try {
       const announcementId = req.params.id;
       
-      // Check session-based authentication
+      console.log('Attachment download request - User:', req.user?.username);
+      
       if (!req.user) {
         return res.status(401).json({ error: "Authentication required" });
       }

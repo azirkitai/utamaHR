@@ -348,10 +348,13 @@ export default function AnnouncementPage() {
 
   const handleDownloadAttachment = async (announcementId: string, filename: string) => {
     try {
-      // Use session-based authentication (cookies) instead of token
+      // Use Bearer token authentication
+      const token = localStorage.getItem('token');
       const response = await fetch(`/api/announcements/attachment/${announcementId}`, {
         method: 'GET',
-        credentials: 'include', // Include session cookies
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       });
       
       if (response.ok) {
