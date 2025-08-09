@@ -448,6 +448,30 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Get user's read status for all announcements
+  app.get("/api/announcements/read-status", authenticateToken, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      console.log('Getting read status for user:', userId);
+
+      // Get all announcements that this user has read
+      const readAnnouncements = await db
+        .select({
+          announcementId: announcementReads.announcementId,
+          readAt: announcementReads.readAt,
+        })
+        .from(announcementReads)
+        .where(eq(announcementReads.userId, userId));
+
+      console.log('Read announcements found:', readAnnouncements.length);
+      
+      res.json(readAnnouncements);
+    } catch (error) {
+      console.error("Get read status error:", error);
+      res.status(500).json({ error: "Failed to get read status" });
+    }
+  });
+
   // Employee statistics for pie chart
   app.get("/api/employee-statistics", authenticateToken, async (req, res) => {
     try {

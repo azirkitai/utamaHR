@@ -126,23 +126,33 @@ export default function AnnouncementPage() {
   // Ensure data is always an array and update local state
   const employees = Array.isArray(employeesData) ? employeesData : [];
   
+  // Fetch announcements with user-specific read status
+  const { data: userReadStatus = [] } = useQuery<any[]>({
+    queryKey: ["/api/announcements/read-status"],
+    enabled: !!user,
+  });
+
   // Update announcements when data loads using useEffect
   useEffect(() => {
     if (announcementsData && Array.isArray(announcementsData)) {
-      const formattedAnnouncements = announcementsData.map((announcement: any) => ({
-        id: announcement.id, // Keep as string to match database
-        title: announcement.title || '',
-        message: announcement.message || '',
-        status: announcement.status || 'New' as const,
-        announcer: announcement.announcerName || 'System',
-        department: announcement.department || '',
-        createdDate: announcement.createdDate || new Date(announcement.createdAt).toLocaleDateString(),
-        updatedDate: announcement.updatedDate || new Date(announcement.updatedAt || announcement.createdAt).toLocaleDateString(),
-        attachment: announcement.attachment || null
-      }));
+      const formattedAnnouncements = announcementsData.map((announcement: any) => {
+        const isReadByUser = userReadStatus.some((read: any) => read.announcementId === announcement.id);
+        return {
+          id: announcement.id, // Keep as string to match database
+          title: announcement.title || '',
+          message: announcement.message || '',
+          status: isReadByUser ? 'Read' as const : 'New' as const, // Use read status from database
+          announcer: announcement.announcerName || 'System',
+          department: announcement.department || '',
+          createdDate: announcement.createdDate || new Date(announcement.createdAt).toLocaleDateString(),
+          updatedDate: announcement.updatedDate || new Date(announcement.updatedAt || announcement.createdAt).toLocaleDateString(),
+          attachment: announcement.attachment || null,
+          isRead: isReadByUser
+        };
+      });
       setAnnouncements(formattedAnnouncements);
     }
-  }, [announcementsData]);
+  }, [announcementsData, userReadStatus]);
 
   const filteredAnnouncements = announcements.filter(announcement => {
     const matchesSearch = announcement.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -255,18 +265,19 @@ export default function AnnouncementPage() {
     if (announcement) {
       setSelectedAnnouncement(announcement);
       setViewDialogOpen(true);
-      
-      // Update status to Read locally
-      setAnnouncements(announcements.map(a => 
-        a.id === id ? { ...a, status: 'Read' as const } : a
-      ));
 
-      // Mark announcement as read in database
+      // Mark announcement as read in database first
       try {
         await apiRequest("POST", `/api/announcements/${id}/mark-read`, {});
         
-        // Refresh unread count
+        // Update local status immediately
+        setAnnouncements(announcements.map(a => 
+          a.id === id ? { ...a, status: 'Read' as const, isRead: true } : a
+        ));
+        
+        // Refresh all relevant queries to ensure UI is updated
         queryClient.invalidateQueries({ queryKey: ["/api/announcements/unread-count"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/announcements/read-status"] });
         
         console.log('Announcement marked as read successfully');
       } catch (error) {

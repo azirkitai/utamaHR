@@ -28,6 +28,13 @@ UtamaHR - A comprehensive HR Management System built from scratch with React, Ty
   - User-specific leave statistics showing total approved leave days from database
   - My Record page displays actual leave applications with proper status badges
   - Complete database integration for leave balance calculations and record displays
+- Phase 6: Unread Announcement Tracking System (✅ Completed)
+  - Added announcement_reads table to track user-specific read status
+  - Real-time unread count badge displayed on "Unread" tab
+  - Mark-as-read functionality when users view announcements
+  - Automatic removal of read announcements from unread list
+  - Persistent read status across user sessions with database storage
+  - Enhanced UI with "NEW" badges for unread announcements
 
 # User Preferences
 
