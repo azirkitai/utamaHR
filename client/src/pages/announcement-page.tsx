@@ -57,6 +57,7 @@ interface Announcement {
   createdDate: string;
   updatedDate: string;
   attachment?: string | null;
+  isRead?: boolean; // Track if current user has read this announcement
 }
 
 // Remove dummy data - will fetch from database
@@ -116,6 +117,12 @@ export default function AnnouncementPage() {
     enabled: !!user, // Only fetch when user is authenticated
   });
 
+  // Fetch user-specific unread announcement count
+  const { data: unreadCount = 0 } = useQuery<number>({
+    queryKey: ["/api/announcements/unread-count"],
+    enabled: !!user,
+  });
+
   // Ensure data is always an array and update local state
   const employees = Array.isArray(employeesData) ? employeesData : [];
   
@@ -142,7 +149,8 @@ export default function AnnouncementPage() {
                          announcement.announcer.toLowerCase().includes(searchTerm.toLowerCase());
     
     if (activeTab === "unread") {
-      return matchesSearch && announcement.status === "New";
+      // Show announcements marked as unread for current user
+      return matchesSearch && (announcement.isRead === false || announcement.status === "New");
     }
     return matchesSearch;
   });
@@ -242,16 +250,28 @@ export default function AnnouncementPage() {
     return hasAccess;
   };
 
-  const handleViewAnnouncement = (id: string) => {
+  const handleViewAnnouncement = async (id: string) => {
     const announcement = announcements.find(a => a.id === id);
     if (announcement) {
       setSelectedAnnouncement(announcement);
       setViewDialogOpen(true);
       
-      // Update status to Read
+      // Update status to Read locally
       setAnnouncements(announcements.map(a => 
         a.id === id ? { ...a, status: 'Read' as const } : a
       ));
+
+      // Mark announcement as read in database
+      try {
+        await apiRequest("POST", `/api/announcements/${id}/mark-read`, {});
+        
+        // Refresh unread count
+        queryClient.invalidateQueries({ queryKey: ["/api/announcements/unread-count"] });
+        
+        console.log('Announcement marked as read successfully');
+      } catch (error) {
+        console.error("Failed to mark announcement as read:", error);
+      }
     }
   };
 
@@ -433,10 +453,18 @@ export default function AnnouncementPage() {
                   </TabsTrigger>
                   <TabsTrigger 
                     value="unread"
-                    className="data-[state=active]:bg-teal-500 data-[state=active]:text-white"
+                    className="data-[state=active]:bg-teal-500 data-[state=active]:text-white flex items-center gap-2"
                     data-testid="tab-unread-announcement"
                   >
                     Unread Announcement
+                    {unreadCount > 0 && (
+                      <Badge 
+                        variant="secondary" 
+                        className="bg-red-500 text-white text-xs px-2 py-1 rounded-full min-w-[20px] h-5 flex items-center justify-center"
+                      >
+                        {unreadCount}
+                      </Badge>
+                    )}
                   </TabsTrigger>
                 </TabsList>
                 

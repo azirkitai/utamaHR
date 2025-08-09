@@ -438,6 +438,14 @@ export const announcements = pgTable('announcements', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+// Track which users have read which announcements
+export const announcementReads = pgTable('announcement_reads', {
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  announcementId: varchar('announcement_id').notNull().references(() => announcements.id, { onDelete: 'cascade' }),
+  userId: varchar('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  readAt: timestamp('read_at').defaultNow().notNull(),
+});
+
 // User-Announcement junction table to track read status
 export const userAnnouncements = pgTable('user_announcements', {
   id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),

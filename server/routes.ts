@@ -49,7 +49,9 @@ import {
   leaveApplications,
   attendanceRecords,
   groupPolicySettings,
-  companyLeaveTypes
+  companyLeaveTypes,
+  announcements,
+  announcementReads
 } from "@shared/schema";
 
 // Calculate distance between two GPS coordinates using Haversine formula
@@ -366,6 +368,83 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Download attachment error:", error);
       res.status(500).json({ error: "Failed to download attachment" });
+    }
+  });
+
+  // Get unread announcement count for current user
+  app.get("/api/announcements/unread-count", authenticateToken, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      console.log('Getting unread count for user:', userId);
+
+      // Get all announcements targeted to this user that they haven't read yet
+      const allAnnouncementsForUser = await db
+        .select()
+        .from(announcements)
+        .where(sql`${announcements.targetEmployees} @> ARRAY[${userId}]`);
+      
+      // Get announcement IDs that user has already read
+      const readAnnouncements = await db
+        .select({ announcementId: announcementReads.announcementId })
+        .from(announcementReads)
+        .where(eq(announcementReads.userId, userId));
+      
+      const readAnnouncementIds = readAnnouncements.map(r => r.announcementId);
+      
+      // Count unread announcements
+      const unreadCount = allAnnouncementsForUser.filter(
+        announcement => !readAnnouncementIds.includes(announcement.id)
+      ).length;
+
+      console.log('Total announcements for user:', allAnnouncementsForUser.length);
+      console.log('Read announcements:', readAnnouncementIds.length);
+      console.log('Unread count:', unreadCount);
+
+      res.json(unreadCount);
+    } catch (error) {
+      console.error("Get unread count error:", error);
+      res.status(500).json({ error: "Failed to get unread count" });
+    }
+  });
+
+  // Mark announcement as read when user views it
+  app.post("/api/announcements/:id/mark-read", authenticateToken, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const announcementId = req.params.id;
+
+      console.log('Marking announcement as read:', { userId, announcementId });
+
+      // Check if user has already read this announcement
+      const existingRead = await db
+        .select()
+        .from(announcementReads)
+        .where(
+          and(
+            eq(announcementReads.userId, userId),
+            eq(announcementReads.announcementId, announcementId)
+          )
+        )
+        .limit(1);
+
+      if (existingRead.length === 0) {
+        // Mark as read
+        await db
+          .insert(announcementReads)
+          .values({
+            userId: userId,
+            announcementId: announcementId,
+          });
+        
+        console.log('Announcement marked as read successfully');
+      } else {
+        console.log('Announcement already marked as read');
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Mark read error:", error);
+      res.status(500).json({ error: "Failed to mark as read" });
     }
   });
 
