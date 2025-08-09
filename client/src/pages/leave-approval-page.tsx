@@ -59,58 +59,7 @@ interface LeaveRecord {
   approve?: string;
 }
 
-const sampleData: LeaveRecord[] = [
-  {
-    id: "1",
-    name: "SITI NADIAH SABRI",
-    status: "Pending",
-    leaveType: "Annual Leave",
-    startDate: "2024-08-15",
-    endDate: "2024-08-17",
-    days: 3,
-    balanceCarryForward: 12.0,
-    balanceAnnualLeave: 90.0,
-    balanceMedicalLeave: 7.0,
-    balanceLeaveInLieu: 98.0,
-    carryForward: 3.0,
-    annualLeave: 4.0,
-    medicalLeave: 5.0,
-    leaveInLieu: 30.0,
-    unpaidLeave: 7.0,
-    publicHolidayLeave: 14.0,
-    emergencyLeave: 10.0,
-    paternityLeave: 10.0,
-    compassionateLeave: 3.0,
-    sickLeave: 4.0,
-    examLeave: 10.0,
-    approve: "HR Manager"
-  },
-  {
-    id: "2",
-    name: "madihah samsi",
-    status: "Approved",
-    leaveType: "Medical Leave",
-    startDate: "2024-08-10",
-    endDate: "2024-08-12",
-    days: 3,
-    balanceCarryForward: 12.0,
-    balanceAnnualLeave: 90.0,
-    balanceMedicalLeave: 7.0,
-    balanceLeaveInLieu: 98.0,
-    carryForward: 3.0,
-    annualLeave: 4.0,
-    medicalLeave: 5.0,
-    leaveInLieu: 30.0,
-    unpaidLeave: 7.0,
-    publicHolidayLeave: 14.0,
-    emergencyLeave: 10.0,
-    paternityLeave: 10.0,
-    compassionateLeave: 3.0,
-    sickLeave: 4.0,
-    examLeave: 10.0,
-    approve: "Department Head"
-  }
-];
+// Remove sample data - using real database data only
 
 export default function LeaveApprovalPage() {
   const [activeTab, setActiveTab] = useState<TabType>("approval");
@@ -122,7 +71,7 @@ export default function LeaveApprovalPage() {
   const [selectedLeaveStatus, setSelectedLeaveStatus] = useState("all");
 
   // Fetch all leave applications from database
-  const { data: leaveApplications = [], isLoading, error } = useQuery({
+  const { data: leaveApplications = [], isLoading, error } = useQuery<LeaveRecord[]>({
     queryKey: ["/api/leave-applications"], 
     staleTime: 30000, // Cache for 30 seconds
     refetchOnWindowFocus: true,
@@ -260,23 +209,23 @@ export default function LeaveApprovalPage() {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {sampleData.length === 0 ? (
+        {leaveApplications.length === 0 ? (
           <TableRow>
             <TableCell colSpan={9} className="text-center py-8 text-gray-500">
-              No data available in table
+              No leave summary data available
             </TableCell>
           </TableRow>
         ) : (
-          sampleData.map((record, index) => (
+          leaveApplications.map((record: LeaveRecord, index: number) => (
             <TableRow key={record.id}>
               <TableCell>{index + 1}</TableCell>
-              <TableCell className="font-medium">{record.name}</TableCell>
+              <TableCell className="font-medium">{record.applicant}</TableCell>
               <TableCell>{getStatusBadge(record.status)}</TableCell>
               <TableCell>{record.leaveType}</TableCell>
-              <TableCell>{record.startDate}</TableCell>
-              <TableCell>{record.endDate}</TableCell>
-              <TableCell>{record.days}</TableCell>
-              <TableCell>{record.approve}</TableCell>
+              <TableCell>{new Date(record.startDate).toLocaleDateString()}</TableCell>
+              <TableCell>{new Date(record.endDate).toLocaleDateString()}</TableCell>
+              <TableCell>{record.totalDays}</TableCell>
+              <TableCell>{record.approve || 'Pending'}</TableCell>
               <TableCell>
                 <Button size="sm" variant="outline" className="h-8 w-8 p-0">
                   <Eye className="w-4 h-4" />
@@ -309,21 +258,21 @@ export default function LeaveApprovalPage() {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {sampleData.length === 0 ? (
+        {leaveApplications.length === 0 ? (
           <TableRow>
             <TableCell colSpan={13} className="text-center py-8 text-gray-500">
-              No data available in table
+              No leave report data available
             </TableCell>
           </TableRow>
         ) : (
-          sampleData.map((record, index) => (
+          leaveApplications.map((record: LeaveRecord, index: number) => (
             <TableRow key={record.id}>
               <TableCell>
                 <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs">
                   {index + 1}
                 </div>
               </TableCell>
-              <TableCell className="font-medium">{record.name}</TableCell>
+              <TableCell className="font-medium">{record.applicant}</TableCell>
               <TableCell>{record.annualLeave || 0}</TableCell>
               <TableCell>{record.medicalLeave || 0}</TableCell>
               <TableCell>{record.paternityLeave || 0}</TableCell>
@@ -363,29 +312,29 @@ export default function LeaveApprovalPage() {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {sampleData.length === 0 ? (
+        {leaveApplications.length === 0 ? (
           <TableRow>
             <TableCell colSpan={14} className="text-center py-8 text-gray-500">
-              No data available in table
+              No leave history data available
             </TableCell>
           </TableRow>
         ) : (
-          sampleData.map((record, index) => (
+          leaveApplications.map((record: LeaveRecord, index: number) => (
             <TableRow key={record.id}>
               <TableCell>{index + 1}</TableCell>
-              <TableCell className="font-medium">{record.name}</TableCell>
-              <TableCell>{record.balanceCarryForward}</TableCell>
-              <TableCell>{record.balanceAnnualLeave}</TableCell>
-              <TableCell>{record.balanceMedicalLeave}</TableCell>
-              <TableCell>{record.balanceLeaveInLieu}</TableCell>
-              <TableCell>{record.carryForward}</TableCell>
-              <TableCell>{record.annualLeave}</TableCell>
-              <TableCell>{record.medicalLeave}</TableCell>
-              <TableCell>{record.leaveInLieu}</TableCell>
-              <TableCell>{record.unpaidLeave}</TableCell>
-              <TableCell>{record.publicHolidayLeave}</TableCell>
-              <TableCell>{record.emergencyLeave}</TableCell>
-              <TableCell>{record.paternityLeave}</TableCell>
+              <TableCell className="font-medium">{record.applicant}</TableCell>
+              <TableCell>{record.balanceCarryForward || 0}</TableCell>
+              <TableCell>{record.balanceAnnualLeave || 0}</TableCell>
+              <TableCell>{record.balanceMedicalLeave || 0}</TableCell>
+              <TableCell>{record.balanceLeaveInLieu || 0}</TableCell>
+              <TableCell>{record.carryForward || 0}</TableCell>
+              <TableCell>{record.annualLeave || 0}</TableCell>
+              <TableCell>{record.medicalLeave || 0}</TableCell>
+              <TableCell>{record.leaveInLieu || 0}</TableCell>
+              <TableCell>{record.unpaidLeave || 0}</TableCell>
+              <TableCell>{record.publicHolidayLeave || 0}</TableCell>
+              <TableCell>{record.emergencyLeave || 0}</TableCell>
+              <TableCell>{record.paternityLeave || 0}</TableCell>
             </TableRow>
           ))
         )}
