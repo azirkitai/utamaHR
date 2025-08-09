@@ -150,7 +150,19 @@ export default function SystemSettingPage() {
   const [activeTab, setActiveTab] = useState("leave");
   const [claimActiveTab, setClaimActiveTab] = useState("financial");
   
-  const [leavePolicies, setLeavePolicies] = useState(initialLeavePolicies);
+  // Get real leave policies data from API
+  const { data: companyLeaveTypes = [] } = useQuery({
+    queryKey: ["/api/company-leave-types"],
+    queryFn: () => apiRequest("/api/company-leave-types")
+  });
+
+  // Transform real data to match our UI format
+  const leavePolicies = companyLeaveTypes.map((leaveType: any) => ({
+    id: leaveType.id,
+    name: leaveType.name,
+    entitlement: `${leaveType.defaultDays || 0} Day(s)`,
+    enabled: leaveType.enabled || false
+  }));
   
   const [leaveApproval, setLeaveApproval] = useState({
     firstLevel: "",
@@ -744,54 +756,48 @@ export default function SystemSettingPage() {
   };
 
   // Handler untuk toggle leave policy switch
+  // Create mutation for updating company leave types
+  const updateLeaveTypeMutation = useMutation({
+    mutationFn: ({ leaveType, enabled }: { leaveType: string, enabled: boolean }) => 
+      apiRequest(`/api/company-leave-types/${encodeURIComponent(leaveType)}/toggle`, "PATCH", { enabled }),
+    onSuccess: () => {
+      // Refresh data after successful update
+      queryClient.invalidateQueries({ queryKey: ["/api/company-leave-types"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/active-leave-policies"] });
+    },
+    onError: (error) => {
+      console.error("Error updating leave type:", error);
+      toast({
+        title: "❌ Error",
+        description: "Failed to update leave policy. Please try again.",
+        variant: "destructive",
+        duration: 3000,
+      });
+    }
+  });
+
   const handleToggleLeavePolicy = async (policyId: string, enabled: boolean) => {
-    // Update local state immediately
-    setLeavePolicies(prevPolicies => 
-      prevPolicies.map(policy => 
-        policy.id === policyId ? { ...policy, enabled } : policy
-      )
-    );
-    
     try {
-      console.log(`Toggle leave policy ${policyId} to ${enabled}`);
-      
-      // Dapatkan policy yang dipilih
+      // Find the policy to get the leave type name
       const selectedPolicy = leavePolicies.find(p => p.id === policyId);
       if (!selectedPolicy) {
         throw new Error("Policy not found");
       }
-
-      // Ambil employeeId dari employee table
-      // Untuk testing, kita guna employeeId yang ada dalam sistem
-      const employeeId = "0e27650c-5127-45e8-93d8-0e2862b415d0"; // Employee ID untuk Azirkitai 
       
-      if (enabled) {
-        // Jika enable, create atau update leave policy di database
-        await apiRequest("POST", "/api/leave-policies", {
-          employeeId: employeeId,
-          leaveType: selectedPolicy.name,
-          entitlement: parseInt(selectedPolicy.entitlement.split(' ')[0]) || 0,
-          balance: parseInt(selectedPolicy.entitlement.split(' ')[0]) || 0,
-          remarks: `Auto-created from system settings`,
-          included: true
-        });
-      } else {
-        // Jika disable, gunakan DELETE dengan employeeId dan policy name
-        const response = await apiRequest("DELETE", `/api/leave-policies/${employeeId}/${encodeURIComponent(selectedPolicy.name)}`, {});
-        console.log(`Disabled policy ${selectedPolicy.name} in database:`, response);
-      }
-
-      // Invalidate cache untuk refresh data
-      queryClient.invalidateQueries({ queryKey: ["/api/active-leave-policies"] });
+      console.log(`🔄 Toggle leave policy ${selectedPolicy.name} to ${enabled}`);
+      
+      // Update company leave type enabled status using the name as leaveType parameter
+      updateLeaveTypeMutation.mutate({ leaveType: selectedPolicy.name, enabled });
+      
+      // Show feedback to user
+      toast({
+        title: enabled ? "✅ Leave Policy Enabled" : "❌ Leave Policy Disabled",
+        description: `Leave policy has been ${enabled ? 'activated' : 'deactivated'} successfully.`,
+        duration: 3000,
+      });
       
     } catch (error) {
-      console.error("Error saving leave policy:", error);
-      // Revert local state jika API call gagal
-      setLeavePolicies(prevPolicies => 
-        prevPolicies.map(policy => 
-          policy.id === policyId ? { ...policy, enabled: !enabled } : policy
-        )
-      );
+      console.error("Error toggling leave policy:", error);
     }
   };
 
