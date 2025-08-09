@@ -1803,15 +1803,15 @@ export function registerRoutes(app: Express): Server {
 
       const approvalSetting = leaveApprovalSettings[0];
       
-      let leaveApplications;
+      let leaveAppResults;
       
       // If no approval settings configured, show all to admin roles
       if (!approvalSetting) {
         const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
         if (adminRoles.includes(currentUser.role)) {
-          leaveApplications = await storage.getAllLeaveApplications();
+          leaveAppResults = await storage.getAllLeaveApplications();
         } else {
-          leaveApplications = await storage.getLeaveApplicationsByEmployeeId(currentEmployee.id);
+          leaveAppResults = await storage.getLeaveApplicationsByEmployeeId(currentEmployee.id);
         }
       } else {
         // Approval workflow filtering based on settings
@@ -1828,30 +1828,28 @@ export function registerRoutes(app: Express): Server {
         
         if (isFirstLevelApprover) {
           // First level approver sees all pending applications 
-          const pendingApplications = await db
+          leaveAppResults = await db
             .select()
             .from(leaveApplications)
             .where(eq(leaveApplications.status, 'Pending'));
-          leaveApplications = pendingApplications;
             
         } else if (isSecondLevelApprover && approvalSetting.secondLevelApprovalId) {
           // Second level approver only sees applications approved by first level
-          const firstLevelApprovedApplications = await db
+          leaveAppResults = await db
             .select()
             .from(leaveApplications)
             .where(eq(leaveApplications.status, 'First Level Approved'));
-          leaveApplications = firstLevelApprovedApplications;
             
         } else {
           // Regular employees see only their own applications
           console.log("DEBUG: User is not an approver, getting own applications only");
           console.log("Employee ID for filtering:", currentEmployee.id);
-          leaveApplications = await storage.getLeaveApplicationsByEmployeeId(currentEmployee.id);
-          console.log("Filtered applications count:", leaveApplications.length);
+          leaveAppResults = await storage.getLeaveApplicationsByEmployeeId(currentEmployee.id);
+          console.log("Filtered applications count:", leaveAppResults.length);
         }
       }
       
-      res.json(leaveApplications);
+      res.json(leaveAppResults);
     } catch (error) {
       console.error("Get leave applications error:", error);
       console.error("Error stack:", error instanceof Error ? error.stack : 'Unknown error');
