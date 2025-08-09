@@ -343,12 +343,20 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).json({ error: "Attachment not found" });
       }
 
-      // Clean filename to prevent header issues
-      const cleanFilename = announcement.attachment.replace(/[^\w\s.-]/g, '_');
+      // Clean filename to prevent header issues - more aggressive sanitization
+      const cleanFilename = announcement.attachment
+        .replace(/[^\w\s.-]/g, '_')  // Replace special chars with underscore
+        .replace(/\s+/g, '_')        // Replace spaces with underscore
+        .replace(/_{2,}/g, '_')      // Replace multiple underscores with single
+        .replace(/^_+|_+$/g, '');    // Remove leading/trailing underscores
       
-      // Set proper headers for file download
-      res.setHeader('Content-Disposition', `attachment; filename="${cleanFilename}"`);
-      res.setHeader('Content-Type', 'application/octet-stream');
+      console.log('Original filename:', announcement.attachment);
+      console.log('Cleaned filename:', cleanFilename);
+      
+      // Set proper headers for file download with safe filename
+      const safeFilename = cleanFilename || 'attachment.txt';
+      res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
       res.setHeader('Access-Control-Allow-Origin', '*');
       
       // Simulate file content - in production this would be from cloud storage/file system
