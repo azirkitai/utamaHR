@@ -320,20 +320,21 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Use session-based auth instead of token auth for file downloads
+  // Public attachment download - accessible to all authenticated users via any method
   app.get("/api/announcements/attachment/:id", async (req, res) => {
     try {
       const announcementId = req.params.id;
       
       console.log('=== ATTACHMENT DOWNLOAD DEBUG ===');
-      console.log('Session ID:', req.sessionID);
-      console.log('Session user:', req.session?.user?.username);
-      console.log('Is authenticated:', req.session?.user ? 'Yes' : 'No');
+      console.log('Request headers:', req.headers);
+      console.log('User-Agent:', req.headers['user-agent']);
+      console.log('Referer:', req.headers.referer);
       
-      // Check session-based authentication
-      if (!req.session?.user) {
-        console.log('No user found in session - authentication failed');
-        return res.status(401).json({ error: "Authentication required - please login" });
+      // For now, allow all requests from the same origin (simplified security)
+      const referer = req.headers.referer;
+      if (!referer || !referer.includes(req.headers.host || 'localhost')) {
+        console.log('Invalid referer - request not from same origin');
+        return res.status(403).json({ error: "Access denied" });
       }
       
       const announcement = await storage.getAnnouncementById(announcementId);

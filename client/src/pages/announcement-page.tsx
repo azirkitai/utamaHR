@@ -348,12 +348,11 @@ export default function AnnouncementPage() {
 
   const handleDownloadAttachment = async (announcementId: string, filename: string) => {
     try {
-      // Use session-based authentication (cookies)
+      // Download attachment with referer validation
       console.log('Starting attachment download...');
 
       const response = await fetch(`/api/announcements/attachment/${announcementId}`, {
         method: 'GET',
-        credentials: 'include', // Include session cookies
         headers: {
           'Content-Type': 'application/json',
         },
