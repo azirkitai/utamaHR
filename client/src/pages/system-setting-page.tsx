@@ -163,6 +163,10 @@ export default function SystemSettingPage() {
 
   // Function to calculate majority entitlement for a leave type
   const calculateMajorityEntitlement = (leaveTypeId: string) => {
+    if (!Array.isArray(allGroupPolicySettings) || !Array.isArray(companyLeaveTypes)) {
+      return 0;
+    }
+    
     const policiesForThisType = allGroupPolicySettings.filter((policy: any) => 
       policy.leaveType === leaveTypeId && policy.enabled
     );
@@ -780,8 +784,9 @@ export default function SystemSettingPage() {
     mutationFn: ({ leaveType, enabled }: { leaveType: string, enabled: boolean }) => 
       apiRequest("PATCH", `/api/company-leave-types/${encodeURIComponent(leaveType)}/toggle`, { enabled }),
     onSuccess: () => {
-      // Refresh data after successful update
+      // Refresh data after successful update to recalculate majority entitlement
       queryClient.invalidateQueries({ queryKey: ["/api/company-leave-types"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/group-policy-settings"] });
       queryClient.invalidateQueries({ queryKey: ["/api/active-leave-policies"] });
     },
     onError: (error) => {
@@ -864,8 +869,10 @@ export default function SystemSettingPage() {
         
         if (response.ok) {
           console.log(`✅ Role ${roleName} diberi kelayakan ${currentPolicy.days} hari untuk ${expandedPolicyId}`);
-          // Invalidate cache untuk memastikan data sentiasa terkini
+          // Invalidate cache untuk memastikan data sentiasa terkini dan recalculate majority
           queryClient.invalidateQueries({ queryKey: [`/api/group-policy-settings/${expandedPolicyId}`] });
+          queryClient.invalidateQueries({ queryKey: ["/api/group-policy-settings"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/company-leave-types"] });
         } else {
           const errorData = await response.json();
           throw new Error(errorData.error || "Gagal menyimpan tetapan dasar kumpulan");
@@ -901,8 +908,10 @@ export default function SystemSettingPage() {
         
         if (response.ok) {
           console.log(`❌ Role ${roleName} dikeluarkan dari kelayakan ${expandedPolicyId}`);
-          // Invalidate cache untuk memastikan data sentiasa terkini
+          // Invalidate cache untuk memastikan data sentiasa terkini dan recalculate majority
           queryClient.invalidateQueries({ queryKey: [`/api/group-policy-settings/${expandedPolicyId}`] });
+          queryClient.invalidateQueries({ queryKey: ["/api/group-policy-settings"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/company-leave-types"] });
         } else {
           console.error("Gagal mengeluarkan tetapan dasar kumpulan");
         }
