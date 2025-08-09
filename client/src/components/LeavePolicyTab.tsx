@@ -11,11 +11,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Plus, Search, Edit, ChevronDown, Download } from "lucide-react";
+import { Plus, Search, Edit, ChevronDown, Download, Settings } from "lucide-react";
 import { LeavePolicy } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { LeavePolicyModal } from "./LeavePolicyModal";
+import { GroupPolicyDialog } from "./GroupPolicyDialog";
 
 interface LeavePolicyTabProps {
   employeeId: string;
@@ -25,6 +26,8 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPolicy, setEditingPolicy] = useState<LeavePolicy | null>(null);
+  const [groupPolicyOpen, setGroupPolicyOpen] = useState(false);
+  const [selectedLeaveType, setSelectedLeaveType] = useState<string>("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -32,6 +35,23 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
   const { data: leavePolicies = [], isLoading } = useQuery<LeavePolicy[]>({
     queryKey: ["/api/leave-policies", employeeId],
     enabled: !!employeeId,
+  });
+
+  // Fetch employee data to get role information
+  const { data: employeeData } = useQuery({
+    queryKey: ["/api/employees", employeeId],
+    enabled: !!employeeId,
+  });
+
+  // Fetch employment data to get the employee's role
+  const { data: employmentData } = useQuery({
+    queryKey: ["/api/employment", employeeId],
+    enabled: !!employeeId,
+  });
+
+  // Fetch all group policy settings
+  const { data: allGroupSettings = [] } = useQuery({
+    queryKey: ["/api/group-policy-settings"],
   });
 
   // Update policy status mutation
@@ -55,11 +75,34 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
     },
   });
 
-  // Filter policies based on search
-  const filteredPolicies = leavePolicies.filter((policy) =>
-    policy.leaveType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    policy.remarks?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Get employee role
+  const employeeRole = employmentData?.position || null;
+
+  // Helper function to check if employee is allowed for a leave type
+  const isLeaveTypeAllowed = (leaveType: string) => {
+    if (!leaveType || !employeeRole) return true; // Allow if no restrictions set
+    
+    // Get group settings for this leave type
+    const leaveTypeSettings = allGroupSettings.filter((setting: any) => 
+      setting.leaveType === leaveType
+    );
+    
+    // If no group settings exist for this leave type, allow access
+    if (leaveTypeSettings.length === 0) return true;
+    
+    // Check if employee's role is in the allowed roles
+    return leaveTypeSettings.some((setting: any) => setting.role === employeeRole);
+  };
+
+  // Filter policies based on search and role-based access
+  const filteredPolicies = leavePolicies.filter((policy) => {
+    const matchesSearch = policy.leaveType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         policy.remarks?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const hasAccess = isLeaveTypeAllowed(policy.leaveType || "");
+    
+    return matchesSearch && hasAccess;
+  });
 
   const handleEdit = (policy: LeavePolicy) => {
     setEditingPolicy(policy);
@@ -74,6 +117,11 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingPolicy(null);
+  };
+
+  const handleGroupPolicy = (leaveType: string) => {
+    setSelectedLeaveType(leaveType);
+    setGroupPolicyOpen(true);
   };
 
   const handleStatusToggle = (policyId: string, included: boolean) => {
@@ -190,6 +238,9 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
                       Remarks
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Group Policy
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Action
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -200,7 +251,7 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredPolicies.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-4 py-12 text-center text-gray-500">
+                      <td colSpan={7} className="px-4 py-12 text-center text-gray-500">
                         {searchTerm ? "No leave policies found matching your search." : "No data available in table"}
                       </td>
                     </tr>
@@ -228,6 +279,17 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
                           <div className="text-sm text-gray-900 max-w-xs truncate">
                             {policy.remarks || "N/A"}
                           </div>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleGroupPolicy(policy.leaveType || "")}
+                            className="text-purple-600 hover:text-purple-700"
+                            data-testid={`button-group-policy-${policy.id}`}
+                          >
+                            <Settings className="w-4 h-4" />
+                          </Button>
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap text-sm">
                           <Button
@@ -289,6 +351,13 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
           leavePolicy={editingPolicy}
         />
       )}
+
+      {/* Group Policy Dialog */}
+      <GroupPolicyDialog
+        open={groupPolicyOpen}
+        onOpenChange={setGroupPolicyOpen}
+        leaveType={selectedLeaveType}
+      />
     </>
   );
 }

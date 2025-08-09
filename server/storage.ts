@@ -59,6 +59,9 @@ import {
   type OfficeLocation,
   type InsertOfficeLocation,
   type UpdateOfficeLocation,
+  type GroupPolicySetting,
+  type InsertGroupPolicySetting,
+  type UpdateGroupPolicySetting,
   type ClockInRecord,
   type InsertClockIn,
   // Attendance types
@@ -84,6 +87,7 @@ import {
   clockInRecords,
   attendanceRecords,
   leaveApplications,
+  groupPolicySettings,
   // Leave Application types
   type LeaveApplication,
   type InsertLeaveApplication,
@@ -208,6 +212,12 @@ export interface IStorage {
   // =================== ATTENDANCE RECORD METHODS ===================
   getAttendanceRecords(params: { dateFrom?: Date; dateTo?: Date; employeeId?: string }): Promise<AttendanceRecord[]>;
   createOrUpdateAttendanceRecord(data: Partial<InsertAttendanceRecord>): Promise<AttendanceRecord>;
+
+  // =================== GROUP POLICY SETTINGS METHODS ===================
+  getGroupPolicySettings(leaveType: string): Promise<GroupPolicySetting[]>;
+  createOrUpdateGroupPolicySetting(setting: InsertGroupPolicySetting): Promise<GroupPolicySetting>;
+  deleteGroupPolicySetting(leaveType: string, role: string): Promise<boolean>;
+  getAllGroupPolicySettings(): Promise<GroupPolicySetting[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1003,6 +1013,59 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return newRecord;
     }
+  }
+
+  // =================== GROUP POLICY SETTINGS METHODS ===================
+  async getGroupPolicySettings(leaveType: string): Promise<GroupPolicySetting[]> {
+    return await db
+      .select()
+      .from(groupPolicySettings)
+      .where(eq(groupPolicySettings.leaveType, leaveType));
+  }
+
+  async createOrUpdateGroupPolicySetting(setting: InsertGroupPolicySetting): Promise<GroupPolicySetting> {
+    // Check if setting already exists
+    const [existing] = await db
+      .select()
+      .from(groupPolicySettings)
+      .where(and(
+        eq(groupPolicySettings.leaveType, setting.leaveType),
+        eq(groupPolicySettings.role, setting.role)
+      ));
+
+    if (existing) {
+      // Update existing setting
+      const [updated] = await db
+        .update(groupPolicySettings)
+        .set({
+          ...setting,
+          updatedAt: new Date()
+        })
+        .where(eq(groupPolicySettings.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      // Create new setting
+      const [created] = await db
+        .insert(groupPolicySettings)
+        .values(setting)
+        .returning();
+      return created;
+    }
+  }
+
+  async deleteGroupPolicySetting(leaveType: string, role: string): Promise<boolean> {
+    const result = await db
+      .delete(groupPolicySettings)
+      .where(and(
+        eq(groupPolicySettings.leaveType, leaveType),
+        eq(groupPolicySettings.role, role)
+      ));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async getAllGroupPolicySettings(): Promise<GroupPolicySetting[]> {
+    return await db.select().from(groupPolicySettings);
   }
 }
 

@@ -385,6 +385,17 @@ export const approvalSettings = pgTable("approval_settings", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// 17. Group Policy Settings Table (for storing role-based leave policy configurations)
+export const groupPolicySettings = pgTable("group_policy_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  leaveType: text("leave_type").notNull(), // The leave type this setting applies to
+  role: text("role").notNull(), // Super Admin, Admin, HR Manager, PIC, Manager/Supervisor, Employee
+  enabled: boolean("enabled").default(false), // Whether this role has access to this leave type
+  entitlementDays: integer("entitlement_days").default(0), // Number of days entitled for this role
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // =================== VALIDATION SCHEMAS ===================
 
 // Attendance record schemas
@@ -596,6 +607,14 @@ export const insertApprovalSettingSchema = createInsertSchema(approvalSettings).
 });
 export const updateApprovalSettingSchema = insertApprovalSettingSchema.partial();
 
+// Group Policy Settings schemas
+export const insertGroupPolicySettingSchema = createInsertSchema(groupPolicySettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const updateGroupPolicySettingSchema = insertGroupPolicySettingSchema.partial();
+
 // Clock-in schemas
 export const insertClockInSchema = createInsertSchema(clockInRecords).omit({
   id: true,
@@ -748,3 +767,8 @@ export type UpdateAttendanceRecord = z.infer<typeof updateAttendanceRecordSchema
 export type ApprovalSetting = typeof approvalSettings.$inferSelect;
 export type InsertApprovalSetting = z.infer<typeof insertApprovalSettingSchema>;
 export type UpdateApprovalSetting = z.infer<typeof updateApprovalSettingSchema>;
+
+// Group Policy Settings types
+export type GroupPolicySetting = typeof groupPolicySettings.$inferSelect;
+export type InsertGroupPolicySetting = z.infer<typeof insertGroupPolicySettingSchema>;
+export type UpdateGroupPolicySetting = z.infer<typeof updateGroupPolicySettingSchema>;

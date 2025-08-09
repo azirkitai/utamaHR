@@ -25,6 +25,9 @@ import {
   insertApprovalSettingSchema,
   updateApprovalSettingSchema,
   approvalSettings,
+  insertGroupPolicySettingSchema,
+  updateGroupPolicySettingSchema,
+  groupPolicySettings,
   type AttendanceRecord
 } from "@shared/schema";
 import { checkEnvironmentSecrets } from "./env-check";
@@ -43,7 +46,8 @@ import {
   clockInRecords, 
   workExperiences,
   leaveApplications,
-  attendanceRecords
+  attendanceRecords,
+  groupPolicySettings
 } from "@shared/schema";
 
 // Calculate distance between two GPS coordinates using Haversine formula
@@ -2081,6 +2085,66 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error fetching approval settings:", error);
       res.status(500).json({ error: "Failed to fetch approval settings" });
+    }
+  });
+
+  // =================== GROUP POLICY SETTINGS ROUTES ===================
+  
+  // Get all group policy settings
+  app.get("/api/group-policy-settings", authenticateToken, async (req, res) => {
+    try {
+      const groupPolicySettings = await storage.getAllGroupPolicySettings();
+      res.json(groupPolicySettings);
+    } catch (error) {
+      console.error("Error fetching group policy settings:", error);
+      res.status(500).json({ error: "Gagal mendapatkan tetapan dasar kumpulan" });
+    }
+  });
+
+  // Get group policy settings by leave type
+  app.get("/api/group-policy-settings/:leaveType", authenticateToken, async (req, res) => {
+    try {
+      const { leaveType } = req.params;
+      const settings = await storage.getGroupPolicySettings(decodeURIComponent(leaveType));
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching group policy settings:", error);
+      res.status(500).json({ error: "Gagal mendapatkan tetapan dasar kumpulan" });
+    }
+  });
+
+  // Create or update group policy setting
+  app.post("/api/group-policy-settings", authenticateToken, async (req, res) => {
+    try {
+      const validatedData = insertGroupPolicySettingSchema.parse(req.body);
+      const setting = await storage.createOrUpdateGroupPolicySetting(validatedData);
+      res.status(201).json(setting);
+    } catch (error) {
+      console.error("Error creating/updating group policy setting:", error);
+      res.status(500).json({ error: "Gagal menyimpan tetapan dasar kumpulan" });
+    }
+  });
+
+  // Delete group policy setting
+  app.delete("/api/group-policy-settings/:leaveType/:role", authenticateToken, async (req, res) => {
+    try {
+      const { leaveType, role } = req.params;
+      const deleted = await storage.deleteGroupPolicySetting(
+        decodeURIComponent(leaveType), 
+        decodeURIComponent(role)
+      );
+      
+      if (!deleted) {
+        return res.status(404).json({ error: "Tetapan dasar kumpulan tidak dijumpai" });
+      }
+
+      res.json({ 
+        success: true,
+        message: "Tetapan dasar kumpulan berjaya dipadamkan" 
+      });
+    } catch (error) {
+      console.error("Error deleting group policy setting:", error);
+      res.status(500).json({ error: "Gagal memadamkan tetapan dasar kumpulan" });
     }
   });
 
