@@ -95,10 +95,13 @@ export default function AnnouncementPage() {
   const { toast } = useToast();
 
   // Fetch real employees from database
-  const { data: employeesData = [], isLoading: loadingEmployees } = useQuery({
+  const { data: employeesData, isLoading: loadingEmployees } = useQuery<any[]>({
     queryKey: ["/api/employees"],
-    queryFn: () => fetch("/api/employees").then((res) => res.json()),
+    enabled: !!user, // Only fetch when user is authenticated
   });
+
+  // Ensure employeesData is always an array
+  const employees = Array.isArray(employeesData) ? employeesData : [];
 
   const filteredAnnouncements = announcements.filter(announcement => {
     const matchesSearch = announcement.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -122,7 +125,7 @@ export default function AnnouncementPage() {
     if (employeeId === "all") {
       if (checked) {
         // Select all employees
-        const allEmployeeIds = employeesData.map((emp: any) => emp.id);
+        const allEmployeeIds = employees.map((emp: any) => emp.userId || emp.id);
         setSelectedEmployees(allEmployeeIds);
       } else {
         // Deselect all
@@ -140,10 +143,7 @@ export default function AnnouncementPage() {
   // Send announcement mutation
   const sendAnnouncementMutation = useMutation({
     mutationFn: async (announcementData: any) => {
-      return apiRequest("/api/announcements", {
-        method: "POST",
-        body: JSON.stringify(announcementData),
-      });
+      return apiRequest("POST", "/api/announcements", announcementData);
     },
     onSuccess: () => {
       toast({
@@ -363,29 +363,29 @@ export default function AnnouncementPage() {
                               <div className="flex items-center space-x-2">
                                 <Checkbox 
                                   id="all-employees"
-                                  checked={selectedEmployees.length === employeesData.length && employeesData.length > 0}
+                                  checked={selectedEmployees.length === employees.length && employees.length > 0}
                                   onCheckedChange={(checked) => handleEmployeeSelect("all", !!checked)}
                                   data-testid="checkbox-all-employees"
                                 />
                                 <Label htmlFor="all-employees" className="text-sm font-medium text-blue-600">
-                                  All Employee ({employeesData.length})
+                                  All Employee ({employees.length})
                                 </Label>
                               </div>
                               
                               <div className="border-t pt-2 mt-2">
                                 {loadingEmployees ? (
                                   <div className="text-sm text-gray-500">Loading employees...</div>
-                                ) : employeesData.length > 0 ? (
-                                  employeesData.map((employee: any) => (
+                                ) : employees.length > 0 ? (
+                                  employees.map((employee: any) => (
                                     <div key={employee.id} className="flex items-center space-x-2">
                                       <Checkbox 
-                                        id={`employee-${employee.id}`}
-                                        checked={selectedEmployees.includes(employee.id)}
-                                        onCheckedChange={(checked) => handleEmployeeSelect(employee.id, !!checked)}
+                                        id={`employee-${employee.userId || employee.id}`}
+                                        checked={selectedEmployees.includes(employee.userId || employee.id)}
+                                        onCheckedChange={(checked) => handleEmployeeSelect(employee.userId || employee.id, !!checked)}
                                         data-testid={`checkbox-employee-${employee.id}`}
                                       />
                                       <Label 
-                                        htmlFor={`employee-${employee.id}`} 
+                                        htmlFor={`employee-${employee.userId || employee.id}`} 
                                         className="text-sm flex-1 cursor-pointer"
                                       >
                                         {employee.fullName} ({employee.username})
