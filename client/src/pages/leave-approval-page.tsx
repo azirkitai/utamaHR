@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ import {
 } from "@/components/ui/table";
 import { Search, Printer, Eye, Check, X, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 type TabType = "approval" | "report" | "summary" | "history";
 
@@ -69,6 +71,9 @@ export default function LeaveApprovalPage() {
   const [selectedEmployee, setSelectedEmployee] = useState("all");
   const [selectedLeaveType, setSelectedLeaveType] = useState("all");
   const [selectedLeaveStatus, setSelectedLeaveStatus] = useState("all");
+  
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Fetch all leave applications from database
   const { data: leaveApplications = [], isLoading, error } = useQuery<LeaveRecord[]>({
@@ -76,6 +81,51 @@ export default function LeaveApprovalPage() {
     staleTime: 30000, // Cache for 30 seconds
     refetchOnWindowFocus: true,
   });
+
+  // Mutation for approve/reject leave applications
+  const approveRejectMutation = useMutation({
+    mutationFn: async ({ id, action, comments }: { id: string; action: 'approve' | 'reject'; comments?: string }) => {
+      const response = await fetch(`/api/leave-applications/${id}/approve`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('utamahr_token')}`
+        },
+        body: JSON.stringify({ action, comments }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Gagal memproses permohonan');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data: any, variables) => {
+      toast({
+        title: "Berjaya!",
+        description: data.message || "Permohonan telah diproses",
+        variant: "default",
+      });
+      // Refetch leave applications to get updated data
+      queryClient.invalidateQueries({ queryKey: ["/api/leave-applications"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Ralat",
+        description: error.message || "Gagal memproses permohonan",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleApprove = (id: string) => {
+    approveRejectMutation.mutate({ id, action: 'approve' });
+  };
+
+  const handleReject = (id: string) => {
+    approveRejectMutation.mutate({ id, action: 'reject' });
+  };
 
   const getPageTitle = () => {
     switch (activeTab) {
@@ -176,10 +226,24 @@ export default function LeaveApprovalPage() {
                   </Button>
                   {record.status === "Pending" && (
                     <>
-                      <Button size="sm" variant="outline" className="h-8 w-8 p-0 text-green-600 hover:text-green-700">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
+                        onClick={() => handleApprove(record.id)}
+                        disabled={approveRejectMutation.isPending}
+                        data-testid={`button-approve-${record.id}`}
+                      >
                         <Check className="w-4 h-4" />
                       </Button>
-                      <Button size="sm" variant="outline" className="h-8 w-8 p-0 text-red-600 hover:text-red-700">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                        onClick={() => handleReject(record.id)}
+                        disabled={approveRejectMutation.isPending}
+                        data-testid={`button-reject-${record.id}`}
+                      >
                         <X className="w-4 h-4" />
                       </Button>
                     </>

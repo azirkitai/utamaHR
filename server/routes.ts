@@ -1788,20 +1788,56 @@ export function registerRoutes(app: Express): Server {
       console.log("Loading leave applications for user:", req.user?.id);
       const currentUser = req.user!;
       
-      // Check if user has admin privileges to view all applications
-      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      // Get current user's employee record
+      const currentEmployee = await storage.getEmployeeByUserId(currentUser.id);
+      if (!currentEmployee) {
+        return res.status(404).json({ error: "Employee record tidak dijumpai" });
+      }
+
+      // Get leave approval settings
+      const leaveApprovalSettings = await db
+        .select()
+        .from(approvalSettings)
+        .where(eq(approvalSettings.type, 'leave'))
+        .limit(1);
+
+      const approvalSetting = leaveApprovalSettings[0];
       
       let leaveApplications;
-      if (adminRoles.includes(currentUser.role)) {
-        // Admin can see all leave applications
-        leaveApplications = await storage.getAllLeaveApplications();
-      } else {
-        // Regular users can only see their own applications
-        const employee = await storage.getEmployeeByUserId(currentUser.id);
-        if (!employee) {
-          return res.status(404).json({ error: "Employee record tidak dijumpai" });
+      
+      // If no approval settings configured, show all to admin roles
+      if (!approvalSetting) {
+        const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+        if (adminRoles.includes(currentUser.role)) {
+          leaveApplications = await storage.getAllLeaveApplications();
+        } else {
+          leaveApplications = await storage.getLeaveApplicationsByEmployeeId(currentEmployee.id);
         }
-        leaveApplications = await storage.getLeaveApplicationsByEmployeeId(employee.id);
+      } else {
+        // Approval workflow filtering based on settings
+        const isFirstLevelApprover = approvalSetting.firstLevelApprovalId === currentEmployee.id;
+        const isSecondLevelApprover = approvalSetting.secondLevelApprovalId === currentEmployee.id;
+        
+        if (isFirstLevelApprover) {
+          // First level approver sees all pending applications 
+          const pendingApplications = await db
+            .select()
+            .from(leaveApplications)
+            .where(eq(leaveApplications.status, 'Pending'));
+          leaveApplications = pendingApplications;
+            
+        } else if (isSecondLevelApprover && approvalSetting.secondLevelApprovalId) {
+          // Second level approver only sees applications approved by first level
+          const firstLevelApprovedApplications = await db
+            .select()
+            .from(leaveApplications)
+            .where(eq(leaveApplications.status, 'First Level Approved'));
+          leaveApplications = firstLevelApprovedApplications;
+            
+        } else {
+          // Regular employees see only their own applications
+          leaveApplications = await storage.getLeaveApplicationsByEmployeeId(currentEmployee.id);
+        }
       }
       
       res.json(leaveApplications);
@@ -1810,6 +1846,92 @@ export function registerRoutes(app: Express): Server {
       console.error("Error stack:", error instanceof Error ? error.stack : 'Unknown error');
       res.status(500).json({ 
         error: "Gagal mendapatkan permohonan cuti",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Approve/Reject leave application
+  app.post("/api/leave-applications/:id/approve", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { action, comments } = req.body; // action: 'approve' or 'reject'
+      const currentUser = req.user!;
+      
+      // Get current user's employee record
+      const currentEmployee = await storage.getEmployeeByUserId(currentUser.id);
+      if (!currentEmployee) {
+        return res.status(404).json({ error: "Employee record tidak dijumpai" });
+      }
+
+      // Get leave approval settings
+      const leaveApprovalSettings = await db
+        .select()
+        .from(approvalSettings)
+        .where(eq(approvalSettings.type, 'leave'))
+        .limit(1);
+
+      const approvalSetting = leaveApprovalSettings[0];
+      if (!approvalSetting) {
+        return res.status(400).json({ error: "Tetapan kelulusan tidak dijumpai" });
+      }
+
+      // Check authorization
+      const isFirstLevelApprover = approvalSetting.firstLevelApprovalId === currentEmployee.id;
+      const isSecondLevelApprover = approvalSetting.secondLevelApprovalId === currentEmployee.id;
+      
+      if (!isFirstLevelApprover && !isSecondLevelApprover) {
+        return res.status(403).json({ error: "Anda tidak mempunyai kebenaran untuk melulus permohonan ini" });
+      }
+
+      // Get the application
+      const [application] = await db
+        .select()
+        .from(leaveApplications)
+        .where(eq(leaveApplications.id, id));
+
+      if (!application) {
+        return res.status(404).json({ error: "Permohonan cuti tidak dijumpai" });
+      }
+
+      // Determine new status based on approval level and action
+      let newStatus: string;
+      
+      if (action === 'reject') {
+        newStatus = 'Rejected';
+      } else if (isFirstLevelApprover && approvalSetting.secondLevelApprovalId) {
+        // Two-level approval: first level approves -> "First Level Approved"
+        newStatus = 'First Level Approved';
+      } else {
+        // Single level approval OR second level approval -> "Approved"
+        newStatus = 'Approved';
+      }
+
+      // Update the application
+      const [updatedApplication] = await db
+        .update(leaveApplications)
+        .set({
+          status: newStatus,
+          reviewedBy: currentUser.id,
+          reviewedDate: sql`now()`,
+          reviewComments: comments || null,
+          updatedAt: sql`now()`
+        })
+        .where(eq(leaveApplications.id, id))
+        .returning();
+
+      res.json({
+        success: true,
+        message: action === 'approve' 
+          ? `Permohonan cuti berjaya diluluskan` 
+          : `Permohonan cuti telah ditolak`,
+        application: updatedApplication
+      });
+
+    } catch (error) {
+      console.error("Approve/reject leave application error:", error);
+      res.status(500).json({ 
+        error: "Gagal memproses permohonan cuti",
         details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
