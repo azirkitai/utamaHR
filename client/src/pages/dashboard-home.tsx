@@ -137,6 +137,9 @@ export default function DashboardHome() {
 
   const userName = dashboardData?.user?.username || 'SITI NADIAH SABRI';
 
+  // Check if user has privileged access to view Today Statistic and Pending Approval cards
+  const hasPrivilegedAccess = (dashboardData?.user as any)?.role && ['Super Admin', 'Admin', 'HR Manager', 'PIC'].includes((dashboardData.user as any).role);
+
   if (isDashboardLoading || isStatsLoading || isDashboardStatsLoading || isUserStatsLoading || isPendingStatsLoading) {
     return (
       <DashboardLayout>
@@ -185,14 +188,15 @@ export default function DashboardHome() {
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-24 -translate-x-24"></div>
         </div>
 
-        {/* Today Statistics */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl text-gray-800">Today Statistic</CardTitle>
-            <p className="text-sm text-gray-600">Here's your employee statistic so far.</p>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Today Statistics - Only visible to privileged users */}
+        {hasPrivilegedAccess && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl text-gray-800">Today Statistic</CardTitle>
+              <p className="text-sm text-gray-600">Here's your employee statistic so far.</p>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
               {/* Pie Chart */}
               <div className="lg:col-span-1">
                 <div className="h-40">
@@ -264,6 +268,7 @@ export default function DashboardHome() {
             </div>
           </CardContent>
         </Card>
+        )}
 
         {/* Your Statistic */}
         <Card>
@@ -320,9 +325,10 @@ export default function DashboardHome() {
           </CardContent>
         </Card>
 
-        {/* Pending Approval */}
-        <Card>
-          <CardHeader>
+        {/* Pending Approval - Only visible to privileged users */}
+        {hasPrivilegedAccess && (
+          <Card>
+            <CardHeader>
             <CardTitle className="text-xl text-gray-800">Pending Approval</CardTitle>
             <p className="text-sm text-gray-600">task(s) waiting for your action.</p>
           </CardHeader>
@@ -348,6 +354,7 @@ export default function DashboardHome() {
             </div>
           </CardContent>
         </Card>
+        )}
 
         {/* Bottom Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
