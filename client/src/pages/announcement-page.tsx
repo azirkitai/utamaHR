@@ -348,23 +348,13 @@ export default function AnnouncementPage() {
 
   const handleDownloadAttachment = async (announcementId: string, filename: string) => {
     try {
-      // Use Bearer token authentication
-      const token = localStorage.getItem('token');
-      console.log('Token from localStorage:', token ? 'Token exists' : 'No token found');
-      
-      if (!token) {
-        toast({
-          title: "Error",
-          description: "No authentication token found. Please login again.",
-          variant: "destructive",
-        });
-        return;
-      }
+      // Use session-based authentication (cookies)
+      console.log('Starting attachment download...');
 
       const response = await fetch(`/api/announcements/attachment/${announcementId}`, {
         method: 'GET',
+        credentials: 'include', // Include session cookies
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });

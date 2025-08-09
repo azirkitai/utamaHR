@@ -320,18 +320,20 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  app.get("/api/announcements/attachment/:id", authenticateToken, async (req, res) => {
+  // Use session-based auth instead of token auth for file downloads
+  app.get("/api/announcements/attachment/:id", async (req, res) => {
     try {
       const announcementId = req.params.id;
       
       console.log('=== ATTACHMENT DOWNLOAD DEBUG ===');
-      console.log('Headers:', JSON.stringify(req.headers, null, 2));
-      console.log('User from middleware:', req.user?.username);
-      console.log('Authorization header:', req.headers.authorization);
+      console.log('Session ID:', req.sessionID);
+      console.log('Session user:', req.session?.user?.username);
+      console.log('Is authenticated:', req.session?.user ? 'Yes' : 'No');
       
-      if (!req.user) {
-        console.log('No user found in request - authentication failed');
-        return res.status(401).json({ error: "Authentication required" });
+      // Check session-based authentication
+      if (!req.session?.user) {
+        console.log('No user found in session - authentication failed');
+        return res.status(401).json({ error: "Authentication required - please login" });
       }
       
       const announcement = await storage.getAnnouncementById(announcementId);
