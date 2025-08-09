@@ -642,9 +642,9 @@ export default function SystemSettingPage() {
           included: true
         });
       } else {
-        // Jika disable, delete/disable policy di database
-        await apiRequest("DELETE", `/api/leave-policies/${encodeURIComponent(selectedPolicy.name)}`, {});
-        console.log(`Disabled policy ${selectedPolicy.name} in database`);
+        // Jika disable, gunakan DELETE dengan employeeId dan policy name
+        const response = await apiRequest("DELETE", `/api/leave-policies/${employeeId}/${encodeURIComponent(selectedPolicy.name)}`, {});
+        console.log(`Disabled policy ${selectedPolicy.name} in database:`, response);
       }
 
       // Invalidate cache untuk refresh data
