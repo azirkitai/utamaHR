@@ -548,7 +548,7 @@ export class DatabaseStorage implements IStorage {
       startDate: insertWorkExperience.startDate || undefined,
       endDate: insertWorkExperience.endDate || undefined,
     };
-    const [record] = await db.insert(workExperiences).values(cleanedData).returning();
+    const [record] = await db.insert(workExperiences).values([cleanedData]).returning();
     return record;
   }
 
@@ -810,11 +810,21 @@ export class DatabaseStorage implements IStorage {
   }
   
   async createLeaveApplication(insertLeaveApplication: InsertLeaveApplication): Promise<LeaveApplication> {
-    const [leaveApplication] = await db
-      .insert(leaveApplications)
-      .values(insertLeaveApplication)
-      .returning();
-    return leaveApplication;
+    try {
+      console.log("Storage: Creating leave application with data:", JSON.stringify(insertLeaveApplication, null, 2));
+      
+      const [leaveApplication] = await db
+        .insert(leaveApplications)
+        .values(insertLeaveApplication)
+        .returning();
+        
+      console.log("Storage: Successfully created leave application:", leaveApplication.id);
+      return leaveApplication;
+    } catch (error) {
+      console.error("Storage: createLeaveApplication error:", error);
+      console.error("Storage: Error stack:", error instanceof Error ? error.stack : 'Unknown error');
+      throw error;
+    }
   }
   
   async updateLeaveApplication(id: string, updateLeaveApplication: UpdateLeaveApplication): Promise<LeaveApplication | undefined> {
