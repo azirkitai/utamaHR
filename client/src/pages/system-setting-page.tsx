@@ -842,6 +842,8 @@ export default function SystemSettingPage() {
         
         if (response.ok) {
           console.log(`✅ Role ${roleName} diberi kelayakan ${currentPolicy.days} hari untuk ${expandedPolicyId}`);
+          // Invalidate cache untuk memastikan data sentiasa terkini
+          queryClient.invalidateQueries([`/api/group-policy-settings/${expandedPolicyId}`]);
         } else {
           const errorData = await response.json();
           throw new Error(errorData.error || "Gagal menyimpan tetapan dasar kumpulan");
@@ -877,6 +879,8 @@ export default function SystemSettingPage() {
         
         if (response.ok) {
           console.log(`❌ Role ${roleName} dikeluarkan dari kelayakan ${expandedPolicyId}`);
+          // Invalidate cache untuk memastikan data sentiasa terkini
+          queryClient.invalidateQueries([`/api/group-policy-settings/${expandedPolicyId}`]);
         } else {
           console.error("Gagal mengeluarkan tetapan dasar kumpulan");
         }
