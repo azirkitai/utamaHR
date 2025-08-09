@@ -132,7 +132,10 @@ export default function AnnouncementPage() {
   // Role-based access control function
   const canAccessAnnouncementActions = () => {
     const role = (user as any)?.role;
-    return role && ['Super Admin', 'Admin', 'HR Manager', 'PIC', 'Finance/Account', 'Manager/Supervisor'].includes(role);
+    console.log('Announcement page - Current user role:', role);
+    const hasAccess = role && ['Super Admin', 'Admin', 'HR Manager', 'PIC', 'Finance/Account', 'Manager/Supervisor'].includes(role);
+    console.log('Announcement page - Has access:', hasAccess);
+    return hasAccess;
   };
 
   const handleViewAnnouncement = (id: number) => {

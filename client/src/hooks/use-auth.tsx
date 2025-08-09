@@ -15,7 +15,7 @@ type AuthResponse = {
 };
 
 type AuthContextType = {
-  user: { id: string; username: string } | null;
+  user: { id: string; username: string; role?: string } | null;
   isLoading: boolean;
   error: Error | null;
   loginMutation: UseMutationResult<AuthResponse, Error, LoginData>;
@@ -73,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     data: user,
     error,
     isLoading,
-  } = useQuery<{ id: string; username: string } | undefined, Error>({
+  } = useQuery<{ id: string; username: string; role?: string } | undefined, Error>({
     queryKey: ["/api/user"],
     queryFn: () => authenticatedFetch("/api/user"),
     enabled: !!getStoredToken(),
