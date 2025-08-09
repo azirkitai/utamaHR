@@ -27,10 +27,8 @@ import {
   approvalSettings,
   insertGroupPolicySettingSchema,
   updateGroupPolicySettingSchema,
-  groupPolicySettings,
   insertCompanyLeaveTypeSchema,
   updateCompanyLeaveTypeSchema,
-  companyLeaveTypes,
   type AttendanceRecord
 } from "@shared/schema";
 import { checkEnvironmentSecrets } from "./env-check";
@@ -1544,7 +1542,7 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/leave-policies/:employeeId", authenticateToken, async (req, res) => {
     try {
       const { employeeId } = req.params;
-      const leavePolicies = await storage.getLeavePolicies(employeeId);
+      const leavePolicies = await storage.getEmployeeLeavePoliciesWithEntitlement(employeeId);
       res.json(leavePolicies);
     } catch (error) {
       console.error("Error fetching leave policies:", error);

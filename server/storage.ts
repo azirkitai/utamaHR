@@ -794,6 +794,58 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(leavePolicy).where(eq(leavePolicy.employeeId, employeeId)).orderBy(desc(leavePolicy.createdAt));
   }
 
+  // Get leave policies with entitlement calculation for employee
+  async getEmployeeLeavePoliciesWithEntitlement(employeeId: string): Promise<any[]> {
+    try {
+      // Get employee to find their role
+      const employee = await this.getEmployee(employeeId);
+      if (!employee) {
+        throw new Error("Employee not found");
+      }
+
+      // Get enabled company leave types
+      const enabledLeaveTypes = await db.select()
+        .from(companyLeaveTypes)
+        .where(eq(companyLeaveTypes.enabled, true));
+
+      const result = [];
+
+      for (const leaveType of enabledLeaveTypes) {
+        // Get group policy settings for this leave type
+        const groupPolicies = await db.select()
+          .from(groupPolicySettings)
+          .where(eq(groupPolicySettings.leaveType, leaveType.id));
+
+        // Find employee's role entitlement
+        const employeePolicy = groupPolicies.find(gp => gp.role === employee.role);
+        
+        if (employeePolicy && employeePolicy.enabled) {
+          // Get leave policy settings for additional configuration
+          const [policySettings] = await db.select()
+            .from(leavePolicySettings)
+            .where(eq(leavePolicySettings.leaveType, leaveType.id));
+
+          result.push({
+            id: leaveType.id,
+            leaveType: leaveType.leaveType, // Use leaveType field instead of name
+            entitlement: employeePolicy.entitlementDays,
+            balance: employeePolicy.entitlementDays, // TODO: Calculate actual balance based on used leave
+            remarks: policySettings?.leaveRemark || "Standard leave entitlement",
+            action: "✓",
+            included: true,
+            groupPolicy: employeePolicy,
+            policySettings: policySettings || null
+          });
+        }
+      }
+
+      return result;
+    } catch (error) {
+      console.error("Error getting employee leave policies with entitlement:", error);
+      throw error;
+    }
+  }
+
   async getActiveLeavePolicies(): Promise<LeavePolicy[]> {
     return await db.select().from(leavePolicy).where(eq(leavePolicy.included, true)).orderBy(desc(leavePolicy.createdAt));
   }
