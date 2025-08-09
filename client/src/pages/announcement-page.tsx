@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -58,17 +58,7 @@ interface Announcement {
   attachment?: string | null;
 }
 
-const sampleAnnouncements: Announcement[] = [
-  {
-    id: 1,
-    title: "wujud",
-    message: "Sample announcement message here...",
-    status: "New",
-    announcer: "SITI NADIAH SABRI",
-    createdDate: "3 Aug 2025",
-    updatedDate: "3 Aug 2025"
-  }
-];
+// Remove dummy data - will fetch from database
 
 const departments = [
   "Human Resources",
@@ -92,7 +82,7 @@ export default function AnnouncementPage() {
   const [activeTab, setActiveTab] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [announcements, setAnnouncements] = useState<Announcement[]>(sampleAnnouncements);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
 
   // User role is available from useAuth hook
   
@@ -115,8 +105,32 @@ export default function AnnouncementPage() {
     enabled: !!user, // Only fetch when user is authenticated
   });
 
-  // Ensure employeesData is always an array
+  // Fetch announcements from database
+  const { data: announcementsData, isLoading: loadingAnnouncements } = useQuery<any[]>({
+    queryKey: ["/api/announcements"],
+    enabled: !!user, // Only fetch when user is authenticated
+  });
+
+  // Ensure data is always an array and update local state
   const employees = Array.isArray(employeesData) ? employeesData : [];
+  
+  // Update announcements when data loads using useEffect
+  useEffect(() => {
+    if (announcementsData && Array.isArray(announcementsData)) {
+      const formattedAnnouncements = announcementsData.map((announcement: any) => ({
+        id: parseInt(announcement.id),
+        title: announcement.title || '',
+        message: announcement.message || '',
+        status: announcement.status || 'New' as const,
+        announcer: announcement.announcerName || 'System',
+        department: announcement.department || '',
+        createdDate: announcement.createdDate || new Date(announcement.createdAt).toLocaleDateString(),
+        updatedDate: announcement.updatedDate || new Date(announcement.updatedAt || announcement.createdAt).toLocaleDateString(),
+        attachment: announcement.attachment || null
+      }));
+      setAnnouncements(formattedAnnouncements);
+    }
+  }, [announcementsData]);
 
   const filteredAnnouncements = announcements.filter(announcement => {
     const matchesSearch = announcement.title.toLowerCase().includes(searchTerm.toLowerCase()) ||

@@ -287,6 +287,17 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  app.get("/api/announcements", authenticateToken, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const announcements = await storage.getAnnouncementsForUser(userId);
+      res.json(announcements);
+    } catch (error) {
+      console.error("Fetch announcements error:", error);
+      res.status(500).json({ error: "Failed to fetch announcements" });
+    }
+  });
+
   // Employee statistics for pie chart
   app.get("/api/employee-statistics", authenticateToken, async (req, res) => {
     try {

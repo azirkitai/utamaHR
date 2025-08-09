@@ -275,6 +275,7 @@ export interface IStorage {
 
   // =================== ANNOUNCEMENT METHODS ===================
   getAnnouncementsForUser(userId: string): Promise<any[]>;
+  getAllAnnouncements(): Promise<any[]>;
   createAnnouncement(announcement: InsertAnnouncement): Promise<SelectAnnouncement>;
   getUserAnnouncements(userId: string): Promise<SelectUserAnnouncement[]>;
   markAnnouncementAsRead(userId: string, announcementId: string): Promise<SelectUserAnnouncement>;
