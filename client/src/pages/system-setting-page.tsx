@@ -682,7 +682,7 @@ export default function SystemSettingPage() {
       }
     } catch (error) {
       console.error("Error saving leave approval:", error);
-      alert(`Gagal menyimpan tetapan kelulusan cuti: ${error.message}`);
+      alert(`Gagal menyimpan tetapan kelulusan cuti: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -747,7 +747,7 @@ export default function SystemSettingPage() {
     setShowUpdatePolicyDialog(true);
   };
 
-  const handleGroupPolicyToggle = (roleName: string) => {
+  const handleGroupPolicyToggle = (roleName: keyof typeof groupPolicySettings) => {
     setGroupPolicySettings(prev => ({
       ...prev,
       [roleName]: {
@@ -757,7 +757,7 @@ export default function SystemSettingPage() {
     }));
   };
 
-  const handleGroupPolicyDaysChange = (roleName: string, newDays: string) => {
+  const handleGroupPolicyDaysChange = (roleName: keyof typeof groupPolicySettings, newDays: string) => {
     setGroupPolicySettings(prev => ({
       ...prev,
       [roleName]: {
@@ -1806,15 +1806,15 @@ export default function SystemSettingPage() {
               <div className="space-y-1 text-sm text-gray-600">
                 <div>
                   <span className="font-medium">First Level Approver:</span>{" "}
-                  {currentLeaveSettings?.firstLevelApprovalId ? 
-                    approvalEmployees?.find(emp => emp.id === currentLeaveSettings.firstLevelApprovalId)?.fullName || 'Loading...' 
+                  {(currentLeaveSettings as any)?.firstLevelApprovalId ? 
+                    approvalEmployees?.find(emp => emp.id === (currentLeaveSettings as any).firstLevelApprovalId)?.fullName || 'Loading...' 
                     : 'Not set'
                   }
                 </div>
                 <div>
                   <span className="font-medium">Second Level Approver:</span>{" "}
-                  {currentLeaveSettings?.secondLevelApprovalId ? 
-                    approvalEmployees?.find(emp => emp.id === currentLeaveSettings.secondLevelApprovalId)?.fullName || 'Loading...' 
+                  {(currentLeaveSettings as any)?.secondLevelApprovalId ? 
+                    approvalEmployees?.find(emp => emp.id === (currentLeaveSettings as any).secondLevelApprovalId)?.fullName || 'Loading...' 
                     : 'None'
                   }
                 </div>
@@ -1876,7 +1876,7 @@ export default function SystemSettingPage() {
                               <div className="flex items-center space-x-3">
                                 <Switch 
                                   checked={settings.selected}
-                                  onCheckedChange={() => handleGroupPolicyToggle(roleName)}
+                                  onCheckedChange={() => handleGroupPolicyToggle(roleName as keyof typeof groupPolicySettings)}
                                   className="data-[state=checked]:bg-blue-900"
                                 />
                                 <Label className="text-sm font-medium">{roleName}</Label>
@@ -1884,7 +1884,7 @@ export default function SystemSettingPage() {
                               <Input 
                                 type="number"
                                 value={settings.days}
-                                onChange={(e) => handleGroupPolicyDaysChange(roleName, e.target.value)}
+                                onChange={(e) => handleGroupPolicyDaysChange(roleName as keyof typeof groupPolicySettings, e.target.value)}
                                 className="w-16 h-8 text-center"
                               />
                             </div>
@@ -2760,11 +2760,11 @@ export default function SystemSettingPage() {
         </div>
         <div className="p-4">
           <p className="text-sm text-gray-600 mb-4">Ensure all clock-ins and outs are restricted to a set radius. Create location now!</p>
-          {officeLocations.length === 0 ? (
+          {(officeLocations as any[]).length === 0 ? (
             <p className="text-sm text-gray-500 italic">No locations created yet.</p>
           ) : (
             <div className="space-y-2">
-              {officeLocations.map((location) => (
+              {(officeLocations as any[]).map((location: any) => (
                 <div key={location.id} className="flex items-center justify-between p-3 border rounded-lg">
                   <div>
                     <h4 className="font-medium flex items-center gap-2">
