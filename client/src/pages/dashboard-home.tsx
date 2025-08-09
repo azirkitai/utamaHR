@@ -139,6 +139,10 @@ export default function DashboardHome() {
 
   // Check if user has privileged access to view Today Statistic and Pending Approval cards
   const hasPrivilegedAccess = (dashboardData?.user as any)?.role && ['Super Admin', 'Admin', 'HR Manager', 'PIC'].includes((dashboardData.user as any).role);
+  
+  // Debug log to check role
+  console.log('Current user role:', (dashboardData?.user as any)?.role);
+  console.log('Has privileged access:', hasPrivilegedAccess);
 
   if (isDashboardLoading || isStatsLoading || isDashboardStatsLoading || isUserStatsLoading || isPendingStatsLoading) {
     return (

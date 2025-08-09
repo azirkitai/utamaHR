@@ -175,11 +175,15 @@ export function registerRoutes(app: Express): Server {
   // Protected dashboard route
   app.get("/api/dashboard", authenticateToken, async (req, res) => {
     try {
+      // Get user with role information from database
+      const user = await storage.getUser(req.user!.id);
+      
       res.json({
         message: "Selamat datang ke UtamaHR Dashboard",
         user: {
           id: req.user!.id,
           username: req.user!.username,
+          role: user?.role || null,
         },
         timestamp: new Date().toISOString(),
       });
