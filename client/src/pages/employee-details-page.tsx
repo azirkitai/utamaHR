@@ -679,9 +679,22 @@ export default function EmployeeDetailsPage() {
                 </div>
                 <div className="text-right">
                   <div className="text-sm opacity-90">User Role</div>
-                  <div className="font-semibold">Human Resource</div>
+                  <div className="font-semibold">
+                    {(() => {
+                      // Determine the correct role to display
+                      // Priority: employees.role if it's an approval role, otherwise users.role
+                      const approvalRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+                      if (employee?.role && approvalRoles.includes(employee.role)) {
+                        return employee.role;
+                      } else if (employeeUser?.role && approvalRoles.includes(employeeUser.role)) {
+                        return employeeUser.role;
+                      } else {
+                        return employee?.role || employeeUser?.role || "Staff/Employee";
+                      }
+                    })()}
+                  </div>
                   <div className="text-sm opacity-90 mt-2">Department</div>
-                  <div className="font-semibold">{"Human Resource"}</div>
+                  <div className="font-semibold">{employment?.department || "Human Resource"}</div>
                 </div>
               </div>
             </div>
