@@ -1827,82 +1827,57 @@ export default function SystemSettingPage() {
 
                   {/* Expanded Details */}
                   {expandedPolicyId === policy.id && (
-                    <div className="mt-4 space-y-4 border-t pt-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div>
-                          <label className="text-xs text-gray-500">Group Policy</label>
-                          <div className="flex items-center space-x-2 mt-1">
-                            <span className="w-3 h-3 rounded-full border-2 border-blue-600"></span>
-                            <span className="text-sm">12</span>
-                          </div>
-                        </div>
-                        <div>
-                          <label className="text-xs text-gray-500">Board Of Director</label>
-                          <div className="flex items-center space-x-2 mt-1">
-                            <span className="w-3 h-3 rounded-full border-2 border-gray-300"></span>
-                            <span className="text-sm">12</span>
-                          </div>
-                        </div>
-                        <div>
-                          <label className="text-xs text-gray-500">HOD/Manager</label>
-                          <div className="flex items-center space-x-2 mt-1">
-                            <span className="w-3 h-3 rounded-full border-2 border-gray-300"></span>
-                            <span className="text-sm">12</span>
-                          </div>
-                        </div>
-                        <div>
-                          <label className="text-xs text-gray-500">Finance/Account</label>
-                          <div className="flex items-center space-x-2 mt-1">
-                            <span className="w-3 h-3 rounded-full border-2 border-gray-300"></span>
-                            <span className="text-sm">12</span>
-                          </div>
+                    <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-4">
+                      {/* Group Policy Section */}
+                      <div>
+                        <label className="text-sm font-medium text-gray-700 mb-3 block">Group Policy</label>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                          {[
+                            { name: "Board Of Director", days: "12", selected: false },
+                            { name: "HOD/Manager", days: "12", selected: false },
+                            { name: "Finance/Account", days: "12", selected: false },
+                            { name: "Human Resource", days: "12", selected: false },
+                            { name: "Employee", days: "12", selected: false }
+                          ].map((role, index) => (
+                            <div key={role.name} className="text-center">
+                              <div className="flex items-center justify-center space-x-2 mb-1">
+                                <span className={`w-4 h-4 rounded-full border-2 ${role.selected ? 'border-blue-600 bg-blue-600' : 'border-gray-300'}`}></span>
+                                <span className="text-lg font-medium">{role.days}</span>
+                              </div>
+                              <div className="text-xs text-gray-600">{role.name}</div>
+                            </div>
+                          ))}
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div>
-                          <label className="text-xs text-gray-500">Human Resource</label>
-                          <div className="flex items-center space-x-2 mt-1">
-                            <span className="w-3 h-3 rounded-full border-2 border-gray-300"></span>
-                            <span className="text-sm">12</span>
-                          </div>
-                        </div>
-                        <div>
-                          <label className="text-xs text-gray-500">Employee</label>
-                          <div className="flex items-center space-x-2 mt-1">
-                            <span className="w-3 h-3 rounded-full border-2 border-gray-300"></span>
-                            <span className="text-sm">12</span>
-                          </div>
-                        </div>
-                      </div>
-
+                      {/* Exclude Employee */}
                       <div className="space-y-2">
-                        <label className="text-xs text-gray-500">Exclude Employee</label>
-                        <input 
-                          type="text" 
-                          className="w-full p-2 border rounded text-sm" 
+                        <label className="text-sm font-medium text-gray-700">Exclude Employee</label>
+                        <Input 
                           placeholder="Choose employees to exclude"
+                          className="w-full"
                           readOnly
                         />
                       </div>
 
+                      {/* Settings Switches */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="flex items-center justify-between">
-                          <label className="text-xs text-gray-500">Upload Attachment</label>
+                        <div className="flex items-center justify-between p-3 bg-white rounded border">
+                          <Label className="text-sm font-medium">Upload Attachment</Label>
                           <Switch 
                             checked={true}
                             className="data-[state=checked]:bg-blue-900"
                           />
                         </div>
-                        <div className="flex items-center justify-between">
-                          <label className="text-xs text-gray-500">Reason</label>
+                        <div className="flex items-center justify-between p-3 bg-white rounded border">
+                          <Label className="text-sm font-medium">Reason</Label>
                           <Switch 
                             checked={false}
                             className="data-[state=checked]:bg-blue-900"
                           />
                         </div>
-                        <div className="flex items-center justify-between">
-                          <label className="text-xs text-gray-500">Carry Forward</label>
+                        <div className="flex items-center justify-between p-3 bg-white rounded border">
+                          <Label className="text-sm font-medium">Carry Forward</Label>
                           <Switch 
                             checked={true}
                             className="data-[state=checked]:bg-blue-900"
@@ -1910,16 +1885,17 @@ export default function SystemSettingPage() {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Pro-Rated Section */}
+                      <div className="p-3 bg-white rounded border">
                         <div className="flex items-center justify-between">
-                          <label className="text-xs text-gray-500">Pro-Rated</label>
+                          <Label className="text-sm font-medium">Pro-Rated</Label>
                           <div className="flex items-center space-x-2">
                             <Switch 
                               checked={true}
                               className="data-[state=checked]:bg-blue-900"
                             />
                             <Select defaultValue="round-up">
-                              <SelectTrigger className="w-32 h-8">
+                              <SelectTrigger className="w-32 h-8 text-xs">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -1928,7 +1904,7 @@ export default function SystemSettingPage() {
                               </SelectContent>
                             </Select>
                             <Select defaultValue="1-day">
-                              <SelectTrigger className="w-20 h-8">
+                              <SelectTrigger className="w-24 h-8 text-xs">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
@@ -1940,34 +1916,34 @@ export default function SystemSettingPage() {
                         </div>
                       </div>
 
+                      {/* Day Limit and Leave Remark */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <label className="text-xs text-gray-500">Day Limit</label>
+                          <Label className="text-sm font-medium">Day Limit</Label>
                           <div className="flex items-center space-x-2">
-                            <input 
+                            <Input 
                               type="number" 
-                              className="w-16 p-1 border rounded text-sm" 
+                              className="w-20 h-8" 
                               defaultValue="5"
                             />
                             <span className="text-sm text-gray-500">days before Application</span>
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <label className="text-xs text-gray-500">Leave Remark</label>
-                          <input 
-                            type="text" 
-                            className="w-full p-2 border rounded text-sm" 
+                          <Label className="text-sm font-medium">Leave Remark</Label>
+                          <Input 
                             placeholder="Leave Remarks"
                             defaultValue="Leave Remarks"
                           />
                         </div>
                       </div>
 
-                      <div className="flex justify-end space-x-2">
+                      {/* Action Buttons */}
+                      <div className="flex justify-end space-x-2 pt-2">
                         <Button 
                           variant="outline"
                           size="sm"
-                          className="text-gray-600"
+                          onClick={() => setExpandedPolicyId(null)}
                         >
                           Cancel
                         </Button>
