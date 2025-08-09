@@ -308,13 +308,7 @@ export class DatabaseStorage implements IStorage {
     return (result.rowCount ?? 0) > 0;
   }
 
-  async getEmployeeByUserId(userId: string): Promise<Employee | undefined> {
-    const [employee] = await db
-      .select()
-      .from(employees)
-      .where(eq(employees.userId, userId));
-    return employee || undefined;
-  }
+
 
   // =================== EMPLOYMENT METHODS ===================
   async getEmploymentByEmployeeId(employeeId: string): Promise<Employment | undefined> {
@@ -548,7 +542,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createWorkExperience(insertWorkExperience: InsertWorkExperience): Promise<WorkExperience> {
-    const [record] = await db.insert(workExperiences).values(insertWorkExperience).returning();
+    const [record] = await db.insert(workExperiences).values([insertWorkExperience]).returning();
     return record;
   }
 
@@ -556,8 +550,7 @@ export class DatabaseStorage implements IStorage {
     const [record] = await db
       .update(workExperiences)
       .set({
-        ...updateWorkExperience,
-        updatedAt: new Date()
+        ...updateWorkExperience
       })
       .where(eq(workExperiences.id, id))
       .returning();

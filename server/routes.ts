@@ -94,7 +94,7 @@ async function processClockOut(
     const selfieImagePath = objectStorageService.normalizeSelfieImagePath(selfieImageUrl);
 
     // Mark QR token as used
-    await storage.markQrTokenAsUsed(token);
+    await storage.markQrTokenAsUsed(qrToken.token);
 
     // Calculate total hours
     const clockInTime = new Date(todayAttendance.clockInTime);
@@ -136,7 +136,11 @@ async function processClockOut(
 
   } catch (error) {
     console.error("Process clock-out error:", error);
-    return res.status(500).json({ error: "Gagal melakukan clock-out" });
+    console.error("Error stack:", error instanceof Error ? error.stack : 'Unknown error');
+    return res.status(500).json({ 
+      error: "Gagal melakukan clock-out",
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 }
 
@@ -792,6 +796,8 @@ export function registerRoutes(app: Express): Server {
   // Submit mobile clock-in with selfie and GPS validation
   app.post("/api/mobile-clockin", async (req, res) => {
     try {
+      console.log("=== MOBILE CLOCKIN REQUEST ===");
+      console.log("Body:", JSON.stringify(req.body, null, 2));
       const validationResult = mobileClockInSchema.safeParse(req.body);
       if (!validationResult.success) {
         return res.status(400).json({ 
@@ -937,7 +943,11 @@ export function registerRoutes(app: Express): Server {
 
     } catch (error) {
       console.error("Mobile clock-in error:", error);
-      res.status(500).json({ error: "Gagal melakukan clock-in" });
+      console.error("Error stack:", error instanceof Error ? error.stack : 'Unknown error');
+      res.status(500).json({ 
+        error: "Gagal melakukan clock-in",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
