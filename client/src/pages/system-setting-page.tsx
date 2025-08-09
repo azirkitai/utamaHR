@@ -198,6 +198,9 @@ export default function SystemSettingPage() {
     "Human Resource": { selected: false, days: "12" },
     "Employee": { selected: false, days: "12" }
   });
+  
+  // Exclude Employee state
+  const [excludedEmployees, setExcludedEmployees] = useState<string[]>([]);
   const [newPolicyForm, setNewPolicyForm] = useState({
     claimName: "",
     mileageBased: false,
@@ -589,6 +592,12 @@ export default function SystemSettingPage() {
   // Fetch employees with approval roles (Super Admin, Admin, HR Manager, PIC)
   const { data: approvalEmployees = [] } = useQuery<any[]>({
     queryKey: ["/api/employees/approval-roles"],
+    enabled: true
+  });
+
+  // Get all employees for exclude selection
+  const { data: allEmployees = [] } = useQuery<any[]>({
+    queryKey: ["/api/employees"],
     enabled: true
   });
 
@@ -1885,11 +1894,53 @@ export default function SystemSettingPage() {
                       {/* Exclude Employee */}
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700">Exclude Employee</label>
-                        <Input 
-                          placeholder="Choose employees to exclude"
-                          className="w-full"
-                          readOnly
-                        />
+                        <Select
+                          value={excludedEmployees.length > 0 ? excludedEmployees[0] : ""}
+                          onValueChange={(value) => {
+                            if (value && !excludedEmployees.includes(value)) {
+                              setExcludedEmployees(prev => [...prev, value]);
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder={
+                              excludedEmployees.length > 0 
+                                ? `${excludedEmployees.length} employees selected`
+                                : "Choose employees to exclude"
+                            } />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {allEmployees?.map((employee) => (
+                              <SelectItem 
+                                key={employee.id} 
+                                value={employee.id}
+                                disabled={excludedEmployees.includes(employee.id)}
+                              >
+                                {employee.fullName} ({employee.department || 'No Department'})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        
+                        {/* Show selected employees */}
+                        {excludedEmployees.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {excludedEmployees.map((employeeId) => {
+                              const employee = allEmployees?.find(emp => emp.id === employeeId);
+                              return (
+                                <div key={employeeId} className="flex items-center bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
+                                  <span>{employee?.fullName || employeeId}</span>
+                                  <button
+                                    onClick={() => setExcludedEmployees(prev => prev.filter(id => id !== employeeId))}
+                                    className="ml-2 text-blue-600 hover:text-blue-800"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
 
                       {/* Settings Switches */}
