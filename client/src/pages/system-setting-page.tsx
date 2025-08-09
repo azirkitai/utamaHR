@@ -155,11 +155,49 @@ export default function SystemSettingPage() {
     queryKey: ["/api/company-leave-types"]
   });
 
-  // Transform real data to match our UI format
+  // Get group policy settings for all leave types to calculate majority entitlement
+  const { data: allGroupPolicySettings = [] } = useQuery({
+    queryKey: ["/api/group-policy-settings"],
+    enabled: true
+  });
+
+  // Function to calculate majority entitlement for a leave type
+  const calculateMajorityEntitlement = (leaveTypeId: string) => {
+    const policiesForThisType = allGroupPolicySettings.filter((policy: any) => 
+      policy.leaveType === leaveTypeId && policy.enabled
+    );
+    
+    if (policiesForThisType.length === 0) {
+      // If no group policies set, return default from company leave type
+      const companyType = companyLeaveTypes.find((ct: any) => ct.id === leaveTypeId);
+      return companyType?.entitlementDays || 0;
+    }
+    
+    // Count frequency of each entitlement day value
+    const daysCounts: { [key: number]: number } = {};
+    policiesForThisType.forEach((policy: any) => {
+      const days = policy.entitlementDays || 0;
+      daysCounts[days] = (daysCounts[days] || 0) + 1;
+    });
+    
+    // Find the most frequent value (majority)
+    let maxCount = 0;
+    let majorityDays = 0;
+    for (const [days, count] of Object.entries(daysCounts)) {
+      if (count > maxCount) {
+        maxCount = count;
+        majorityDays = parseInt(days);
+      }
+    }
+    
+    return majorityDays;
+  };
+
+  // Transform real data to match our UI format with majority-based entitlement
   const leavePolicies = Array.isArray(companyLeaveTypes) ? companyLeaveTypes.map((leaveType: any) => ({
     id: leaveType.id,
     name: leaveType.leaveType,
-    entitlement: `${leaveType.entitlementDays || 0} Day(s)`,
+    entitlement: `${calculateMajorityEntitlement(leaveType.id)} Day(s)`,
     enabled: leaveType.enabled || false
   })) : [];
   
