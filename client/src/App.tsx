@@ -57,6 +57,8 @@ function Router() {
       <ProtectedRoute path="/qr-clockin" component={QRClockInPage} />
       <ProtectedRoute path="/system-setting/*" component={SystemSettingPage} />
       <ProtectedRoute path="/system-setting" component={SystemSettingPage} />
+      <ProtectedRoute path="/system-settings/*" component={SystemSettingPage} />
+      <ProtectedRoute path="/system-settings" component={SystemSettingPage} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/mobile-clockin" component={MobileClockInPage} />
       <ProtectedRoute path="/mobile-clockout" component={MobileClockOutPage} />
