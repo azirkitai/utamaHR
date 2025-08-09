@@ -1560,7 +1560,11 @@ export default function SystemSettingPage() {
                 <Label className="text-sm font-medium">First Level Approval</Label>
                 <Select 
                   value={leaveApproval.firstLevel} 
-                  onValueChange={(value) => setLeaveApproval(prev => ({...prev, firstLevel: value}))}
+                  onValueChange={(value) => setLeaveApproval(prev => ({
+                    ...prev, 
+                    firstLevel: value,
+                    secondLevel: prev.secondLevel === value ? "none" : prev.secondLevel
+                  }))}
                 >
                   <SelectTrigger data-testid="select-first-level-approval">
                     <SelectValue placeholder="Select first leave approval" />
@@ -1586,7 +1590,7 @@ export default function SystemSettingPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">None</SelectItem>
-                    {approvalEmployees?.map((employee) => (
+                    {approvalEmployees?.filter(employee => employee.id !== leaveApproval.firstLevel).map((employee) => (
                       <SelectItem key={employee.id} value={employee.id}>
                         {employee.fullName} ({employee.role})
                       </SelectItem>
@@ -1666,7 +1670,11 @@ export default function SystemSettingPage() {
                 <Label className="text-sm font-medium">First Level Approval</Label>
                 <Select 
                   value={timeoffApproval.firstLevel} 
-                  onValueChange={(value) => setTimeoffApproval(prev => ({...prev, firstLevel: value}))}
+                  onValueChange={(value) => setTimeoffApproval(prev => ({
+                    ...prev, 
+                    firstLevel: value,
+                    secondLevel: prev.secondLevel === value ? "none" : prev.secondLevel
+                  }))}
                 >
                   <SelectTrigger data-testid="select-timeoff-first-level-approval">
                     <SelectValue placeholder="Select first leave approval" />
@@ -1692,7 +1700,7 @@ export default function SystemSettingPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">None</SelectItem>
-                    {approvalEmployees?.map((employee) => (
+                    {approvalEmployees?.filter(employee => employee.id !== timeoffApproval.firstLevel).map((employee) => (
                       <SelectItem key={employee.id} value={employee.id}>
                         {employee.fullName} ({employee.role})
                       </SelectItem>
