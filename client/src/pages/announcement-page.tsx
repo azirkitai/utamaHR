@@ -55,6 +55,7 @@ interface Announcement {
   department?: string;
   createdDate: string;
   updatedDate: string;
+  attachment?: string | null;
 }
 
 const sampleAnnouncements: Announcement[] = [
@@ -103,6 +104,8 @@ export default function AnnouncementPage() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [announcementToDelete, setAnnouncementToDelete] = useState<number | null>(null);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
 
   const { toast } = useToast();
 
@@ -221,10 +224,16 @@ export default function AnnouncementPage() {
   };
 
   const handleViewAnnouncement = (id: number) => {
-    setAnnouncements(announcements.map(a => 
-      a.id === id ? { ...a, status: 'Read' as const } : a
-    ));
-    console.log("View announcement:", id);
+    const announcement = announcements.find(a => a.id === id);
+    if (announcement) {
+      setSelectedAnnouncement(announcement);
+      setViewDialogOpen(true);
+      
+      // Update status to Read
+      setAnnouncements(announcements.map(a => 
+        a.id === id ? { ...a, status: 'Read' as const } : a
+      ));
+    }
   };
 
   const handleEditAnnouncement = (id: number) => {
@@ -693,6 +702,88 @@ export default function AnnouncementPage() {
           </div>
         </div>
         
+        {/* View Announcement Dialog */}
+        <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-semibold text-gray-900">
+                {selectedAnnouncement?.title}
+              </DialogTitle>
+            </DialogHeader>
+            
+            {selectedAnnouncement && (
+              <div className="space-y-6">
+                {/* Announcement Info */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Announcer</label>
+                    <p className="text-gray-900">{selectedAnnouncement.announcer}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Status</label>
+                    <Badge 
+                      variant="default"
+                      className="bg-teal-500 hover:bg-teal-600"
+                    >
+                      {selectedAnnouncement.status}
+                    </Badge>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Created Date</label>
+                    <p className="text-gray-900">{selectedAnnouncement.createdDate}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Updated Date</label>
+                    <p className="text-gray-900">{selectedAnnouncement.updatedDate}</p>
+                  </div>
+                  {selectedAnnouncement.department && (
+                    <div className="md:col-span-2">
+                      <label className="text-sm font-medium text-gray-700">Department</label>
+                      <p className="text-gray-900">{selectedAnnouncement.department}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Message Content */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">Message</label>
+                  <div className="p-4 bg-white border border-gray-200 rounded-lg">
+                    <div className="prose max-w-none">
+                      <p className="text-gray-900 whitespace-pre-wrap leading-relaxed">
+                        {selectedAnnouncement.message}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Attachment Section - if exists */}
+                {selectedAnnouncement.attachment && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">Attachment</label>
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2">
+                      <Upload className="h-4 w-4 text-blue-600" />
+                      <span className="text-sm text-blue-800">{selectedAnnouncement.attachment}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <DialogFooter>
+              <Button 
+                onClick={() => {
+                  setViewDialogOpen(false);
+                  setSelectedAnnouncement(null);
+                }}
+                className="bg-teal-600 hover:bg-teal-700 text-white"
+                data-testid="button-close-view"
+              >
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {/* Delete Confirmation Dialog */}
         <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
           <AlertDialogContent>
