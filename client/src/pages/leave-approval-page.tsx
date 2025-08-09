@@ -78,8 +78,9 @@ export default function LeaveApprovalPage() {
   // Fetch all leave applications from database
   const { data: leaveApplications = [], isLoading, error } = useQuery<LeaveRecord[]>({
     queryKey: ["/api/leave-applications"], 
-    staleTime: 30000, // Cache for 30 seconds
+    staleTime: 0, // No cache - always fresh data
     refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 
   // Mutation for approve/reject leave applications
