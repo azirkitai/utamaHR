@@ -1818,6 +1818,14 @@ export function registerRoutes(app: Express): Server {
         const isFirstLevelApprover = approvalSetting.firstLevelApprovalId === currentEmployee.id;
         const isSecondLevelApprover = approvalSetting.secondLevelApprovalId === currentEmployee.id;
         
+        console.log("DEBUG: Approval workflow filtering");
+        console.log("Current user ID:", currentUser.id);
+        console.log("Current employee ID:", currentEmployee.id);
+        console.log("First level approver ID:", approvalSetting.firstLevelApprovalId);
+        console.log("Second level approver ID:", approvalSetting.secondLevelApprovalId);
+        console.log("Is first level approver:", isFirstLevelApprover);
+        console.log("Is second level approver:", isSecondLevelApprover);
+        
         if (isFirstLevelApprover) {
           // First level approver sees all pending applications 
           const pendingApplications = await db
