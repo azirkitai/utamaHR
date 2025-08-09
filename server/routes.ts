@@ -472,6 +472,179 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Get active company leave types only
+  app.get("/api/company-leave-types/active", authenticateToken, async (req, res) => {
+    try {
+      console.log('Fetching active company leave types...');
+      
+      const activeLeaveTypes = await db
+        .select()
+        .from(companyLeaveTypes)
+        .where(eq(companyLeaveTypes.enabled, true))
+        .orderBy(companyLeaveTypes.leaveType);
+
+      console.log('Active leave types found:', activeLeaveTypes.length);
+      
+      res.json(activeLeaveTypes);
+    } catch (error) {
+      console.error("Get active leave types error:", error);
+      res.status(500).json({ error: "Failed to get active leave types" });
+    }
+  });
+
+  // Get leave statistics by type (only for active/enabled leave types)
+  app.get("/api/leave-statistics", authenticateToken, async (req, res) => {
+    try {
+      console.log('Fetching leave statistics...');
+      
+      // Get only enabled leave types
+      const enabledLeaveTypes = await db
+        .select()
+        .from(companyLeaveTypes)
+        .where(eq(companyLeaveTypes.enabled, true));
+
+      const statistics = [];
+      
+      for (const leaveType of enabledLeaveTypes) {
+        // Count total approved leave applications for this type
+        const approvedApplications = await db
+          .select()
+          .from(leaveApplications)
+          .where(
+            and(
+              eq(leaveApplications.leaveType, leaveType.leaveType),
+              eq(leaveApplications.status, 'Approved')
+            )
+          );
+
+        // Calculate total days taken
+        const totalDaysTaken = approvedApplications.reduce((sum, app) => {
+          return sum + parseInt(app.totalDays || '0');
+        }, 0);
+
+        statistics.push({
+          leaveType: leaveType.leaveType,
+          leaveTypeId: leaveType.id,
+          totalApplications: approvedApplications.length,
+          totalDaysTaken: totalDaysTaken,
+          entitlementDays: leaveType.entitlementDays || 0,
+          enabled: leaveType.enabled
+        });
+      }
+
+      console.log('Leave statistics calculated:', statistics.length, 'types');
+      
+      res.json(statistics);
+    } catch (error) {
+      console.error("Get leave statistics error:", error);
+      res.status(500).json({ error: "Failed to get leave statistics" });
+    }
+  });
+
+  // Initialize sample company leave types and data (for testing)
+  app.post("/api/initialize-sample-data", authenticateToken, async (req, res) => {
+    try {
+      console.log('Initializing sample leave data...');
+      
+      // Sample leave types that company can enable
+      const sampleLeaveTypes = [
+        { leaveType: "Annual Leave", enabled: true, entitlementDays: 14, description: "Annual vacation leave" },
+        { leaveType: "Medical Leave", enabled: true, entitlementDays: 60, description: "Medical/sick leave" },
+        { leaveType: "Emergency Leave", enabled: true, entitlementDays: 3, description: "Emergency leave" },
+        { leaveType: "Compassionate Leave - Paternity Leave", enabled: false, entitlementDays: 7, description: "Paternity leave" },
+        { leaveType: "Compassionate Leave - Maternity Leave", enabled: false, entitlementDays: 98, description: "Maternity leave" },
+        { leaveType: "Unpaid Leave", enabled: false, entitlementDays: 30, description: "Unpaid leave" },
+        { leaveType: "Public Holiday", enabled: true, entitlementDays: 11, description: "Public holiday replacement" }
+      ];
+
+      // Insert or update company leave types
+      for (const leaveType of sampleLeaveTypes) {
+        await db
+          .insert(companyLeaveTypes)
+          .values(leaveType)
+          .onConflictDoUpdate({
+            target: companyLeaveTypes.leaveType,
+            set: {
+              enabled: leaveType.enabled,
+              entitlementDays: leaveType.entitlementDays,
+              description: leaveType.description,
+              updatedAt: sql`CURRENT_TIMESTAMP`
+            }
+          });
+      }
+
+      // Get current employee to create sample applications
+      const currentUser = req.user as any;
+      const currentEmployee = await db
+        .select()
+        .from(employees)
+        .where(eq(employees.userId, currentUser.id))
+        .limit(1);
+
+      if (currentEmployee.length > 0) {
+        const employee = currentEmployee[0];
+        
+        // Sample leave applications
+        const sampleApplications = [
+          {
+            employeeId: employee.id,
+            applicant: employee.fullName,
+            leaveType: "Annual Leave",
+            startDate: new Date('2024-08-15'),
+            endDate: new Date('2024-08-17'),
+            startDayType: "Full Day",
+            endDayType: "Full Day",
+            totalDays: "3",
+            reason: "Family vacation",
+            status: "Approved"
+          },
+          {
+            employeeId: employee.id,
+            applicant: employee.fullName,
+            leaveType: "Medical Leave",
+            startDate: new Date('2024-07-20'),
+            endDate: new Date('2024-07-22'),
+            startDayType: "Full Day",
+            endDayType: "Full Day",
+            totalDays: "3",
+            reason: "Medical treatment",
+            status: "Approved"
+          },
+          {
+            employeeId: employee.id,
+            applicant: employee.fullName,
+            leaveType: "Emergency Leave",
+            startDate: new Date('2024-06-10'),
+            endDate: new Date('2024-06-10'),
+            startDayType: "Full Day",
+            endDayType: "Full Day",
+            totalDays: "1",
+            reason: "Family emergency",
+            status: "Approved"
+          }
+        ];
+
+        // Insert sample applications
+        for (const application of sampleApplications) {
+          await db
+            .insert(leaveApplications)
+            .values(application);
+        }
+      }
+
+      console.log('Sample leave data initialized successfully');
+      
+      res.json({ 
+        message: "Sample data initialized successfully",
+        companyLeaveTypesCount: sampleLeaveTypes.length,
+        sampleApplicationsCount: currentEmployee.length > 0 ? 3 : 0
+      });
+    } catch (error) {
+      console.error("Initialize sample data error:", error);
+      res.status(500).json({ error: "Failed to initialize sample data" });
+    }
+  });
+
   // Employee statistics for pie chart
   app.get("/api/employee-statistics", authenticateToken, async (req, res) => {
     try {

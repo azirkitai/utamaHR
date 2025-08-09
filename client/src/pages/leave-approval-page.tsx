@@ -95,6 +95,16 @@ export default function LeaveApprovalPage() {
     refetchOnMount: true,
   });
 
+  // Fetch active leave policies (company-enabled only)
+  const { data: activeLeaveTypes = [] } = useQuery({
+    queryKey: ["/api/company-leave-types/active"]
+  });
+
+  // Fetch leave statistics by type
+  const { data: leaveStatistics = [] } = useQuery({
+    queryKey: ["/api/leave-statistics"]
+  });
+
   // Mutation for approve/reject leave applications
   const approveRejectMutation = useMutation({
     mutationFn: async ({ id, action, comments }: { id: string; action: 'approve' | 'reject'; comments?: string }) => {
@@ -315,58 +325,75 @@ export default function LeaveApprovalPage() {
     </Table>
   );
 
-  const renderSummaryTable = () => (
-    <Table>
-      <TableHeader>
-        <TableRow className="bg-gray-50">
-          <TableHead>No.</TableHead>
-          <TableHead>Name</TableHead>
-          <TableHead>Annual Leave</TableHead>
-          <TableHead>Medical Leave</TableHead>
-          <TableHead>Compassionate Leave - Paternity Leave</TableHead>
-          <TableHead>Compassionate Leave - Maternity Leave</TableHead>
-          <TableHead>Compassionate Leave - Death of Family Member</TableHead>
-          <TableHead>Sick (Spouse, Child, Parent)</TableHead>
-          <TableHead>Emergency Leave</TableHead>
-          <TableHead>Unpaid Leave</TableHead>
-          <TableHead>Public Holiday</TableHead>
-          <TableHead>Leave In Lieu</TableHead>
-          <TableHead>Exam Leave</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {leaveApplications.length === 0 ? (
-          <TableRow>
-            <TableCell colSpan={13} className="text-center py-8 text-gray-500">
-              No leave report data available
-            </TableCell>
+  const renderSummaryTable = () => {
+    // Generate dynamic columns based on active leave types only
+    const dynamicColumns = activeLeaveTypes.map((type: any) => ({
+      id: type.id,
+      name: type.leaveType,
+      key: type.leaveType.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '')
+    }));
+
+    return (
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-gray-50">
+            <TableHead>No.</TableHead>
+            <TableHead>Leave Type</TableHead>
+            <TableHead>Total Days Taken</TableHead>
+            <TableHead>Total Applications</TableHead>
+            <TableHead>Entitlement Days</TableHead>
+            <TableHead>Remaining Days</TableHead>
           </TableRow>
-        ) : (
-          leaveApplications.map((record: LeaveRecord, index: number) => (
-            <TableRow key={record.id}>
-              <TableCell>
-                <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs">
-                  {index + 1}
-                </div>
+        </TableHeader>
+        <TableBody>
+          {leaveStatistics.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                No leave statistics available
               </TableCell>
-              <TableCell className="font-medium">{record.applicant}</TableCell>
-              <TableCell>{record.annualLeave || 0}</TableCell>
-              <TableCell>{record.medicalLeave || 0}</TableCell>
-              <TableCell>{record.paternityLeave || 0}</TableCell>
-              <TableCell>{record.compassionateLeave || 0}</TableCell>
-              <TableCell>{record.compassionateLeave || 0}</TableCell>
-              <TableCell>{record.sickLeave || 0}</TableCell>
-              <TableCell>{record.emergencyLeave || 0}</TableCell>
-              <TableCell>{record.unpaidLeave || 0}</TableCell>
-              <TableCell>{record.publicHolidayLeave || 0}</TableCell>
-              <TableCell>{record.leaveInLieu || 0}</TableCell>
-              <TableCell>{record.examLeave || 0}</TableCell>
             </TableRow>
-          ))
-        )}
-      </TableBody>
-    </Table>
-  );
+          ) : (
+            leaveStatistics.map((stat: any, index: number) => (
+              <TableRow key={stat.leaveTypeId}>
+                <TableCell>
+                  <div className="w-6 h-6 rounded-full bg-gradient-to-r from-cyan-500 to-cyan-600 flex items-center justify-center text-white text-xs font-medium">
+                    {index + 1}
+                  </div>
+                </TableCell>
+                <TableCell className="font-medium">{stat.leaveType}</TableCell>
+                <TableCell>
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-blue-600">{stat.totalDaysTaken} days</span>
+                    <span className="text-xs text-gray-500">approved leave</span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center">
+                    <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm font-medium">
+                      {stat.totalApplications} apps
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <span className="text-gray-700 font-medium">{stat.entitlementDays} days</span>
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-col">
+                    <span className={`font-semibold ${(stat.entitlementDays - stat.totalDaysTaken) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {stat.entitlementDays - stat.totalDaysTaken} days
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {((stat.entitlementDays - stat.totalDaysTaken) / stat.entitlementDays * 100).toFixed(1)}% left
+                    </span>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    );
+  };
 
   const renderHistoryTable = () => (
     <Table>
@@ -533,9 +560,11 @@ export default function LeaveApprovalPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All leave type</SelectItem>
-                        <SelectItem value="annual">Annual Leave</SelectItem>
-                        <SelectItem value="medical">Medical Leave</SelectItem>
-                        <SelectItem value="emergency">Emergency Leave</SelectItem>
+                        {activeLeaveTypes.map((leaveType: any) => (
+                          <SelectItem key={leaveType.id} value={leaveType.leaveType}>
+                            {leaveType.leaveType}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>

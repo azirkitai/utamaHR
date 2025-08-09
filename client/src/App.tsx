@@ -46,6 +46,7 @@ function Router() {
       <ProtectedRoute path="/manage-employee" component={ManageEmployeePage} />
       <ProtectedRoute path="/approval" component={LeaveApprovalPage} />
       <ProtectedRoute path="/approval/leave" component={LeaveApprovalPage} />
+      <ProtectedRoute path="/leave-approval" component={LeaveApprovalPage} />
       <ProtectedRoute path="/approval/claim" component={ClaimApprovalPage} />
       <ProtectedRoute path="/approval/timeoff" component={TimeoffApprovalPage} />
       <ProtectedRoute path="/attendance/timesheet" component={AttendanceTimesheetPage} />
