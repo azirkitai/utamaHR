@@ -257,6 +257,14 @@ export interface IStorage {
     payrollRecord: number;
     paymentVoucher: number;
   }>;
+
+  getPendingApprovalStatistics(): Promise<{
+    pendingLeave: number;
+    pendingClaim: number;
+    pendingOvertime: number;
+    pendingPayroll: number;
+    pendingVoucher: number;
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1396,6 +1404,47 @@ export class DatabaseStorage implements IStorage {
         overtimeApproved: 0,
         payrollRecord: 0,
         paymentVoucher: 0
+      };
+    }
+  }
+
+  // Get pending approval statistics for dashboard
+  async getPendingApprovalStatistics(): Promise<{
+    pendingLeave: number;
+    pendingClaim: number;
+    pendingOvertime: number;
+    pendingPayroll: number;
+    pendingVoucher: number;
+  }> {
+    try {
+      // Count pending leave applications
+      const [pendingLeaveResult] = await db.select({
+        count: count(leaveApplications.id)
+      })
+      .from(leaveApplications)
+      .where(
+        or(
+          eq(leaveApplications.status, 'Pending'),
+          eq(leaveApplications.status, 'Submitted'),
+          eq(leaveApplications.status, 'Under Review')
+        )
+      );
+
+      return {
+        pendingLeave: Number(pendingLeaveResult?.count || 0),
+        pendingClaim: 0, // TODO: Implement when claim system is ready
+        pendingOvertime: 0, // TODO: Implement when overtime system is ready
+        pendingPayroll: 0, // TODO: Implement when payroll system is ready
+        pendingVoucher: 0 // TODO: Implement when voucher system is ready
+      };
+    } catch (error) {
+      console.error("Error fetching pending approval statistics:", error);
+      return {
+        pendingLeave: 0,
+        pendingClaim: 0,
+        pendingOvertime: 0,
+        pendingPayroll: 0,
+        pendingVoucher: 0
       };
     }
   }

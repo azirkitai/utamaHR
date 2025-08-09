@@ -107,6 +107,18 @@ export default function DashboardHome() {
     queryFn: () => authenticatedFetch('/api/user-statistics'),
   });
 
+  // Query untuk pending approval statistics  
+  const { data: pendingStats, isLoading: isPendingStatsLoading } = useQuery<{
+    pendingLeave: number;
+    pendingClaim: number;
+    pendingOvertime: number;
+    pendingPayroll: number;
+    pendingVoucher: number;
+  }>({
+    queryKey: ["/api/pending-approval-statistics"],
+    queryFn: () => authenticatedFetch('/api/pending-approval-statistics'),
+  });
+
   // Convert statistics to pie chart format
   const employeeData = employeeStats ? [
     { name: 'Active', value: employeeStats.activeCount, color: '#0891b2' },
@@ -125,7 +137,7 @@ export default function DashboardHome() {
 
   const userName = dashboardData?.user?.username || 'SITI NADIAH SABRI';
 
-  if (isDashboardLoading || isStatsLoading || isDashboardStatsLoading || isUserStatsLoading) {
+  if (isDashboardLoading || isStatsLoading || isDashboardStatsLoading || isUserStatsLoading || isPendingStatsLoading) {
     return (
       <DashboardLayout>
         <div className="p-6 flex justify-center items-center">
@@ -317,16 +329,18 @@ export default function DashboardHome() {
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               {[
-                { name: 'Leave', icon: Calendar, count: 0 },
-                { name: 'Claim', icon: FileText, count: 0 },
-                { name: 'Overtime', icon: Clock, count: 0 },
-                { name: 'Payroll', icon: DollarSign, count: 0 },
-                { name: 'Voucher', icon: Users, count: 0 }
+                { name: 'Leave', icon: Calendar, count: pendingStats?.pendingLeave || 0 },
+                { name: 'Claim', icon: FileText, count: pendingStats?.pendingClaim || 0 },
+                { name: 'Overtime', icon: Clock, count: pendingStats?.pendingOvertime || 0 },
+                { name: 'Payroll', icon: DollarSign, count: pendingStats?.pendingPayroll || 0 },
+                { name: 'Voucher', icon: Users, count: pendingStats?.pendingVoucher || 0 }
               ].map((item) => (
                 <Card key={item.name} className="hover:shadow-md transition-shadow cursor-pointer">
                   <CardContent className="p-6 text-center">
                     <item.icon className="w-8 h-8 text-cyan-600 mx-auto mb-3" />
-                    <div className="text-2xl font-bold text-gray-800 mb-1">{item.count}</div>
+                    <div className="text-2xl font-bold text-gray-800 mb-1" data-testid={`pending-${item.name.toLowerCase()}-count`}>
+                      {item.count}
+                    </div>
                     <div className="text-sm text-gray-600">{item.name}</div>
                   </CardContent>
                 </Card>

@@ -212,6 +212,17 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Pending approval statistics endpoint  
+  app.get("/api/pending-approval-statistics", authenticateToken, async (req, res) => {
+    try {
+      const statistics = await storage.getPendingApprovalStatistics();
+      res.json(statistics);
+    } catch (error) {
+      console.error("Pending approval statistics error:", error);
+      res.status(500).json({ error: "Gagal mendapatkan statistik pending approval" });
+    }
+  });
+
   // Employee statistics for pie chart
   app.get("/api/employee-statistics", authenticateToken, async (req, res) => {
     try {
