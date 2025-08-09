@@ -153,16 +153,16 @@ export default function SystemSettingPage() {
   // Get real leave policies data from API
   const { data: companyLeaveTypes = [] } = useQuery({
     queryKey: ["/api/company-leave-types"],
-    queryFn: () => apiRequest("/api/company-leave-types")
+    queryFn: () => apiRequest("/api/company-leave-types", "GET")
   });
 
   // Transform real data to match our UI format
-  const leavePolicies = companyLeaveTypes.map((leaveType: any) => ({
+  const leavePolicies = Array.isArray(companyLeaveTypes) ? companyLeaveTypes.map((leaveType: any) => ({
     id: leaveType.id,
     name: leaveType.name,
     entitlement: `${leaveType.defaultDays || 0} Day(s)`,
     enabled: leaveType.enabled || false
-  }));
+  })) : [];
   
   const [leaveApproval, setLeaveApproval] = useState({
     firstLevel: "",
@@ -620,25 +620,7 @@ export default function SystemSettingPage() {
     staleTime: 30000, // Cache for 30 seconds
   });
 
-  // Sync leave policies state with database data
-  useEffect(() => {
-    if (Array.isArray(activeLeaveTypesFromDB) && activeLeaveTypesFromDB.length > 0) {
-      setLeavePolicies(prevPolicies => 
-        prevPolicies.map(policy => ({
-          ...policy,
-          enabled: activeLeaveTypesFromDB.includes(policy.name)
-        }))
-      );
-    } else {
-      // Jika tiada data dari database, set semua jadi disabled
-      setLeavePolicies(prevPolicies => 
-        prevPolicies.map(policy => ({
-          ...policy,
-          enabled: false
-        }))
-      );
-    }
-  }, [activeLeaveTypesFromDB]);
+  // Note: No need for useEffect to sync data since we're using live API data directly
 
   // Load existing group policy settings when a policy is expanded
   useEffect(() => {
@@ -846,7 +828,7 @@ export default function SystemSettingPage() {
         if (response.ok) {
           console.log(`✅ Role ${roleName} diberi kelayakan ${currentPolicy.days} hari untuk ${expandedPolicyId}`);
           // Invalidate cache untuk memastikan data sentiasa terkini
-          queryClient.invalidateQueries([`/api/group-policy-settings/${expandedPolicyId}`]);
+          queryClient.invalidateQueries({ queryKey: [`/api/group-policy-settings/${expandedPolicyId}`] });
         } else {
           const errorData = await response.json();
           throw new Error(errorData.error || "Gagal menyimpan tetapan dasar kumpulan");
@@ -883,7 +865,7 @@ export default function SystemSettingPage() {
         if (response.ok) {
           console.log(`❌ Role ${roleName} dikeluarkan dari kelayakan ${expandedPolicyId}`);
           // Invalidate cache untuk memastikan data sentiasa terkini
-          queryClient.invalidateQueries([`/api/group-policy-settings/${expandedPolicyId}`]);
+          queryClient.invalidateQueries({ queryKey: [`/api/group-policy-settings/${expandedPolicyId}`] });
         } else {
           console.error("Gagal mengeluarkan tetapan dasar kumpulan");
         }
