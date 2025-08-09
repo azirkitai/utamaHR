@@ -350,12 +350,27 @@ export default function AnnouncementPage() {
     try {
       // Use Bearer token authentication
       const token = localStorage.getItem('token');
+      console.log('Token from localStorage:', token ? 'Token exists' : 'No token found');
+      
+      if (!token) {
+        toast({
+          title: "Error",
+          description: "No authentication token found. Please login again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const response = await fetch(`/api/announcements/attachment/${announcementId}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
       });
+      
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
       
       if (response.ok) {
         const blob = await response.blob();
@@ -374,9 +389,10 @@ export default function AnnouncementPage() {
         });
       } else {
         const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+        console.log('Error response:', errorData);
         toast({
           title: "Error",
-          description: errorData.error || "Failed to download attachment",
+          description: errorData.error || `Failed to download attachment (${response.status})`,
           variant: "destructive",
         });
       }

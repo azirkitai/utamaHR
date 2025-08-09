@@ -324,9 +324,13 @@ export function registerRoutes(app: Express): Server {
     try {
       const announcementId = req.params.id;
       
-      console.log('Attachment download request - User:', req.user?.username);
+      console.log('=== ATTACHMENT DOWNLOAD DEBUG ===');
+      console.log('Headers:', JSON.stringify(req.headers, null, 2));
+      console.log('User from middleware:', req.user?.username);
+      console.log('Authorization header:', req.headers.authorization);
       
       if (!req.user) {
+        console.log('No user found in request - authentication failed');
         return res.status(401).json({ error: "Authentication required" });
       }
       
