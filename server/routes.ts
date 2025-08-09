@@ -1894,8 +1894,8 @@ export function registerRoutes(app: Express): Server {
         const [updatedSetting] = await db
           .update(approvalSettings)
           .set({
-            firstLevelApprovalId: firstLevelApprovalId === "none" ? null : firstLevelApprovalId,
-            secondLevelApprovalId: secondLevelApprovalId === "none" ? null : secondLevelApprovalId,
+            firstLevelApprovalId: (firstLevelApprovalId === "none" || firstLevelApprovalId === "") ? null : firstLevelApprovalId,
+            secondLevelApprovalId: (secondLevelApprovalId === "none" || secondLevelApprovalId === "") ? null : secondLevelApprovalId,
             updatedAt: sql`now()`,
           })
           .where(eq(approvalSettings.id, existingSetting.id))
@@ -1908,8 +1908,8 @@ export function registerRoutes(app: Express): Server {
           .insert(approvalSettings)
           .values({
             type,
-            firstLevelApprovalId: firstLevelApprovalId === "none" ? null : firstLevelApprovalId,
-            secondLevelApprovalId: secondLevelApprovalId === "none" ? null : secondLevelApprovalId,
+            firstLevelApprovalId: (firstLevelApprovalId === "none" || firstLevelApprovalId === "") ? null : firstLevelApprovalId,
+            secondLevelApprovalId: (secondLevelApprovalId === "none" || secondLevelApprovalId === "") ? null : secondLevelApprovalId,
           })
           .returning();
         
