@@ -106,19 +106,20 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
     return leaveTypeSettings.some((setting: any) => setting.role === employeeRole);
   };
 
-  // Filter policies based on search, company-wide enabled types, and role-based access
+  // Filter policies based on search only - show all leave types but control access through company/role settings
   const filteredPolicies = leavePolicies.filter((policy) => {
     const matchesSearch = policy.leaveType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          policy.remarks?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    // Check if leave type is enabled for the company (switched on in system settings)
-    const isEnabledForCompany = isLeaveTypeEnabledForCompany(policy.leaveType || "");
-    
-    // Check if employee has role-based access
-    const hasRoleAccess = isLeaveTypeAllowedForRole(policy.leaveType || "");
-    
-    return matchesSearch && isEnabledForCompany && hasRoleAccess;
+    return matchesSearch;
   });
+
+  // Helper function to check if a leave policy should be accessible (both company enabled and role allowed)
+  const isPolicyAccessible = (policy: any) => {
+    const isEnabledForCompany = isLeaveTypeEnabledForCompany(policy.leaveType || "");
+    const hasRoleAccess = isLeaveTypeAllowedForRole(policy.leaveType || "");
+    return isEnabledForCompany && hasRoleAccess;
+  };
 
   const handleEdit = (policy: LeavePolicy) => {
     setEditingPolicy(policy);
@@ -272,67 +273,76 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
                       </td>
                     </tr>
                   ) : (
-                    filteredPolicies.map((policy) => (
-                      <tr key={policy.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
-                            {policy.leaveType || "N/A"}
-                          </div>
-                        </td>
-                        <td className="px-4 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            {policy.entitlement ? `${policy.entitlement} days` : "N/A"}
-                          </div>
-                        </td>
-                        <td className="px-4 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            {policy.balance !== null && policy.balance !== undefined 
-                              ? `${policy.balance} days` 
-                              : "N/A"}
-                          </div>
-                        </td>
-                        <td className="px-4 py-4">
-                          <div className="text-sm text-gray-900 max-w-xs truncate">
-                            {policy.remarks || "N/A"}
-                          </div>
-                        </td>
-                        <td className="px-4 py-4 whitespace-nowrap text-sm">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleGroupPolicy(policy.leaveType || "")}
-                            className="text-purple-600 hover:text-purple-700"
-                            data-testid={`button-group-policy-${policy.id}`}
-                          >
-                            <Settings className="w-4 h-4" />
-                          </Button>
-                        </td>
-                        <td className="px-4 py-4 whitespace-nowrap text-sm">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEdit(policy)}
-                            className="text-blue-600 hover:text-blue-700"
-                            data-testid={`button-edit-leave-policy-${policy.id}`}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                        </td>
-                        <td className="px-4 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <Switch
-                              checked={policy.included || false}
-                              onCheckedChange={(checked) => handleStatusToggle(policy.id, checked)}
-                              disabled={updateStatusMutation.isPending}
-                              data-testid={`switch-included-${policy.id}`}
-                            />
-                            <span className="ml-2 text-sm text-gray-600">
-                              {policy.included ? "Yes" : "No"}
-                            </span>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
+                    filteredPolicies.map((policy) => {
+                      const isAccessible = isPolicyAccessible(policy);
+                      return (
+                        <tr key={policy.id} className={`hover:bg-gray-50 ${!isAccessible ? 'opacity-60 bg-gray-50' : ''}`}>
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <div className={`text-sm font-medium ${isAccessible ? 'text-gray-900' : 'text-gray-500'}`}>
+                              {policy.leaveType || "N/A"}
+                              {!isAccessible && (
+                                <span className="ml-2 text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded">
+                                  Not Available
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <div className={`text-sm ${isAccessible ? 'text-gray-900' : 'text-gray-500'}`}>
+                              {policy.entitlement ? `${policy.entitlement} days` : "N/A"}
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <div className={`text-sm ${isAccessible ? 'text-gray-900' : 'text-gray-500'}`}>
+                              {policy.balance !== null && policy.balance !== undefined 
+                                ? `${policy.balance} days` 
+                                : "N/A"}
+                            </div>
+                          </td>
+                          <td className="px-4 py-4">
+                            <div className={`text-sm max-w-xs truncate ${isAccessible ? 'text-gray-900' : 'text-gray-500'}`}>
+                              {policy.remarks || "N/A"}
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleGroupPolicy(policy.leaveType || "")}
+                              className="text-purple-600 hover:text-purple-700"
+                              data-testid={`button-group-policy-${policy.id}`}
+                            >
+                              <Settings className="w-4 h-4" />
+                            </Button>
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEdit(policy)}
+                              className={`${isAccessible ? 'text-blue-600 hover:text-blue-700' : 'text-gray-400'}`}
+                              disabled={!isAccessible}
+                              data-testid={`button-edit-leave-policy-${policy.id}`}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <Switch
+                                checked={policy.included || false}
+                                onCheckedChange={(checked) => handleStatusToggle(policy.id, checked)}
+                                disabled={updateStatusMutation.isPending || !isAccessible}
+                                data-testid={`switch-included-${policy.id}`}
+                              />
+                              <span className={`ml-2 text-sm ${isAccessible ? 'text-gray-600' : 'text-gray-400'}`}>
+                                {isAccessible ? (policy.included ? "Yes" : "No") : "Restricted"}
+                              </span>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
@@ -343,7 +353,8 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
           {filteredPolicies.length > 0 && (
             <div className="flex items-center justify-between mt-4 text-sm text-gray-500">
               <div>
-                Showing {filteredPolicies.length} of {leavePolicies.length} entries
+                Showing {filteredPolicies.length} of {filteredPolicies.length} entries 
+                ({filteredPolicies.filter(policy => isPolicyAccessible(policy)).length} accessible)
               </div>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" disabled>
