@@ -134,6 +134,12 @@ export default function EmployeeDetailsPage() {
     queryKey: ["/api/user"],
   });
 
+  // Get employee's user data to display correct role
+  const { data: employeeUser } = useQuery<any>({
+    queryKey: ["/api/users", employee?.userId],
+    enabled: !!employee?.userId,
+  });
+
   // Check if current user can manage roles
   const canManageRoles = () => {
     if (!currentUser) return false;
@@ -1006,7 +1012,18 @@ export default function EmployeeDetailsPage() {
                               </Select>
                             ) : (
                               <div className="mt-1 p-2 bg-gray-50 rounded border">
-                                {employee?.role || "Staff/Employee"}
+                                {(() => {
+                                  // Determine the correct role to display
+                                  // Priority: employees.role if it's an approval role, otherwise users.role
+                                  const approvalRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+                                  if (employee?.role && approvalRoles.includes(employee.role)) {
+                                    return employee.role;
+                                  } else if (employeeUser?.role && approvalRoles.includes(employeeUser.role)) {
+                                    return employeeUser.role;
+                                  } else {
+                                    return employee?.role || employeeUser?.role || "Staff/Employee";
+                                  }
+                                })()}
                               </div>
                             )}
                           </div>

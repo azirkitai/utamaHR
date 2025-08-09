@@ -401,6 +401,23 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Get user by ID
+  app.get("/api/users/:id", authenticateToken, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.params.id);
+      if (!user) {
+        return res.status(404).json({ error: "User tidak dijumpai" });
+      }
+      
+      // Return user without password
+      const { password, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ error: "Gagal mendapatkan maklumat pengguna" });
+    }
+  });
+
   app.get("/api/employees/:id", authenticateToken, async (req, res) => {
     try {
       const currentUser = req.user!;
