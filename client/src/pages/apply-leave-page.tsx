@@ -282,7 +282,7 @@ export default function ApplyLeavePage() {
       endDate: new Date(endDate).toISOString(),
       startDayType: startDayType,
       endDayType: endDayType,
-      totalDays: calculateTotalDays(),
+      totalDays: calculateTotalDays().toString(),
       reason: reason,
       supportingDocument: uploadedFile?.name || null,
     };

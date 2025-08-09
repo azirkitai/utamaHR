@@ -553,6 +553,14 @@ export const insertLeaveApplicationSchema = createInsertSchema(leaveApplications
     (val) => val ? new Date(val as string | Date) : null,
     z.date()
   ),
+  // Handle totalDays to accept both number and string
+  totalDays: z.preprocess(
+    (val) => {
+      if (typeof val === 'number') return val.toString();
+      return val;
+    },
+    z.string()
+  ),
 });
 export const updateLeaveApplicationSchema = insertLeaveApplicationSchema.partial();
 

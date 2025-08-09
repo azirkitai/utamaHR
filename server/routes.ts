@@ -1765,10 +1765,11 @@ export function registerRoutes(app: Express): Server {
       console.error("Create leave application error:", error);
       console.error("Error stack:", error instanceof Error ? error.stack : 'Unknown error');
       
-      if (error instanceof Error && error.message.includes('parse')) {
+      if (error instanceof Error && (error.name === 'ZodError' || error.message.includes('parse'))) {
         res.status(400).json({ 
           error: "Data tidak sah", 
-          details: error.message 
+          details: error.message,
+          validationErrors: (error as any).issues || []
         });
       } else {
         res.status(500).json({ 
