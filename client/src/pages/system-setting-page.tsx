@@ -580,6 +580,12 @@ export default function SystemSettingPage() {
     enabled: true
   });
 
+  // Fetch current leave approval settings
+  const { data: currentLeaveSettings } = useQuery({
+    queryKey: ["/api/approval-settings/leave"],
+    staleTime: 30000, // Cache for 30 seconds
+  });
+
   // Sync leave policies state with database data
   useEffect(() => {
     if (Array.isArray(activeLeaveTypesFromDB) && activeLeaveTypesFromDB.length > 0) {
@@ -1740,6 +1746,27 @@ export default function SystemSettingPage() {
                 >
                   Save Changes
                 </Button>
+              </div>
+            </div>
+
+            {/* Current Settings Preview */}
+            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Current Approval Settings:</h4>
+              <div className="space-y-1 text-sm text-gray-600">
+                <div>
+                  <span className="font-medium">First Level Approver:</span>{" "}
+                  {currentLeaveSettings?.firstLevelApprovalId ? 
+                    approvalEmployees?.find(emp => emp.id === currentLeaveSettings.firstLevelApprovalId)?.fullName || 'Loading...' 
+                    : 'Not set'
+                  }
+                </div>
+                <div>
+                  <span className="font-medium">Second Level Approver:</span>{" "}
+                  {currentLeaveSettings?.secondLevelApprovalId ? 
+                    approvalEmployees?.find(emp => emp.id === currentLeaveSettings.secondLevelApprovalId)?.fullName || 'Loading...' 
+                    : 'None'
+                  }
+                </div>
               </div>
             </div>
           </div>
