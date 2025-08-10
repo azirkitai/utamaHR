@@ -209,14 +209,14 @@ export default function EmployeeSalaryDetailsPage() {
     }
   }, [existingSalaryData]);
 
-  // Auto recalculate when data changes
+  // Auto recalculate when basic data changes
   useEffect(() => {
     const timer = setTimeout(() => {
       recompute();
     }, 300);
     
     return () => clearTimeout(timer);
-  }, [salaryData]);
+  }, [salaryData.basicSalary, salaryData.settings, salaryData.additionalItems]);
 
   // Recalculation function
   const recompute = () => {
@@ -277,12 +277,21 @@ export default function EmployeeSalaryDetailsPage() {
         computedSalary: `RM ${salaryData.basicSalary.toFixed(2)}`
       });
 
-      // Update salary data with calculated values
-      setSalaryData(prev => ({
-        ...prev,
-        deductions: updatedDeductions,
-        contributions: updatedContributions
-      }));
+      // Update salary data with calculated values (avoid triggering recalculation)
+      setSalaryData(prev => {
+        // Only update if values actually changed to prevent infinite loop
+        const hasDeductionChanges = JSON.stringify(prev.deductions) !== JSON.stringify(updatedDeductions);
+        const hasContributionChanges = JSON.stringify(prev.contributions) !== JSON.stringify(updatedContributions);
+        
+        if (hasDeductionChanges || hasContributionChanges) {
+          return {
+            ...prev,
+            deductions: updatedDeductions,
+            contributions: updatedContributions
+          };
+        }
+        return prev;
+      });
 
     } catch (error) {
       console.error("Error in calculation:", error);
@@ -632,7 +641,7 @@ export default function EmployeeSalaryDetailsPage() {
                     step="0.01"
                     value={item.amount}
                     onChange={(e) => updateAdditionalItem(index, 'amount', parseFloat(e.target.value) || 0)}
-                    data-testid={`${item.code.toLowerCase()}${item.code === "ADV" ? "anceSalary" : item.code === "SUBS" ? "istenceAllowance" : item.code === "RESP" ? "traResponsibilityAllowance" : "Vola"}`}
+                    data-testid={item.code === "ADV" ? "advanceSalary" : item.code === "SUBS" ? "subsistenceAllowance" : item.code === "RESP" ? "extraResponsibilityAllowance" : "bikVola"}
                   />
                   {item.code === "BIK" && (
                     <div className="flex items-center space-x-2">
