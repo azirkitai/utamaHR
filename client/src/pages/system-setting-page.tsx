@@ -1005,6 +1005,78 @@ export default function SystemSettingPage() {
     }
   };
 
+  const handleSaveOvertimeApproval = async () => {
+    try {
+      const token = localStorage.getItem("utamahr_token");
+      
+      if (!token) {
+        alert("Sila log masuk semula.");
+        return;
+      }
+
+      const response = await fetch("/api/approval-settings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          type: "overtime",
+          firstLevelApprovalId: overtimeApproval.firstLevel,
+          secondLevelApprovalId: overtimeApproval.secondLevel === "none" ? null : overtimeApproval.secondLevel,
+        }),
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Overtime approval settings saved:", result);
+        alert("Tetapan kelulusan lebih masa berjaya disimpan!");
+        queryClient.invalidateQueries({ queryKey: ["/api/overtime/approval-settings"] });
+      } else {
+        const errorData = await response.json();
+        console.log("Error response:", errorData);
+        throw new Error(errorData.error || "Failed to save overtime approval settings");
+      }
+    } catch (error) {
+      console.error("Error saving overtime approval:", error);
+      alert(`Gagal menyimpan tetapan kelulusan lebih masa: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
+  const handleSaveOvertimeSettings = async () => {
+    try {
+      const token = localStorage.getItem("utamahr_token");
+      
+      if (!token) {
+        alert("Sila log masuk semula.");
+        return;
+      }
+
+      const response = await fetch("/api/overtime/settings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify(overtimeSettings),
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Overtime settings saved:", result);
+        alert("Tetapan lebih masa berjaya disimpan!");
+        queryClient.invalidateQueries({ queryKey: ["/api/overtime/settings"] });
+      } else {
+        const errorData = await response.json();
+        console.log("Error response:", errorData);
+        throw new Error(errorData.error || "Failed to save overtime settings");
+      }
+    } catch (error) {
+      console.error("Error saving overtime settings:", error);
+      alert(`Gagal menyimpan tetapan lebih masa: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
   // Handler untuk toggle leave policy switch
   // Create mutation for updating company leave types
   const updateLeaveTypeMutation = useMutation({
@@ -1358,44 +1430,6 @@ export default function SystemSettingPage() {
       },
     }));
     setHasUnsavedChanges(true);
-  };
-
-  const handleSaveOvertimeApproval = async () => {
-    try {
-      const token = localStorage.getItem("utamahr_token");
-      if (!token) {
-        alert("Sila log masuk semula.");
-        return;
-      }
-
-      const response = await fetch("/api/approval-settings", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          type: "overtime",
-          firstLevelApprovalId: overtimeApproval.firstLevel,
-          secondLevelApprovalId: overtimeApproval.secondLevel,
-        }),
-      });
-      
-      if (response.ok) {
-        console.log("Overtime approval settings saved successfully");
-        alert("Tetapan kelulusan kerja lebih masa berjaya disimpan!");
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to save approval settings");
-      }
-    } catch (error) {
-      console.error("Error saving overtime approval:", error);
-      alert("Gagal menyimpan tetapan kelulusan kerja lebih masa. Sila cuba lagi.");
-    }
-  };
-
-  const handleSaveOvertimeSettings = () => {
-    console.log("Save overtime settings:", overtimeSettings);
   };
 
   const handleOpenCreatePolicyDialog = (type: "financial" | "overtime") => {
@@ -2217,7 +2251,11 @@ export default function SystemSettingPage() {
                 <Label className="text-sm font-medium">First Level Approval</Label>
                 <Select 
                   value={overtimeApproval.firstLevel} 
-                  onValueChange={(value) => setOvertimeApproval(prev => ({...prev, firstLevel: value}))}
+                  onValueChange={(value) => setOvertimeApproval(prev => ({
+                    ...prev, 
+                    firstLevel: value,
+                    secondLevel: prev.secondLevel === value ? "none" : prev.secondLevel
+                  }))}
                 >
                   <SelectTrigger data-testid="select-overtime-first-level-approval">
                     <SelectValue placeholder="Select first overtime approval" />
@@ -2243,8 +2281,11 @@ export default function SystemSettingPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">None</SelectItem>
-                    <SelectItem value="director">Director</SelectItem>
-                    <SelectItem value="ceo">CEO</SelectItem>
+                    {approvalEmployees?.filter(employee => employee.id !== overtimeApproval.firstLevel).map((employee) => (
+                      <SelectItem key={employee.id} value={employee.id}>
+                        {employee.fullName} ({employee.role})
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -2257,6 +2298,27 @@ export default function SystemSettingPage() {
                 >
                   Save Changes
                 </Button>
+              </div>
+            </div>
+
+            {/* Current Settings Preview */}
+            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Current Approval Settings:</h4>
+              <div className="space-y-1 text-sm text-gray-600">
+                <div>
+                  <span className="font-medium">First Level Approver:</span>{" "}
+                  {overtimeApprovalSettings?.firstLevel ? 
+                    approvalEmployees?.find(emp => emp.id === overtimeApprovalSettings.firstLevel)?.fullName || 'Loading...' 
+                    : 'Not set'
+                  }
+                </div>
+                <div>
+                  <span className="font-medium">Second Level Approver:</span>{" "}
+                  {overtimeApprovalSettings?.secondLevel ? 
+                    approvalEmployees?.find(emp => emp.id === overtimeApprovalSettings.secondLevel)?.fullName || 'Loading...' 
+                    : 'None'
+                  }
+                </div>
               </div>
             </div>
           </div>
@@ -3835,7 +3897,7 @@ export default function SystemSettingPage() {
 
   // Overtime Approval Form
   const renderOvertimeApprovalForm = () => {
-    const handleSaveOvertimeApproval = () => {
+    const handleSubmitOvertimeApproval = () => {
       saveOvertimeApprovalMutation.mutate({
         firstLevel: overtimeApproval.firstLevel || null,
         secondLevel: overtimeApproval.secondLevel || null
@@ -3899,7 +3961,7 @@ export default function SystemSettingPage() {
               <Button 
                 className="text-gray-800 shadow-sm" 
                 style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}
-                onClick={handleSaveOvertimeApproval}
+                onClick={handleSubmitOvertimeApproval}
                 disabled={saveOvertimeApprovalMutation.isPending}
                 data-testid="button-save-overtime-approval"
               >
