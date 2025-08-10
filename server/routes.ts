@@ -2912,7 +2912,9 @@ export function registerRoutes(app: Express): Server {
   // Get all financial claim policies
   app.get('/api/financial-claim-policies', authenticateToken, async (req, res) => {
     try {
+      console.log('Financial claim policies API called');
       const policies = await storage.getAllFinancialClaimPolicies();
+      console.log('Retrieved policies:', policies);
       res.json(policies);
     } catch (error) {
       console.error('Error getting financial claim policies:', error);

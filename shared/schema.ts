@@ -878,6 +878,11 @@ export type UpdateLeaveApplication = z.infer<typeof updateLeaveApplicationSchema
 
 
 
+// Financial Claim Policy types
+export type FinancialClaimPolicy = typeof financialClaimPolicies.$inferSelect;
+export type InsertFinancialClaimPolicy = z.infer<typeof insertFinancialClaimPolicySchema>;
+export type UpdateFinancialClaimPolicy = z.infer<typeof updateFinancialClaimPolicySchema>;
+
 // Claim Application types
 export type ClaimApplication = typeof claimApplications.$inferSelect;
 export type InsertClaimApplication = z.infer<typeof insertClaimApplicationSchema>;
