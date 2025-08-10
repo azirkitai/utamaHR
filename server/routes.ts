@@ -29,6 +29,8 @@ import {
   updateGroupPolicySettingSchema,
   insertCompanyLeaveTypeSchema,
   updateCompanyLeaveTypeSchema,
+  insertFinancialClaimPolicySchema,
+  updateFinancialClaimPolicySchema,
   type AttendanceRecord
 } from "@shared/schema";
 import { checkEnvironmentSecrets } from "./env-check";
@@ -2900,6 +2902,97 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error updating leave policy setting:", error);
       res.status(500).json({ error: "Gagal mengemas kini tetapan polisi cuti" });
+    }
+  });
+
+  // =================== FINANCIAL CLAIM POLICIES ROUTES ===================
+
+  // Get all financial claim policies
+  app.get('/api/financial-claim-policies', authenticateToken, async (req, res) => {
+    try {
+      const policies = await storage.getAllFinancialClaimPolicies();
+      res.json(policies);
+    } catch (error) {
+      console.error('Error getting financial claim policies:', error);
+      res.status(500).json({ error: 'Failed to fetch financial claim policies' });
+    }
+  });
+
+  // Get a single financial claim policy
+  app.get('/api/financial-claim-policies/:id', authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const policy = await storage.getFinancialClaimPolicy(id);
+      if (!policy) {
+        return res.status(404).json({ error: 'Financial claim policy not found' });
+      }
+      res.json(policy);
+    } catch (error) {
+      console.error('Error getting financial claim policy:', error);
+      res.status(500).json({ error: 'Failed to fetch financial claim policy' });
+    }
+  });
+
+  // Create a new financial claim policy
+  app.post('/api/financial-claim-policies', 
+    authenticateToken,
+    async (req, res) => {
+      try {
+        const validationResult = insertFinancialClaimPolicySchema.safeParse(req.body);
+        if (!validationResult.success) {
+          return res.status(400).json({ 
+            error: 'Data tidak sah', 
+            details: validationResult.error.issues 
+          });
+        }
+
+        const policy = await storage.createFinancialClaimPolicy(validationResult.data);
+        res.status(201).json(policy);
+      } catch (error) {
+        console.error('Error creating financial claim policy:', error);
+        res.status(500).json({ error: 'Failed to create financial claim policy' });
+      }
+    }
+  );
+
+  // Update a financial claim policy
+  app.put('/api/financial-claim-policies/:id',
+    authenticateToken,
+    async (req, res) => {
+      try {
+        const { id } = req.params;
+        const validationResult = updateFinancialClaimPolicySchema.safeParse(req.body);
+        if (!validationResult.success) {
+          return res.status(400).json({ 
+            error: 'Data tidak sah', 
+            details: validationResult.error.issues 
+          });
+        }
+
+        const policy = await storage.updateFinancialClaimPolicy(id, validationResult.data);
+        if (!policy) {
+          return res.status(404).json({ error: 'Financial claim policy not found' });
+        }
+        res.json(policy);
+      } catch (error) {
+        console.error('Error updating financial claim policy:', error);
+        res.status(500).json({ error: 'Failed to update financial claim policy' });
+      }
+    }
+  );
+
+  // Delete a financial claim policy
+  app.delete('/api/financial-claim-policies/:id', authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const success = await storage.deleteFinancialClaimPolicy(id);
+      if (!success) {
+        return res.status(404).json({ error: 'Financial claim policy not found' });
+      }
+      res.json({ message: 'Financial claim policy deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting financial claim policy:', error);
+      res.status(500).json({ error: 'Failed to delete financial claim policy' });
     }
   });
 

@@ -47,6 +47,7 @@ import { cn } from "@/lib/utils";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import type { FinancialClaimPolicy, InsertFinancialClaimPolicy } from "@shared/schema";
 
 const settingsMenuItems = [
   {
@@ -244,6 +245,21 @@ export default function SystemSettingPage() {
   const [expandedPolicyId, setExpandedPolicyId] = useState<string | null>(null);
   const [expandedFinancialPolicyId, setExpandedFinancialPolicyId] = useState<string | null>(null);
   const [excludedFinancialEmployees, setExcludedFinancialEmployees] = useState<string[]>([]);
+  
+  // Financial Policy State
+  const [financialPolicyForm, setFinancialPolicyForm] = useState<{
+    [key: string]: {
+      claimName: string;
+      annualLimit: string;
+      annualLimitUnlimited: boolean;
+      limitPerApplication: string;
+      limitPerApplicationUnlimited: boolean;
+      excludedEmployeeIds: string[];
+      claimRemark: string;
+    };
+  }>({});
+
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   
   // Group Policy settings state
   const [groupPolicySettings, setGroupPolicySettings] = useState({
@@ -657,6 +673,62 @@ export default function SystemSettingPage() {
     enabled: true
   });
 
+  // Fetch financial claim policies from database
+  const { data: financialClaimPoliciesData } = useQuery({
+    queryKey: ["/api/financial-claim-policies"],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Create financial policy mutation
+  const createFinancialPolicyMutation = useMutation({
+    mutationFn: async (data: InsertFinancialClaimPolicy) => {
+      return await apiRequest("/api/financial-claim-policies", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Polisi claim disimpan",
+        description: "Polisi claim kewangan berjaya disimpan.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/financial-claim-policies"] });
+      setHasUnsavedChanges(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Ralat",
+        description: "Gagal menyimpan polisi claim. Sila cuba lagi.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update financial policy mutation
+  const updateFinancialPolicyMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<InsertFinancialClaimPolicy> }) => {
+      return await apiRequest(`/api/financial-claim-policies/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Polisi claim dikemaskini", 
+        description: "Polisi claim kewangan berjaya dikemaskini.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/financial-claim-policies"] });
+      setHasUnsavedChanges(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Ralat",
+        description: "Gagal mengemaskini polisi claim. Sila cuba lagi.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Fetch leave policy settings for current expanded policy
   const { data: currentLeavePolicySettings } = useQuery({
     queryKey: ["/api/leave-policy-settings", expandedPolicyId],
@@ -856,7 +928,29 @@ export default function SystemSettingPage() {
   };
 
   const handleToggleFinancialExpand = (policyId: string) => {
-    setExpandedFinancialPolicyId(expandedFinancialPolicyId === policyId ? null : policyId);
+    const newExpandedId = expandedFinancialPolicyId === policyId ? null : policyId;
+    setExpandedFinancialPolicyId(newExpandedId);
+    
+    // Initialize form data when expanding a policy
+    if (newExpandedId && !financialPolicyForm[policyId]) {
+      const policy = financialClaimPoliciesData?.find((p: FinancialClaimPolicy) => p.id === policyId) ||
+                   financialClaimPolicies.find(p => p.id === policyId);
+      
+      if (policy) {
+        setFinancialPolicyForm(prev => ({
+          ...prev,
+          [policyId]: {
+            claimName: policy.claimName || policy.name,
+            annualLimit: policy.annualLimit || "100",
+            annualLimitUnlimited: policy.annualLimitUnlimited || false,
+            limitPerApplication: policy.limitPerApplication || "50", 
+            limitPerApplicationUnlimited: policy.limitPerApplicationUnlimited || false,
+            excludedEmployeeIds: policy.excludedEmployeeIds || [],
+            claimRemark: policy.claimRemark || "",
+          },
+        }));
+      }
+    }
   };
 
 ;
@@ -1073,6 +1167,82 @@ export default function SystemSettingPage() {
 
   const handleSaveFinancialSettings = () => {
     console.log("Save financial settings:", financialSettings);
+  };
+
+
+
+  // Handler untuk save changes
+  const handleSaveFinancialPolicy = async (policyId: string) => {
+    const policyData = financialPolicyForm[policyId];
+    if (!policyData) return;
+
+    const dataToSave: InsertFinancialClaimPolicy = {
+      claimName: policyData.claimName,
+      annualLimit: policyData.annualLimitUnlimited ? null : policyData.annualLimit,
+      annualLimitUnlimited: policyData.annualLimitUnlimited,
+      limitPerApplication: policyData.limitPerApplicationUnlimited ? null : policyData.limitPerApplication,
+      limitPerApplicationUnlimited: policyData.limitPerApplicationUnlimited,
+      excludedEmployeeIds: policyData.excludedEmployeeIds,
+      claimRemark: policyData.claimRemark,
+    };
+
+    // Check if policy exists in database
+    const existingPolicy = financialClaimPoliciesData?.find(
+      (p: FinancialClaimPolicy) => p.id === policyId
+    );
+
+    if (existingPolicy) {
+      updateFinancialPolicyMutation.mutate({ id: policyId, data: dataToSave });
+    } else {
+      createFinancialPolicyMutation.mutate(dataToSave);
+    }
+  };
+
+  // Handler untuk cancel changes
+  const handleCancelFinancialPolicy = (policyId: string) => {
+    // Reset form untuk policy ini ke nilai asal atau kosong
+    const existingPolicy = financialClaimPoliciesData?.find(
+      (p: FinancialClaimPolicy) => p.id === policyId
+    );
+
+    if (existingPolicy) {
+      setFinancialPolicyForm(prev => ({
+        ...prev,
+        [policyId]: {
+          claimName: existingPolicy.claimName,
+          annualLimit: existingPolicy.annualLimit || "0",
+          annualLimitUnlimited: existingPolicy.annualLimitUnlimited || false,
+          limitPerApplication: existingPolicy.limitPerApplication || "0",
+          limitPerApplicationUnlimited: existingPolicy.limitPerApplicationUnlimited || false,
+          excludedEmployeeIds: existingPolicy.excludedEmployeeIds || [],
+          claimRemark: existingPolicy.claimRemark || "",
+        },
+      }));
+    } else {
+      // Jika policy baru, reset ke default values
+      setFinancialPolicyForm(prev => {
+        const newForm = { ...prev };
+        delete newForm[policyId];
+        return newForm;
+      });
+    }
+    setHasUnsavedChanges(false);
+  };
+
+  // Handler untuk update form field
+  const updateFinancialPolicyField = (
+    policyId: string,
+    field: string,
+    value: any
+  ) => {
+    setFinancialPolicyForm(prev => ({
+      ...prev,
+      [policyId]: {
+        ...prev[policyId],
+        [field]: value,
+      },
+    }));
+    setHasUnsavedChanges(true);
   };
 
   const handleSaveOvertimeApproval = async () => {
@@ -1670,115 +1840,146 @@ export default function SystemSettingPage() {
 
           <div className="bg-white rounded-lg border">
             <div className="divide-y">
-              {financialClaimPolicies.map((policy) => (
-                <div key={policy.id} className="p-4">
+              {(financialClaimPoliciesData || financialClaimPolicies).map((policy) => {
+                const policyId = policy.id || policy.id;
+                const formData = financialPolicyForm[policyId] || {
+                  claimName: policy.claimName || policy.name,
+                  annualLimit: policy.annualLimit || "100",
+                  annualLimitUnlimited: policy.annualLimitUnlimited || false,
+                  limitPerApplication: policy.limitPerApplication || "50",
+                  limitPerApplicationUnlimited: policy.limitPerApplicationUnlimited || false,
+                  excludedEmployeeIds: policy.excludedEmployeeIds || [],
+                  claimRemark: policy.claimRemark || "",
+                };
+
+                return (
+                <div key={policyId} className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-medium text-gray-900">{policy.name}</h4>
-                      <p className="text-sm text-gray-500">{policy.amount}</p>
+                      <h4 className="font-medium text-gray-900">{formData.claimName}</h4>
+                      <p className="text-sm text-gray-500">
+                        Tahunan: RM {formData.annualLimitUnlimited ? "Tanpa Had" : formData.annualLimit} | 
+                        Per Permohonan: RM {formData.limitPerApplicationUnlimited ? "Tanpa Had" : formData.limitPerApplication}
+                      </p>
                     </div>
                     <div className="flex items-center space-x-3">
                       <Button 
                         variant="ghost" 
                         size="sm"
                         className="text-cyan-600 hover:text-cyan-700"
-                        onClick={() => handleToggleFinancialExpand(policy.id)}
-                        data-testid={`button-see-more-${policy.id}`}
+                        onClick={() => handleToggleFinancialExpand(policyId)}
+                        data-testid={`button-see-more-${policyId}`}
                       >
-                        See More
+                        {expandedFinancialPolicyId === policyId ? "See Less" : "See More"}
                       </Button>
                       <Switch 
-                        checked={policy.enabled}
+                        checked={policy.enabled !== false}
                         className="data-[state=checked]:bg-blue-900"
-                        data-testid={`switch-financial-${policy.id}`}
+                        data-testid={`switch-financial-${policyId}`}
                       />
                     </div>
                   </div>
 
                   {/* Expanded Financial Policy Details */}
-                  {expandedFinancialPolicyId === policy.id && (
+                  {expandedFinancialPolicyId === policyId && (
                     <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-4">
                       <div className="bg-blue-50 border-l-4 border-blue-400 p-2 rounded">
                         <p className="text-sm text-blue-700">
-                          💾 All changes are saved automatically
+                          📝 Ubah maklumat di bawah dan klik Simpan untuk menyimpan perubahan
                         </p>
                       </div>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-700 block">Annual Limit</label>
+                          <label className="text-sm font-medium text-gray-700 block">Had Tahunan</label>
                           <div className="flex items-center space-x-2">
                             <Input 
                               type="number"
                               placeholder="100"
                               className="w-24"
-                              defaultValue="100"
+                              value={formData.annualLimit}
+                              onChange={(e) => updateFinancialPolicyField(policyId, 'annualLimit', e.target.value)}
+                              disabled={formData.annualLimitUnlimited}
                             />
                             <span className="text-sm text-gray-500">RM</span>
-                            <Switch className="ml-2 data-[state=checked]:bg-blue-900" defaultChecked />
-                            <span className="text-sm text-gray-500">Unlimited</span>
+                            <Switch 
+                              className="ml-2 data-[state=checked]:bg-blue-900" 
+                              checked={formData.annualLimitUnlimited}
+                              onCheckedChange={(checked) => updateFinancialPolicyField(policyId, 'annualLimitUnlimited', checked)}
+                            />
+                            <span className="text-sm text-gray-500">Tanpa Had</span>
                           </div>
                         </div>
                         
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-700 block">Per Application Limit</label>
+                          <label className="text-sm font-medium text-gray-700 block">Had Setiap Permohonan</label>
                           <div className="flex items-center space-x-2">
                             <Input 
                               type="number"
                               placeholder="50"
                               className="w-24"
-                              defaultValue="50"
+                              value={formData.limitPerApplication}
+                              onChange={(e) => updateFinancialPolicyField(policyId, 'limitPerApplication', e.target.value)}
+                              disabled={formData.limitPerApplicationUnlimited}
                             />
                             <span className="text-sm text-gray-500">RM</span>
-                            <Switch className="ml-2 data-[state=checked]:bg-blue-900" defaultChecked />
-                            <span className="text-sm text-gray-500">Unlimited</span>
+                            <Switch 
+                              className="ml-2 data-[state=checked]:bg-blue-900" 
+                              checked={formData.limitPerApplicationUnlimited}
+                              onCheckedChange={(checked) => updateFinancialPolicyField(policyId, 'limitPerApplicationUnlimited', checked)}
+                            />
+                            <span className="text-sm text-gray-500">Tanpa Had</span>
                           </div>
                         </div>
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 block">Exclude Employee</label>
+                        <label className="text-sm font-medium text-gray-700 block">Kecualikan Pekerja</label>
                         <Select
-                          value={excludedFinancialEmployees.length > 0 ? excludedFinancialEmployees[0] : ""}
+                          value=""
                           onValueChange={(value) => {
                             if (value === "none") {
-                              setExcludedFinancialEmployees([]);
-                            } else if (value && !excludedFinancialEmployees.includes(value)) {
-                              setExcludedFinancialEmployees(prev => [...prev, value]);
+                              updateFinancialPolicyField(policyId, 'excludedEmployeeIds', []);
+                            } else if (value && !formData.excludedEmployeeIds.includes(value)) {
+                              updateFinancialPolicyField(policyId, 'excludedEmployeeIds', [...formData.excludedEmployeeIds, value]);
                             }
                           }}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder={
-                              excludedFinancialEmployees.length > 0 
-                                ? `${excludedFinancialEmployees.length} employees selected`
-                                : "Choose employees to exclude"
+                              formData.excludedEmployeeIds.length > 0 
+                                ? `${formData.excludedEmployeeIds.length} pekerja dipilih`
+                                : "Pilih pekerja untuk dikecualikan"
                             } />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="none">(None)</SelectItem>
+                            <SelectItem value="none">Tiada</SelectItem>
                             {allEmployees?.map((employee) => (
                               <SelectItem 
                                 key={employee.id} 
                                 value={employee.id}
-                                disabled={excludedFinancialEmployees.includes(employee.id)}
+                                disabled={formData.excludedEmployeeIds.includes(employee.id)}
                               >
-                                {employee.fullName} ({employee.role || 'No Role'})
+                                {employee.fullName} ({employee.role || 'Tiada Jawatan'})
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                         
                         {/* Show selected employees */}
-                        {excludedFinancialEmployees.length > 0 && (
+                        {formData.excludedEmployeeIds.length > 0 && (
                           <div className="flex flex-wrap gap-2 mt-2">
-                            {excludedFinancialEmployees.map((employeeId) => {
+                            {formData.excludedEmployeeIds.map((employeeId) => {
                               const employee = allEmployees?.find(emp => emp.id === employeeId);
                               return (
                                 <div key={employeeId} className="flex items-center bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
                                   <span>{employee?.fullName || employeeId}</span>
                                   <button
-                                    onClick={() => setExcludedFinancialEmployees(prev => prev.filter(id => id !== employeeId))}
+                                    onClick={() => updateFinancialPolicyField(
+                                      policyId, 
+                                      'excludedEmployeeIds', 
+                                      formData.excludedEmployeeIds.filter(id => id !== employeeId)
+                                    )}
                                     className="ml-2 hover:bg-blue-200 rounded"
                                   >
                                     ×
@@ -1793,14 +1994,44 @@ export default function SystemSettingPage() {
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700 block">Remark</label>
                         <Textarea 
-                          placeholder="Add any additional notes or requirements for this claim policy..."
+                          placeholder="Tambah nota atau keperluan tambahan untuk polisi claim ini..."
                           className="min-h-[80px]"
+                          value={formData.claimRemark}
+                          onChange={(e) => updateFinancialPolicyField(policyId, 'claimRemark', e.target.value)}
                         />
+                      </div>
+
+                      {/* Save/Cancel Buttons */}
+                      <div className="flex justify-end space-x-2 pt-4 border-t">
+                        <Button
+                          variant="outline"
+                          onClick={() => handleCancelFinancialPolicy(policyId)}
+                          disabled={createFinancialPolicyMutation.isPending || updateFinancialPolicyMutation.isPending}
+                          data-testid={`button-cancel-policy-${policyId}`}
+                        >
+                          Batal
+                        </Button>
+                        <Button
+                          onClick={() => handleSaveFinancialPolicy(policyId)}
+                          disabled={createFinancialPolicyMutation.isPending || updateFinancialPolicyMutation.isPending}
+                          className="bg-blue-900 hover:bg-blue-800 text-white"
+                          data-testid={`button-save-policy-${policyId}`}
+                        >
+                          {createFinancialPolicyMutation.isPending || updateFinancialPolicyMutation.isPending ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Menyimpan...
+                            </>
+                          ) : (
+                            'Simpan'
+                          )}
+                        </Button>
                       </div>
                     </div>
                   )}
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

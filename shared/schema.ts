@@ -472,6 +472,21 @@ export const leaveBalanceCarryForward = pgTable('leave_balance_carry_forward', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+// Financial Claim Policies Table
+export const financialClaimPolicies = pgTable('financial_claim_policies', {
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  claimName: text('claim_name').notNull(),
+  annualLimit: decimal('annual_limit', { precision: 10, scale: 2 }),
+  annualLimitUnlimited: boolean('annual_limit_unlimited').default(false),
+  limitPerApplication: decimal('limit_per_application', { precision: 10, scale: 2 }),
+  limitPerApplicationUnlimited: boolean('limit_per_application_unlimited').default(false),
+  excludedEmployeeIds: text('excluded_employee_ids').array().default(sql`'{}'`),
+  claimRemark: text('claim_remark'),
+  enabled: boolean('enabled').default(true),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 // =================== VALIDATION SCHEMAS ===================
 
 // Attendance record schemas
@@ -903,3 +918,16 @@ export type LeaveBalanceCarryForward = typeof leaveBalanceCarryForward.$inferSel
 export type InsertLeaveBalanceCarryForward = z.infer<typeof insertLeaveBalanceCarryForwardSchema>;
 export type UpdateLeaveBalanceCarryForward = z.infer<typeof updateLeaveBalanceCarryForwardSchema>;
 export type UpdateLeavePolicySetting = z.infer<typeof updateLeavePolicySettingSchema>;
+
+// Financial claim policies schemas
+export const insertFinancialClaimPolicySchema = createInsertSchema(financialClaimPolicies).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const updateFinancialClaimPolicySchema = insertFinancialClaimPolicySchema.partial();
+
+// Financial Claim Policy types
+export type FinancialClaimPolicy = typeof financialClaimPolicies.$inferSelect;
+export type InsertFinancialClaimPolicy = z.infer<typeof insertFinancialClaimPolicySchema>;
+export type UpdateFinancialClaimPolicy = z.infer<typeof updateFinancialClaimPolicySchema>;

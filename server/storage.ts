@@ -114,6 +114,11 @@ import {
   type InsertAnnouncement,
   type SelectUserAnnouncement,
   type InsertUserAnnouncement,
+  // Financial Claim Policy types
+  financialClaimPolicies,
+  type FinancialClaimPolicy,
+  type InsertFinancialClaimPolicy,
+  type UpdateFinancialClaimPolicy,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, sql, asc, ilike, or, gte, lte, inArray, not } from "drizzle-orm";
@@ -294,6 +299,13 @@ export interface IStorage {
   updateLeaveBalanceCarryForward(id: string, updates: UpdateLeaveBalanceCarryForward): Promise<LeaveBalanceCarryForward | undefined>;
   deleteLeaveBalanceCarryForward(id: string): Promise<boolean>;
   processYearEndCarryForward(year: number): Promise<LeaveBalanceCarryForward[]>;
+
+  // =================== FINANCIAL CLAIM POLICY METHODS ===================
+  getAllFinancialClaimPolicies(): Promise<FinancialClaimPolicy[]>;
+  getFinancialClaimPolicy(id: string): Promise<FinancialClaimPolicy | undefined>;
+  createFinancialClaimPolicy(data: InsertFinancialClaimPolicy): Promise<FinancialClaimPolicy>;
+  updateFinancialClaimPolicy(id: string, data: UpdateFinancialClaimPolicy): Promise<FinancialClaimPolicy | undefined>;
+  deleteFinancialClaimPolicy(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1833,6 +1845,40 @@ export class DatabaseStorage implements IStorage {
       console.error('Error processing year-end carry forward:', error);
       throw error;
     }
+  }
+
+  // =================== FINANCIAL CLAIM POLICY METHODS ===================
+  async getAllFinancialClaimPolicies(): Promise<FinancialClaimPolicy[]> {
+    return await db.select().from(financialClaimPolicies).where(eq(financialClaimPolicies.enabled, true));
+  }
+
+  async getFinancialClaimPolicy(id: string): Promise<FinancialClaimPolicy | undefined> {
+    const [policy] = await db.select().from(financialClaimPolicies).where(eq(financialClaimPolicies.id, id));
+    return policy || undefined;
+  }
+
+  async createFinancialClaimPolicy(data: InsertFinancialClaimPolicy): Promise<FinancialClaimPolicy> {
+    const [policy] = await db
+      .insert(financialClaimPolicies)
+      .values(data)
+      .returning();
+    return policy;
+  }
+
+  async updateFinancialClaimPolicy(id: string, data: UpdateFinancialClaimPolicy): Promise<FinancialClaimPolicy | undefined> {
+    const [policy] = await db
+      .update(financialClaimPolicies)
+      .set(data)
+      .where(eq(financialClaimPolicies.id, id))
+      .returning();
+    return policy || undefined;
+  }
+
+  async deleteFinancialClaimPolicy(id: string): Promise<boolean> {
+    const result = await db
+      .delete(financialClaimPolicies)
+      .where(eq(financialClaimPolicies.id, id));
+    return result.rowCount > 0;
   }
 }
 
