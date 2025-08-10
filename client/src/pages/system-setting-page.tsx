@@ -242,6 +242,7 @@ export default function SystemSettingPage() {
   const [showCreatePolicyDialog, setShowCreatePolicyDialog] = useState(false);
   const [policyType, setPolicyType] = useState<"financial" | "overtime">("financial");
   const [expandedPolicyId, setExpandedPolicyId] = useState<string | null>(null);
+  const [expandedFinancialPolicyId, setExpandedFinancialPolicyId] = useState<string | null>(null);
   
   // Group Policy settings state
   const [groupPolicySettings, setGroupPolicySettings] = useState({
@@ -851,6 +852,10 @@ export default function SystemSettingPage() {
 
   const handleToggleExpand = (policyId: string) => {
     setExpandedPolicyId(expandedPolicyId === policyId ? null : policyId);
+  };
+
+  const handleToggleFinancialExpand = (policyId: string) => {
+    setExpandedFinancialPolicyId(expandedFinancialPolicyId === policyId ? null : policyId);
   };
 
 ;
@@ -1665,26 +1670,94 @@ export default function SystemSettingPage() {
           <div className="bg-white rounded-lg border">
             <div className="divide-y">
               {financialClaimPolicies.map((policy) => (
-                <div key={policy.id} className="p-4 flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium text-gray-900">{policy.name}</h4>
-                    <p className="text-sm text-gray-500">{policy.amount}</p>
+                <div key={policy.id} className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium text-gray-900">{policy.name}</h4>
+                      <p className="text-sm text-gray-500">{policy.amount}</p>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        className="text-cyan-600 hover:text-cyan-700"
+                        onClick={() => handleToggleFinancialExpand(policy.id)}
+                        data-testid={`button-see-more-${policy.id}`}
+                      >
+                        See More
+                      </Button>
+                      <Switch 
+                        checked={policy.enabled}
+                        className="data-[state=checked]:bg-blue-900"
+                        data-testid={`switch-financial-${policy.id}`}
+                      />
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-3">
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      className="text-cyan-600 hover:text-cyan-700"
-                      data-testid={`button-see-more-${policy.id}`}
-                    >
-                      See More
-                    </Button>
-                    <Switch 
-                      checked={policy.enabled}
-                      className="data-[state=checked]:bg-blue-900"
-                      data-testid={`switch-financial-${policy.id}`}
-                    />
-                  </div>
+
+                  {/* Expanded Financial Policy Details */}
+                  {expandedFinancialPolicyId === policy.id && (
+                    <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-4">
+                      <div className="bg-blue-50 border-l-4 border-blue-400 p-2 rounded">
+                        <p className="text-sm text-blue-700">
+                          💾 All changes are saved automatically
+                        </p>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-gray-700 block">Annual Limit</label>
+                          <div className="flex items-center space-x-2">
+                            <Input 
+                              type="number"
+                              placeholder="100"
+                              className="w-24"
+                              defaultValue="100"
+                            />
+                            <span className="text-sm text-gray-500">RM</span>
+                            <Switch className="ml-2 data-[state=checked]:bg-blue-900" defaultChecked />
+                            <span className="text-sm text-gray-500">Unlimited</span>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-gray-700 block">Per Application Limit</label>
+                          <div className="flex items-center space-x-2">
+                            <Input 
+                              type="number"
+                              placeholder="50"
+                              className="w-24"
+                              defaultValue="50"
+                            />
+                            <span className="text-sm text-gray-500">RM</span>
+                            <Switch className="ml-2 data-[state=checked]:bg-blue-900" defaultChecked />
+                            <span className="text-sm text-gray-500">Unlimited</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 block">Exclude Employee</label>
+                        <Select>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose employees to exclude" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="emp1">Ahmad Hassan</SelectItem>
+                            <SelectItem value="emp2">Siti Nurhaliza</SelectItem>
+                            <SelectItem value="emp3">Muhammad Ali</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700 block">Remark</label>
+                        <Textarea 
+                          placeholder="Add any additional notes or requirements for this claim policy..."
+                          className="min-h-[80px]"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
