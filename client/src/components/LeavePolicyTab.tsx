@@ -43,18 +43,18 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
   });
 
   // Fetch employment data to get the employee's role
-  const { data: employmentData } = useQuery({
+  const { data: employmentData } = useQuery<{ designation?: string }>({
     queryKey: ["/api/employment", employeeId],
     enabled: !!employeeId,
   });
 
   // Fetch enabled company leave types (this determines what leave types are "switched on" for the company)
-  const { data: enabledCompanyLeaveTypes = [] } = useQuery({
+  const { data: enabledCompanyLeaveTypes = [] } = useQuery<Array<{ leaveType: string; enabled: boolean }>>({
     queryKey: ['/api/company-leave-types/enabled'],
   });
 
   // Fetch all group policy settings
-  const { data: allGroupSettings = [] } = useQuery({
+  const { data: allGroupSettings = [] } = useQuery<Array<{ leaveType: string; role: string }>>({
     queryKey: ["/api/group-policy-settings"],
   });
 
@@ -85,7 +85,7 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
   // Helper function to check if a leave type is enabled for the company
   const isLeaveTypeEnabledForCompany = (leaveType: string) => {
     return enabledCompanyLeaveTypes.some(
-      (companyType: any) => companyType.leaveType === leaveType && companyType.enabled
+      (companyType) => companyType.leaveType === leaveType && companyType.enabled
     );
   };
 
@@ -94,7 +94,7 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
     if (!leaveType || !employeeRole) return true; // Allow if no restrictions set
     
     // Get group settings for this leave type
-    const leaveTypeSettings = allGroupSettings.filter((setting: any) => 
+    const leaveTypeSettings = allGroupSettings.filter((setting) => 
       setting.leaveType === leaveType
     );
     
@@ -102,7 +102,7 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
     if (leaveTypeSettings.length === 0) return true;
     
     // Check if employee's role is in the allowed roles
-    return leaveTypeSettings.some((setting: any) => setting.role === employeeRole);
+    return leaveTypeSettings.some((setting) => setting.role === employeeRole);
   };
 
   // Filter policies based on search only - show all leave types but control access through company/role settings
