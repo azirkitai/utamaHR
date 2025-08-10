@@ -487,6 +487,36 @@ export const financialClaimPolicies = pgTable('financial_claim_policies', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+// Claim Applications Table (for Financial and Overtime claims)
+export const claimApplications = pgTable('claim_applications', {
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  employeeId: varchar('employee_id').notNull().references(() => employees.id, { onDelete: 'cascade' }),
+  claimType: text('claim_type').notNull(), // 'financial' or 'overtime'
+  claimCategory: text('claim_category').notNull(), // For financial: policy name, for overtime: 'overtime'
+  claimDate: timestamp('claim_date').notNull(),
+  amount: decimal('amount', { precision: 10, scale: 2 }), // For financial claims
+  particulars: text('particulars'), // Description/details
+  remark: text('remark'), // Additional notes
+  supportingDocuments: text('supporting_documents').array().default(sql`'{}'`), // File paths/URLs
+  
+  // Overtime specific fields
+  startTime: text('start_time'), // HH:MM format
+  endTime: text('end_time'), // HH:MM format
+  totalHours: decimal('total_hours', { precision: 4, scale: 2 }), // Calculated hours
+  reason: text('reason'), // Reason for overtime
+  additionalDescription: text('additional_description'), // Extra overtime details
+  
+  status: text('status').notNull().default('Pending'), // 'Pending', 'First Level Approved', 'Approved', 'Rejected'
+  approvedBy: varchar('approved_by').references(() => employees.id), // Who approved (final approver)
+  approvedAt: timestamp('approved_at'),
+  rejectedBy: varchar('rejected_by').references(() => employees.id), // Who rejected
+  rejectedAt: timestamp('rejected_at'),
+  rejectionReason: text('rejection_reason'), // Why rejected
+  
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 // =================== VALIDATION SCHEMAS ===================
 
 // Attendance record schemas
@@ -751,6 +781,30 @@ export const mobileClockInSchema = z.object({
   selfieImageUrl: z.string().min(1, "Selfie diperlukan"),
 });
 
+// Financial Claim Policy schemas
+export const insertFinancialClaimPolicySchema = createInsertSchema(financialClaimPolicies).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const updateFinancialClaimPolicySchema = insertFinancialClaimPolicySchema.partial();
+
+// Claim Application schemas
+export const insertClaimApplicationSchema = createInsertSchema(claimApplications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  approvedAt: true,
+  rejectedAt: true,
+}).extend({
+  // Handle date fields to accept strings and convert to Date objects
+  claimDate: z.preprocess(
+    (val) => val ? new Date(val as string | Date) : new Date(),
+    z.date()
+  ),
+});
+export const updateClaimApplicationSchema = insertClaimApplicationSchema.partial();
+
 // =================== TYPESCRIPT TYPES ===================
 
 // User types
@@ -821,6 +875,13 @@ export type InsertWorkExperience = z.infer<typeof insertWorkExperienceSchema>;
 export type LeaveApplication = typeof leaveApplications.$inferSelect;
 export type InsertLeaveApplication = z.infer<typeof insertLeaveApplicationSchema>;
 export type UpdateLeaveApplication = z.infer<typeof updateLeaveApplicationSchema>;
+
+
+
+// Claim Application types
+export type ClaimApplication = typeof claimApplications.$inferSelect;
+export type InsertClaimApplication = z.infer<typeof insertClaimApplicationSchema>;
+export type UpdateClaimApplication = z.infer<typeof updateClaimApplicationSchema>;
 
 // Employee Documents table
 export const employeeDocuments = pgTable("employee_documents", {
@@ -919,15 +980,4 @@ export type InsertLeaveBalanceCarryForward = z.infer<typeof insertLeaveBalanceCa
 export type UpdateLeaveBalanceCarryForward = z.infer<typeof updateLeaveBalanceCarryForwardSchema>;
 export type UpdateLeavePolicySetting = z.infer<typeof updateLeavePolicySettingSchema>;
 
-// Financial claim policies schemas
-export const insertFinancialClaimPolicySchema = createInsertSchema(financialClaimPolicies).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-export const updateFinancialClaimPolicySchema = insertFinancialClaimPolicySchema.partial();
 
-// Financial Claim Policy types
-export type FinancialClaimPolicy = typeof financialClaimPolicies.$inferSelect;
-export type InsertFinancialClaimPolicy = z.infer<typeof insertFinancialClaimPolicySchema>;
-export type UpdateFinancialClaimPolicy = z.infer<typeof updateFinancialClaimPolicySchema>;

@@ -119,6 +119,11 @@ import {
   type FinancialClaimPolicy,
   type InsertFinancialClaimPolicy,
   type UpdateFinancialClaimPolicy,
+  // Claim Application types
+  claimApplications,
+  type ClaimApplication,
+  type InsertClaimApplication,
+  type UpdateClaimApplication,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, sql, asc, ilike, or, gte, lte, inArray, not } from "drizzle-orm";
@@ -306,6 +311,15 @@ export interface IStorage {
   createFinancialClaimPolicy(data: InsertFinancialClaimPolicy): Promise<FinancialClaimPolicy>;
   updateFinancialClaimPolicy(id: string, data: UpdateFinancialClaimPolicy): Promise<FinancialClaimPolicy | undefined>;
   deleteFinancialClaimPolicy(id: string): Promise<boolean>;
+  
+  // =================== CLAIM APPLICATION METHODS ===================
+  getAllClaimApplications(): Promise<ClaimApplication[]>;
+  getClaimApplicationsByEmployeeId(employeeId: string): Promise<ClaimApplication[]>;
+  getClaimApplicationsByType(claimType: 'financial' | 'overtime'): Promise<ClaimApplication[]>;
+  createClaimApplication(application: InsertClaimApplication): Promise<ClaimApplication>;
+  updateClaimApplication(id: string, application: UpdateClaimApplication): Promise<ClaimApplication | undefined>;
+  approveClaimApplication(id: string, approverId: string): Promise<boolean>;
+  rejectClaimApplication(id: string, rejectorId: string, reason: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1879,6 +1893,89 @@ export class DatabaseStorage implements IStorage {
       .delete(financialClaimPolicies)
       .where(eq(financialClaimPolicies.id, id));
     return result.rowCount > 0;
+  }
+
+  // =================== CLAIM APPLICATION METHODS ===================
+  async getAllClaimApplications(): Promise<ClaimApplication[]> {
+    return await db.select().from(claimApplications).orderBy(desc(claimApplications.dateSubmitted));
+  }
+
+  async getClaimApplicationsByEmployeeId(employeeId: string): Promise<ClaimApplication[]> {
+    return await db.select()
+      .from(claimApplications)
+      .where(eq(claimApplications.employeeId, employeeId))
+      .orderBy(desc(claimApplications.dateSubmitted));
+  }
+
+  async getClaimApplicationsByType(claimType: 'financial' | 'overtime'): Promise<ClaimApplication[]> {
+    return await db.select()
+      .from(claimApplications)
+      .where(eq(claimApplications.claimType, claimType))
+      .orderBy(desc(claimApplications.dateSubmitted));
+  }
+
+  async createClaimApplication(application: InsertClaimApplication): Promise<ClaimApplication> {
+    const [claimApp] = await db
+      .insert(claimApplications)
+      .values(application)
+      .returning();
+    return claimApp;
+  }
+
+  async updateClaimApplication(id: string, application: UpdateClaimApplication): Promise<ClaimApplication | undefined> {
+    const [claimApp] = await db
+      .update(claimApplications)
+      .set(application)
+      .where(eq(claimApplications.id, id))
+      .returning();
+    return claimApp || undefined;
+  }
+
+  async approveClaimApplication(id: string, approverId: string): Promise<boolean> {
+    // Get current claim application
+    const [currentApp] = await db.select().from(claimApplications).where(eq(claimApplications.id, id));
+    if (!currentApp) return false;
+
+    // Determine next status based on current status and approval level
+    let newStatus: 'firstLevelApproved' | 'approved' = 'firstLevelApproved';
+    let firstLevelApproverId = currentApp.firstLevelApproverId;
+    let secondLevelApproverId = currentApp.secondLevelApproverId;
+
+    if (currentApp.status === 'pending') {
+      newStatus = 'firstLevelApproved';
+      firstLevelApproverId = approverId;
+    } else if (currentApp.status === 'firstLevelApproved') {
+      newStatus = 'approved';
+      secondLevelApproverId = approverId;
+    }
+
+    const [updatedApp] = await db
+      .update(claimApplications)
+      .set({ 
+        status: newStatus,
+        firstLevelApproverId,
+        secondLevelApproverId,
+        dateApproved: newStatus === 'approved' ? new Date() : null
+      })
+      .where(eq(claimApplications.id, id))
+      .returning();
+
+    return !!updatedApp;
+  }
+
+  async rejectClaimApplication(id: string, rejectorId: string, reason: string): Promise<boolean> {
+    const [updatedApp] = await db
+      .update(claimApplications)
+      .set({ 
+        status: 'rejected',
+        rejectedBy: rejectorId,
+        rejectionReason: reason,
+        dateRejected: new Date()
+      })
+      .where(eq(claimApplications.id, id))
+      .returning();
+
+    return !!updatedApp;
   }
 }
 

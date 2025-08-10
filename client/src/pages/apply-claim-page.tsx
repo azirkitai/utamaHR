@@ -1,12 +1,13 @@
 import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import type { FinancialClaimPolicy } from "@shared/schema";
+import type { FinancialClaimPolicy, InsertClaimApplication } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 import { 
   ChevronRight,
   DollarSign,
@@ -20,6 +21,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DashboardLayout } from "@/components/dashboard-layout";
+import { apiRequest } from "@/lib/queryClient";
 
 type ClaimCategory = 'main' | 'financial' | 'overtime';
 
@@ -48,6 +50,51 @@ export default function ApplyClaimPage() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [selectedRequestor, setSelectedRequestor] = useState("");
   const [expandedSectionId, setExpandedSectionId] = useState<string | null>(null);
+
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Create claim application mutation
+  const createClaimMutation = useMutation({
+    mutationFn: async (claimData: InsertClaimApplication) => {
+      return await apiRequest('/api/claim-applications', {
+        method: 'POST',
+        body: claimData,
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Berjaya!",
+        description: "Permohonan tuntutan telah berjaya dihantar",
+        variant: "default",
+      });
+      
+      // Reset form
+      setClaimType("");
+      setClaimAmount("");
+      setClaimDate("");
+      setParticulars("");
+      setRemark("");
+      setStartTime("");
+      setEndTime("");
+      setReason("");
+      setAdditionalDescription("");
+      setUploadedFile(null);
+      setValidationError("");
+      
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ['/api/claim-applications'] });
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.message || "Gagal menghantar permohonan tuntutan";
+      setValidationError(errorMessage);
+      toast({
+        title: "Ralat",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    },
+  });
 
   // Fetch current user data
   const { data: currentUser } = useQuery({
@@ -220,54 +267,28 @@ export default function ApplyClaimPage() {
         return;
       }
 
-      try {
-        console.log("Financial claim submitted:", {
-          type: 'financial',
-          claimType,
-          claimAmount,
-          claimDate,
-          particulars,
-          remark,
-          uploadedFile,
-          requestor: selectedRequestor,
-          policyLimits: selectedPolicy ? {
-            annualLimit: selectedPolicy.annualLimit,
-            limitPerApplication: selectedPolicy.limitPerApplication,
-            annualLimitUnlimited: selectedPolicy.annualLimitUnlimited,
-            limitPerApplicationUnlimited: selectedPolicy.limitPerApplicationUnlimited
-          } : null
-        });
-        
-        toast({
-          title: "Berjaya Dihantar",
-          description: `Permohonan claim ${claimType} sebanyak RM${claimAmount} telah dihantar untuk kelulusan`,
-          variant: "default",
-        });
-        
-        // Reset form after successful submission
-        setClaimType("");
-        setClaimAmount("");
-        setClaimDate("");
-        setParticulars("");
-        setRemark("");
-        setUploadedFile(null);
-        setValidationError("");
-        
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Gagal menghantar permohonan. Sila cuba lagi.",
-          variant: "destructive",
-        });
-      }
+      // Create financial claim application
+      const claimData: InsertClaimApplication = {
+        employeeId: selectedRequestor,
+        claimType: 'financial',
+        financialPolicyName: claimType,
+        amount: parseFloat(claimAmount),
+        claimDate: new Date(claimDate),
+        particulars,
+        remark,
+        status: 'pending',
+        dateSubmitted: new Date(),
+      };
 
+      createClaimMutation.mutate(claimData);
     } else if (selectedCategory === 'overtime') {
       // Basic validation for overtime
-      if (!startTime || !endTime || !claimDate || !reason) {
-        setValidationError("Sila isi semua field yang diperlukan");
+      if (!reason || !claimDate || !startTime || !endTime || !selectedRequestor) {
+        const error = "Sila isi semua field yang diperlukan untuk overtime claim";
+        setValidationError(error);
         toast({
-          title: "Submission Ditolak", 
-          description: "Sila isi semua field yang diperlukan",
+          title: "Submission Ditolak",
+          description: error,
           variant: "destructive",
         });
         return;
@@ -275,48 +296,31 @@ export default function ApplyClaimPage() {
 
       const totalHours = calculateTotalHours();
       if (totalHours <= 0) {
-        setValidationError("Masa tamat mesti selepas masa mula");
+        const error = "Masa tamat mesti selepas masa mula";
+        setValidationError(error);
         toast({
           title: "Submission Ditolak",
-          description: "Masa tamat mesti selepas masa mula", 
+          description: error,
           variant: "destructive",
         });
         return;
       }
 
-      try {
-        console.log("Overtime claim submitted:", {
-          type: 'overtime',
-          claimDate,
-          startTime,
-          endTime,
-          totalHours: totalHours,
-          reason,
-          additionalDescription,
-          requestor: selectedRequestor
-        });
-        
-        toast({
-          title: "Berjaya Dihantar",
-          description: `Permohonan overtime ${totalHours.toFixed(1)} jam telah dihantar untuk kelulusan`,
-          variant: "default",
-        });
+      // Create overtime claim application
+      const claimData: InsertClaimApplication = {
+        employeeId: selectedRequestor,
+        claimType: 'overtime',
+        claimDate: new Date(claimDate),
+        overtimeStartTime: startTime,
+        overtimeEndTime: endTime,
+        overtimeHours: totalHours,
+        overtimeReason: reason,
+        remark: additionalDescription,
+        status: 'pending',
+        dateSubmitted: new Date(),
+      };
 
-        // Reset form after successful submission
-        setStartTime("");
-        setEndTime("");
-        setClaimDate("");
-        setReason("");
-        setAdditionalDescription("");
-        setValidationError("");
-
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Gagal menghantar permohonan. Sila cuba lagi.",
-          variant: "destructive",
-        });
-      }
+      createClaimMutation.mutate(claimData);
     }
   };
 
@@ -630,10 +634,10 @@ export default function ApplyClaimPage() {
                   <Button 
                     onClick={handleSubmit}
                     className="w-full bg-slate-600 hover:bg-slate-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                    disabled={!claimType || !claimAmount || !claimDate || !selectedRequestor || isValidating}
+                    disabled={!claimType || !claimAmount || !claimDate || !selectedRequestor || isValidating || createClaimMutation.isPending}
                     data-testid="button-submit-claim"
                   >
-                    {isValidating ? "Memproses..." : "Submit Now"}
+                    {isValidating || createClaimMutation.isPending ? "Memproses..." : "Submit Now"}
                   </Button>
                 </CardContent>
               </Card>
@@ -860,10 +864,10 @@ export default function ApplyClaimPage() {
                   <Button 
                     onClick={handleSubmit}
                     className="w-full bg-slate-600 hover:bg-slate-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                    disabled={!startTime || !endTime || !claimDate || !reason || !selectedRequestor || isValidating}
+                    disabled={!startTime || !endTime || !claimDate || !reason || !selectedRequestor || isValidating || createClaimMutation.isPending}
                     data-testid="button-submit-overtime"
                   >
-                    {isValidating ? "Memproses..." : "Submit Now"}
+                    {isValidating || createClaimMutation.isPending ? "Memproses..." : "Submit Now"}
                   </Button>
                 </CardContent>
               </Card>

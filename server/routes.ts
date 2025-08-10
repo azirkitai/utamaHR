@@ -31,6 +31,8 @@ import {
   updateCompanyLeaveTypeSchema,
   insertFinancialClaimPolicySchema,
   updateFinancialClaimPolicySchema,
+  insertClaimApplicationSchema,
+  updateClaimApplicationSchema,
   type AttendanceRecord
 } from "@shared/schema";
 import { checkEnvironmentSecrets } from "./env-check";
@@ -2993,6 +2995,172 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error('Error deleting financial claim policy:', error);
       res.status(500).json({ error: 'Failed to delete financial claim policy' });
+    }
+  });
+
+  // =================== CLAIM APPLICATION ROUTES ===================
+
+  // Get all claim applications
+  app.get('/api/claim-applications', authenticateToken, async (req, res) => {
+    try {
+      const applications = await storage.getAllClaimApplications();
+      res.json(applications);
+    } catch (error) {
+      console.error('Error getting claim applications:', error);
+      res.status(500).json({ error: 'Gagal mengambil permohonan tuntutan' });
+    }
+  });
+
+  // Get claim applications by employee ID
+  app.get('/api/claim-applications/employee/:employeeId', authenticateToken, async (req, res) => {
+    try {
+      const { employeeId } = req.params;
+      const applications = await storage.getClaimApplicationsByEmployeeId(employeeId);
+      res.json(applications);
+    } catch (error) {
+      console.error('Error getting claim applications by employee:', error);
+      res.status(500).json({ error: 'Gagal mengambil permohonan tuntutan pekerja' });
+    }
+  });
+
+  // Get claim applications by type
+  app.get('/api/claim-applications/type/:claimType', authenticateToken, async (req, res) => {
+    try {
+      const { claimType } = req.params;
+      if (claimType !== 'financial' && claimType !== 'overtime') {
+        return res.status(400).json({ error: 'Jenis tuntutan tidak sah' });
+      }
+      const applications = await storage.getClaimApplicationsByType(claimType as 'financial' | 'overtime');
+      res.json(applications);
+    } catch (error) {
+      console.error('Error getting claim applications by type:', error);
+      res.status(500).json({ error: 'Gagal mengambil permohonan tuntutan mengikut jenis' });
+    }
+  });
+
+  // Create new claim application with validation
+  app.post('/api/claim-applications', authenticateToken, async (req, res) => {
+    try {
+      const validationResult = insertClaimApplicationSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: 'Data tidak sah', 
+          details: validationResult.error.issues 
+        });
+      }
+
+      const data = validationResult.data;
+      
+      // For financial claims, validate against policy limits
+      if (data.claimType === 'financial' && data.financialPolicyName && data.amount) {
+        // Get the policy details
+        const policies = await storage.getAllFinancialClaimPolicies();
+        const policy = policies.find(p => p.claimName === data.financialPolicyName);
+        
+        if (!policy) {
+          return res.status(400).json({ 
+            error: 'Polisi kewangan tidak dijumpai' 
+          });
+        }
+
+        // Check per-application limit
+        if (data.amount > policy.limitPerApplication) {
+          return res.status(400).json({ 
+            error: `Jumlah melebihi had setiap permohonan: RM${policy.limitPerApplication}` 
+          });
+        }
+
+        // Check annual limit for employee
+        const currentYear = new Date().getFullYear();
+        const existingClaims = await storage.getClaimApplicationsByEmployeeId(data.employeeId);
+        
+        const approvedClaims = existingClaims.filter(claim => 
+          claim.status === 'approved' &&
+          claim.financialPolicyName === data.financialPolicyName &&
+          new Date(claim.dateSubmitted).getFullYear() === currentYear
+        );
+        
+        const totalApprovedAmount = approvedClaims.reduce((sum, claim) => sum + (claim.amount || 0), 0);
+        
+        if (totalApprovedAmount + data.amount > policy.annualLimit) {
+          return res.status(400).json({ 
+            error: `Jumlah melebihi had tahunan: RM${policy.annualLimit}. Jumlah yang telah diluluskan: RM${totalApprovedAmount}` 
+          });
+        }
+      }
+
+      const application = await storage.createClaimApplication(data);
+      res.status(201).json(application);
+    } catch (error) {
+      console.error('Error creating claim application:', error);
+      res.status(500).json({ error: 'Gagal membuat permohonan tuntutan' });
+    }
+  });
+
+  // Update claim application
+  app.put('/api/claim-applications/:id', authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const validationResult = updateClaimApplicationSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: 'Data tidak sah', 
+          details: validationResult.error.issues 
+        });
+      }
+
+      const application = await storage.updateClaimApplication(id, validationResult.data);
+      if (!application) {
+        return res.status(404).json({ error: 'Permohonan tuntutan tidak dijumpai' });
+      }
+      res.json(application);
+    } catch (error) {
+      console.error('Error updating claim application:', error);
+      res.status(500).json({ error: 'Gagal mengemas kini permohonan tuntutan' });
+    }
+  });
+
+  // Approve claim application
+  app.post('/api/claim-applications/:id/approve', authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { approverId } = req.body;
+      
+      if (!approverId) {
+        return res.status(400).json({ error: 'ID pelulus diperlukan' });
+      }
+
+      const success = await storage.approveClaimApplication(id, approverId);
+      if (!success) {
+        return res.status(404).json({ error: 'Permohonan tuntutan tidak dijumpai' });
+      }
+      
+      res.json({ message: 'Permohonan tuntutan berjaya diluluskan' });
+    } catch (error) {
+      console.error('Error approving claim application:', error);
+      res.status(500).json({ error: 'Gagal meluluskan permohonan tuntutan' });
+    }
+  });
+
+  // Reject claim application
+  app.post('/api/claim-applications/:id/reject', authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { rejectorId, reason } = req.body;
+      
+      if (!rejectorId || !reason) {
+        return res.status(400).json({ error: 'ID penolak dan sebab penolakan diperlukan' });
+      }
+
+      const success = await storage.rejectClaimApplication(id, rejectorId, reason);
+      if (!success) {
+        return res.status(404).json({ error: 'Permohonan tuntutan tidak dijumpai' });
+      }
+      
+      res.json({ message: 'Permohonan tuntutan berjaya ditolak' });
+    } catch (error) {
+      console.error('Error rejecting claim application:', error);
+      res.status(500).json({ error: 'Gagal menolak permohonan tuntutan' });
     }
   });
 
