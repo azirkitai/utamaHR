@@ -243,6 +243,7 @@ export default function SystemSettingPage() {
   const [policyType, setPolicyType] = useState<"financial" | "overtime">("financial");
   const [expandedPolicyId, setExpandedPolicyId] = useState<string | null>(null);
   const [expandedFinancialPolicyId, setExpandedFinancialPolicyId] = useState<string | null>(null);
+  const [excludedFinancialEmployees, setExcludedFinancialEmployees] = useState<string[]>([]);
   
   // Group Policy settings state
   const [groupPolicySettings, setGroupPolicySettings] = useState({
@@ -1737,16 +1738,53 @@ export default function SystemSettingPage() {
 
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700 block">Exclude Employee</label>
-                        <Select>
+                        <Select
+                          value={excludedFinancialEmployees.length > 0 ? excludedFinancialEmployees[0] : ""}
+                          onValueChange={(value) => {
+                            if (value && !excludedFinancialEmployees.includes(value)) {
+                              setExcludedFinancialEmployees(prev => [...prev, value]);
+                            }
+                          }}
+                        >
                           <SelectTrigger>
-                            <SelectValue placeholder="Choose employees to exclude" />
+                            <SelectValue placeholder={
+                              excludedFinancialEmployees.length > 0 
+                                ? `${excludedFinancialEmployees.length} employees selected`
+                                : "Choose employees to exclude"
+                            } />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="emp1">Ahmad Hassan</SelectItem>
-                            <SelectItem value="emp2">Siti Nurhaliza</SelectItem>
-                            <SelectItem value="emp3">Muhammad Ali</SelectItem>
+                            {allEmployees?.map((employee) => (
+                              <SelectItem 
+                                key={employee.id} 
+                                value={employee.id}
+                                disabled={excludedFinancialEmployees.includes(employee.id)}
+                              >
+                                {employee.fullName} ({employee.role || 'No Role'})
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
+                        
+                        {/* Show selected employees */}
+                        {excludedFinancialEmployees.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {excludedFinancialEmployees.map((employeeId) => {
+                              const employee = allEmployees?.find(emp => emp.id === employeeId);
+                              return (
+                                <div key={employeeId} className="flex items-center bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
+                                  <span>{employee?.fullName || employeeId}</span>
+                                  <button
+                                    onClick={() => setExcludedFinancialEmployees(prev => prev.filter(id => id !== employeeId))}
+                                    className="ml-2 hover:bg-blue-200 rounded"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
 
                       <div className="space-y-2">
