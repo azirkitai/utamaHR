@@ -1741,7 +1741,9 @@ export default function SystemSettingPage() {
                         <Select
                           value={excludedFinancialEmployees.length > 0 ? excludedFinancialEmployees[0] : ""}
                           onValueChange={(value) => {
-                            if (value && !excludedFinancialEmployees.includes(value)) {
+                            if (value === "none") {
+                              setExcludedFinancialEmployees([]);
+                            } else if (value && !excludedFinancialEmployees.includes(value)) {
                               setExcludedFinancialEmployees(prev => [...prev, value]);
                             }
                           }}
@@ -1754,6 +1756,7 @@ export default function SystemSettingPage() {
                             } />
                           </SelectTrigger>
                           <SelectContent>
+                            <SelectItem value="none">(None)</SelectItem>
                             {allEmployees?.map((employee) => (
                               <SelectItem 
                                 key={employee.id} 
