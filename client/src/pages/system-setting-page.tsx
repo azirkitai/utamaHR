@@ -741,7 +741,24 @@ export default function SystemSettingPage() {
     staleTime: 30000, // Cache for 30 seconds
   });
 
-  // Note: No need for useEffect to sync data since we're using live API data directly
+  // Fetch current financial approval settings
+  const { data: currentFinancialSettings } = useQuery({
+    queryKey: ["/api/approval-settings/financial"],
+    staleTime: 30000, // Cache for 30 seconds
+  });
+
+  // Sync financial approval state with API data
+  useEffect(() => {
+    if (currentFinancialSettings && typeof currentFinancialSettings === 'object' && 'firstLevelApprovalId' in currentFinancialSettings) {
+      const settings = currentFinancialSettings as any;
+      setFinancialApproval({
+        firstLevel: settings.firstLevelApprovalId || "",
+        secondLevel: settings.secondLevelApprovalId || "none",
+      });
+    }
+  }, [currentFinancialSettings]);
+
+  // Note: No need for useEffect to sync data since we're using live API data directly for leave settings
 
   // Load existing group policy settings when a policy is expanded
   useEffect(() => {
@@ -855,6 +872,44 @@ export default function SystemSettingPage() {
     } catch (error) {
       console.error("Error saving leave approval:", error);
       alert(`Gagal menyimpan tetapan kelulusan cuti: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
+  const handleSaveFinancialApproval = async () => {
+    try {
+      const token = localStorage.getItem("utamahr_token");
+      
+      if (!token) {
+        alert("Sila log masuk semula.");
+        return;
+      }
+
+      const response = await fetch("/api/approval-settings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          type: "financial",
+          firstLevelApprovalId: financialApproval.firstLevel,
+          secondLevelApprovalId: financialApproval.secondLevel === "none" ? null : financialApproval.secondLevel,
+        }),
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Financial approval settings saved:", result);
+        alert("Tetapan kelulusan kewangan berjaya disimpan!");
+        queryClient.invalidateQueries({ queryKey: ["/api/approval-settings/financial"] });
+      } else {
+        const errorData = await response.json();
+        console.log("Error response:", errorData);
+        throw new Error(errorData.error || "Failed to save financial approval settings");
+      }
+    } catch (error) {
+      console.error("Error saving financial approval:", error);
+      alert(`Gagal menyimpan tetapan kelulusan kewangan: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -1131,39 +1186,7 @@ export default function SystemSettingPage() {
     console.log("Save timeoff settings:", timeoffSettings);
   };
 
-  const handleSaveFinancialApproval = async () => {
-    try {
-      const token = localStorage.getItem("utamahr_token");
-      if (!token) {
-        alert("Sila log masuk semula.");
-        return;
-      }
 
-      const response = await fetch("/api/approval-settings", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          type: "financial",
-          firstLevelApprovalId: financialApproval.firstLevel,
-          secondLevelApprovalId: financialApproval.secondLevel,
-        }),
-      });
-      
-      if (response.ok) {
-        console.log("Financial approval settings saved successfully");
-        alert("Tetapan kelulusan kewangan berjaya disimpan!");
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to save approval settings");
-      }
-    } catch (error) {
-      console.error("Error saving financial approval:", error);
-      alert("Gagal menyimpan tetapan kelulusan kewangan. Sila cuba lagi.");
-    }
-  };
 
   const handleSaveFinancialSettings = () => {
     console.log("Save financial settings:", financialSettings);
@@ -1779,7 +1802,11 @@ export default function SystemSettingPage() {
                 <Label className="text-sm font-medium">First Level Approval</Label>
                 <Select 
                   value={financialApproval.firstLevel} 
-                  onValueChange={(value) => setFinancialApproval(prev => ({...prev, firstLevel: value}))}
+                  onValueChange={(value) => setFinancialApproval(prev => ({
+                    ...prev, 
+                    firstLevel: value,
+                    secondLevel: prev.secondLevel === value ? "none" : prev.secondLevel
+                  }))}
                 >
                   <SelectTrigger data-testid="select-financial-first-level-approval">
                     <SelectValue placeholder="Select first financial approval" />
@@ -1805,8 +1832,11 @@ export default function SystemSettingPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">None</SelectItem>
-                    <SelectItem value="director">Director</SelectItem>
-                    <SelectItem value="ceo">CEO</SelectItem>
+                    {approvalEmployees?.filter(employee => employee.id !== financialApproval.firstLevel).map((employee) => (
+                      <SelectItem key={employee.id} value={employee.id}>
+                        {employee.fullName} ({employee.role})
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
