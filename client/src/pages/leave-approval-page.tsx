@@ -24,7 +24,7 @@ import { Search, Printer, Eye, Check, X, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
-type TabType = "approval" | "report" | "summary" | "history";
+type TabType = "approval" | "report" | "summary" | "history" | "balance-carry-forward";
 
 interface LeaveRecord {
   id: string;
@@ -110,6 +110,23 @@ export default function LeaveApprovalPage() {
     queryKey: ["/api/leave-summary-all-employees"]
   });
 
+  // Fetch carry forward records
+  const { data: carryForwardRecords = [] } = useQuery({
+    queryKey: ["/api/leave-balance-carry-forward", selectedYear],
+    queryFn: async () => {
+      const response = await fetch(`/api/leave-balance-carry-forward?year=${selectedYear}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('utamahr_token')}`
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch carry forward records');
+      }
+      return response.json();
+    },
+    enabled: activeTab === 'balance-carry-forward',
+  });
+
   // Mutation for approve/reject leave applications
   const approveRejectMutation = useMutation({
     mutationFn: async ({ id, action, comments }: { id: string; action: 'approve' | 'reject'; comments?: string }) => {
@@ -165,6 +182,8 @@ export default function LeaveApprovalPage() {
         return "Manage Leave Summary";
       case "history":
         return "Manage Leave History";
+      case "balance-carry-forward":
+        return "Manage Balance Carry Forward";
       default:
         return "Manage Leave";
     }
@@ -180,6 +199,8 @@ export default function LeaveApprovalPage() {
         return "Leave Application Summary";
       case "history":
         return "Leave Application Summary";
+      case "balance-carry-forward":
+        return "Rekod Baki Cuti Dibawa ke Hadapan";
       default:
         return "Leave Applications";
     }
@@ -478,6 +499,63 @@ export default function LeaveApprovalPage() {
     </Table>
   );
 
+  const renderBalanceCarryForwardTable = () => (
+    <Table>
+      <TableHeader>
+        <TableRow className="bg-gray-50">
+          <TableHead>No.</TableHead>
+          <TableHead>Employee Name</TableHead>
+          <TableHead>Staff ID</TableHead>
+          <TableHead>Leave Type</TableHead>
+          <TableHead>Year</TableHead>
+          <TableHead>Entitlement Days</TableHead>
+          <TableHead>Used Days</TableHead>
+          <TableHead>Remaining Days</TableHead>
+          <TableHead>Carried Forward</TableHead>
+          <TableHead>Status</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {carryForwardRecords.length === 0 ? (
+          <TableRow>
+            <TableCell colSpan={10} className="text-center py-8 text-gray-500">
+              No carry forward records available for {selectedYear}
+            </TableCell>
+          </TableRow>
+        ) : (
+          carryForwardRecords.flatMap((employeeData: any, empIndex: number) =>
+            employeeData.carryForwardRecords.map((record: any, recordIndex: number) => (
+              <TableRow key={`${employeeData.employee.id}-${record.id}`}>
+                <TableCell>{empIndex + 1}.{recordIndex + 1}</TableCell>
+                <TableCell className="font-medium">{employeeData.employee.fullName}</TableCell>
+                <TableCell>{employeeData.employee.staffId}</TableCell>
+                <TableCell>{record.leaveType}</TableCell>
+                <TableCell>{record.year}</TableCell>
+                <TableCell>{Number(record.entitlementDays).toFixed(1)}</TableCell>
+                <TableCell>{Number(record.usedDays).toFixed(1)}</TableCell>
+                <TableCell>{Number(record.remainingDays).toFixed(1)}</TableCell>
+                <TableCell className="font-semibold text-cyan-600">
+                  {Number(record.carriedForwardDays).toFixed(1)}
+                </TableCell>
+                <TableCell>
+                  <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                    record.status === 'active' 
+                      ? 'bg-green-100 text-green-800'
+                      : record.status === 'expired'
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-gray-100 text-gray-800'
+                  }`}>
+                    {record.status}
+                  </span>
+                </TableCell>
+              </TableRow>
+            ))
+          )
+        )}
+      </TableBody>
+    </Table>
+  );
+
   const renderCurrentTable = () => {
     switch (activeTab) {
       case "approval":
@@ -488,6 +566,8 @@ export default function LeaveApprovalPage() {
         return renderSummaryTable();
       case "history":
         return renderHistoryTable();
+      case "balance-carry-forward":
+        return renderBalanceCarryForwardTable();
       default:
         return renderApprovalTable();
     }
@@ -513,7 +593,8 @@ export default function LeaveApprovalPage() {
               { id: "approval", label: "Leave Approval" },
               { id: "report", label: "Leave Report" },
               { id: "summary", label: "Summary" },
-              { id: "history", label: "History" }
+              { id: "history", label: "History" },
+              { id: "balance-carry-forward", label: "Balance Carry Forward" }
             ].map((tab) => (
               <button
                 key={tab.id}

@@ -102,6 +102,11 @@ import {
   type LeavePolicySetting,
   type InsertLeavePolicySetting,
   type UpdateLeavePolicySetting,
+  // Leave Balance Carry Forward
+  leaveBalanceCarryForward,
+  type LeaveBalanceCarryForward,
+  type InsertLeaveBalanceCarryForward,
+  type UpdateLeaveBalanceCarryForward,
   // Announcement types
   announcements,
   userAnnouncements,
@@ -282,6 +287,13 @@ export interface IStorage {
   getUserAnnouncements(userId: string): Promise<SelectUserAnnouncement[]>;
   markAnnouncementAsRead(userId: string, announcementId: string): Promise<SelectUserAnnouncement>;
   deleteAnnouncement(announcementId: string): Promise<boolean>;
+
+  // =================== LEAVE BALANCE CARRY FORWARD METHODS ===================
+  getLeaveBalanceCarryForward(employeeId: string, year?: number): Promise<LeaveBalanceCarryForward[]>;
+  createLeaveBalanceCarryForward(carryForward: InsertLeaveBalanceCarryForward): Promise<LeaveBalanceCarryForward>;
+  updateLeaveBalanceCarryForward(id: string, updates: UpdateLeaveBalanceCarryForward): Promise<LeaveBalanceCarryForward | undefined>;
+  deleteLeaveBalanceCarryForward(id: string): Promise<boolean>;
+  processYearEndCarryForward(year: number): Promise<LeaveBalanceCarryForward[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1682,6 +1694,143 @@ export class DatabaseStorage implements IStorage {
       return (result.rowCount || 0) > 0;
     } catch (error) {
       console.error('Error deleting announcement:', error);
+      throw error;
+    }
+  }
+
+  // =================== LEAVE BALANCE CARRY FORWARD METHODS ===================
+  async getLeaveBalanceCarryForward(employeeId: string, year?: number): Promise<LeaveBalanceCarryForward[]> {
+    try {
+      let query = db.select().from(leaveBalanceCarryForward).where(eq(leaveBalanceCarryForward.employeeId, employeeId));
+      
+      if (year) {
+        query = query.where(and(
+          eq(leaveBalanceCarryForward.employeeId, employeeId),
+          eq(leaveBalanceCarryForward.year, year)
+        ));
+      }
+      
+      return await query.orderBy(desc(leaveBalanceCarryForward.year), asc(leaveBalanceCarryForward.leaveType));
+    } catch (error) {
+      console.error('Error getting leave balance carry forward:', error);
+      throw error;
+    }
+  }
+
+  async createLeaveBalanceCarryForward(carryForward: InsertLeaveBalanceCarryForward): Promise<LeaveBalanceCarryForward> {
+    try {
+      const [record] = await db
+        .insert(leaveBalanceCarryForward)
+        .values(carryForward)
+        .returning();
+      return record;
+    } catch (error) {
+      console.error('Error creating leave balance carry forward:', error);
+      throw error;
+    }
+  }
+
+  async updateLeaveBalanceCarryForward(id: string, updates: UpdateLeaveBalanceCarryForward): Promise<LeaveBalanceCarryForward | undefined> {
+    try {
+      const [record] = await db
+        .update(leaveBalanceCarryForward)
+        .set({
+          ...updates,
+          updatedAt: new Date()
+        })
+        .where(eq(leaveBalanceCarryForward.id, id))
+        .returning();
+      return record || undefined;
+    } catch (error) {
+      console.error('Error updating leave balance carry forward:', error);
+      throw error;
+    }
+  }
+
+  async deleteLeaveBalanceCarryForward(id: string): Promise<boolean> {
+    try {
+      const result = await db.delete(leaveBalanceCarryForward).where(eq(leaveBalanceCarryForward.id, id));
+      return (result.rowCount ?? 0) > 0;
+    } catch (error) {
+      console.error('Error deleting leave balance carry forward:', error);
+      throw error;
+    }
+  }
+
+  async processYearEndCarryForward(year: number): Promise<LeaveBalanceCarryForward[]> {
+    try {
+      console.log(`Processing year-end carry forward for ${year}`);
+      
+      // Get all employees and their leave policies
+      const allEmployees = await this.getAllEmployees();
+      const carryForwardRecords: LeaveBalanceCarryForward[] = [];
+      
+      for (const employee of allEmployees) {
+        // Get all company leave types where carry forward is enabled
+        const leaveTypes = await db
+          .select()
+          .from(companyLeaveTypes)
+          .innerJoin(
+            leavePolicySettings,
+            eq(companyLeaveTypes.id, leavePolicySettings.leaveType)
+          )
+          .where(eq(leavePolicySettings.carryForward, true));
+
+        for (const { company_leave_types: leaveType, leave_policy_settings: settings } of leaveTypes) {
+          // Calculate used leave days for this employee and leave type in the specified year
+          const usedLeave = await db
+            .select({
+              totalUsed: sql<number>`COALESCE(SUM(${leaveApplications.totalDays}), 0)`
+            })
+            .from(leaveApplications)
+            .where(
+              and(
+                eq(leaveApplications.employeeId, employee.id),
+                eq(leaveApplications.leaveType, leaveType.name),
+                eq(leaveApplications.status, 'Approved'),
+                sql`EXTRACT(YEAR FROM ${leaveApplications.startDate}) = ${year}`
+              )
+            );
+
+          const totalUsed = Number(usedLeave[0]?.totalUsed || 0);
+          
+          // Get entitlement from group policy settings
+          const entitlement = await db
+            .select()
+            .from(groupPolicySettings)
+            .where(
+              and(
+                eq(groupPolicySettings.leaveType, leaveType.id),
+                eq(groupPolicySettings.role, employee.role || 'Employee')
+              )
+            )
+            .limit(1);
+
+          const entitlementDays = Number(entitlement[0]?.entitlementDays || 0);
+          const remainingDays = Math.max(0, entitlementDays - totalUsed);
+          
+          // Only create carry forward record if there are remaining days
+          if (remainingDays > 0) {
+            const carryForwardRecord = await this.createLeaveBalanceCarryForward({
+              employeeId: employee.id,
+              leaveType: leaveType.name,
+              year: year,
+              entitlementDays: entitlementDays.toString(),
+              usedDays: totalUsed.toString(),
+              remainingDays: remainingDays.toString(),
+              carriedForwardDays: remainingDays.toString(),
+              status: 'active'
+            });
+            
+            carryForwardRecords.push(carryForwardRecord);
+          }
+        }
+      }
+      
+      console.log(`Created ${carryForwardRecords.length} carry forward records for ${year}`);
+      return carryForwardRecords;
+    } catch (error) {
+      console.error('Error processing year-end carry forward:', error);
       throw error;
     }
   }

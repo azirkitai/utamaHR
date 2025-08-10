@@ -456,6 +456,22 @@ export const userAnnouncements = pgTable('user_announcements', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// Leave Balance Carry Forward Table
+export const leaveBalanceCarryForward = pgTable('leave_balance_carry_forward', {
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  employeeId: varchar('employee_id').notNull().references(() => employees.id, { onDelete: 'cascade' }),
+  leaveType: text('leave_type').notNull(),
+  year: integer('year').notNull(), // Year from which balance is carried forward
+  entitlementDays: decimal('entitlement_days', { precision: 4, scale: 1 }).notNull().default(sql`0`), // Original entitlement for the year
+  usedDays: decimal('used_days', { precision: 4, scale: 1 }).notNull().default(sql`0`), // Days used in the year
+  remainingDays: decimal('remaining_days', { precision: 4, scale: 1 }).notNull().default(sql`0`), // Days remaining at year end
+  carriedForwardDays: decimal('carried_forward_days', { precision: 4, scale: 1 }).notNull().default(sql`0`), // Days carried to next year
+  expiryDate: timestamp('expiry_date'), // When carry forward expires (optional)
+  status: text('status').notNull().default('active'), // active, expired, used
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 // =================== VALIDATION SCHEMAS ===================
 
 // Attendance record schemas
@@ -873,4 +889,17 @@ export const updateLeavePolicySettingSchema = insertLeavePolicySettingSchema.par
 // Leave Policy Settings types
 export type LeavePolicySetting = typeof leavePolicySettings.$inferSelect;
 export type InsertLeavePolicySetting = z.infer<typeof insertLeavePolicySettingSchema>;
+
+// Leave Balance Carry Forward schemas
+export const insertLeaveBalanceCarryForwardSchema = createInsertSchema(leaveBalanceCarryForward).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const updateLeaveBalanceCarryForwardSchema = insertLeaveBalanceCarryForwardSchema.partial();
+
+// Leave Balance Carry Forward types
+export type LeaveBalanceCarryForward = typeof leaveBalanceCarryForward.$inferSelect;
+export type InsertLeaveBalanceCarryForward = z.infer<typeof insertLeaveBalanceCarryForwardSchema>;
+export type UpdateLeaveBalanceCarryForward = z.infer<typeof updateLeaveBalanceCarryForwardSchema>;
 export type UpdateLeavePolicySetting = z.infer<typeof updateLeavePolicySettingSchema>;

@@ -2061,6 +2061,87 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // =================== LEAVE BALANCE CARRY FORWARD ROUTES ===================
+  
+  // Get leave balance carry forward records for an employee
+  app.get("/api/leave-balance-carry-forward/:employeeId", authenticateToken, async (req, res) => {
+    try {
+      const { employeeId } = req.params;
+      const year = req.query.year ? parseInt(req.query.year as string) : undefined;
+      
+      const carryForwardRecords = await storage.getLeaveBalanceCarryForward(employeeId, year);
+      res.json(carryForwardRecords);
+    } catch (error) {
+      console.error("Error fetching leave balance carry forward:", error);
+      res.status(500).json({ error: "Gagal mendapatkan rekod carry forward" });
+    }
+  });
+
+  // Create year-end carry forward process
+  app.post("/api/process-year-end-carry-forward", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager'];
+      
+      if (!adminRoles.includes(currentUser.role)) {
+        return res.status(403).json({ error: "Tidak dibenarkan untuk memproses carry forward" });
+      }
+      
+      const { year } = req.body;
+      if (!year) {
+        return res.status(400).json({ error: "Tahun diperlukan" });
+      }
+      
+      const carryForwardRecords = await storage.processYearEndCarryForward(year);
+      res.json({
+        message: `Successfully processed carry forward for ${year}`,
+        recordsCreated: carryForwardRecords.length,
+        records: carryForwardRecords
+      });
+    } catch (error) {
+      console.error("Error processing year-end carry forward:", error);
+      res.status(500).json({ error: "Gagal memproses carry forward akhir tahun" });
+    }
+  });
+
+  // Get all carry forward records (for admin view)
+  app.get("/api/leave-balance-carry-forward", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager'];
+      
+      if (!adminRoles.includes(currentUser.role)) {
+        return res.status(403).json({ error: "Tidak dibenarkan" });
+      }
+      
+      const year = req.query.year ? parseInt(req.query.year as string) : undefined;
+      
+      // Get all employees and their carry forward records
+      const employees = await storage.getAllEmployees();
+      const allCarryForwardRecords = [];
+      
+      for (const employee of employees) {
+        const records = await storage.getLeaveBalanceCarryForward(employee.id, year);
+        if (records.length > 0) {
+          allCarryForwardRecords.push({
+            employee: {
+              id: employee.id,
+              fullName: employee.fullName,
+              staffId: employee.staffId,
+              role: employee.role
+            },
+            carryForwardRecords: records
+          });
+        }
+      }
+      
+      res.json(allCarryForwardRecords);
+    } catch (error) {
+      console.error("Error fetching all carry forward records:", error);
+      res.status(500).json({ error: "Gagal mendapatkan semua rekod carry forward" });
+    }
+  });
+
   // =================== LEAVE POLICY ROUTES ===================
   
   // Get employee leave policies
