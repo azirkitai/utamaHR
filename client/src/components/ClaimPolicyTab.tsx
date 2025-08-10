@@ -5,17 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Plus, Search, Edit, ChevronDown, Download } from "lucide-react";
+import { Search } from "lucide-react";
 import { ClaimPolicy } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { ClaimPolicyModal } from "./ClaimPolicyModal";
 
 interface ClaimPolicyTabProps {
   employeeId: string;
@@ -23,8 +16,6 @@ interface ClaimPolicyTabProps {
 
 export function ClaimPolicyTab({ employeeId }: ClaimPolicyTabProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingPolicy, setEditingPolicy] = useState<ClaimPolicy | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -77,40 +68,12 @@ export function ClaimPolicyTab({ employeeId }: ClaimPolicyTabProps) {
     policy.remarks?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleEdit = (policy: ClaimPolicy) => {
-    setEditingPolicy(policy);
-    setIsModalOpen(true);
-  };
-
-  const handleAddNew = () => {
-    setEditingPolicy(null);
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setEditingPolicy(null);
-  };
-
+  // Handle toggle for including/excluding employee from policy
   const handleStatusToggle = (policyId: string, isEnabled: boolean) => {
     updateStatusMutation.mutate({ policyId, isEnabled });
   };
 
-  const handleExportExcel = () => {
-    toast({
-      title: "Export Excel",
-      description: "Memuat turun fail Excel...",
-    });
-    // TODO: Implement Excel export
-  };
 
-  const handleExportPDF = () => {
-    toast({
-      title: "Export PDF",
-      description: "Memuat turun fail PDF...",
-    });
-    // TODO: Implement PDF export
-  };
 
   if (isLoading) {
     return (
@@ -133,43 +96,9 @@ export function ClaimPolicyTab({ employeeId }: ClaimPolicyTabProps) {
         <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white">
           <div className="flex items-center justify-between">
             <CardTitle>Claim Policies</CardTitle>
-            <div className="flex items-center gap-2">
-              {/* Export Dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    className="bg-white text-teal-600 hover:bg-gray-100"
-                    size="sm"
-                    data-testid="button-export-claim-policies"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Export
-                    <ChevronDown className="w-4 h-4 ml-2" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={handleExportExcel} data-testid="option-export-excel">
-                    <Download className="w-4 h-4 mr-2" />
-                    Download as Excel
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleExportPDF} data-testid="option-export-pdf">
-                    <Download className="w-4 h-4 mr-2" />
-                    Download as PDF
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              {/* Add Button */}
-              <Button
-                onClick={handleAddNew}
-                className="bg-white text-teal-600 hover:bg-gray-100"
-                size="sm"
-                data-testid="button-add-claim-policy"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add
-              </Button>
-            </div>
+            <Badge variant="secondary" className="bg-white text-teal-600">
+              System Policies
+            </Badge>
           </div>
         </CardHeader>
         <CardContent className="p-6">
@@ -205,8 +134,8 @@ export function ClaimPolicyTab({ employeeId }: ClaimPolicyTabProps) {
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Remarks
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Action
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Type
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Included
@@ -245,16 +174,10 @@ export function ClaimPolicyTab({ employeeId }: ClaimPolicyTabProps) {
                             {policy.remarks || "N/A"}
                           </div>
                         </td>
-                        <td className="px-4 py-4 whitespace-nowrap text-sm">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEdit(policy)}
-                            className="text-blue-600 hover:text-blue-700"
-                            data-testid={`button-edit-claim-policy-${policy.id}`}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-center">
+                          <span className="text-gray-400 text-xs">
+                            System Policy
+                          </span>
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap">
                           <div className="flex items-center">
@@ -296,13 +219,7 @@ export function ClaimPolicyTab({ employeeId }: ClaimPolicyTabProps) {
         </CardContent>
       </Card>
 
-      {/* Claim Policy Modal */}
-      <ClaimPolicyModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        employeeId={employeeId}
-        claimPolicy={editingPolicy}
-      />
+
     </>
   );
 }
