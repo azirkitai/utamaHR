@@ -92,6 +92,17 @@ export default function ApplyClaimPage() {
     return fallbackClaimTypes;
   }, [financialClaimPolicies]);
 
+  // Get selected policy details
+  const selectedPolicy = React.useMemo(() => {
+    if (!claimType || !Array.isArray(financialClaimPolicies)) return null;
+    return (financialClaimPolicies as FinancialClaimPolicy[])
+      .find(policy => policy.claimName === claimType);
+  }, [claimType, financialClaimPolicies]);
+
+  // Validation states
+  const [validationError, setValidationError] = React.useState<string>("");
+  const [isValidating, setIsValidating] = React.useState(false);
+
   // Set default requestor to current user if not privileged role
   React.useEffect(() => {
     if (currentUser && availableEmployees.length > 0 && !selectedRequestor) {
@@ -128,27 +139,184 @@ export default function ApplyClaimPage() {
     }
   };
 
-  const handleSubmit = () => {
+  // Validation function for claim submission
+  const validateClaimSubmission = async (): Promise<{ isValid: boolean; error: string }> => {
+    setIsValidating(true);
+    
+    try {
+      // Basic validation
+      if (!claimType || !claimAmount || !claimDate || !selectedRequestor) {
+        return { isValid: false, error: "Sila isi semua field yang diperlukan" };
+      }
+
+      const amount = parseFloat(claimAmount);
+      if (isNaN(amount) || amount <= 0) {
+        return { isValid: false, error: "Jumlah claim mesti lebih besar daripada 0" };
+      }
+
+      // Check if policy exists
+      if (!selectedPolicy) {
+        return { isValid: false, error: "Policy untuk claim type ini tidak dijumpai" };
+      }
+
+      // Check per application limit
+      if (!selectedPolicy.limitPerApplicationUnlimited) {
+        const limitPerApp = parseFloat(selectedPolicy.limitPerApplication || "0");
+        if (amount > limitPerApp) {
+          return { 
+            isValid: false, 
+            error: `Jumlah claim (RM${amount}) melebihi had setiap permohonan (RM${limitPerApp}) untuk ${claimType}` 
+          };
+        }
+      }
+
+      // Check annual limit (would need to fetch user's current usage from database)
+      if (!selectedPolicy.annualLimitUnlimited) {
+        const annualLimit = parseFloat(selectedPolicy.annualLimit || "0");
+        // For now, we'll just check if the single claim exceeds annual limit
+        // In a real system, you'd check current year's total claims for this user + this new claim
+        if (amount > annualLimit) {
+          return { 
+            isValid: false, 
+            error: `Jumlah claim (RM${amount}) melebihi had tahunan (RM${annualLimit}) untuk ${claimType}` 
+          };
+        }
+      }
+
+      // Check if user is excluded from this policy
+      const currentUserId = (currentUser as any)?.id;
+      const currentEmployeeId = availableEmployees.find((emp: any) => emp.userId === currentUserId)?.id;
+      
+      if (selectedPolicy.excludedEmployeeIds && 
+          currentEmployeeId && 
+          selectedPolicy.excludedEmployeeIds.includes(currentEmployeeId)) {
+        return { 
+          isValid: false, 
+          error: `Anda tidak layak untuk membuat claim ${claimType} berdasarkan policy syarikat` 
+        };
+      }
+
+      return { isValid: true, error: "" };
+    } catch (error) {
+      return { isValid: false, error: "Error semasa validasi. Sila cuba lagi." };
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    setValidationError("");
+
     if (selectedCategory === 'financial') {
-      console.log({
-        type: 'financial',
-        claimType,
-        claimAmount,
-        claimDate,
-        particulars,
-        remark,
-        uploadedFile
-      });
+      // Run validation for financial claims
+      const validation = await validateClaimSubmission();
+      if (!validation.isValid) {
+        setValidationError(validation.error);
+        toast({
+          title: "Submission Ditolak",
+          description: validation.error,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      try {
+        console.log("Financial claim submitted:", {
+          type: 'financial',
+          claimType,
+          claimAmount,
+          claimDate,
+          particulars,
+          remark,
+          uploadedFile,
+          requestor: selectedRequestor,
+          policyLimits: selectedPolicy ? {
+            annualLimit: selectedPolicy.annualLimit,
+            limitPerApplication: selectedPolicy.limitPerApplication,
+            annualLimitUnlimited: selectedPolicy.annualLimitUnlimited,
+            limitPerApplicationUnlimited: selectedPolicy.limitPerApplicationUnlimited
+          } : null
+        });
+        
+        toast({
+          title: "Berjaya Dihantar",
+          description: `Permohonan claim ${claimType} sebanyak RM${claimAmount} telah dihantar untuk kelulusan`,
+          variant: "default",
+        });
+        
+        // Reset form after successful submission
+        setClaimType("");
+        setClaimAmount("");
+        setClaimDate("");
+        setParticulars("");
+        setRemark("");
+        setUploadedFile(null);
+        setValidationError("");
+        
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Gagal menghantar permohonan. Sila cuba lagi.",
+          variant: "destructive",
+        });
+      }
+
     } else if (selectedCategory === 'overtime') {
-      console.log({
-        type: 'overtime',
-        claimDate,
-        startTime,
-        endTime,
-        totalHours: calculateTotalHours(),
-        reason,
-        additionalDescription
-      });
+      // Basic validation for overtime
+      if (!startTime || !endTime || !claimDate || !reason) {
+        setValidationError("Sila isi semua field yang diperlukan");
+        toast({
+          title: "Submission Ditolak", 
+          description: "Sila isi semua field yang diperlukan",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const totalHours = calculateTotalHours();
+      if (totalHours <= 0) {
+        setValidationError("Masa tamat mesti selepas masa mula");
+        toast({
+          title: "Submission Ditolak",
+          description: "Masa tamat mesti selepas masa mula", 
+          variant: "destructive",
+        });
+        return;
+      }
+
+      try {
+        console.log("Overtime claim submitted:", {
+          type: 'overtime',
+          claimDate,
+          startTime,
+          endTime,
+          totalHours: totalHours,
+          reason,
+          additionalDescription,
+          requestor: selectedRequestor
+        });
+        
+        toast({
+          title: "Berjaya Dihantar",
+          description: `Permohonan overtime ${totalHours.toFixed(1)} jam telah dihantar untuk kelulusan`,
+          variant: "default",
+        });
+
+        // Reset form after successful submission
+        setStartTime("");
+        setEndTime("");
+        setClaimDate("");
+        setReason("");
+        setAdditionalDescription("");
+        setValidationError("");
+
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Gagal menghantar permohonan. Sila cuba lagi.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -435,13 +603,37 @@ export default function ApplyClaimPage() {
                     </div>
                   </div>
 
+                  {/* Validation Error Display */}
+                  {validationError && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+                      <div className="flex items-center">
+                        <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                        </svg>
+                        {validationError}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Policy Limits Display */}
+                  {selectedPolicy && claimType && (
+                    <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-md text-sm">
+                      <div className="font-medium mb-1">Had untuk {claimType}:</div>
+                      <div className="text-xs space-y-1">
+                        <div>• Had tahunan: {selectedPolicy.annualLimitUnlimited ? "Tanpa had" : `RM${selectedPolicy.annualLimit}`}</div>
+                        <div>• Had setiap permohonan: {selectedPolicy.limitPerApplicationUnlimited ? "Tanpa had" : `RM${selectedPolicy.limitPerApplication}`}</div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Submit Button */}
                   <Button 
                     onClick={handleSubmit}
-                    className="w-full bg-slate-600 hover:bg-slate-700"
-                    disabled={!claimType || !claimAmount || !claimDate}
+                    className="w-full bg-slate-600 hover:bg-slate-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    disabled={!claimType || !claimAmount || !claimDate || !selectedRequestor || isValidating}
+                    data-testid="button-submit-claim"
                   >
-                    Submit Now
+                    {isValidating ? "Memproses..." : "Submit Now"}
                   </Button>
                 </CardContent>
               </Card>
@@ -652,13 +844,26 @@ export default function ApplyClaimPage() {
                     />
                   </div>
 
+                  {/* Validation Error Display */}
+                  {validationError && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+                      <div className="flex items-center">
+                        <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                        </svg>
+                        {validationError}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Submit Button */}
                   <Button 
                     onClick={handleSubmit}
-                    className="w-full bg-slate-600 hover:bg-slate-700"
-                    disabled={!startTime || !endTime || !claimDate || !reason}
+                    className="w-full bg-slate-600 hover:bg-slate-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    disabled={!startTime || !endTime || !claimDate || !reason || !selectedRequestor || isValidating}
+                    data-testid="button-submit-overtime"
                   >
-                    Submit Now
+                    {isValidating ? "Memproses..." : "Submit Now"}
                   </Button>
                 </CardContent>
               </Card>
