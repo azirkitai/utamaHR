@@ -1,0 +1,247 @@
+Baik. Di bawah ni **prompt siap-copypaste** untuk diberi kepada agent. Saya tulis sangat spesifik supaya layout, teks, ID elemen, dan logik kiraan ikut tepat macam screenshot.
+
+---
+
+# PROMPT KEPADA AGENT – PAGE **MASTER SALARY**
+
+## 1) Objektif
+
+Bina satu halaman **Master Salary** untuk tetapan gaji bulanan tetap pekerja. Halaman ini membolehkan HR memilih pekerja, melihat ringkasan kiraan (Net/Gross/Deduction/Company Contribution) dan menyimpan perubahan. Semua nilai kiraan auto-update apabila input berubah atau selepas tekan **Recalculate**.
+
+## 2) Rangka UI & Susun Atur
+
+* **Header halaman**: `Master Salary`
+* **Info banner (kuning)** – teks tepat:
+
+  > Master Salary is employee's fixed monthly salary that doesn't change monthly to ease the process of generating monthly payroll salary. If there is any permanent wage changes that will affect your pay for upcoming month, you may update the changes here so you don’t have to change it on a monthly basis.
+* **Butang di atas kanan**:
+
+  * `Recalculate` (merah)
+  * `Save Changes` (kelabu/utama)
+* **Bar seksyen**: “Salary for {EMPLOYEE\_NAME}” dengan **dropdown pilih pekerja** di kanan.
+* **Kad ringkasan (4 kotak)** selari mendatar:
+
+  1. `Net Salary` (nilai dinamik; default: “Calculating…”)
+  2. `Gross Salary` (default: “Calculating…”)
+  3. `Deduction` (default: “Calculating…”)
+  4. `Company Contribution` (default: “Calculating…”)
+
+### 2.1) Grid borang (4 kolum pada desktop, 1 kolum pada mobile)
+
+**Kolum 1 – Basic Earning**
+
+* `salaryType` (Dropdown: “Monthly”, “Hourly” – default Monthly)
+* `basicSalary` (RM, number)
+* `computedSalary` (RM, read-only) label kecil di bawah: “How did we calculate this? Calculating…”
+* **Setting (toggles)**:
+
+  * `isCalculatedInPayment` (default ON)
+  * `isSocsoEnabled` (default ON)
+  * `isEisEnabled` (default ON)
+* **EPF Setting**
+
+  * `epfCalcMethod` (Dropdown: “By Percentage”, “Fixed Amount” – default By Percentage)
+  * `epfEmployeeRate` (%) default 11.00
+  * `epfEmployerRate` (%) default 13.00
+* **HRDF Setting**
+
+  * `hrdfEmployerRate` (%) default 1.00
+* `remarks` (textarea)
+
+**Kolum 2 – Additional Item**
+
+* `advanceSalary` (RM)
+* `subsistenceAllowance` (RM)
+* `extraResponsibilityAllowance` (RM)
+* `bikVola` (RM) + checkbox `hideBikOnPayslip` label: “Item will not be displayed on payslip”
+* Link kecil di bawah: “View Item/Tax Exemption”
+* Butang hijau: `Add Additional Item` (membuka row dinamik: name, type, amount)
+
+**Kolum 3 – Deduction Item**
+
+* `epfEmployee` (read-only/auto kecuali override manual OFF) + teks kecil: “How did we calculate this? Calculating…”
+* `socsoEmployee` (auto)
+* `eisEmployee` (auto)
+* `advanceDeduction` (manual)
+* `unpaidLeave` (auto bila ada rekod UL)
+* `pcb39` (ada tag “Custom”; boleh manual)
+* `pcb38` (manual)
+* `zakat` (manual)
+* `otherDeduction` (manual)
+* Semua baris paparkan label kecil “How did we calculate this? Calculating…” untuk item auto.
+
+**Kolum 4 – Company Contribution**
+
+* `epfEmployer` (auto)
+* `socsoEmployer` (auto)
+* `eisEmployer` (auto)
+* `medicalCard` (manual)
+* `groupTermLife` (manual)
+* `medicalCompany` (manual)
+* `hrdfContribution` (auto)
+* Butang kelabu: `Add Contribution Item` (row dinamik: name, type, amount)
+
+## 3) ID Elemen (WAJIB GUNA)
+
+Header/Buttons:
+
+* `btnRecalculate`, `btnSaveChanges`, `ddlEmployee`
+
+Ringkasan:
+
+* `txtNetSalary`, `txtGrossSalary`, `txtTotalDeduction`, `txtCompanyContribution`
+
+Inputs (ikut nama di Seksyen 2):
+
+* `salaryType`, `basicSalary`, `computedSalary`,
+* `isCalculatedInPayment`, `isSocsoEnabled`, `isEisEnabled`,
+* `epfCalcMethod`, `epfEmployeeRate`, `epfEmployerRate`,
+* `hrdfEmployerRate`, `remarks`,
+* `advanceSalary`, `subsistenceAllowance`, `extraResponsibilityAllowance`, `bikVola`, `hideBikOnPayslip`,
+* `epfEmployee`, `socsoEmployee`, `eisEmployee`, `advanceDeduction`, `unpaidLeave`, `pcb39`, `pcb38`, `zakat`, `otherDeduction`,
+* `epfEmployer`, `socsoEmployer`, `eisEmployer`, `medicalCard`, `groupTermLife`, `medicalCompany`, `hrdfContribution`,
+* `btnAddAdditionalItem`, `btnAddContributionItem`.
+
+## 4) Data Model
+
+```json
+{
+  "employeeId": "string",
+  "salaryType": "Monthly|Hourly",
+  "basicSalary": 0,
+  "additionalItems": [
+    {"code":"ADV","label":"Advance Salary","amount":0},
+    {"code":"SUBS","label":"Subsistence Allowance","amount":0},
+    {"code":"RESP","label":"Extra Responsibility Allowance","amount":0},
+    {"code":"BIK","label":"BIK/VOLA","amount":0,"hideOnPayslip":false}
+  ],
+  "deductions": {
+    "epfEmployee": 0, "socsoEmployee": 0, "eisEmployee": 0,
+    "advance": 0, "unpaidLeave": 0, "pcb39": 0, "pcb38": 0, "zakat": 0, "other": 0
+  },
+  "contributions": {
+    "epfEmployer": 0, "socsoEmployer": 0, "eisEmployer": 0,
+    "medicalCard": 0, "groupTermLife": 0, "medicalCompany": 0, "hrdf": 0
+  },
+  "settings": {
+    "isCalculatedInPayment": true,
+    "isSocsoEnabled": true,
+    "isEisEnabled": true,
+    "epfCalcMethod": "PERCENT|FIXED",
+    "epfEmployeeRate": 11.0,
+    "epfEmployerRate": 13.0,
+    "hrdfEmployerRate": 1.0
+  },
+  "remarks": ""
+}
+```
+
+## 5) Formula & Logik Kiraan
+
+**Terma**
+
+* `SumAdditional = advanceSalary + subsistenceAllowance + extraResponsibilityAllowance + bikVola + sum(dynamicAdditionalItems)`
+* `SumDeduction = epfEmployee + socsoEmployee + eisEmployee + advanceDeduction + unpaidLeave + pcb39 + pcb38 + zakat + otherDeduction + sum(dynamicDeductionItems)`
+* `SumContribution = epfEmployer + socsoEmployer + eisEmployer + medicalCard + groupTermLife + medicalCompany + hrdfContribution + sum(dynamicContributionItems)`
+
+**Gross Salary**
+
+* `gross = basicSalary + SumAdditional`
+
+**Net Salary**
+
+* `net = gross - SumDeduction`
+
+**EPF**
+
+* Jika `epfCalcMethod = By Percentage`:
+
+  * `epfEmployee = roundToCent(basicSalary * epfEmployeeRate/100)`
+  * `epfEmployer = roundToCent(basicSalary * epfEmployerRate/100)`
+* Jika `Fixed Amount`:
+
+  * Papar dua input manual `epfEmployee`, `epfEmployer` dan jangan auto kira.
+
+**SOCSO/EIS**
+
+* Jika toggle `isSocsoEnabled/isEisEnabled` = OFF, set kepada 0 dan disable input.
+* Jika ON: auto-kira berdasarkan `basicSalary` (rujuk jadual kadar semasa dalam fungsi `calcSocso()` dan `calcEis()` — pastikan ada tempat untuk kemaskini jadual kadar).
+
+**HRDF**
+
+* `hrdfContribution = roundToCent(basicSalary * hrdfEmployerRate/100)`
+
+**Unpaid Leave**
+
+* Sediakan hook untuk formula: `unpaidLeave = dailyRate * daysUL` di mana `dailyRate = basicSalary / workingDaysInMonth`. Buat util `getWorkingDaysInMonth(year, month)`; buat API stub `GET /attendance/unpaid-leave?employeeId&month` pulangkan `daysUL`.
+
+**PCB 39/PCB 38**
+
+* Benarkan override manual. Jika kosong, treat 0.
+
+**Recalculate**
+
+* Menjalankan semula semua fungsi kiraan dan kemaskini empat kotak ringkasan + medan auto.
+
+## 6) Interaksi & Keadaan (State)
+
+* Pada `ddlEmployee` berubah:
+
+  * Fetch data `GET /payroll/master-salary?employeeId={id}`.
+  * Populate semua medan.
+  * Set empat kotak ringkasan ke “Calculating…” sehingga siap.
+* Pada **apa-apa perubahan input** yang mempengaruhi kiraan, debounce 300ms → panggil `recompute()`.
+
+## 7) Validasi
+
+* Semua amount: nombor ≥ 0, 2 titik perpuluhan.
+* `basicSalary` wajib.
+* Jika `epfCalcMethod=Fixed Amount`, kedua-dua `epfEmployee` & `epfEmployer` wajib.
+* Papar ralat mesra pengguna di bawah field (inline).
+
+## 8) Akses & Kebenaran
+
+* Hanya role: `Super Admin`, `Admin`, `HR Manager` boleh edit & save.
+* Role lain: view-only (disabled inputs, butang Save/Recalculate disorokkan).
+
+## 9) API Kontrak
+
+* **GET** `/employees/list?active=true` → untuk `ddlEmployee`.
+* **GET** `/payroll/master-salary?employeeId` → pulangkan objek seperti Data Model.
+* **POST** `/payroll/master-salary` → body = Data Model (simpan).
+* **GET** `/attendance/unpaid-leave?employeeId&month` → `{ daysUL: number }`
+* Jadual kadar SOCSO/EIS boleh di-hardcode versi pertama dalam util, tapi asingkan supaya mudah dikemas kini.
+
+## 10) UX Kecil Yang Wajib
+
+* Teks “Calculating…” muncul sementara semak kiraan.
+* Tooltips ikon “i” di label EPF/SOCSO/EIS: “Auto-calculated based on current settings.”
+* `btnSaveChanges` disable jika tiada perubahan (dirty-state tracking) dan ketika proses simpan (spinner).
+* Notifikasi berjaya: “Master Salary saved.” Notifikasi ralat paparkan mesej server.
+
+## 11) Responsif & Aksesibiliti
+
+* Mobile: 1 kolum; Tablet: 2; Desktop: 4 kolum.
+* Semua input berlabel, gunakan `aria-live=polite` untuk empat nilai ringkasan.
+
+## 12) Kriteria Siap (Acceptance Criteria)
+
+1. Boleh pilih pekerja dan data dimuat dengan betul.
+2. Menukar mana-mana nilai akan kemas kini **Gross, Deduction, Company Contribution, Net** dengan tepat.
+3. Toggles SOCSO/EIS berfungsi (ON auto, OFF set 0).
+4. EPF ikut mod Percentage/Fixed dengan input yang betul.
+5. `Recalculate` memaksa pengiraan semula semua formula.
+6. `Save Changes` menyimpan dan memulangkan data yang sama apabila dimuat semula.
+7. UI, teks, dan label sama seperti spesifikasi di atas (termasuk banner kuning & teks kecil “How did we calculate this? Calculating…”).
+
+## 13) Ujian Ringkas (Test Cases)
+
+* T1: BasicSalary=3000, EPF % 11/13, SOCSO/EIS ON → pastikan epfEmp=330.00, epfEr=390.00; net = (3000 + Additional) − (Deduction).
+* T2: Toggle SOCSO OFF → socsoEmp & socsoEr = 0.
+* T3: EPF Fixed Amount (emp=100, er=150) → gunakan nilai manual.
+* T4: UnpaidLeave=3 hari, workingDays=26 → UL = (3000/26)\*3 = 346.15.
+* T5: Field validation: nilai negatif ditolak, Save disabled bila invalid.
+
+---
+
+Jika perlukan, saya boleh ubah prompt ini ikut stack tertentu (contoh React + Tailwind, atau Velo by Wix) dan siap dengan contoh kod awal.
