@@ -82,22 +82,15 @@ export default function ApplyClaimPage() {
 
   const availableEmployees = getAvailableEmployees();
 
-  // Get claim types from database or use fallback
-  const getClaimTypes = () => {
-    console.log("Financial claim policies data:", financialClaimPolicies);
+  // Get claim types from database
+  const claimTypes = React.useMemo(() => {
     if (Array.isArray(financialClaimPolicies) && financialClaimPolicies.length > 0) {
-      const enabledPolicies = (financialClaimPolicies as FinancialClaimPolicy[])
-        .filter(policy => policy.enabled);
-      console.log("Enabled policies:", enabledPolicies);
-      const claimNames = enabledPolicies.map(policy => policy.claimName);
-      console.log("Claim names:", claimNames);
-      return claimNames;
+      return (financialClaimPolicies as FinancialClaimPolicy[])
+        .filter(policy => policy.enabled)
+        .map(policy => policy.claimName);
     }
-    console.log("Using fallback claim types");
     return fallbackClaimTypes;
-  };
-
-  const claimTypes = getClaimTypes();
+  }, [financialClaimPolicies]);
 
   // Set default requestor to current user if not privileged role
   React.useEffect(() => {
@@ -392,8 +385,8 @@ export default function ApplyClaimPage() {
                         <SelectValue placeholder="Select claim type" />
                       </SelectTrigger>
                       <SelectContent>
-                        {claimTypes.map(type => (
-                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                        {claimTypes.map((type, index) => (
+                          <SelectItem key={`${type}-${index}`} value={type}>{type}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
