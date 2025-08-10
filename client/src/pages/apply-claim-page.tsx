@@ -84,11 +84,16 @@ export default function ApplyClaimPage() {
 
   // Get claim types from database or use fallback
   const getClaimTypes = () => {
+    console.log("Financial claim policies data:", financialClaimPolicies);
     if (Array.isArray(financialClaimPolicies) && financialClaimPolicies.length > 0) {
-      return (financialClaimPolicies as FinancialClaimPolicy[])
-        .filter(policy => policy.enabled)
-        .map(policy => policy.claimName);
+      const enabledPolicies = (financialClaimPolicies as FinancialClaimPolicy[])
+        .filter(policy => policy.enabled);
+      console.log("Enabled policies:", enabledPolicies);
+      const claimNames = enabledPolicies.map(policy => policy.claimName);
+      console.log("Claim names:", claimNames);
+      return claimNames;
     }
+    console.log("Using fallback claim types");
     return fallbackClaimTypes;
   };
 
