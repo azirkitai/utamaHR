@@ -35,6 +35,13 @@ UtamaHR - A comprehensive HR Management System built from scratch with React, Ty
   - Automatic removal of read announcements from unread list
   - Persistent read status across user sessions with database storage
   - Enhanced UI with "NEW" badges for unread announcements
+- Phase 7: Financial Claim Policy Database Integration (✅ Completed)
+  - Complete financial_claim_policies table with CRUD operations
+  - Full-stack integration from System Setting configuration to Apply Claim dropdown
+  - Dynamic dropdown population from database policies (enabled policies only)
+  - Real-time form management with save/cancel functionality
+  - Dropdown "Claim Type" now shows company-configured Financial Policies
+  - Seamless connection between policy configuration and claim application
 
 # User Preferences
 
