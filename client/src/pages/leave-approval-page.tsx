@@ -699,9 +699,9 @@ export default function LeaveApprovalPage() {
                 </>
               )}
 
-              {(activeTab === "summary" || activeTab === "history") && (
+              {(activeTab === "summary" || activeTab === "history" || activeTab === "balance-carry-forward") && (
                 <div className="flex items-center space-x-2">
-                  <label className="text-sm font-medium text-gray-700">Year</label>
+                  <label className="text-sm font-medium text-gray-700">Tahun</label>
                   <Select value={selectedYear} onValueChange={setSelectedYear}>
                     <SelectTrigger className="w-32">
                       <SelectValue placeholder="2024" />
@@ -710,6 +710,7 @@ export default function LeaveApprovalPage() {
                       <SelectItem value="2024">2024</SelectItem>
                       <SelectItem value="2023">2023</SelectItem>
                       <SelectItem value="2022">2022</SelectItem>
+                      <SelectItem value="2021">2021</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

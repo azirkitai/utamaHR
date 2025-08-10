@@ -1704,7 +1704,7 @@ export class DatabaseStorage implements IStorage {
       let query = db.select().from(leaveBalanceCarryForward).where(eq(leaveBalanceCarryForward.employeeId, employeeId));
       
       if (year) {
-        query = query.where(and(
+        query = db.select().from(leaveBalanceCarryForward).where(and(
           eq(leaveBalanceCarryForward.employeeId, employeeId),
           eq(leaveBalanceCarryForward.year, year)
         ));
