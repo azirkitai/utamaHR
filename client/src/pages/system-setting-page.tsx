@@ -105,6 +105,24 @@ const settingsMenuItems = [
     icon: <FileText className="w-4 h-4" />,
     href: "/system-setting/yearly-form",
   },
+  {
+    id: "overtime-approval",
+    label: "Overtime Approval",
+    icon: <ClockIcon className="w-4 h-4" />,
+    href: "/system-setting/overtime-approval",
+  },
+  {
+    id: "overtime-policy",
+    label: "Overtime Policy",
+    icon: <Settings className="w-4 h-4" />,
+    href: "/system-setting/overtime-policy",
+  },
+  {
+    id: "overtime-settings",
+    label: "Overtime Settings",
+    icon: <BarChart3 className="w-4 h-4" />,
+    href: "/system-setting/overtime-settings",
+  },
 ];
 
 // Initial leave policies data
@@ -160,6 +178,80 @@ export default function SystemSettingPage() {
   const { data: allGroupPolicySettings = [] } = useQuery({
     queryKey: ["/api/group-policy-settings"],
     enabled: true
+  });
+
+  // Overtime API queries
+  const { data: overtimeApprovalSettings } = useQuery({
+    queryKey: ["/api/overtime/approval-settings"]
+  });
+
+  const { data: overtimePolicyData = [] } = useQuery({
+    queryKey: ["/api/overtime/policies"]
+  });
+
+  const { data: overtimeSettingsData } = useQuery({
+    queryKey: ["/api/overtime/settings"]
+  });
+
+  // Overtime mutations
+  const saveOvertimeApprovalMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return await apiRequest("POST", "/api/overtime/approval-settings", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/overtime/approval-settings"] });
+      toast({
+        title: "Success",
+        description: "Overtime approval settings saved successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to save overtime approval settings",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const saveOvertimePolicyMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      return await apiRequest("PUT", `/api/overtime/policies/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/overtime/policies"] });
+      toast({
+        title: "Success",
+        description: "Overtime policy updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to update overtime policy",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const saveOvertimeSettingsMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return await apiRequest("POST", "/api/overtime/settings", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/overtime/settings"] });
+      toast({
+        title: "Success",
+        description: "Overtime settings saved successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error", 
+        description: "Failed to save overtime settings",
+        variant: "destructive",
+      });
+    }
   });
 
   // Function to calculate majority entitlement for a leave type
@@ -3741,6 +3833,325 @@ export default function SystemSettingPage() {
     </div>
   );
 
+  // Overtime Approval Form
+  const renderOvertimeApprovalForm = () => {
+    const handleSaveOvertimeApproval = () => {
+      saveOvertimeApprovalMutation.mutate({
+        firstLevel: overtimeApproval.firstLevel || null,
+        secondLevel: overtimeApproval.secondLevel || null
+      });
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="bg-white rounded-lg border">
+          <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}>
+            <h3 className="font-semibold text-gray-800">Overtime Approval Settings</h3>
+          </div>
+          <div className="p-6 space-y-6">
+            {/* First Level Approval */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">First Level Approval</Label>
+                <Select 
+                  value={overtimeApproval.firstLevel}
+                  onValueChange={(value) => setOvertimeApproval(prev => ({...prev, firstLevel: value}))}
+                  data-testid="select-overtime-first-level"
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select first level approver" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {employees.map((employee) => (
+                      <SelectItem key={employee.id} value={employee.id.toString()}>
+                        {employee.name} - {employee.position}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Second Level Approval */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Second Level Approval</Label>
+                <Select 
+                  value={overtimeApproval.secondLevel}
+                  onValueChange={(value) => setOvertimeApproval(prev => ({...prev, secondLevel: value}))}
+                  data-testid="select-overtime-second-level"
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select second level approver" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {employees.map((employee) => (
+                      <SelectItem key={employee.id} value={employee.id.toString()}>
+                        {employee.name} - {employee.position}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-4">
+              <Button 
+                className="text-gray-800 shadow-sm" 
+                style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}
+                onClick={handleSaveOvertimeApproval}
+                disabled={saveOvertimeApprovalMutation.isPending}
+                data-testid="button-save-overtime-approval"
+              >
+                {saveOvertimeApprovalMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save Changes"
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Overtime Policy Form
+  const renderOvertimePolicyForm = () => {
+    const [localPolicies, setLocalPolicies] = useState<any[]>([]);
+
+    useEffect(() => {
+      if (overtimePolicyData && overtimePolicyData.length > 0) {
+        setLocalPolicies(overtimePolicyData);
+      }
+    }, [overtimePolicyData]);
+
+    const handlePolicyChange = (policyId: string, field: string, value: any) => {
+      setLocalPolicies(prev => prev.map(policy => 
+        policy.id === policyId ? { ...policy, [field]: value } : policy
+      ));
+    };
+
+    const handleSaveOvertimePolicies = () => {
+      localPolicies.forEach(policy => {
+        const originalPolicy = overtimePolicyData.find((p: any) => p.id === policy.id);
+        if (originalPolicy && (
+          originalPolicy.multiplier !== policy.multiplier || 
+          originalPolicy.enabled !== policy.enabled ||
+          originalPolicy.policyName !== policy.policyName
+        )) {
+          saveOvertimePolicyMutation.mutate({
+            id: policy.id,
+            data: {
+              policyName: policy.policyName,
+              multiplier: policy.multiplier,
+              enabled: policy.enabled,
+              description: policy.description
+            }
+          });
+        }
+      });
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="bg-white rounded-lg border">
+          <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}>
+            <h3 className="font-semibold text-gray-800">Overtime Rate Policies</h3>
+          </div>
+          <div className="p-6">
+            <div className="space-y-4">
+              {localPolicies.map((policy) => (
+                <div key={policy.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex-1">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                      <div>
+                        <Label className="text-sm font-medium">{policy.policyName}</Label>
+                        <p className="text-xs text-gray-500">{policy.description}</p>
+                      </div>
+                      <div>
+                        <Input 
+                          value={policy.multiplier}
+                          onChange={(e) => handlePolicyChange(policy.id, 'multiplier', e.target.value)}
+                          placeholder="1.5"
+                          data-testid={`input-rate-${policy.id}`}
+                        />
+                      </div>
+                      <div className="flex items-center justify-end">
+                        <Switch 
+                          checked={policy.enabled}
+                          onCheckedChange={(checked) => handlePolicyChange(policy.id, 'enabled', checked)}
+                          className="data-[state=checked]:bg-blue-900"
+                          data-testid={`switch-overtime-policy-${policy.id}`}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end pt-6">
+              <Button 
+                className="text-gray-800 shadow-sm" 
+                style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}
+                onClick={handleSaveOvertimePolicies}
+                disabled={saveOvertimePolicyMutation.isPending}
+                data-testid="button-save-overtime-policies"
+              >
+                {saveOvertimePolicyMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save Changes"
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Overtime Settings Form
+  const renderOvertimeSettingsForm = () => {
+    const [localSettings, setLocalSettings] = useState({
+      countOvertimeInPayroll: true,
+      workingDaysPerMonth: 26,
+      workingHoursPerDay: 8,
+      overtimeCalculation: 'basic-salary',
+      overtimeCutoffDate: 31
+    });
+
+    useEffect(() => {
+      if (overtimeSettingsData) {
+        setLocalSettings({
+          countOvertimeInPayroll: overtimeSettingsData.countOvertimeInPayroll ?? true,
+          workingDaysPerMonth: overtimeSettingsData.workingDaysPerMonth ?? 26,
+          workingHoursPerDay: overtimeSettingsData.workingHoursPerDay ?? 8,
+          overtimeCalculation: overtimeSettingsData.overtimeCalculation ?? 'basic-salary',
+          overtimeCutoffDate: overtimeSettingsData.overtimeCutoffDate ?? 31
+        });
+      }
+    }, [overtimeSettingsData]);
+
+    const handleSaveOvertimeSettings = () => {
+      saveOvertimeSettingsMutation.mutate(localSettings);
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="bg-white rounded-lg border">
+          <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}>
+            <h3 className="font-semibold text-gray-800">Overtime Calculation Settings</h3>
+          </div>
+          <div className="p-6 space-y-6">
+            {/* Count Overtime in Payroll */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-gray-100 rounded-full">
+                  <CreditCard className="w-5 h-5 text-gray-600" />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Count Overtime in Payroll</Label>
+                  <p className="text-xs text-gray-500">Include overtime payments in payroll calculations</p>
+                </div>
+              </div>
+              <Switch 
+                checked={localSettings.countOvertimeInPayroll}
+                onCheckedChange={(checked) => setLocalSettings(prev => ({...prev, countOvertimeInPayroll: checked}))}
+                className="data-[state=checked]:bg-blue-900"
+                data-testid="switch-count-overtime-payroll"
+              />
+            </div>
+
+            {/* Working Days and Hours */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Working Days Per Month</Label>
+                <Input 
+                  type="number"
+                  value={localSettings.workingDaysPerMonth}
+                  onChange={(e) => setLocalSettings(prev => ({...prev, workingDaysPerMonth: parseInt(e.target.value) || 26}))}
+                  placeholder="26"
+                  data-testid="input-working-days-month"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Working Hours Per Day</Label>
+                <Input 
+                  type="number"
+                  value={localSettings.workingHoursPerDay}
+                  onChange={(e) => setLocalSettings(prev => ({...prev, workingHoursPerDay: parseInt(e.target.value) || 8}))}
+                  placeholder="8"
+                  data-testid="input-working-hours-day"
+                />
+              </div>
+            </div>
+
+            {/* Overtime Calculation Method */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Overtime Calculation</Label>
+              <Select 
+                value={localSettings.overtimeCalculation}
+                onValueChange={(value) => setLocalSettings(prev => ({...prev, overtimeCalculation: value}))}
+                data-testid="select-overtime-calculation"
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select calculation method" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="basic-salary">Basic Salary</SelectItem>
+                  <SelectItem value="gross-salary">Gross Salary</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Overtime Cutoff Date */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Overtime Cutoff Date</Label>
+              <Input 
+                type="number"
+                value={localSettings.overtimeCutoffDate}
+                onChange={(e) => setLocalSettings(prev => ({...prev, overtimeCutoffDate: parseInt(e.target.value) || 31}))}
+                placeholder="31"
+                min="1"
+                max="31"
+                data-testid="input-overtime-cutoff-date"
+              />
+              <p className="text-xs text-gray-500">Day of month when overtime calculations reset</p>
+            </div>
+
+            <div className="flex justify-end pt-4">
+              <Button 
+                className="text-gray-800 shadow-sm" 
+                style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}
+                onClick={handleSaveOvertimeSettings}
+                disabled={saveOvertimeSettingsMutation.isPending}
+                data-testid="button-save-overtime-settings"
+              >
+                {saveOvertimeSettingsMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save Changes"
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderPlaceholderContent = (section: string) => (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
@@ -3810,6 +4221,9 @@ export default function SystemSettingPage() {
              currentSection === "notifications" ? renderNotificationForm() :
              currentSection === "attendance" ? renderAttendanceForm() :
              currentSection === "yearly-form" ? renderYearlyForm() :
+             currentSection === "overtime-approval" ? renderOvertimeApprovalForm() :
+             currentSection === "overtime-policy" ? renderOvertimePolicyForm() :
+             currentSection === "overtime-settings" ? renderOvertimeSettingsForm() :
              renderPlaceholderContent(currentSection)}
           </div>
         </div>

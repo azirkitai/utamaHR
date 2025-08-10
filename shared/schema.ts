@@ -487,6 +487,39 @@ export const financialClaimPolicies = pgTable('financial_claim_policies', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+// Overtime Approval Settings Table
+export const overtimeApprovalSettings = pgTable('overtime_approval_settings', {
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  firstLevel: varchar('first_level'), // Employee ID for first level approval
+  secondLevel: varchar('second_level'), // Employee ID for second level approval or 'none'
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Overtime Policies Table (Normal Rate, Rest Day Rate, Public Holiday Rate)
+export const overtimePolicies = pgTable('overtime_policies', {
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  policyType: text('policy_type').notNull(), // 'normal', 'rest_day', 'public_holiday'
+  policyName: text('policy_name').notNull(), // 'Normal Rate', 'Rest Day Rate', 'Public Holiday Rate'
+  multiplier: decimal('multiplier', { precision: 3, scale: 1 }).notNull(), // 1.5, 2.0, 3.0
+  description: text('description'), // Description of when this rate applies
+  enabled: boolean('enabled').default(true),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Overtime Settings Table
+export const overtimeSettings = pgTable('overtime_settings', {
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  countOvertimeInPayroll: boolean('count_overtime_in_payroll').default(true),
+  workingDaysPerMonth: integer('working_days_per_month').default(26),
+  workingHoursPerDay: integer('working_hours_per_day').default(8),
+  overtimeCalculation: text('overtime_calculation').default('basic-salary'), // 'basic-salary' or 'gross-salary'
+  overtimeCutoffDate: integer('overtime_cutoff_date').default(31), // Day of month for cutoff
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 // Claim Applications Table (for Financial and Overtime claims)
 export const claimApplications = pgTable('claim_applications', {
   id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
@@ -505,6 +538,8 @@ export const claimApplications = pgTable('claim_applications', {
   totalHours: decimal('total_hours', { precision: 4, scale: 2 }), // Calculated hours
   reason: text('reason'), // Reason for overtime
   additionalDescription: text('additional_description'), // Extra overtime details
+  overtimePolicyType: text('overtime_policy_type'), // 'normal', 'rest_day', 'public_holiday'
+  calculatedAmount: decimal('calculated_amount', { precision: 10, scale: 2 }), // Auto-calculated OT pay
   
   status: text('status').notNull().default('Pending'), // 'Pending', 'First Level Approved', 'Approved', 'Rejected'
   approvedBy: varchar('approved_by').references(() => employees.id), // Who approved (final approver)
@@ -789,6 +824,30 @@ export const insertFinancialClaimPolicySchema = createInsertSchema(financialClai
 });
 export const updateFinancialClaimPolicySchema = insertFinancialClaimPolicySchema.partial();
 
+// Overtime Approval Settings schemas
+export const insertOvertimeApprovalSettingSchema = createInsertSchema(overtimeApprovalSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const updateOvertimeApprovalSettingSchema = insertOvertimeApprovalSettingSchema.partial();
+
+// Overtime Policy schemas
+export const insertOvertimePolicySchema = createInsertSchema(overtimePolicies).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const updateOvertimePolicySchema = insertOvertimePolicySchema.partial();
+
+// Overtime Settings schemas
+export const insertOvertimeSettingSchema = createInsertSchema(overtimeSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const updateOvertimeSettingSchema = insertOvertimeSettingSchema.partial();
+
 // Claim Application schemas
 export const insertClaimApplicationSchema = createInsertSchema(claimApplications).omit({
   id: true,
@@ -882,6 +941,21 @@ export type UpdateLeaveApplication = z.infer<typeof updateLeaveApplicationSchema
 export type FinancialClaimPolicy = typeof financialClaimPolicies.$inferSelect;
 export type InsertFinancialClaimPolicy = z.infer<typeof insertFinancialClaimPolicySchema>;
 export type UpdateFinancialClaimPolicy = z.infer<typeof updateFinancialClaimPolicySchema>;
+
+// Overtime Approval Settings types
+export type OvertimeApprovalSetting = typeof overtimeApprovalSettings.$inferSelect;
+export type InsertOvertimeApprovalSetting = z.infer<typeof insertOvertimeApprovalSettingSchema>;
+export type UpdateOvertimeApprovalSetting = z.infer<typeof updateOvertimeApprovalSettingSchema>;
+
+// Overtime Policy types
+export type OvertimePolicy = typeof overtimePolicies.$inferSelect;
+export type InsertOvertimePolicy = z.infer<typeof insertOvertimePolicySchema>;
+export type UpdateOvertimePolicy = z.infer<typeof updateOvertimePolicySchema>;
+
+// Overtime Settings types
+export type OvertimeSetting = typeof overtimeSettings.$inferSelect;
+export type InsertOvertimeSetting = z.infer<typeof insertOvertimeSettingSchema>;
+export type UpdateOvertimeSetting = z.infer<typeof updateOvertimeSettingSchema>;
 
 // Claim Application types
 export type ClaimApplication = typeof claimApplications.$inferSelect;

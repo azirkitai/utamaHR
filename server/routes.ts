@@ -33,6 +33,12 @@ import {
   updateFinancialClaimPolicySchema,
   insertClaimApplicationSchema,
   updateClaimApplicationSchema,
+  insertOvertimeApprovalSettingSchema,
+  updateOvertimeApprovalSettingSchema,
+  insertOvertimePolicySchema,
+  updateOvertimePolicySchema,
+  insertOvertimeSettingSchema,
+  updateOvertimeSettingSchema,
   type AttendanceRecord
 } from "@shared/schema";
 import { checkEnvironmentSecrets } from "./env-check";
@@ -55,7 +61,11 @@ import {
   groupPolicySettings,
   companyLeaveTypes,
   announcements,
-  announcementReads
+  announcementReads,
+  overtimeApprovalSettings,
+  overtimePolicies,
+  overtimeSettings,
+  financialClaimPolicies
 } from "@shared/schema";
 
 // Calculate distance between two GPS coordinates using Haversine formula
@@ -3047,6 +3057,191 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error('Error updating employee exclusion:', error);
       res.status(500).json({ error: 'Failed to update employee exclusion' });
+    }
+  });
+
+  // =================== OVERTIME MANAGEMENT ROUTES ===================
+
+  // GET /api/overtime/approval-settings - Get overtime approval settings
+  app.get("/api/overtime/approval-settings", authenticateToken, async (req, res) => {
+    try {
+      const [settings] = await db.select().from(overtimeApprovalSettings).limit(1);
+      
+      if (!settings) {
+        return res.json({
+          firstLevel: null,
+          secondLevel: null
+        });
+      }
+      
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching overtime approval settings:", error);
+      res.status(500).json({ error: "Failed to fetch overtime approval settings" });
+    }
+  });
+
+  // POST /api/overtime/approval-settings - Save overtime approval settings
+  app.post("/api/overtime/approval-settings", authenticateToken, async (req, res) => {
+    try {
+      const validatedData = insertOvertimeApprovalSettingSchema.parse(req.body);
+      
+      // Check if settings already exist
+      const [existingSettings] = await db.select().from(overtimeApprovalSettings).limit(1);
+      
+      let result;
+      if (existingSettings) {
+        // Update existing settings
+        [result] = await db
+          .update(overtimeApprovalSettings)
+          .set({
+            firstLevel: validatedData.firstLevel,
+            secondLevel: validatedData.secondLevel,
+            updatedAt: new Date()
+          })
+          .where(eq(overtimeApprovalSettings.id, existingSettings.id))
+          .returning();
+      } else {
+        // Create new settings
+        [result] = await db
+          .insert(overtimeApprovalSettings)
+          .values(validatedData)
+          .returning();
+      }
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error saving overtime approval settings:", error);
+      res.status(500).json({ error: "Failed to save overtime approval settings" });
+    }
+  });
+
+  // GET /api/overtime/policies - Get all overtime policies
+  app.get("/api/overtime/policies", authenticateToken, async (req, res) => {
+    try {
+      const policies = await db.select().from(overtimePolicies).orderBy(overtimePolicies.policyType);
+      
+      // If no policies exist, create default ones
+      if (policies.length === 0) {
+        const defaultPolicies = [
+          {
+            policyType: 'normal',
+            policyName: 'Normal Rate',
+            multiplier: '1.5',
+            description: 'For overtime on normal working days',
+            enabled: true
+          },
+          {
+            policyType: 'rest_day',
+            policyName: 'Rest Day Rate',
+            multiplier: '2.0',
+            description: 'For overtime on rest days',
+            enabled: true
+          },
+          {
+            policyType: 'public_holiday',
+            policyName: 'Public Holiday Rate',
+            multiplier: '3.0',
+            description: 'For overtime on public holidays',
+            enabled: true
+          }
+        ];
+        
+        const createdPolicies = await db
+          .insert(overtimePolicies)
+          .values(defaultPolicies)
+          .returning();
+        
+        return res.json(createdPolicies);
+      }
+      
+      res.json(policies);
+    } catch (error) {
+      console.error("Error fetching overtime policies:", error);
+      res.status(500).json({ error: "Failed to fetch overtime policies" });
+    }
+  });
+
+  // PUT /api/overtime/policies/:id - Update overtime policy
+  app.put("/api/overtime/policies/:id", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const validatedData = updateOvertimePolicySchema.parse(req.body);
+      
+      const [updatedPolicy] = await db
+        .update(overtimePolicies)
+        .set({
+          ...validatedData,
+          updatedAt: new Date()
+        })
+        .where(eq(overtimePolicies.id, id))
+        .returning();
+      
+      if (!updatedPolicy) {
+        return res.status(404).json({ error: "Overtime policy not found" });
+      }
+      
+      res.json(updatedPolicy);
+    } catch (error) {
+      console.error("Error updating overtime policy:", error);
+      res.status(500).json({ error: "Failed to update overtime policy" });
+    }
+  });
+
+  // GET /api/overtime/settings - Get overtime settings
+  app.get("/api/overtime/settings", authenticateToken, async (req, res) => {
+    try {
+      const [settings] = await db.select().from(overtimeSettings).limit(1);
+      
+      if (!settings) {
+        // Return default settings
+        return res.json({
+          countOvertimeInPayroll: true,
+          workingDaysPerMonth: 26,
+          workingHoursPerDay: 8,
+          overtimeCalculation: 'basic-salary',
+          overtimeCutoffDate: 31
+        });
+      }
+      
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching overtime settings:", error);
+      res.status(500).json({ error: "Failed to fetch overtime settings" });
+    }
+  });
+
+  // POST /api/overtime/settings - Save overtime settings
+  app.post("/api/overtime/settings", authenticateToken, async (req, res) => {
+    try {
+      const validatedData = insertOvertimeSettingSchema.parse(req.body);
+      
+      // Check if settings already exist
+      const [existingSettings] = await db.select().from(overtimeSettings).limit(1);
+      
+      let result;
+      if (existingSettings) {
+        // Update existing settings
+        [result] = await db
+          .update(overtimeSettings)
+          .set({
+            ...validatedData,
+            updatedAt: new Date()
+          })
+          .where(eq(overtimeSettings.id, existingSettings.id))
+          .returning();
+      } else {
+        // Create new settings
+        [result] = await db
+          .insert(overtimeSettings)
+          .values(validatedData)
+          .returning();
+      }
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error saving overtime settings:", error);
+      res.status(500).json({ error: "Failed to save overtime settings" });
     }
   });
 
