@@ -106,7 +106,7 @@ export default function LeaveApprovalPage() {
   });
 
   // Fetch employee leave summary for all employees
-  const { data: employeeLeaveSummary } = useQuery({
+  const { data: employeeLeaveSummary = { employees: [], enabledLeaveTypes: [] } } = useQuery({
     queryKey: ["/api/leave-summary-all-employees"]
   });
 
@@ -331,7 +331,7 @@ export default function LeaveApprovalPage() {
   );
 
   const renderSummaryTable = () => {
-    if (!employeeLeaveSummary || !employeeLeaveSummary.employees) {
+    if (!employeeLeaveSummary || !(employeeLeaveSummary as any)?.employees) {
       return (
         <Table>
           <TableHeader>
@@ -352,7 +352,7 @@ export default function LeaveApprovalPage() {
       );
     }
 
-    const { employees, enabledLeaveTypes } = employeeLeaveSummary;
+    const { employees, enabledLeaveTypes } = employeeLeaveSummary as any;
 
     return (
       <Table>
@@ -592,7 +592,7 @@ export default function LeaveApprovalPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All leave type</SelectItem>
-                        {activeLeaveTypes.map((leaveType: any) => (
+                        {(activeLeaveTypes as any[]).map((leaveType: any) => (
                           <SelectItem key={leaveType.id} value={leaveType.leaveType}>
                             {leaveType.leaveType}
                           </SelectItem>

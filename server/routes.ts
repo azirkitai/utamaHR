@@ -312,7 +312,6 @@ export function registerRoutes(app: Express): Server {
       const updatedAnnouncement = await storage.updateAnnouncement(announcementId, {
         title,
         message,
-        updatedAt: new Date(),
       });
 
       res.json({ success: true, announcement: updatedAnnouncement });
@@ -568,7 +567,7 @@ export function registerRoutes(app: Express): Server {
         const employeeData = {
           employeeId: employee.id,
           employeeName: employee.fullName,
-          leaveBreakdown: {}
+          leaveBreakdown: {} as Record<string, any>
         };
 
         // For each enabled leave type, calculate this employee's usage

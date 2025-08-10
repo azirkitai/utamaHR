@@ -648,7 +648,7 @@ export class DatabaseStorage implements IStorage {
       startDate: insertWorkExperience.startDate || null,
       endDate: insertWorkExperience.endDate || null,
     };
-    const [record] = await db.insert(workExperiences).values(cleanedData).returning();
+    const [record] = await db.insert(workExperiences).values([cleanedData]).returning();
     return record;
   }
 
@@ -1522,6 +1522,42 @@ export class DatabaseStorage implements IStorage {
       return announcementsWithStatus;
     } catch (error) {
       console.error('Error getting announcements for user:', error);
+      throw error;
+    }
+  }
+
+  async getAllAnnouncements(): Promise<any[]> {
+    try {
+      const allAnnouncements = await db
+        .select({
+          id: announcements.id,
+          title: announcements.title,
+          message: announcements.message,
+          department: announcements.department,
+          announcerName: announcements.announcerName,
+          createdAt: announcements.createdAt,
+          updatedAt: announcements.updatedAt,
+          attachment: announcements.attachment,
+          targetEmployees: announcements.targetEmployees
+        })
+        .from(announcements)
+        .orderBy(desc(announcements.createdAt));
+
+      return allAnnouncements.map(announcement => ({
+        ...announcement,
+        createdDate: announcement.createdAt?.toLocaleDateString('en-GB', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric'
+        }),
+        updatedDate: announcement.updatedAt?.toLocaleDateString('en-GB', {
+          day: 'numeric', 
+          month: 'short',
+          year: 'numeric'
+        }),
+      }));
+    } catch (error) {
+      console.error('Error getting all announcements:', error);
       throw error;
     }
   }
