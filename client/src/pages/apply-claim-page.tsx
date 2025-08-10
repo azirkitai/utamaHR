@@ -45,6 +45,7 @@ export default function ApplyClaimPage() {
   const [additionalDescription, setAdditionalDescription] = useState("");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [selectedRequestor, setSelectedRequestor] = useState("");
+  const [expandedSectionId, setExpandedSectionId] = useState<string | null>(null);
 
   // Fetch current user data
   const { data: currentUser } = useQuery({
@@ -89,6 +90,10 @@ export default function ApplyClaimPage() {
       }
     }
   }, [currentUser, availableEmployees, selectedRequestor]);
+
+  const handleToggleExpand = (sectionId: string) => {
+    setExpandedSectionId(expandedSectionId === sectionId ? null : sectionId);
+  };
 
   const calculateTotalHours = () => {
     if (!startTime || !endTime) return 0;
@@ -215,7 +220,12 @@ export default function ApplyClaimPage() {
               <div className="bg-gradient-to-r from-teal-400 to-blue-600 text-white p-6 rounded-lg mb-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-semibold">What you have claimed so far</h2>
-                  <Button variant="ghost" className="text-white hover:bg-white/20">
+                  <Button 
+                    variant="ghost" 
+                    className="text-white hover:bg-white/20"
+                    onClick={() => handleToggleExpand("financial-summary")}
+                    data-testid="button-see-more-financial"
+                  >
                     See More <ExternalLink className="w-4 h-4 ml-2" />
                   </Button>
                 </div>
@@ -239,6 +249,39 @@ export default function ApplyClaimPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Expanded Financial Details */}
+                {expandedSectionId === "financial-summary" && (
+                  <div className="mt-6 bg-white/10 p-4 rounded-lg">
+                    <h3 className="text-lg font-semibold mb-4">Detailed Financial Summary</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-white/20 p-3 rounded">
+                        <div className="text-xs text-teal-100 mb-1">MEDICAL CLAIM</div>
+                        <div className="text-xl font-bold">RM 0.00</div>
+                      </div>
+                      <div className="bg-white/20 p-3 rounded">
+                        <div className="text-xs text-teal-100 mb-1">TRAVEL CLAIM</div>
+                        <div className="text-xl font-bold">RM 0.00</div>
+                      </div>
+                      <div className="bg-white/20 p-3 rounded">
+                        <div className="text-xs text-teal-100 mb-1">MEAL ALLOWANCE</div>
+                        <div className="text-xl font-bold">RM 0.00</div>
+                      </div>
+                      <div className="bg-white/20 p-3 rounded">
+                        <div className="text-xs text-teal-100 mb-1">PARKING CLAIM</div>
+                        <div className="text-xl font-bold">RM 0.00</div>
+                      </div>
+                      <div className="bg-white/20 p-3 rounded">
+                        <div className="text-xs text-teal-100 mb-1">PHONE BILL</div>
+                        <div className="text-xl font-bold">RM 0.00</div>
+                      </div>
+                      <div className="bg-white/20 p-3 rounded">
+                        <div className="text-xs text-teal-100 mb-1">TRAINING & DEV</div>
+                        <div className="text-xl font-bold">RM 0.00</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Recent Claim Application */}
@@ -395,7 +438,17 @@ export default function ApplyClaimPage() {
             <div className="flex-1 p-6">
               {/* Summary Panel */}
               <div className="bg-gradient-to-r from-teal-400 to-blue-600 text-white p-6 rounded-lg mb-6">
-                <h2 className="text-xl font-semibold mb-4">Overtime you have taken so far</h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold">Overtime you have taken so far</h2>
+                  <Button 
+                    variant="ghost" 
+                    className="text-white hover:bg-white/20"
+                    onClick={() => handleToggleExpand("overtime-summary")}
+                    data-testid="button-see-more-overtime"
+                  >
+                    See More <ExternalLink className="w-4 h-4 ml-2" />
+                  </Button>
+                </div>
                 
                 <div className="grid grid-cols-3 gap-4">
                   <div className="bg-white/20 p-4 rounded-lg text-center">
@@ -422,6 +475,47 @@ export default function ApplyClaimPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Expanded Overtime Details */}
+                {expandedSectionId === "overtime-summary" && (
+                  <div className="mt-6 bg-white/10 p-4 rounded-lg">
+                    <h3 className="text-lg font-semibold mb-4">Detailed Overtime Summary</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div className="bg-white/20 p-3 rounded text-center">
+                        <div className="text-xs text-teal-100 mb-1">JAN 2025</div>
+                        <div className="text-xl font-bold">0 Hours</div>
+                      </div>
+                      <div className="bg-white/20 p-3 rounded text-center">
+                        <div className="text-xs text-teal-100 mb-1">FEB 2025</div>
+                        <div className="text-xl font-bold">0 Hours</div>
+                      </div>
+                      <div className="bg-white/20 p-3 rounded text-center">
+                        <div className="text-xs text-teal-100 mb-1">MAR 2025</div>
+                        <div className="text-xl font-bold">0 Hours</div>
+                      </div>
+                      <div className="bg-white/20 p-3 rounded text-center">
+                        <div className="text-xs text-teal-100 mb-1">APR 2025</div>
+                        <div className="text-xl font-bold">0 Hours</div>
+                      </div>
+                      <div className="bg-white/20 p-3 rounded text-center">
+                        <div className="text-xs text-teal-100 mb-1">MAY 2025</div>
+                        <div className="text-xl font-bold">0 Hours</div>
+                      </div>
+                      <div className="bg-white/20 p-3 rounded text-center">
+                        <div className="text-xs text-teal-100 mb-1">JUN 2025</div>
+                        <div className="text-xl font-bold">0 Hours</div>
+                      </div>
+                      <div className="bg-white/20 p-3 rounded text-center">
+                        <div className="text-xs text-teal-100 mb-1">JUL 2025</div>
+                        <div className="text-xl font-bold">0 Hours</div>
+                      </div>
+                      <div className="bg-white/20 p-3 rounded text-center">
+                        <div className="text-xs text-teal-100 mb-1">AUG 2025</div>
+                        <div className="text-xl font-bold">0 Hours</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Recent Claim Application */}
