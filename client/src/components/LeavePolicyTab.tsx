@@ -171,34 +171,9 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
         <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white">
           <div className="flex items-center justify-between">
             <CardTitle>Leave Policies</CardTitle>
-            <div className="flex items-center gap-2">
-              {/* Export Dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    className="bg-white text-teal-600 hover:bg-gray-100"
-                    size="sm"
-                    data-testid="button-export-leave-policies"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Export
-                    <ChevronDown className="w-4 h-4 ml-2" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={handleExportExcel} data-testid="option-export-excel">
-                    <Download className="w-4 h-4 mr-2" />
-                    Download as Excel
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleExportPDF} data-testid="option-export-pdf">
-                    <Download className="w-4 h-4 mr-2" />
-                    Download as PDF
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-
-            </div>
+            <Badge variant="secondary" className="bg-white text-teal-600">
+              System Policies
+            </Badge>
           </div>
         </CardHeader>
         <CardContent className="p-6">
@@ -234,8 +209,8 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Remarks
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Action
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Type
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Included
@@ -281,17 +256,10 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
                               {policy.remarks || "N/A"}
                             </div>
                           </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEdit(policy)}
-                              className={`${isAccessible ? 'text-blue-600 hover:text-blue-700' : 'text-gray-400'}`}
-                              disabled={!isAccessible}
-                              data-testid={`button-edit-leave-policy-${policy.id}`}
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-center">
+                            <span className="text-gray-400 text-xs">
+                              System Policy
+                            </span>
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap">
                             <div className="flex items-center">
