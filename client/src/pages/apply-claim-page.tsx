@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import type { FinancialClaimPolicy } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,7 +23,8 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 
 type ClaimCategory = 'main' | 'financial' | 'overtime';
 
-const claimTypes = [
+// Static fallback - will be replaced by database data
+const fallbackClaimTypes = [
   'Medical Claim',
   'Travel Claim', 
   'Meal Allowance',
@@ -57,6 +59,11 @@ export default function ApplyClaimPage() {
     queryKey: ["/api/employees"]
   });
 
+  // Fetch financial claim policies from database
+  const { data: financialClaimPolicies = [] } = useQuery({
+    queryKey: ["/api/financial-claim-policies"]
+  });
+
   // Logic untuk menentukan employees yang boleh dipilih berdasarkan role
   const getAvailableEmployees = () => {
     if (!currentUser || !Array.isArray(employees)) return [];
@@ -74,6 +81,18 @@ export default function ApplyClaimPage() {
   };
 
   const availableEmployees = getAvailableEmployees();
+
+  // Get claim types from database or use fallback
+  const getClaimTypes = () => {
+    if (Array.isArray(financialClaimPolicies) && financialClaimPolicies.length > 0) {
+      return (financialClaimPolicies as FinancialClaimPolicy[])
+        .filter(policy => policy.enabled)
+        .map(policy => policy.claimName);
+    }
+    return fallbackClaimTypes;
+  };
+
+  const claimTypes = getClaimTypes();
 
   // Set default requestor to current user if not privileged role
   React.useEffect(() => {
