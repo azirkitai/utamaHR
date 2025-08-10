@@ -3000,6 +3000,56 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Add or remove employee from financial claim policy exclusion list
+  app.put('/api/financial-claim-policies/:id/exclude-employee', authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { employeeId, action } = req.body;
+
+      if (!employeeId || !action) {
+        return res.status(400).json({ error: 'Employee ID and action are required' });
+      }
+
+      if (action !== 'add' && action !== 'remove') {
+        return res.status(400).json({ error: 'Action must be "add" or "remove"' });
+      }
+
+      // Get current policy
+      const policy = await storage.getFinancialClaimPolicy(id);
+      if (!policy) {
+        return res.status(404).json({ error: 'Financial claim policy not found' });
+      }
+
+      // Get current excluded employee IDs
+      let excludedEmployeeIds = policy.excludedEmployeeIds || [];
+
+      // Add or remove employee from exclusion list
+      if (action === 'add') {
+        if (!excludedEmployeeIds.includes(employeeId)) {
+          excludedEmployeeIds.push(employeeId);
+        }
+      } else if (action === 'remove') {
+        excludedEmployeeIds = excludedEmployeeIds.filter(id => id !== employeeId);
+      }
+
+      // Update policy with new exclusion list
+      const updatedPolicy = await storage.updateFinancialClaimPolicy(id, {
+        excludedEmployeeIds
+      });
+
+      res.json({
+        success: true,
+        policy: updatedPolicy,
+        message: action === 'add' 
+          ? 'Employee excluded from policy' 
+          : 'Employee included in policy'
+      });
+    } catch (error) {
+      console.error('Error updating employee exclusion:', error);
+      res.status(500).json({ error: 'Failed to update employee exclusion' });
+    }
+  });
+
   // =================== CLAIM APPLICATION ROUTES ===================
 
   // Get all claim applications

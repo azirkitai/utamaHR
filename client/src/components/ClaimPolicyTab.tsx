@@ -28,19 +28,35 @@ export function ClaimPolicyTab({ employeeId }: ClaimPolicyTabProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch claim policies data
-  const { data: claimPolicies = [], isLoading } = useQuery<ClaimPolicy[]>({
-    queryKey: ["/api/claim-policies", employeeId],
-    enabled: !!employeeId,
+  // Fetch company financial claim policies (these are the policies configured in System Settings)
+  const { data: financialClaimPolicies = [], isLoading } = useQuery({
+    queryKey: ["/api/financial-claim-policies"],
   });
 
-  // Update policy status mutation
+  // Transform financial claim policies to match the expected ClaimPolicy format
+  const claimPolicies = financialClaimPolicies.map((policy: any) => ({
+    id: policy.id,
+    employeeId: employeeId,
+    claimType: policy.claimName,
+    annualLimit: policy.annualLimit,
+    balance: policy.annualLimit, // Initially full limit available
+    remarks: policy.claimRemark,
+    isEnabled: policy.enabled && !policy.excludedEmployeeIds?.includes(employeeId), // Check if employee is not excluded
+  }));
+
+  // Update policy status mutation - adds/removes employee from exclusion list
   const updateStatusMutation = useMutation({
     mutationFn: async ({ policyId, isEnabled }: { policyId: string; isEnabled: boolean }) => {
-      await apiRequest(`/api/claim-policies/${policyId}`, "PUT", { isEnabled });
+      // If isEnabled is false, add employee to excluded list
+      // If isEnabled is true, remove employee from excluded list
+      const action = isEnabled ? "remove" : "add";
+      await apiRequest(`/api/financial-claim-policies/${policyId}/exclude-employee`, "PUT", { 
+        employeeId,
+        action 
+      });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/claim-policies", employeeId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/financial-claim-policies"] });
       toast({
         title: "Berjaya",
         description: "Status polisi claim berjaya dikemaskini",
