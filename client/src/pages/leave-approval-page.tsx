@@ -105,6 +105,11 @@ export default function LeaveApprovalPage() {
     queryKey: ["/api/leave-statistics"]
   });
 
+  // Fetch employee leave summary for all employees
+  const { data: employeeLeaveSummary } = useQuery({
+    queryKey: ["/api/leave-summary-all-employees"]
+  });
+
   // Mutation for approve/reject leave applications
   const approveRejectMutation = useMutation({
     mutationFn: async ({ id, action, comments }: { id: string; action: 'approve' | 'reject'; comments?: string }) => {
@@ -326,67 +331,94 @@ export default function LeaveApprovalPage() {
   );
 
   const renderSummaryTable = () => {
-    // Generate dynamic columns based on active leave types only
-    const dynamicColumns = activeLeaveTypes.map((type: any) => ({
-      id: type.id,
-      name: type.leaveType,
-      key: type.leaveType.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '')
-    }));
+    if (!employeeLeaveSummary || !employeeLeaveSummary.employees) {
+      return (
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-gray-50">
+              <TableHead>No.</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead colSpan={3}>Loading...</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                Loading employee leave summary...
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      );
+    }
+
+    const { employees, enabledLeaveTypes } = employeeLeaveSummary;
 
     return (
       <Table>
         <TableHeader>
           <TableRow className="bg-gray-50">
-            <TableHead>No.</TableHead>
-            <TableHead>Leave Type</TableHead>
-            <TableHead>Total Days Taken</TableHead>
-            <TableHead>Total Applications</TableHead>
-            <TableHead>Entitlement Days</TableHead>
-            <TableHead>Remaining Days</TableHead>
+            <TableHead className="w-12">No.</TableHead>
+            <TableHead className="min-w-[150px]">Name</TableHead>
+            {enabledLeaveTypes.map((leaveType: any) => (
+              <TableHead key={leaveType.id} className="text-center min-w-[120px]">
+                <div className="flex flex-col">
+                  <span className="font-medium">{leaveType.leaveType}</span>
+                  <span className="text-xs text-gray-500 font-normal">
+                    ({leaveType.entitlementDays} days)
+                  </span>
+                </div>
+              </TableHead>
+            ))}
           </TableRow>
         </TableHeader>
         <TableBody>
-          {leaveStatistics.length === 0 ? (
+          {employees.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                No leave statistics available
+              <TableCell colSpan={enabledLeaveTypes.length + 2} className="text-center py-8 text-gray-500">
+                No employee data available
               </TableCell>
             </TableRow>
           ) : (
-            leaveStatistics.map((stat: any, index: number) => (
-              <TableRow key={stat.leaveTypeId}>
+            employees.map((employee: any, index: number) => (
+              <TableRow key={employee.employeeId} className="hover:bg-gray-50">
                 <TableCell>
-                  <div className="w-6 h-6 rounded-full bg-gradient-to-r from-cyan-500 to-cyan-600 flex items-center justify-center text-white text-xs font-medium">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-cyan-500 to-cyan-600 flex items-center justify-center text-white text-sm font-medium">
                     {index + 1}
                   </div>
                 </TableCell>
-                <TableCell className="font-medium">{stat.leaveType}</TableCell>
-                <TableCell>
-                  <div className="flex flex-col">
-                    <span className="font-semibold text-blue-600">{stat.totalDaysTaken} days</span>
-                    <span className="text-xs text-gray-500">approved leave</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center">
-                    <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm font-medium">
-                      {stat.totalApplications} apps
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <span className="text-gray-700 font-medium">{stat.entitlementDays} days</span>
-                </TableCell>
-                <TableCell>
-                  <div className="flex flex-col">
-                    <span className={`font-semibold ${(stat.entitlementDays - stat.totalDaysTaken) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {stat.entitlementDays - stat.totalDaysTaken} days
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      {((stat.entitlementDays - stat.totalDaysTaken) / stat.entitlementDays * 100).toFixed(1)}% left
-                    </span>
-                  </div>
-                </TableCell>
+                <TableCell className="font-medium">{employee.employeeName}</TableCell>
+                {enabledLeaveTypes.map((leaveType: any) => {
+                  const breakdown = employee.leaveBreakdown[leaveType.leaveType];
+                  const usagePercentage = breakdown ? (breakdown.daysTaken / breakdown.entitlementDays * 100) : 0;
+                  
+                  return (
+                    <TableCell key={leaveType.id} className="text-center">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center justify-center gap-2">
+                          <span className={`font-semibold ${breakdown?.daysTaken > 0 ? 'text-blue-600' : 'text-gray-400'}`}>
+                            {breakdown?.daysTaken || 0}
+                          </span>
+                          <span className="text-gray-400">/</span>
+                          <span className="text-gray-600">{breakdown?.entitlementDays || 0}</span>
+                        </div>
+                        {breakdown?.applicationsCount > 0 && (
+                          <span className="bg-green-100 text-green-800 px-1.5 py-0.5 rounded-full text-xs font-medium">
+                            {breakdown.applicationsCount} apps
+                          </span>
+                        )}
+                        {breakdown && breakdown.daysTaken > 0 && (
+                          <div className="w-full bg-gray-200 rounded-full h-1.5">
+                            <div 
+                              className={`h-1.5 rounded-full ${usagePercentage > 80 ? 'bg-red-500' : usagePercentage > 50 ? 'bg-yellow-500' : 'bg-green-500'}`}
+                              style={{width: `${Math.min(usagePercentage, 100)}%`}}
+                            ></div>
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                  );
+                })}
               </TableRow>
             ))
           )}

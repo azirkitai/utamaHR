@@ -506,7 +506,7 @@ export function registerRoutes(app: Express): Server {
       const statistics = [];
       
       for (const leaveType of enabledLeaveTypes) {
-        // Count total approved leave applications for this type
+        // Count total approved leave applications for this type (ALL employees)
         const approvedApplications = await db
           .select()
           .from(leaveApplications)
@@ -517,7 +517,7 @@ export function registerRoutes(app: Express): Server {
             )
           );
 
-        // Calculate total days taken
+        // Calculate total days taken across all employees
         const totalDaysTaken = approvedApplications.reduce((sum, app) => {
           return sum + parseInt(app.totalDays || '0');
         }, 0);
@@ -538,6 +538,76 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Get leave statistics error:", error);
       res.status(500).json({ error: "Failed to get leave statistics" });
+    }
+  });
+
+  // Get leave summary for all employees (employee-wise breakdown)
+  app.get("/api/leave-summary-all-employees", authenticateToken, async (req, res) => {
+    try {
+      console.log('Fetching leave summary for all employees...');
+      
+      // Get all employees
+      const allEmployees = await db
+        .select({
+          id: employees.id,
+          fullName: employees.fullName,
+          userId: employees.userId
+        })
+        .from(employees)
+        .where(eq(employees.status, 'employed'));
+
+      // Get only enabled leave types
+      const enabledLeaveTypes = await db
+        .select()
+        .from(companyLeaveTypes)
+        .where(eq(companyLeaveTypes.enabled, true));
+
+      const employeeSummary = [];
+
+      for (const employee of allEmployees) {
+        const employeeData = {
+          employeeId: employee.id,
+          employeeName: employee.fullName,
+          leaveBreakdown: {}
+        };
+
+        // For each enabled leave type, calculate this employee's usage
+        for (const leaveType of enabledLeaveTypes) {
+          const approvedApplications = await db
+            .select()
+            .from(leaveApplications)
+            .where(
+              and(
+                eq(leaveApplications.employeeId, employee.id),
+                eq(leaveApplications.leaveType, leaveType.leaveType),
+                eq(leaveApplications.status, 'Approved')
+              )
+            );
+
+          const totalDaysTaken = approvedApplications.reduce((sum, app) => {
+            return sum + parseInt(app.totalDays || '0');
+          }, 0);
+
+          employeeData.leaveBreakdown[leaveType.leaveType] = {
+            daysTaken: totalDaysTaken,
+            applicationsCount: approvedApplications.length,
+            entitlementDays: leaveType.entitlementDays || 0,
+            remainingDays: (leaveType.entitlementDays || 0) - totalDaysTaken
+          };
+        }
+
+        employeeSummary.push(employeeData);
+      }
+
+      console.log('Employee leave summary calculated:', employeeSummary.length, 'employees');
+      
+      res.json({
+        employees: employeeSummary,
+        enabledLeaveTypes: enabledLeaveTypes
+      });
+    } catch (error) {
+      console.error("Get employee leave summary error:", error);
+      res.status(500).json({ error: "Failed to get employee leave summary" });
     }
   });
 
