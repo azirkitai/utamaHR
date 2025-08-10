@@ -1,4 +1,5 @@
-import { useState } from "react";
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -43,6 +44,51 @@ export default function ApplyClaimPage() {
   const [reason, setReason] = useState("");
   const [additionalDescription, setAdditionalDescription] = useState("");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [selectedRequestor, setSelectedRequestor] = useState("");
+
+  // Fetch current user data
+  const { data: currentUser } = useQuery({
+    queryKey: ["/api/user"]
+  });
+
+  // Fetch all employees
+  const { data: employees = [] } = useQuery({
+    queryKey: ["/api/employees"]
+  });
+
+  // Logic untuk menentukan employees yang boleh dipilih berdasarkan role
+  const getAvailableEmployees = () => {
+    if (!currentUser || !Array.isArray(employees)) return [];
+    
+    const privilegedRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+    const userRole = (currentUser as any)?.role;
+    
+    if (privilegedRoles.includes(userRole)) {
+      // Role yang privileged boleh pilih semua employee
+      return employees;
+    } else {
+      // Role lain hanya boleh pilih diri sendiri
+      return employees.filter((emp: any) => emp.userId === (currentUser as any)?.id);
+    }
+  };
+
+  const availableEmployees = getAvailableEmployees();
+
+  // Set default requestor to current user if not privileged role
+  React.useEffect(() => {
+    if (currentUser && availableEmployees.length > 0 && !selectedRequestor) {
+      const privilegedRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      const userRole = (currentUser as any)?.role;
+      
+      if (!privilegedRoles.includes(userRole)) {
+        // For non-privileged users, auto-select themselves
+        const currentEmployee = availableEmployees.find((emp: any) => emp.userId === (currentUser as any)?.id);
+        if (currentEmployee) {
+          setSelectedRequestor(currentEmployee.id);
+        }
+      }
+    }
+  }, [currentUser, availableEmployees, selectedRequestor]);
 
   const calculateTotalHours = () => {
     if (!startTime || !endTime) return 0;
@@ -235,11 +281,18 @@ export default function ApplyClaimPage() {
                   {/* Requestor */}
                   <div>
                     <Label className="text-sm font-medium text-gray-700">Requestor</Label>
-                    <Input
-                      value="SITI NADIAH SABRI"
-                      readOnly
-                      className="mt-1 bg-gray-50"
-                    />
+                    <Select value={selectedRequestor} onValueChange={setSelectedRequestor}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Select requestor" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableEmployees.map((employee: any) => (
+                          <SelectItem key={employee.id} value={employee.id}>
+                            {employee.fullName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {/* Claim Date */}
@@ -411,11 +464,18 @@ export default function ApplyClaimPage() {
                   {/* Applicant */}
                   <div>
                     <Label className="text-sm font-medium text-gray-700">Applicant</Label>
-                    <Input
-                      value="SITI NADIAH SABRI"
-                      readOnly
-                      className="mt-1 bg-gray-50"
-                    />
+                    <Select value={selectedRequestor} onValueChange={setSelectedRequestor}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Select applicant" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableEmployees.map((employee: any) => (
+                          <SelectItem key={employee.id} value={employee.id}>
+                            {employee.fullName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {/* Claim Date */}
