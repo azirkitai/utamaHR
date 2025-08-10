@@ -42,6 +42,13 @@ UtamaHR - A comprehensive HR Management System built from scratch with React, Ty
   - Real-time form management with save/cancel functionality
   - Dropdown "Claim Type" now shows company-configured Financial Policies
   - Seamless connection between policy configuration and claim application
+- Phase 8: Employee Claim Policy Management (✅ Completed)
+  - Employee Details Claim Policy tab now displays company's financial policies
+  - Toggle switch functionality to include/exclude individual employees from policies
+  - System policies indicator showing these are configured in Settings
+  - Employee exclusion API endpoint for policy-level access control
+  - When toggle is off, employee loses access to that specific benefit policy
+  - Complete integration between System Settings policies and Employee Details view
 
 # User Preferences
 
