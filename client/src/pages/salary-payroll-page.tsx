@@ -27,6 +27,8 @@ import {
   Edit,
   Play
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import type { Employee } from "@shared/schema";
 
 export default function SalaryPayrollPage() {
   const [dateRange, setDateRange] = useState("01/2025 - 12/2025");
@@ -43,27 +45,29 @@ export default function SalaryPayrollPage() {
     lateness: false
   });
 
-  // Sample data for Employee Salary Table
-  const employeeData = [
-    {
-      id: 1,
-      name: "SITI NADIAH SABRI",
-      employeeNo: "TEMP-7845*",
-      designation: "",
-      dateJoining: "03 Aug 2025",
-      status: "Employed - Not Applicable"
-    },
-    {
-      id: 2,
-      name: "Madrah Samsi",
-      employeeNo: "TEMP-7940*",
-      designation: "Operator",
-      dateJoining: "03 Aug 2025",
-      status: "Employed - Not Applicable"
-    }
-  ];
+  // Fetch real employee data from database
+  const { data: employeesFromDB = [], isLoading: isLoadingEmployees } = useQuery<Employee[]>({
+    queryKey: ["/api/employees"],
+  });
 
-  const allEmployees = ["All employee", "SITI NADIAH SABRI", "Madrah Samsi"];
+  // Format employee data for salary table
+  const employeeData = employeesFromDB.map((employee: any, index) => ({
+    id: employee.id,
+    name: employee.fullName,
+    employeeNo: employee.employment?.employeeNo || `EMP-${employee.id}`,
+    designation: employee.employment?.designation || "",
+    dateJoining: employee.employment?.dateJoining ? new Date(employee.employment.dateJoining).toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short', 
+      year: 'numeric'
+    }) : "N/A",
+    status: employee.status === "employed" ? "Employed - Active" : 
+            employee.status === "terminated" ? "Terminated" : 
+            employee.status === "retired" ? "Retired" : 
+            "Employed - Not Applicable"
+  }));
+
+  const allEmployees = ["All employee", ...employeesFromDB.map((emp: any) => emp.fullName)];
   const months = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
@@ -125,45 +129,59 @@ export default function SalaryPayrollPage() {
             </tr>
           </thead>
           <tbody>
-            {employeeData.map((employee, index) => (
-              <tr key={employee.id} className="border-b hover:bg-gray-50">
-                <td className="p-3 text-gray-600">{index + 1}</td>
-                <td className="p-3">
-                  <div className="font-medium text-gray-900">{employee.name}</div>
-                  <div className="text-xs text-gray-500">(Employee No. {employee.employeeNo})</div>
-                </td>
-                <td className="p-3 text-gray-600">{employee.designation}</td>
-                <td className="p-3 text-gray-600">{employee.dateJoining}</td>
-                <td className="p-3">
-                  <Badge 
-                    variant="secondary"
-                    className="bg-cyan-100 text-cyan-800 text-xs"
-                  >
-                    {employee.status}
-                  </Badge>
-                </td>
-                <td className="p-3 text-center">
-                  <div className="flex items-center justify-center space-x-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="p-1 h-7 w-7 border-gray-300"
-                      data-testid={`button-view-${employee.id}`}
-                    >
-                      <Eye className="w-3 h-3" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="p-1 h-7 w-7 border-gray-300"
-                      data-testid={`button-edit-${employee.id}`}
-                    >
-                      <Edit className="w-3 h-3" />
-                    </Button>
-                  </div>
+            {isLoadingEmployees ? (
+              <tr>
+                <td colSpan={6} className="p-8 text-center text-gray-500">
+                  Loading employee data...
                 </td>
               </tr>
-            ))}
+            ) : employeeData.length > 0 ? (
+              employeeData.map((employee, index) => (
+                <tr key={employee.id} className="border-b hover:bg-gray-50">
+                  <td className="p-3 text-gray-600">{index + 1}</td>
+                  <td className="p-3">
+                    <div className="font-medium text-gray-900">{employee.name}</div>
+                    <div className="text-xs text-gray-500">(Employee No. {employee.employeeNo})</div>
+                  </td>
+                  <td className="p-3 text-gray-600">{employee.designation}</td>
+                  <td className="p-3 text-gray-600">{employee.dateJoining}</td>
+                  <td className="p-3">
+                    <Badge 
+                      variant="secondary"
+                      className="bg-cyan-100 text-cyan-800 text-xs"
+                    >
+                      {employee.status}
+                    </Badge>
+                  </td>
+                  <td className="p-3 text-center">
+                    <div className="flex items-center justify-center space-x-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="p-1 h-7 w-7 border-gray-300"
+                        data-testid={`button-view-${employee.id}`}
+                      >
+                        <Eye className="w-3 h-3" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="p-1 h-7 w-7 border-gray-300"
+                        data-testid={`button-edit-${employee.id}`}
+                      >
+                        <Edit className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={6} className="p-8 text-center text-gray-500">
+                  No employee data available
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
