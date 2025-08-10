@@ -167,6 +167,7 @@ export default function SalaryPayrollPage() {
                         variant="outline"
                         size="sm"
                         className="p-1 h-7 w-7 border-gray-300"
+                        onClick={() => window.location.href = `/employee-salary/${employee.id}`}
                         data-testid={`button-edit-${employee.id}`}
                       >
                         <Edit className="w-3 h-3" />

@@ -1059,4 +1059,115 @@ export type InsertLeaveBalanceCarryForward = z.infer<typeof insertLeaveBalanceCa
 export type UpdateLeaveBalanceCarryForward = z.infer<typeof updateLeaveBalanceCarryForwardSchema>;
 export type UpdateLeavePolicySetting = z.infer<typeof updateLeavePolicySettingSchema>;
 
+// Employee Salary Management tables
+export const employeeSalaries = pgTable("employee_salaries", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  employeeId: varchar("employee_id").notNull().references(() => employees.id, { onDelete: "cascade" }),
+  basicSalary: decimal("basic_salary", { precision: 10, scale: 2 }).default("0.00"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const salaryBasicEarnings = pgTable("salary_basic_earnings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  salaryId: varchar("salary_id").notNull().references(() => employeeSalaries.id, { onDelete: "cascade" }),
+  itemName: varchar("item_name").notNull(),
+  itemType: varchar("item_type").notNull(), // "monthly", "daily", "hourly", "piece_rate", "percentage"
+  amount: decimal("amount", { precision: 10, scale: 2 }).default("0.00"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const salaryAdditionalItems = pgTable("salary_additional_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  salaryId: varchar("salary_id").notNull().references(() => employeeSalaries.id, { onDelete: "cascade" }),
+  itemName: varchar("item_name").notNull(),
+  itemType: varchar("item_type").notNull(), // "monthly", "daily", "hourly", "piece_rate", "percentage"
+  amount: decimal("amount", { precision: 10, scale: 2 }).default("0.00"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const salaryDeductionItems = pgTable("salary_deduction_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  salaryId: varchar("salary_id").notNull().references(() => employeeSalaries.id, { onDelete: "cascade" }),
+  itemName: varchar("item_name").notNull(),
+  itemType: varchar("item_type").notNull(), // "monthly", "daily", "hourly", "piece_rate", "percentage"
+  amount: decimal("amount", { precision: 10, scale: 2 }).default("0.00"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const salaryCompanyContributions = pgTable("salary_company_contributions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  salaryId: varchar("salary_id").notNull().references(() => employeeSalaries.id, { onDelete: "cascade" }),
+  itemName: varchar("item_name").notNull(),
+  itemType: varchar("item_type").notNull(), // "monthly", "daily", "hourly", "piece_rate", "percentage"
+  amount: decimal("amount", { precision: 10, scale: 2 }).default("0.00"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Salary schemas
+export const insertEmployeeSalarySchema = createInsertSchema(employeeSalaries).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const updateEmployeeSalarySchema = insertEmployeeSalarySchema.partial();
+
+export const insertSalaryBasicEarningSchema = createInsertSchema(salaryBasicEarnings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const updateSalaryBasicEarningSchema = insertSalaryBasicEarningSchema.partial();
+
+export const insertSalaryAdditionalItemSchema = createInsertSchema(salaryAdditionalItems).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const updateSalaryAdditionalItemSchema = insertSalaryAdditionalItemSchema.partial();
+
+export const insertSalaryDeductionItemSchema = createInsertSchema(salaryDeductionItems).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const updateSalaryDeductionItemSchema = insertSalaryDeductionItemSchema.partial();
+
+export const insertSalaryCompanyContributionSchema = createInsertSchema(salaryCompanyContributions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const updateSalaryCompanyContributionSchema = insertSalaryCompanyContributionSchema.partial();
+
+// Salary types
+export type EmployeeSalary = typeof employeeSalaries.$inferSelect;
+export type InsertEmployeeSalary = z.infer<typeof insertEmployeeSalarySchema>;
+export type UpdateEmployeeSalary = z.infer<typeof updateEmployeeSalarySchema>;
+
+export type SalaryBasicEarning = typeof salaryBasicEarnings.$inferSelect;
+export type InsertSalaryBasicEarning = z.infer<typeof insertSalaryBasicEarningSchema>;
+export type UpdateSalaryBasicEarning = z.infer<typeof updateSalaryBasicEarningSchema>;
+
+export type SalaryAdditionalItem = typeof salaryAdditionalItems.$inferSelect;
+export type InsertSalaryAdditionalItem = z.infer<typeof insertSalaryAdditionalItemSchema>;
+export type UpdateSalaryAdditionalItem = z.infer<typeof updateSalaryAdditionalItemSchema>;
+
+export type SalaryDeductionItem = typeof salaryDeductionItems.$inferSelect;
+export type InsertSalaryDeductionItem = z.infer<typeof insertSalaryDeductionItemSchema>;
+export type UpdateSalaryDeductionItem = z.infer<typeof updateSalaryDeductionItemSchema>;
+
+export type SalaryCompanyContribution = typeof salaryCompanyContributions.$inferSelect;
+export type InsertSalaryCompanyContribution = z.infer<typeof insertSalaryCompanyContributionSchema>;
+export type UpdateSalaryCompanyContribution = z.infer<typeof updateSalaryCompanyContributionSchema>;
+
 

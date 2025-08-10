@@ -3411,6 +3411,56 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // =================== EMPLOYEE SALARY ROUTES ===================
+  
+  // Get employee salary details
+  app.get('/api/employees/:employeeId/salary', authenticateToken, async (req, res) => {
+    try {
+      const { employeeId } = req.params;
+      const salaryData = await storage.getEmployeeSalaryByEmployeeId(employeeId);
+      
+      if (!salaryData) {
+        return res.status(404).json({ error: 'Maklumat gaji pekerja tidak dijumpai' });
+      }
+      
+      res.json(salaryData);
+    } catch (error) {
+      console.error('Error getting employee salary:', error);
+      res.status(500).json({ error: 'Gagal mengambil maklumat gaji pekerja' });
+    }
+  });
+
+  // Create employee salary
+  app.post('/api/employees/:employeeId/salary', authenticateToken, async (req, res) => {
+    try {
+      const { employeeId } = req.params;
+      const salaryData = { ...req.body, employeeId };
+      
+      const salary = await storage.createEmployeeSalary(salaryData);
+      res.status(201).json(salary);
+    } catch (error) {
+      console.error('Error creating employee salary:', error);
+      res.status(500).json({ error: 'Gagal membuat maklumat gaji pekerja' });
+    }
+  });
+
+  // Update employee salary
+  app.put('/api/employees/:employeeId/salary', authenticateToken, async (req, res) => {
+    try {
+      const { employeeId } = req.params;
+      const salary = await storage.updateEmployeeSalary(employeeId, req.body);
+      
+      if (!salary) {
+        return res.status(404).json({ error: 'Maklumat gaji pekerja tidak dijumpai' });
+      }
+      
+      res.json(salary);
+    } catch (error) {
+      console.error('Error updating employee salary:', error);
+      res.status(500).json({ error: 'Gagal mengemas kini maklumat gaji pekerja' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

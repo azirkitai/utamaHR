@@ -124,6 +124,27 @@ import {
   type ClaimApplication,
   type InsertClaimApplication,
   type UpdateClaimApplication,
+  // Employee Salary types
+  employeeSalaries,
+  salaryBasicEarnings,
+  salaryAdditionalItems,
+  salaryDeductionItems,
+  salaryCompanyContributions,
+  type EmployeeSalary,
+  type InsertEmployeeSalary,
+  type UpdateEmployeeSalary,
+  type SalaryBasicEarning,
+  type InsertSalaryBasicEarning,
+  type UpdateSalaryBasicEarning,
+  type SalaryAdditionalItem,
+  type InsertSalaryAdditionalItem,
+  type UpdateSalaryAdditionalItem,
+  type SalaryDeductionItem,
+  type InsertSalaryDeductionItem,
+  type UpdateSalaryDeductionItem,
+  type SalaryCompanyContribution,
+  type InsertSalaryCompanyContribution,
+  type UpdateSalaryCompanyContribution,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, sql, asc, ilike, or, gte, lte, inArray, not } from "drizzle-orm";
@@ -1976,6 +1997,142 @@ export class DatabaseStorage implements IStorage {
       .returning();
 
     return !!updatedApp;
+  }
+
+  // =================== EMPLOYEE SALARY METHODS ===================
+  async getEmployeeSalaryByEmployeeId(employeeId: string): Promise<any> {
+    const [salary] = await db.select().from(employeeSalaries).where(eq(employeeSalaries.employeeId, employeeId));
+    if (!salary) {
+      return null;
+    }
+
+    const [basicEarnings, additionalItems, deductionItems, companyContributions] = await Promise.all([
+      db.select().from(salaryBasicEarnings).where(eq(salaryBasicEarnings.salaryId, salary.id)),
+      db.select().from(salaryAdditionalItems).where(eq(salaryAdditionalItems.salaryId, salary.id)),
+      db.select().from(salaryDeductionItems).where(eq(salaryDeductionItems.salaryId, salary.id)),
+      db.select().from(salaryCompanyContributions).where(eq(salaryCompanyContributions.salaryId, salary.id))
+    ]);
+
+    return {
+      ...salary,
+      basicEarnings,
+      additionalItems,
+      deductionItems,
+      companyContributions
+    };
+  }
+
+  async createEmployeeSalary(data: InsertEmployeeSalary): Promise<EmployeeSalary> {
+    const [salary] = await db
+      .insert(employeeSalaries)
+      .values(data)
+      .returning();
+    return salary;
+  }
+
+  async updateEmployeeSalary(employeeId: string, data: UpdateEmployeeSalary): Promise<EmployeeSalary | undefined> {
+    const [salary] = await db
+      .update(employeeSalaries)
+      .set(data)
+      .where(eq(employeeSalaries.employeeId, employeeId))
+      .returning();
+    return salary || undefined;
+  }
+
+  async createSalaryBasicEarning(data: InsertSalaryBasicEarning): Promise<SalaryBasicEarning> {
+    const [earning] = await db
+      .insert(salaryBasicEarnings)
+      .values(data)
+      .returning();
+    return earning;
+  }
+
+  async updateSalaryBasicEarning(id: string, data: UpdateSalaryBasicEarning): Promise<SalaryBasicEarning | undefined> {
+    const [earning] = await db
+      .update(salaryBasicEarnings)
+      .set(data)
+      .where(eq(salaryBasicEarnings.id, id))
+      .returning();
+    return earning || undefined;
+  }
+
+  async deleteSalaryBasicEarning(id: string): Promise<boolean> {
+    const result = await db
+      .delete(salaryBasicEarnings)
+      .where(eq(salaryBasicEarnings.id, id));
+    return result.rowCount > 0;
+  }
+
+  async createSalaryAdditionalItem(data: InsertSalaryAdditionalItem): Promise<SalaryAdditionalItem> {
+    const [item] = await db
+      .insert(salaryAdditionalItems)
+      .values(data)
+      .returning();
+    return item;
+  }
+
+  async updateSalaryAdditionalItem(id: string, data: UpdateSalaryAdditionalItem): Promise<SalaryAdditionalItem | undefined> {
+    const [item] = await db
+      .update(salaryAdditionalItems)
+      .set(data)
+      .where(eq(salaryAdditionalItems.id, id))
+      .returning();
+    return item || undefined;
+  }
+
+  async deleteSalaryAdditionalItem(id: string): Promise<boolean> {
+    const result = await db
+      .delete(salaryAdditionalItems)
+      .where(eq(salaryAdditionalItems.id, id));
+    return result.rowCount > 0;
+  }
+
+  async createSalaryDeductionItem(data: InsertSalaryDeductionItem): Promise<SalaryDeductionItem> {
+    const [item] = await db
+      .insert(salaryDeductionItems)
+      .values(data)
+      .returning();
+    return item;
+  }
+
+  async updateSalaryDeductionItem(id: string, data: UpdateSalaryDeductionItem): Promise<SalaryDeductionItem | undefined> {
+    const [item] = await db
+      .update(salaryDeductionItems)
+      .set(data)
+      .where(eq(salaryDeductionItems.id, id))
+      .returning();
+    return item || undefined;
+  }
+
+  async deleteSalaryDeductionItem(id: string): Promise<boolean> {
+    const result = await db
+      .delete(salaryDeductionItems)
+      .where(eq(salaryDeductionItems.id, id));
+    return result.rowCount > 0;
+  }
+
+  async createSalaryCompanyContribution(data: InsertSalaryCompanyContribution): Promise<SalaryCompanyContribution> {
+    const [contribution] = await db
+      .insert(salaryCompanyContributions)
+      .values(data)
+      .returning();
+    return contribution;
+  }
+
+  async updateSalaryCompanyContribution(id: string, data: UpdateSalaryCompanyContribution): Promise<SalaryCompanyContribution | undefined> {
+    const [contribution] = await db
+      .update(salaryCompanyContributions)
+      .set(data)
+      .where(eq(salaryCompanyContributions.id, id))
+      .returning();
+    return contribution || undefined;
+  }
+
+  async deleteSalaryCompanyContribution(id: string): Promise<boolean> {
+    const result = await db
+      .delete(salaryCompanyContributions)
+      .where(eq(salaryCompanyContributions.id, id));
+    return result.rowCount > 0;
   }
 }
 
