@@ -3433,9 +3433,21 @@ export function registerRoutes(app: Express): Server {
   // Create employee salary (Master Salary format)
   app.post('/api/employees/:employeeId/salary', authenticateToken, async (req, res) => {
     try {
+      const currentUser = req.user!;
       const { employeeId } = req.params;
-      const salaryData = { ...req.body, employeeId };
       
+      console.log('POST /api/employees/:employeeId/salary called');
+      console.log('Current user:', currentUser.role, currentUser.id);
+      console.log('Employee ID:', employeeId);
+      
+      // Role-based access control for salary creation
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (!adminRoles.includes(currentUser.role)) {
+        console.log('Access denied: insufficient role for salary creation');
+        return res.status(403).json({ error: 'Tidak dibenarkan untuk membuat maklumat gaji' });
+      }
+      
+      const salaryData = { ...req.body, employeeId };
       const salary = await storage.saveMasterSalaryData(salaryData);
       res.status(201).json(salary);
     } catch (error) {
@@ -3447,10 +3459,26 @@ export function registerRoutes(app: Express): Server {
   // Update employee salary (Master Salary format)
   app.put('/api/employees/:employeeId/salary', authenticateToken, async (req, res) => {
     try {
+      const currentUser = req.user!;
       const { employeeId } = req.params;
+      
+      console.log('PUT /api/employees/:employeeId/salary called');
+      console.log('Current user:', currentUser.role, currentUser.id);
+      console.log('Employee ID:', employeeId);
+      console.log('Request body keys:', Object.keys(req.body));
+      
+      // Role-based access control for salary updates
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (!adminRoles.includes(currentUser.role)) {
+        console.log('Access denied: insufficient role');
+        return res.status(403).json({ error: 'Tidak dibenarkan untuk mengemas kini maklumat gaji' });
+      }
+      
       const salaryData = { ...req.body, employeeId };
+      console.log('Saving salary data for employee:', employeeId);
       
       const salary = await storage.saveMasterSalaryData(salaryData);
+      console.log('Salary data saved successfully');
       
       if (!salary) {
         return res.status(404).json({ error: 'Maklumat gaji pekerja tidak dijumpai' });
