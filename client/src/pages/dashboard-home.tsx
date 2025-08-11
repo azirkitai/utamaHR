@@ -168,7 +168,7 @@ export default function DashboardHome() {
         <div className="relative bg-gradient-to-r from-cyan-500 to-blue-600 rounded-2xl p-8 text-white overflow-hidden">
           <div className="relative z-10">
             <div className="flex justify-between items-start">
-              <div>
+              <div className="pt-[79px] pb-[79px] text-[34px] font-semibold">
                 <h1 className="text-3xl font-bold mb-2" data-testid="text-welcome">
                   Hey,
                 </h1>
