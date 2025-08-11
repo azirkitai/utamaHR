@@ -12,8 +12,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Calculator, Save, Info, Settings, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Calculator, Save, Info, Settings, ChevronDown, ChevronUp, X, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { PCB39_RELIEFS_2025 } from "@shared/pcb39-reliefs-2025";
 
 interface AdditionalItem {
   code: string;
@@ -62,6 +63,7 @@ interface PCB39Relief {
   code: string;
   label: string;
   amount: number;
+  cap?: number | null;
 }
 
 interface PCB39Rebate {
@@ -324,18 +326,8 @@ export default function EmployeeSalaryDetailsPage() {
   const [pcb39Tab, setPCB39Tab] = useState("relief");
 
   
-  // PCB39 Relief options
-  const reliefOptions = [
-    { code: "IND", label: "Individual Relief" },
-    { code: "SPOUSE", label: "Spouse Relief" },
-    { code: "EPF", label: "EPF Contribution" },
-    { code: "SOCSO", label: "SOCSO Contribution" },
-    { code: "INSURANCE", label: "Life Insurance Premium" },
-    { code: "EDUCATION", label: "Education Fees" },
-    { code: "MEDICAL", label: "Medical Expenses" },
-    { code: "PARENT", label: "Parent Relief" },
-    { code: "CHILD", label: "Child Relief" }
-  ];
+  // PCB39 Relief options from official 2025 config
+  const reliefOptions = PCB39_RELIEFS_2025;
 
   // PCB39 Rebate options
   const rebateOptions = [
@@ -911,6 +903,26 @@ export default function EmployeeSalaryDetailsPage() {
     const amount = parseFloat(reliefAmount);
     if (isNaN(amount) || amount <= 0) return;
 
+    // Validate cap if exists
+    if (selectedRelief.cap !== null && selectedRelief.cap !== undefined) {
+      // Check total amount for this relief type including existing entries
+      const existingReliefs = salaryData.deductions.pcb39Settings?.reliefs || [];
+      const existingAmount = existingReliefs
+        .filter(r => r.code === reliefCode)
+        .reduce((sum, r) => sum + r.amount, 0);
+      
+      const totalAmount = existingAmount + amount;
+      
+      if (totalAmount > selectedRelief.cap) {
+        toast({
+          variant: "destructive",
+          title: "Exceeds Annual Cap",
+          description: `Exceeds annual cap for ${selectedRelief.label}: RM${selectedRelief.cap.toFixed(2)}`
+        });
+        return;
+      }
+    }
+
     setSalaryData(prev => ({
       ...prev,
       deductions: {
@@ -918,8 +930,8 @@ export default function EmployeeSalaryDetailsPage() {
         pcb39Settings: {
           ...prev.deductions.pcb39Settings!,
           reliefs: [
-            ...prev.deductions.pcb39Settings!.reliefs.filter(r => r.code !== reliefCode),
-            { code: reliefCode, label: selectedRelief.label, amount }
+            ...(prev.deductions.pcb39Settings?.reliefs || []),
+            { code: reliefCode, label: selectedRelief.label, amount, cap: selectedRelief.cap }
           ]
         }
       }
@@ -928,6 +940,30 @@ export default function EmployeeSalaryDetailsPage() {
     setReliefCode("");
     setReliefAmount("");
     setIsDirty(true);
+    
+    toast({
+      title: "Relief Added",
+      description: `${selectedRelief.label} - RM${amount.toFixed(2)} added successfully`
+    });
+  };
+
+  const removePCB39Relief = (index: number) => {
+    setSalaryData(prev => ({
+      ...prev,
+      deductions: {
+        ...prev.deductions,
+        pcb39Settings: {
+          ...prev.deductions.pcb39Settings!,
+          reliefs: prev.deductions.pcb39Settings!.reliefs.filter((_, i) => i !== index)
+        }
+      }
+    }));
+    setIsDirty(true);
+    
+    toast({
+      title: "Relief Removed",
+      description: "Relief item has been removed successfully"
+    });
   };
 
   const addPCB39Rebate = () => {
@@ -956,19 +992,7 @@ export default function EmployeeSalaryDetailsPage() {
     setIsDirty(true);
   };
 
-  const removePCB39Relief = (code: string) => {
-    setSalaryData(prev => ({
-      ...prev,
-      deductions: {
-        ...prev.deductions,
-        pcb39Settings: {
-          ...prev.deductions.pcb39Settings!,
-          reliefs: prev.deductions.pcb39Settings!.reliefs.filter(r => r.code !== code)
-        }
-      }
-    }));
-    setIsDirty(true);
-  };
+
 
   const removePCB39Rebate = (code: string) => {
     setSalaryData(prev => ({
@@ -2298,7 +2322,14 @@ export default function EmployeeSalaryDetailsPage() {
                               <SelectContent>
                                 {reliefOptions.map(option => (
                                   <SelectItem key={option.code} value={option.code}>
-                                    {option.label}
+                                    <div className="flex items-center justify-between w-full">
+                                      <span>{option.label}</span>
+                                      {option.cap && (
+                                        <span className="text-xs text-gray-500 ml-2">
+                                          Cap: RM{option.cap}
+                                        </span>
+                                      )}
+                                    </div>
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -2345,46 +2376,49 @@ export default function EmployeeSalaryDetailsPage() {
 
                         {/* Relief Items List */}
                         {salaryData.deductions.pcb39Settings?.reliefs && salaryData.deductions.pcb39Settings.reliefs.length > 0 && (
-                          <div className="space-y-2 max-h-48 overflow-y-auto border rounded p-3">
+                          <div className="space-y-3">
+                            <div className="text-sm font-medium text-gray-700">Added Relief Items:</div>
+                            <div className="space-y-2 max-h-48 overflow-y-auto border rounded p-3">
                             {salaryData.deductions.pcb39Settings.reliefs.map((relief, index) => (
-                              <div key={`${relief.code}-${index}`} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                              <div key={`${relief.code}-${index}`} className="flex items-center justify-between p-3 bg-gray-50 rounded border">
                                 <div className="flex-1">
-                                  <div className="text-sm font-medium">{relief.label}</div>
-                                  <div className="flex gap-4 mt-1">
-                                    <label className="flex items-center gap-1 text-xs">
-                                      <input type="checkbox" checked disabled /> EPF
-                                    </label>
-                                    <label className="flex items-center gap-1 text-xs">
-                                      <input type="checkbox" checked disabled /> SOCSO
-                                    </label>
-                                    <label className="flex items-center gap-1 text-xs">
-                                      <input type="checkbox" checked disabled /> EIS
-                                    </label>
-                                    <label className="flex items-center gap-1 text-xs">
-                                      <input type="checkbox" disabled /> HRDF
-                                    </label>
-                                    <label className="flex items-center gap-1 text-xs">
-                                      <input type="checkbox" checked disabled /> PCB39
-                                    </label>
-                                    <label className="flex items-center gap-1 text-xs">
-                                      <input type="checkbox" disabled /> Fixed
-                                    </label>
+                                  <div className="flex items-center gap-2">
+                                    <div className="text-sm font-medium">{relief.label}</div>
+                                    <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                                      {relief.code}
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <div className="text-xs text-green-600">PCB39 Relief</div>
+                                    {relief.cap && (
+                                      <div className="text-xs text-gray-500">
+                                        Cap: RM{relief.cap.toFixed(2)}
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
-                                <div className="text-right">
-                                  <div className="text-sm">RM {relief.amount.toFixed(2)}</div>
+                                <div className="text-right flex items-center gap-2">
+                                  <div className="text-sm font-semibold">RM {relief.amount.toFixed(2)}</div>
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => removePCB39Relief(relief.code)}
-                                    className="text-red-600 hover:text-red-700 p-1 h-auto"
+                                    onClick={() => removePCB39Relief(index)}
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1 h-auto"
                                     data-testid={`remove-relief-${relief.code}`}
                                   >
-                                    ×
+                                    <X className="h-3 w-3" />
                                   </Button>
                                 </div>
                               </div>
                             ))}
+                            </div>
+                            {/* Total Relief Summary */}
+                            <div className="border-t pt-2 flex justify-between items-center bg-blue-50 p-2 rounded">
+                              <div className="text-sm font-medium text-blue-700">Total Relief Amount:</div>
+                              <div className="text-sm font-bold text-blue-700">
+                                RM {salaryData.deductions.pcb39Settings.reliefs.reduce((sum, relief) => sum + relief.amount, 0).toFixed(2)}
+                              </div>
+                            </div>
                           </div>
                         )}
                       </div>
