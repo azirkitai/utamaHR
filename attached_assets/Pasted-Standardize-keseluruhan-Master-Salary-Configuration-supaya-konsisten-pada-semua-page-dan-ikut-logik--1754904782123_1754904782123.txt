@@ -1,0 +1,50 @@
+Standardize keseluruhan Master Salary Configuration supaya konsisten pada semua page dan ikut logik pengiraan yang betul. Pastikan layout dibahagi kepada 4 kolum tetap:
+
+Basic Earning (warna hijau) – termasuk Salary Type, Basic Salary (RM/Month), Computed Salary (auto), dan semua setting (Calculated in Payment, SOCSO Enabled, EIS Enabled), EPF setting (Calculation Method, Employee Rate, Employer Rate).
+
+Additional Item (warna biru) – Advance Salary, Subsistence Allowance, Extra Responsibility Allowance, BIK/VOLA (Special), dan butang “View Item/Tax Exemption”.
+
+Deduction Item (warna merah) – semua potongan statutory dan lain-lain: EPF Employee, SOCSO Employee, EIS Employee, Advance Deduction, Unpaid Leave, PCB39, PCB38, Zakat, Other Deduction.
+
+Pastikan setiap field ada tooltips: "How did we calculate this? Based on …" untuk jelaskan sumber kiraan.
+
+Company Contribution (warna ungu) – EPF Employer, SOCSO Employer, EIS Employer, HRDF Employer, Medical Card, Group Term Life, Medical Company.
+
+Semua dikira automatik ikut rate semasa × basic salary.
+
+Logik Pengiraan:
+
+Gross Salary = Basic Salary + semua Additional Item.
+
+Total Deduction = jumlah semua nilai dalam Deduction Item.
+
+Net Salary = Gross Salary – Total Deduction.
+
+Company Contribution Total = jumlah semua nilai dalam Company Contribution.
+
+EPF Employee/Employer = Basic Salary × Rate (%) yang ditetapkan.
+
+SOCSO Employee/Employer = ikut jadual rasmi SOCSO berdasarkan Basic Salary.
+
+EIS Employee/Employer = 0.2% × Basic Salary (cap RM5,000).
+
+HRDF Employer = Basic Salary × HRDF Rate.
+
+Advance Deduction = nilai manual yang diisi admin.
+
+Unpaid Leave = (Basic Salary ÷ Working Days) × Bilangan Cuti.
+
+PCB, Zakat, Other Deduction = nilai manual yang diisi admin.
+
+Syarat Paparan & UI:
+
+Semua label nilai dalam RM format (RM X.XX).
+
+Semua jumlah automatik update bila admin tukar rate atau basic salary.
+
+Susunan layout, warna, dan padding konsisten di semua bahagian.
+
+Pastikan butang Calculate Payroll di bawah memaparkan ringkasan: Gross Salary, Total Deduction, Net Salary, dan Company Contribution.
+
+Hasil akhir mesti sama seperti screenshot rujukan — tiada perbezaan susunan, warna, atau logik kiraan.
+

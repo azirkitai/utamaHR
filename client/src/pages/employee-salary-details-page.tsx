@@ -832,14 +832,7 @@ export default function EmployeeSalaryDetailsPage() {
     updateSalaryData({ additionalItems: updatedItems });
   };
 
-  const updateAdditionalItemFlag = (index: number, flag: keyof AdditionalItem['flags'], value: boolean) => {
-    const updatedItems = [...salaryData.additionalItems];
-    updatedItems[index] = { 
-      ...updatedItems[index], 
-      flags: { ...updatedItems[index].flags, [flag]: value }
-    };
-    updateSalaryData({ additionalItems: updatedItems });
-  };
+
 
   const toggleStatutoryFlags = (itemCode: string) => {
     setShowStatutoryFlags(prev => ({
@@ -915,6 +908,23 @@ export default function EmployeeSalaryDetailsPage() {
     const updatedItems = salaryData.additionalItems.map(item => 
       item.code === itemCode ? { ...item, amount } : item
     );
+    updateSalaryData({ additionalItems: updatedItems });
+  };
+
+  const updateAdditionalItemFlag = (itemCode: string, property: string, value: boolean) => {
+    const updatedItems = salaryData.additionalItems.map(item => {
+      if (item.code === itemCode) {
+        if (property === 'hideOnPayslip') {
+          return { ...item, hideOnPayslip: value };
+        } else if (item.flags && property in item.flags) {
+          return { 
+            ...item, 
+            flags: { ...item.flags, [property]: value }
+          };
+        }
+      }
+      return item;
+    });
     updateSalaryData({ additionalItems: updatedItems });
   };
 
@@ -1576,8 +1586,8 @@ export default function EmployeeSalaryDetailsPage() {
                     <Label className="font-medium">BIK/VOLA</Label>
                     <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">Special</span>
                     <Checkbox
-                      checked={salaryData.additionalItems.find(item => item.code === "BIK")?.flags.special || false}
-                      onCheckedChange={(checked) => updateAdditionalItemFlag("BIK", "special", checked as boolean)}
+                      checked={salaryData.additionalItems.find(item => item.code === "BIK")?.hideOnPayslip || false}
+                      onCheckedChange={(checked) => updateAdditionalItemFlag("BIK", "hideOnPayslip", !!checked)}
                       data-testid="bik-special-checkbox"
                     />
                     <Button
@@ -1608,7 +1618,7 @@ export default function EmployeeSalaryDetailsPage() {
                 <div className="pt-4 border-t">
                   <Button
                     variant="outline"
-                    onClick={() => setShowTaxExemptionDialog(true)}
+                    onClick={() => setIsTaxExemptionDialogOpen(true)}
                     className="w-full"
                     data-testid="btn-view-tax-exemption"
                   >
@@ -1731,7 +1741,7 @@ export default function EmployeeSalaryDetailsPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setShowPCB39Dialog(true)}
+                      onClick={() => setShowPCB39Modal(true)}
                       className="h-6 w-6 p-0"
                       data-testid="pcb39-config-button"
                     >

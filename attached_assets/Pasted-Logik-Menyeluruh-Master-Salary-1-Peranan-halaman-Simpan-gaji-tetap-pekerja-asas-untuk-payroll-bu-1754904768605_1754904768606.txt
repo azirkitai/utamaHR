@@ -1,0 +1,184 @@
+Logik Menyeluruh – Master Salary
+1) Peranan halaman
+Simpan gaji tetap pekerja (asas untuk payroll bulanan).
+
+Perubahan berkuat kuasa bulan seterusnya kecuali HR pilih “apply to current month”.
+
+Hanya role Super Admin, Admin, HR Manager boleh edit/simpan.
+
+2) Struktur data (ringkas)
+json
+Copy
+Edit
+{
+  "employeeId": "string",
+  "effectiveMonth": "YYYY-MM",
+  "basicSalary": 0,
+  "salaryType": "Monthly|Hourly|Daily",
+  "additionalItems": [
+    {"code":"ADV","label":"Advance Salary","amount":0,"flags":{"epf":true,"socso":true,"eis":true,"hrdf":true,"pcb39":true},"fixed":false},
+    {"code":"SUBS","label":"Subsistence Allowance","amount":0,"flags":{"epf":true,"socso":true,"eis":true,"hrdf":true,"pcb39":true},"fixed":false},
+    {"code":"RESP","label":"Extra Responsibility Allowance","amount":0,"flags":{"epf":true,"socso":true,"eis":true,"hrdf":true,"pcb39":true},"fixed":false},
+    {"code":"BIK","label":"BIK/VOLA","amount":0,"flags":{"epf":false,"socso":false,"eis":false,"hrdf":false,"pcb39":false},"fixed":false,"hideOnPayslip":true}
+  ],
+  "deductions": {
+    "epfEmployee":0,"socsoEmployee":0,"eisEmployee":0,
+    "advance":0,"unpaidLeave":0,"pcb39":{ "mode":"custom|calculate","amount":0,"reliefs":[],"rebates":[] },
+    "pcb38":0,"zakat":0,"other":0,
+    "dynamic":[]
+  },
+  "contributions": {
+    "epfEmployer":0,"socsoEmployer":0,"eisEmployer":0,
+    "hrdf":0,"medicalCard":0,"groupTermLife":0,"medicalCompany":0,"dynamic":[]
+  },
+  "settings": {
+    "isCalculatedInPayment":true,
+    "isSocsoEnabled":true,
+    "isEisEnabled":true,
+    "epfCalcMethod":"PERCENT|FIXED",
+    "epfEmployeeRate":11.0,"epfEmployerRate":13.0,
+    "hrdfEmployerRate":1.0,"isHrdfApplicable":true,
+    "dailyRateMethod":"WORKING_26|CALENDAR"
+  },
+  "remarks":""
+}
+3) Definisi asas & “wage base”
+additionalSum = sum(additionalItems.amount + dynamic addls)
+
+deductionSum = sum(deductions non-stat + dynamic) + epfEmployee + socsoEmployee + eisEmployee + pcb39.amount
+
+contributionSum = epfEmployer + socsoEmployer + eisEmployer + hrdf + medical* + dynamic
+
+Wage base (ikut flags):
+
+epfBase = basicSalary + sum(addl.amount where flags.epf) − sum(ded.amount where flags.epf)
+
+socsoBase = basicSalary + sum(addl.amount where flags.socso) − sum(ded.amount where flags.socso)
+
+eisBase = basicSalary + sum(addl.amount where flags.eis) − sum(ded.amount where flags.eis)
+
+hrdfBase = basicSalary + sum(addl.amount where flags.hrdf) − sum(ded.amount where flags.hrdf)
+
+Flags datang daripada tick box di Additional Item, Deduction Item, dan Modal Item/Tax Exemption. BIK/VOLA default semua OFF + hideOnPayslip.
+
+4) Kiraan ringkasan
+gross = basicSalary + additionalSum
+
+totalDeduction = deductionSum
+
+net = gross − totalDeduction
+
+companyContribution = contributionSum
+
+Papar 4 kotak: Gross, Deduction, Company Contribution, Net (loading: “Calculating…”).
+
+5) Statutory contributions
+5.1 EPF
+Method = Percent
+epfEmployee = round2( epfBase × epfEmployeeRate/100 )
+epfEmployer = round2( epfBase × epfEmployerRate/100 )
+
+Method = Fixed
+Nilai employee/employer manual; disable auto-calc.
+
+Kiraan tidak bergantung PCB; flags tentukan apa masuk epfBase.
+
+5.2 SOCSO (Category 1/2)
+Toggle settings.isSocsoEnabled:
+
+OFF → socsoEmployee = socsoEmployer = 0
+
+ON → ikut kategori & ceiling.
+
+Wage ceiling: RM5,950 (guna min(socsoBase, 5950)).
+
+Category selection:
+Default Cat 1 (Employee <60, keilatan). Cat 2 jika ≥60 pekerja baru / hanya Employment Injury / penerima Invalidity Pension.
+
+Rates:
+Cat 1 → Employer 1.75%, Employee 0.5%
+Cat 2 → Employer 1.25%, Employee 0%
+
+Rounding: ke 5 sen (nearest 0.05): Math.round(n*20)/20.
+
+5.3 EIS (SIP)
+Toggle settings.isEisEnabled:
+
+OFF → eisEmployee = eisEmployer = 0
+
+ON → semak kelayakan.
+
+Eligibility:
+Tamat ≥60; ≥57 first-time tanpa sejarah caruman → dikecualikan; bukan warganegara/PR → dikecualikan.
+
+Wage ceiling: RM5,000 (min(eisBase, 5000)).
+
+Rate: Employee 0.2%, Employer 0.2%.
+
+Rounding: nearest 0.05.
+
+5.4 HRDF
+Hanya jika settings.isHrdfApplicable = true.
+hrdf = round2( hrdfBase × hrdfEmployerRate/100 ).
+
+6) Unpaid Leave
+dailyRateMethod:
+
+WORKING_26: dailyRate = basicSalary/26
+
+CALENDAR: dailyRate = basicSalary/daysInMonth
+
+unpaidLeave = round2( dailyRate × daysUL )
+daysUL dari API attendance. Flags tentukan tolak dari wage base (biasanya semua statutory ON).
+
+7) Advance vs Advance Deduction
+Advance Salary (Additional) = bayaran awal menambah gross (bukan auto-recovery).
+
+Advance Deduction (Deduction) = tolak gaji untuk recovery. Tidak auto-link; HR isi manual untuk elak “double count”.
+
+8) PCB39 (Potongan Cukai Bulanan)
+Medan PCB39 ada modal dengan 2 tab: Relief & Rebate.
+
+Mode:
+
+custom → amount manual, tak disentuh kalkulator.
+
+calculate → guna formula MTD LHDN (monthly), tolak sum(reliefs) dari pendapatan bercukai, kira cukai, kemudian tolak sum(rebates).
+
+Sumber relief dropdown guna config tunggal (susunan LP1–LP16 yang telah anda beri).
+
+Tax Exemptions modal (link “View Item/Tax Exemption”) menambah pembolehubah pengecualian untuk pengiraan PCB (tidak mempengaruhi statutory wage base kecuali flags ditanda).
+
+Deduction lain dengan tick PCB39 (cth. Zakat) masuk sebagai rebate dalam kiraan PCB.
+
+9) Rounding & format
+Wang dipapar RM #,###.##.
+
+EPF/HRDF/PCB → 2 d.p.
+
+SOCSO/EIS → nearest 0.05.
+
+10) Interaksi & lifecycle
+ddlEmployee change → fetch & populate → set cards “Calculating…”.
+
+Auto-recompute bila mana-mana input/flag berubah (debounce 300ms) atau klik Recalculate.
+
+Save Changes: POST seluruh objek; simpan effectiveMonth (default bulan depan).
+
+Locking: jika payroll bulan semasa sudah dijana, halang apply to current tanpa PAYROLL_OVERRIDE.
+
+11) Acceptance tests (minimum)
+T1 SOCSO Cat1, wage 10,000 → base 5,950 → Emp 29.75, Er 104.15.
+
+T2 EIS layak, wage 10,000 → base 5,000 → Emp 10.00, Er 10.00.
+
+T3 UL 3 hari, method 26, basic 3000 → 346.15.
+
+T4 EPF Fixed (emp=100, er=150) → nilai manual digunakan; switch percent memulihkan auto.
+
+T5 Flags: tandakan EPF pada elaun 200 → epfBase bertambah 200; nyah-tanda → kembali.
+
+T6 PCB39 mode calculate: tambah LP5=1000 → PCB turun; tambah Zakat=200 sebagai rebate → PCB turun lagi. Mode custom override.
+
+T7 isCalculatedInPayment OFF → 4 kad ringkasan 0, tetapi data masih boleh disimpan.
+
