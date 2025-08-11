@@ -34,6 +34,14 @@ interface CustomDeductionItem {
   id: string;
   label: string;
   amount: number;
+  flags?: {
+    epf: boolean;
+    socso: boolean;
+    eis: boolean;
+    hrdf: boolean;
+    pcb39: boolean;
+    fixed: boolean;
+  };
 }
 
 interface TaxExemptionItem {
@@ -461,7 +469,18 @@ export default function EmployeeSalaryDetailsPage() {
           pcb38: { epf: false, socso: false, eis: false, hrdf: false, pcb39: true, fixed: false },
           zakat: { epf: false, socso: false, eis: false, hrdf: false, pcb39: true, fixed: false },
           other: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }
-        }
+        },
+        customItems: (deductions.customItems || []).map((item: any) => ({
+          ...item,
+          flags: item.flags || { 
+            epf: false, 
+            socso: false, 
+            eis: false, 
+            hrdf: false, 
+            pcb39: false, 
+            fixed: false 
+          }
+        }))
       });
       
       const updatedData = {
@@ -762,7 +781,8 @@ export default function EmployeeSalaryDetailsPage() {
     const newItem: CustomDeductionItem = {
       id: Date.now().toString(),
       label: newDeductionLabel.trim(),
-      amount: newDeductionAmount
+      amount: newDeductionAmount,
+      flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }
     };
     
     updateSalaryData({
@@ -793,6 +813,23 @@ export default function EmployeeSalaryDetailsPage() {
         ...salaryData.deductions,
         customItems: (salaryData.deductions.customItems || []).map(item =>
           item.id === id ? { ...item, [field]: value } : item
+        )
+      }
+    });
+  };
+
+  const updateCustomDeductionFlag = (id: string, flag: string, value: boolean) => {
+    updateSalaryData({
+      deductions: {
+        ...salaryData.deductions,
+        customItems: (salaryData.deductions.customItems || []).map(item =>
+          item.id === id ? { 
+            ...item, 
+            flags: { 
+              ...(item.flags || { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }), 
+              [flag]: value 
+            } 
+          } : item
         )
       }
     });
@@ -838,14 +875,22 @@ export default function EmployeeSalaryDetailsPage() {
     setExpandedDeductionFlags(newSet);
   };
 
-  const updateDeductionFlag = (field: keyof DeductionItem['flags'], flag: keyof DeductionItem['flags'][typeof field], value: boolean) => {
+  const updateDeductionFlag = (field: string, flag: string, value: boolean) => {
+    const currentFlags = salaryData.deductions.flags || {
+      advance: { epf: true, socso: true, eis: true, hrdf: false, pcb39: false, fixed: false },
+      unpaidLeave: { epf: true, socso: true, eis: true, hrdf: false, pcb39: false, fixed: false },
+      pcb38: { epf: false, socso: false, eis: false, hrdf: false, pcb39: true, fixed: false },
+      zakat: { epf: false, socso: false, eis: false, hrdf: false, pcb39: true, fixed: false },
+      other: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }
+    };
+    
     updateSalaryData({
       deductions: {
         ...salaryData.deductions,
         flags: {
-          ...salaryData.deductions.flags,
+          ...currentFlags,
           [field]: {
-            ...salaryData.deductions.flags?.[field],
+            ...currentFlags[field as keyof typeof currentFlags],
             [flag]: value
           }
         }
@@ -1194,7 +1239,7 @@ export default function EmployeeSalaryDetailsPage() {
                         <div className="flex items-center space-x-2">
                           <Checkbox
                             checked={item.flags.epf}
-                            onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'epf', checked)}
+                            onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'epf', !!checked)}
                             data-testid={`${item.code}-epf`}
                           />
                           <Label className="text-xs">EPF</Label>
@@ -1202,7 +1247,7 @@ export default function EmployeeSalaryDetailsPage() {
                         <div className="flex items-center space-x-2">
                           <Checkbox
                             checked={item.flags.socso}
-                            onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'socso', checked)}
+                            onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'socso', !!checked)}
                             data-testid={`${item.code}-socso`}
                           />
                           <Label className="text-xs">SOCSO</Label>
@@ -1210,7 +1255,7 @@ export default function EmployeeSalaryDetailsPage() {
                         <div className="flex items-center space-x-2">
                           <Checkbox
                             checked={item.flags.eis}
-                            onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'eis', checked)}
+                            onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'eis', !!checked)}
                             data-testid={`${item.code}-eis`}
                           />
                           <Label className="text-xs">EIS</Label>
@@ -1218,7 +1263,7 @@ export default function EmployeeSalaryDetailsPage() {
                         <div className="flex items-center space-x-2">
                           <Checkbox
                             checked={item.flags.hrdf}
-                            onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'hrdf', checked)}
+                            onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'hrdf', !!checked)}
                             data-testid={`${item.code}-hrdf`}
                           />
                           <Label className="text-xs">HRDF</Label>
@@ -1230,7 +1275,7 @@ export default function EmployeeSalaryDetailsPage() {
                         <div className="flex items-center space-x-2">
                           <Checkbox
                             checked={item.flags.pcb39}
-                            onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'pcb39', checked)}
+                            onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'pcb39', !!checked)}
                             data-testid={`${item.code}-pcb39`}
                           />
                           <Label className="text-xs">PCB39</Label>
@@ -1238,7 +1283,7 @@ export default function EmployeeSalaryDetailsPage() {
                         <div className="flex items-center space-x-2">
                           <Checkbox
                             checked={item.flags.fixed}
-                            onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'fixed', checked)}
+                            onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'fixed', !!checked)}
                             data-testid={`${item.code}-fixed`}
                           />
                           <Label className="text-xs text-blue-600">Fixed</Label>
@@ -1682,26 +1727,96 @@ export default function EmployeeSalaryDetailsPage() {
 
               {/* Custom Deduction Items */}
               {(salaryData.deductions.customItems || []).map((item) => (
-                <div key={item.id} className="flex space-x-2">
-                  <div className="flex-1">
+                <div key={item.id} className="space-y-2">
+                  <div className="flex items-center justify-between">
                     <Label>{item.label}</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={item.amount}
-                      onChange={(e) => updateCustomDeduction(item.id, 'amount', parseFloat(e.target.value) || 0)}
-                      data-testid={`customDeduction-${item.id}`}
-                    />
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleDeductionFlags(`custom-${item.id}`)}
+                        className="text-xs text-gray-500 hover:bg-gray-100 h-6 px-2"
+                        data-testid={`toggleCustomFlags-${item.id}`}
+                      >
+                        <Settings className="w-3 h-3 mr-1" />
+                        {expandedDeductionFlags.has(`custom-${item.id}`) ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeCustomDeduction(item.id)}
+                        className="text-red-600 hover:text-red-700 h-6 px-2"
+                        data-testid={`removeCustomDeduction-${item.id}`}
+                      >
+                        ×
+                      </Button>
+                    </div>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => removeCustomDeduction(item.id)}
-                    className="mt-6 text-red-600 hover:text-red-700"
-                    data-testid={`removeCustomDeduction-${item.id}`}
-                  >
-                    ×
-                  </Button>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={item.amount}
+                    onChange={(e) => updateCustomDeduction(item.id, 'amount', parseFloat(e.target.value) || 0)}
+                    data-testid={`customDeduction-${item.id}`}
+                  />
+                  {expandedDeductionFlags.has(`custom-${item.id}`) && (
+                    <div className="p-3 bg-gray-50 rounded-lg border">
+                      <div className="text-xs font-medium text-gray-700 mb-2">Statutory & Tax Settings</div>
+                      <div className="grid grid-cols-2 gap-3 text-xs">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            checked={item.flags?.epf || false}
+                            onCheckedChange={(checked) => updateCustomDeductionFlag(item.id, 'epf', !!checked)}
+                            data-testid={`checkbox-custom-${item.id}-epf`}
+                          />
+                          <Label className="text-xs">EPF</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            checked={item.flags?.socso || false}
+                            onCheckedChange={(checked) => updateCustomDeductionFlag(item.id, 'socso', !!checked)}
+                            data-testid={`checkbox-custom-${item.id}-socso`}
+                          />
+                          <Label className="text-xs">SOCSO</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            checked={item.flags?.eis || false}
+                            onCheckedChange={(checked) => updateCustomDeductionFlag(item.id, 'eis', !!checked)}
+                            data-testid={`checkbox-custom-${item.id}-eis`}
+                          />
+                          <Label className="text-xs">EIS</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            checked={item.flags?.hrdf || false}
+                            onCheckedChange={(checked) => updateCustomDeductionFlag(item.id, 'hrdf', !!checked)}
+                            data-testid={`checkbox-custom-${item.id}-hrdf`}
+                          />
+                          <Label className="text-xs">HRDF</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            checked={item.flags?.pcb39 || false}
+                            onCheckedChange={(checked) => updateCustomDeductionFlag(item.id, 'pcb39', !!checked)}
+                            data-testid={`checkbox-custom-${item.id}-pcb39`}
+                          />
+                          <Label className="text-xs font-medium text-blue-600">PCB39</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            checked={item.flags?.fixed || false}
+                            onCheckedChange={(checked) => updateCustomDeductionFlag(item.id, 'fixed', !!checked)}
+                            data-testid={`checkbox-custom-${item.id}-fixed`}
+                          />
+                          <Label className="text-xs font-medium text-green-600">Fixed</Label>
+                        </div>
+                      </div>
+                      <div className="mt-2 text-[10px] text-gray-500">
+                        💡 Customize bagaimana {item.label} mempengaruhi kiraan EPF/SOCSO/EIS/HRDF/PCB39
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
 

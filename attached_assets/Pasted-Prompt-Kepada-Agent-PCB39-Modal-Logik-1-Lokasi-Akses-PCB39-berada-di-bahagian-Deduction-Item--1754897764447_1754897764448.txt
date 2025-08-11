@@ -1,0 +1,93 @@
+Prompt Kepada Agent – PCB39 Modal & Logik
+1. Lokasi & Akses
+PCB39 berada di bahagian Deduction Item.
+
+Medan ini ada ikon gear (⚙) yang bila klik → buka modal PCB39.
+
+Dalam modal, HR boleh:
+
+Pilih mod Custom atau Calculate.
+
+Jika Custom → masukkan amount manual.
+
+Jika Calculate → sistem auto-kira berdasarkan formula PCB LHDN dan data relief/rebate.
+
+2. Fungsi Pilihan Mod
+Custom:
+
+Amount PCB39 ditetapkan manual oleh HR.
+
+Nilai ini tidak akan diubah oleh sistem.
+
+Calculate:
+
+Sistem kira automatik guna gross salary taxable – reliefs – rebates.
+
+Formula ikut kadar cukai semasa LHDN.
+
+Hasil kiraan update amount PCB39 secara automatik bila input berkaitan berubah.
+
+3. Relief & Rebate dalam Modal
+Relief:
+
+Dropdown senarai relief LHDN (contoh: Individual, Spouse, EPF, SOCSO, Insurance, Education Fees).
+
+HR pilih jenis relief dan masukkan amount (RM).
+
+Klik Add PCB39 Relief untuk tambah ke senarai.
+
+Semua relief akan ditolak dari taxable income sebelum kira PCB.
+
+Rebate:
+
+Sama konsep seperti relief tapi ditolak terus dari amaun cukai (tax payable).
+
+Contoh rebate: Zakat, rebate individu berpendapatan rendah.
+
+4. Tick Box PCB39 di Deduction Item
+Tick box PCB39 pada deduction lain (contoh: Zakat) akan link ke PCB39 calculation:
+
+Jika PCB39=ON untuk deduction tersebut → amount deduction ini automatik dianggap rebate atau relief (bergantung jenis) dan tolak dalam kiraan PCB39.
+
+Zakat biasanya masuk kategori rebate.
+
+5. Logik Pengiraan PCB39 (Calculate Mode)
+Taxable Income =
+(Basic Salary + Additional taxable items) − (Deduction PCB39=ON + Total Relief Amount)
+
+Guna jadual PCB LHDN untuk kira cukai tahunan.
+
+Bahagi ikut kekerapan bayaran (bulanan → ÷12).
+
+Tolak jumlah rebate (termasuk deduction yang PCB39=ON jika rebate type).
+
+Hasil akhir = PCB39 deduction bulan ini.
+
+6. Data Model
+json
+Copy
+Edit
+"pcb39": {
+  "mode": "custom|calculate",
+  "amount": 0,
+  "reliefs": [
+    { "code": "IND", "label": "Individual", "amount": 9000 },
+    { "code": "EPF", "label": "EPF", "amount": 4000 }
+  ],
+  "rebates": [
+    { "code": "ZAK", "label": "Zakat", "amount": 100 }
+  ]
+}
+7. Acceptance Criteria
+Klik ikon gear → modal PCB39 muncul.
+
+Pilih Custom → amount manual, tidak diubah oleh sistem.
+
+Pilih Calculate → amount auto-update ikut formula PCB.
+
+Relief dan rebate boleh tambah/buang.
+
+Tick box PCB39 di deduction lain memberi kesan pada kiraan PCB39.
+
+Simpan & reload data memaparkan semua relief/rebate yang dimasukkan sebelum ini.
+
