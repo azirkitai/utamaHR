@@ -631,7 +631,14 @@ export default function EmployeeSalaryDetailsPage() {
         return amount; // Monthly - no conversion needed
       };
 
-      // Calculate wage bases based on additional items flags (convert to monthly for statutory)
+      // MySyarikat Additional Item Logic:
+      // Only items with specific checkboxes ticked are included in statutory calculations
+      // Example: Basic RM2000 + Subsistence RM200 (EPF ticked) + Extra Resp RM150 (EPF+SOCSO+EIS ticked) + Advance RM300 (no checkbox)
+      // EPF Base = RM2000 + RM200 + RM150 = RM2350 (only EPF-ticked items)
+      // SOCSO Base = RM2000 + RM150 = RM2150 (only SOCSO-ticked items)
+      // EIS Base = RM2000 + RM150 = RM2150 (only EIS-ticked items)
+      // Gross Salary = RM2000 + RM200 + RM150 + RM300 = RM2650 (ALL items regardless of checkboxes)
+      
       const basicSalaryMonthly = getMonthlyEquivalent(salaryData.basicSalary);
       
       const epfWageBase = basicSalaryMonthly + salaryData.additionalItems
@@ -704,8 +711,10 @@ export default function EmployeeSalaryDetailsPage() {
         hrdf
       };
 
-      // Calculate totals
+      // MySyarikat Logic: Gross Salary = Basic Salary + ALL Additional Items
+      // This is the KEY requirement - ALL additional items count toward gross salary
       const sumAdditional = salaryData.additionalItems.reduce((sum, item) => sum + item.amount, 0);
+      const grossSalary = salaryData.basicSalary + sumAdditional;
       
       // Calculate total deductions including ALL deduction items
       const customDeductionsSum = (salaryData.deductions.customItems || []).reduce((sum, item) => sum + item.amount, 0);
@@ -733,7 +742,7 @@ export default function EmployeeSalaryDetailsPage() {
         updatedContributions.hrdf +
         customContributionsSum;
 
-      const grossSalary = salaryData.basicSalary + sumAdditional;
+      // Calculate net salary
       const netSalary = grossSalary - sumDeduction;
 
       // Update computed values
@@ -1327,6 +1336,16 @@ export default function EmployeeSalaryDetailsPage() {
           <Info className="h-4 w-4" />
           <AlertDescription>
             Master Salary is employee's fixed monthly salary that doesn't change monthly to ease the process of generating monthly payroll salary. If there is any permanent wage changes that will affect your pay for upcoming month, you may update the changes here so you don't have to change it on a monthly basis.
+          </AlertDescription>
+        </Alert>
+
+        {/* Additional Item Logic Info */}
+        <Alert className="bg-blue-50 border-blue-200">
+          <Settings className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Additional Item Logic:</strong> Click the blue gear icon (⚙️) next to each Additional Item to access statutory checkboxes. 
+            When EPF, SOCSO, EIS, HRDF, or PCB39 is checked, that item will be included in the respective statutory calculation base. 
+            <strong>All Additional Items are included in Gross Salary regardless of checkbox status.</strong>
           </AlertDescription>
         </Alert>
 

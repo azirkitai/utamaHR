@@ -1,0 +1,66 @@
+Logik Additional Item
+Additional Item ialah elaun atau bayaran tambahan yang diberikan kepada pekerja di luar Basic Salary.
+Setiap item boleh diaktifkan atau tidak untuk potongan statutory seperti EPF, SOCSO, EIS, HRDF, atau PCB39.
+Jika diaktifkan, jumlah elaun itu akan dikira dalam potongan atau caruman tersebut.
+
+1. Field & Fungsi
+a) Nama Item
+Contoh default:
+
+Advance Salary
+
+Subsistence Allowance
+
+Extra Responsibility Allowance
+
+BIK/VOLA
+
+Boleh tambah item baru menggunakan Add Additional Item.
+
+b) Input Nilai (RM)
+Masukkan jumlah elaun untuk bulan tersebut.
+
+Format RM dengan 2 titik perpuluhan.
+
+c) Checkbox Potongan/Caruman
+EPF → Jika tick, nilai elaun ini akan ditambah dalam asas pengiraan EPF Employee & Employer.
+Formula: (Basic Salary + Jumlah Elaun Bertanda EPF) × EPF Rate
+
+SOCSO → Jika tick, nilai elaun ini akan ditambah dalam asas pengiraan SOCSO Employee & Employer ikut jadual caruman PERKESO.
+Formula ikut jadual gaji terkini PERKESO.
+
+EIS → Jika tick, nilai elaun ini akan ditambah dalam asas pengiraan EIS Employee & Employer.
+Formula: (Basic Salary + Jumlah Elaun Bertanda EIS) × 0.2% (cap RM5000).
+
+HRDF → Jika tick, nilai elaun ini akan ditambah dalam asas pengiraan HRDF Employer.
+Formula: (Basic Salary + Jumlah Elaun Bertanda HRDF) × HRDF Rate
+
+PCB39 → Jika tick, nilai elaun ini akan diambil kira dalam pendapatan bercukai untuk PCB LHDN (kategori kod PCB39).
+
+Fixed → Menandakan nilai elaun ini adalah tetap setiap bulan walaupun tiada kemasukan data baru.
+
+2. Logik Kiraan
+Gross Salary = Basic Salary + semua Additional Item yang ditandakan Calculated in Payment (Fixed atau Manual).
+
+Jika checkbox statutory (EPF, SOCSO, EIS, HRDF, PCB39) diaktifkan, jumlah elaun tersebut akan masuk dalam asas kiraan statutory contribution.
+
+BIK/VOLA:
+
+Ditanda sebagai “Item will not be displayed on payslip” → Elaun ini tetap diambil kira untuk statutory jika checkbox tick, tetapi tidak muncul pada slip gaji pekerja.
+
+Sesuai untuk elaun berbentuk manfaat (Benefit-in-kind) yang tidak mahu ditunjukkan secara terus.
+
+3. Contoh Senario
+Basic Salary = RM 2000
+
+Subsistence Allowance = RM 200 (EPF ticked)
+
+Extra Responsibility Allowance = RM 150 (EPF, SOCSO, EIS ticked)
+
+Advance Salary = RM 300 (tiada checkbox ticked)
+
+Asas EPF = RM 2000 + RM 200 + RM 150 = RM 2350
+Asas SOCSO = RM 2000 + RM 150 = RM 2150
+Asas EIS = RM 2000 + RM 150 = RM 2150
+Gross Salary = RM 2000 + RM 200 + RM 150 + RM 300 = RM 2650
+
