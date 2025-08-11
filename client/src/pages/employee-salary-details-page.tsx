@@ -330,8 +330,9 @@ export default function EmployeeSalaryDetailsPage() {
   const [pcb39Mode, setPCB39Mode] = useState<"custom" | "calculate">("custom");
   const [pcb39CustomAmount, setPCB39CustomAmount] = useState("0.00");
   const [showPCB39Info, setShowPCB39Info] = useState(false);
-  const [reliefCode, setReliefCode] = useState("");
-  const [reliefAmount, setReliefAmount] = useState("");
+  const [showReliefSelector, setShowReliefSelector] = useState(false);
+  const [selectedReliefCode, setSelectedReliefCode] = useState("");
+  const [reliefAmount, setReliefAmount] = useState("0.00");
   const [rebateCode, setRebateCode] = useState("");
   const [rebateAmount, setRebateAmount] = useState("");
   const [pcb39Tab, setPCB39Tab] = useState("relief");
@@ -3649,17 +3650,81 @@ export default function EmployeeSalaryDetailsPage() {
                 </TabsList>
                 
                 <TabsContent value="relief" className="space-y-3">
-                  <div className="text-center py-4">
-                    <p className="text-gray-500 text-sm mb-3">No relief items configured</p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-blue-600 border-blue-600 hover:bg-blue-50"
-                      data-testid="btn-add-pcb39-relief"
-                    >
-                      Add PCB39 Relief
-                    </Button>
-                  </div>
+                  {!showReliefSelector ? (
+                    <div className="text-center py-4">
+                      <p className="text-gray-500 text-sm mb-3">No relief items configured</p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                        onClick={() => setShowReliefSelector(true)}
+                        data-testid="btn-add-pcb39-relief"
+                      >
+                        Add PCB39 Relief
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Select Relief</Label>
+                        <Select value={selectedReliefCode} onValueChange={setSelectedReliefCode}>
+                          <SelectTrigger data-testid="select-relief">
+                            <SelectValue placeholder="Select Relief" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {PCB39_RELIEFS_2025.map((relief) => (
+                              <SelectItem key={relief.code} value={relief.code}>
+                                {relief.description}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      {selectedReliefCode && (
+                        <div className="space-y-2">
+                          <Label>Amount</Label>
+                          <div className="flex">
+                            <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                              <span className="text-sm font-medium">RM</span>
+                            </div>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={reliefAmount}
+                              onChange={(e) => setReliefAmount(e.target.value)}
+                              className="rounded-l-none"
+                              placeholder="0.00"
+                              data-testid="input-relief-amount"
+                            />
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          className="bg-blue-600 hover:bg-blue-700 text-white"
+                          disabled={!selectedReliefCode || !reliefAmount}
+                          data-testid="btn-add-pcb39-relief-confirm"
+                        >
+                          Add PCB39 Relief
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setShowReliefSelector(false);
+                            setSelectedReliefCode("");
+                            setReliefAmount("0.00");
+                          }}
+                          data-testid="btn-cancel-relief"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </TabsContent>
                 
                 <TabsContent value="rebate" className="space-y-3">
