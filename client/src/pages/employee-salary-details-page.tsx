@@ -487,6 +487,11 @@ export default function EmployeeSalaryDetailsPage() {
   const [newDeductionLabel, setNewDeductionLabel] = useState("");
   const [newDeductionAmount, setNewDeductionAmount] = useState(0);
 
+  // Dialog state for adding additional items
+  const [showAddAdditionalItemDialog, setShowAddAdditionalItemDialog] = useState(false);
+  const [newAdditionalItemLabel, setNewAdditionalItemLabel] = useState("");
+  const [newAdditionalItemAmount, setNewAdditionalItemAmount] = useState(0);
+
   // Dialog state for tax exemption modal
   const [isTaxExemptionDialogOpen, setIsTaxExemptionDialogOpen] = useState(false);
   const [expandedTaxFlags, setExpandedTaxFlags] = useState<Set<string>>(new Set());
@@ -926,6 +931,36 @@ export default function EmployeeSalaryDetailsPage() {
       return item;
     });
     updateSalaryData({ additionalItems: updatedItems });
+  };
+
+  // Function to add custom additional item
+  const addCustomAdditionalItem = () => {
+    if (!newAdditionalItemLabel.trim()) return;
+    
+    const newItem: AdditionalItem = {
+      code: `CUSTOM_${Date.now()}`,
+      label: newAdditionalItemLabel.trim(),
+      amount: newAdditionalItemAmount,
+      flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }
+    };
+    
+    updateSalaryData({
+      additionalItems: [...salaryData.additionalItems, newItem]
+    });
+    
+    // Reset dialog state
+    setNewAdditionalItemLabel("");
+    setNewAdditionalItemAmount(0);
+    setShowAddAdditionalItemDialog(false);
+  };
+
+  const removeCustomAdditionalItem = (code: string) => {
+    // Only allow removal of custom items (those starting with CUSTOM_)
+    if (code.startsWith('CUSTOM_')) {
+      updateSalaryData({
+        additionalItems: salaryData.additionalItems.filter(item => item.code !== code)
+      });
+    }
   };
 
   // Custom deduction management functions
@@ -1614,8 +1649,50 @@ export default function EmployeeSalaryDetailsPage() {
                   </div>
                 </div>
 
-                {/* View Item/Tax Exemption Button */}
+                {/* Custom Additional Items */}
+                {salaryData.additionalItems.filter(item => item.code.startsWith('CUSTOM_')).map((item) => (
+                  <div key={item.code} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="font-medium">{item.label}</Label>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeCustomAdditionalItem(item.code)}
+                        className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                        data-testid={`remove-custom-additional-${item.code}`}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    <div className="flex">
+                      <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                        <span className="text-sm font-medium">RM</span>
+                      </div>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={item.amount}
+                        onChange={(e) => updateAdditionalItemAmount(item.code, parseFloat(e.target.value) || 0)}
+                        className="rounded-l-none"
+                        data-testid={`custom-additional-${item.code}`}
+                      />
+                    </div>
+                  </div>
+                ))}
+
+                {/* Add Additional Item Button */}
                 <div className="pt-4 border-t">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowAddAdditionalItemDialog(true)}
+                    className="w-full mb-3"
+                    data-testid="btn-add-additional-item"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Additional Item
+                  </Button>
+                  
+                  {/* View Item/Tax Exemption Button */}
                   <Button
                     variant="outline"
                     onClick={() => setIsTaxExemptionDialogOpen(true)}
@@ -1824,6 +1901,50 @@ export default function EmployeeSalaryDetailsPage() {
                     />
                   </div>
                 </div>
+
+                {/* Custom Deduction Items */}
+                {(salaryData.deductions.customItems || []).map((item, index) => (
+                  <div key={item.id} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="font-medium">{item.label}</Label>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeCustomDeduction(item.id)}
+                        className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                        data-testid={`remove-custom-deduction-${item.id}`}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    <div className="flex">
+                      <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                        <span className="text-sm font-medium">RM</span>
+                      </div>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={item.amount}
+                        onChange={(e) => updateCustomDeduction(item.id, 'amount', parseFloat(e.target.value) || 0)}
+                        className="rounded-l-none"
+                        data-testid={`custom-deduction-${item.id}`}
+                      />
+                    </div>
+                  </div>
+                ))}
+
+                {/* Add Deduction Item Button */}
+                <div className="pt-4 border-t">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsDeductionDialogOpen(true)}
+                    className="w-full"
+                    data-testid="btn-add-deduction-item"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Deduction Item
+                  </Button>
+                </div>
               </div>
 
               {/* Column 4 - Company Contribution */}
@@ -1971,6 +2092,50 @@ export default function EmployeeSalaryDetailsPage() {
                     />
                   </div>
                 </div>
+
+                {/* Custom Contribution Items */}
+                {(salaryData.contributions.customItems || []).map((item, index) => (
+                  <div key={item.id} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="font-medium">{item.name}</Label>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeCustomContributionItem(index)}
+                        className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                        data-testid={`remove-custom-contribution-${item.id}`}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    <div className="flex">
+                      <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                        <span className="text-sm font-medium">RM</span>
+                      </div>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={item.amount}
+                        onChange={(e) => updateCustomContributionItem(index, parseFloat(e.target.value) || 0)}
+                        className="rounded-l-none"
+                        data-testid={`custom-contribution-${item.id}`}
+                      />
+                    </div>
+                  </div>
+                ))}
+
+                {/* Add Contribution Item Button */}
+                <div className="pt-4 border-t">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowAddContributionItemDialog(true)}
+                    className="w-full"
+                    data-testid="btn-add-contribution-item"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Contribution Item
+                  </Button>
+                </div>
               </div>
             </div>
 
@@ -2017,6 +2182,151 @@ export default function EmployeeSalaryDetailsPage() {
         </Card>
       )}
     </div>
+
+      {/* Add Additional Item Dialog */}
+      <Dialog open={showAddAdditionalItemDialog} onOpenChange={setShowAddAdditionalItemDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Additional Item</DialogTitle>
+            <DialogDescription>
+              Add a new additional item to the salary configuration.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="additional-item-label">Item Label</Label>
+              <Input
+                id="additional-item-label"
+                value={newAdditionalItemLabel}
+                onChange={(e) => setNewAdditionalItemLabel(e.target.value)}
+                placeholder="Enter item name (e.g., Transport Allowance)"
+                data-testid="input-additional-item-label"
+              />
+            </div>
+            <div>
+              <Label htmlFor="additional-item-amount">Amount (RM)</Label>
+              <Input
+                id="additional-item-amount"
+                type="number"
+                step="0.01"
+                value={newAdditionalItemAmount}
+                onChange={(e) => setNewAdditionalItemAmount(parseFloat(e.target.value) || 0)}
+                placeholder="0.00"
+                data-testid="input-additional-item-amount"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowAddAdditionalItemDialog(false)}
+              data-testid="btn-cancel-additional-item"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={addCustomAdditionalItem}
+              disabled={!newAdditionalItemLabel.trim()}
+              data-testid="btn-save-additional-item"
+            >
+              Add Item
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Deduction Item Dialog */}
+      <Dialog open={isDeductionDialogOpen} onOpenChange={setIsDeductionDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Deduction Item</DialogTitle>
+            <DialogDescription>
+              Add a new deduction item to the salary configuration.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="deduction-item-label">Item Label</Label>
+              <Input
+                id="deduction-item-label"
+                value={newDeductionLabel}
+                onChange={(e) => setNewDeductionLabel(e.target.value)}
+                placeholder="Enter deduction name (e.g., Insurance Premium)"
+                data-testid="input-deduction-item-label"
+              />
+            </div>
+            <div>
+              <Label htmlFor="deduction-item-amount">Amount (RM)</Label>
+              <Input
+                id="deduction-item-amount"
+                type="number"
+                step="0.01"
+                value={newDeductionAmount}
+                onChange={(e) => setNewDeductionAmount(parseFloat(e.target.value) || 0)}
+                placeholder="0.00"
+                data-testid="input-deduction-item-amount"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeductionDialogOpen(false)}
+              data-testid="btn-cancel-deduction-item"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={addCustomDeduction}
+              disabled={!newDeductionLabel.trim()}
+              data-testid="btn-save-deduction-item"
+            >
+              Add Item
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Contribution Item Dialog */}
+      <Dialog open={showAddContributionItemDialog} onOpenChange={setShowAddContributionItemDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Contribution Item</DialogTitle>
+            <DialogDescription>
+              Add a new company contribution item to the salary configuration.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="contribution-item-name">Item Name</Label>
+              <Input
+                id="contribution-item-name"
+                value={newContributionItemName}
+                onChange={(e) => setNewContributionItemName(e.target.value)}
+                placeholder="Enter contribution name (e.g., Training Fund)"
+                data-testid="input-contribution-item-name"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowAddContributionItemDialog(false)}
+              data-testid="btn-cancel-contribution-item"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={addCustomContributionItem}
+              disabled={!newContributionItemName.trim()}
+              data-testid="btn-save-contribution-item"
+            >
+              Add Item
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </DashboardLayout>
   );
 }
