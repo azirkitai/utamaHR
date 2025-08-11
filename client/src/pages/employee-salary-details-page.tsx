@@ -55,7 +55,7 @@ interface SalarySettings {
   isCalculatedInPayment: boolean;
   isSocsoEnabled: boolean;
   isEisEnabled: boolean;
-  epfCalcMethod: "PERCENT" | "FIXED";
+  epfCalcMethod: "PERCENT" | "CUSTOM";
   epfEmployeeRate: number;
   epfEmployerRate: number;
   hrdfEmployerRate: number;
@@ -370,6 +370,7 @@ export default function EmployeeSalaryDetailsPage() {
         epfEmployee = roundToCent(epfWageBase * salaryData.settings.epfEmployeeRate / 100);
         epfEmployer = roundToCent(epfWageBase * salaryData.settings.epfEmployerRate / 100);
       } else {
+        // CUSTOM method - use manually entered values
         epfEmployee = salaryData.deductions.epfEmployee;
         epfEmployer = salaryData.contributions.epfEmployer;
       }
@@ -748,32 +749,58 @@ export default function EmployeeSalaryDetailsPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="PERCENT">By Percentage</SelectItem>
-                      <SelectItem value="FIXED">Fixed Amount</SelectItem>
+                      <SelectItem value="CUSTOM">Custom</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div>
-                  <Label>EPF Employee Rate (%)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={salaryData.settings.epfEmployeeRate}
-                    onChange={(e) => updateSettings('epfEmployeeRate', parseFloat(e.target.value) || 0)}
-                    data-testid="epfEmployeeRate"
-                  />
-                </div>
+                {/* Conditional EPF Rate Inputs */}
+                {salaryData.settings.epfCalcMethod === "PERCENT" ? (
+                  <>
+                    <div>
+                      <Label>EPF Employee Rate (%)</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={salaryData.settings.epfEmployeeRate}
+                        onChange={(e) => updateSettings('epfEmployeeRate', parseFloat(e.target.value) || 0)}
+                        data-testid="epfEmployeeRate"
+                      />
+                    </div>
 
-                <div>
-                  <Label>EPF Employer Rate (%)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={salaryData.settings.epfEmployerRate}
-                    onChange={(e) => updateSettings('epfEmployerRate', parseFloat(e.target.value) || 0)}
-                    data-testid="epfEmployerRate"
-                  />
-                </div>
+                    <div>
+                      <Label>EPF Employer Rate (%)</Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={salaryData.settings.epfEmployerRate}
+                        onChange={(e) => updateSettings('epfEmployerRate', parseFloat(e.target.value) || 0)}
+                        data-testid="epfEmployerRate"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div className="space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex items-start space-x-2">
+                      <div className="w-5 h-5 bg-gray-400 rounded-full flex items-center justify-center text-white text-xs font-bold mt-0.5">
+                        ⓘ
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        <p className="font-medium">Auto calculation for EPF has been turned off.</p>
+                        <p>Please make sure to check your EPF amount inserted.</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-2">
+                      <div className="w-5 h-5 bg-gray-400 rounded-full flex items-center justify-center text-white text-xs font-bold mt-0.5">
+                        ⓘ
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        <p className="font-medium">For PCB39 Calculation, EPF amount will be</p>
+                        <p>considered as normal remuneration.</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 </div>
 
                 <div>
