@@ -2068,7 +2068,7 @@ export class DatabaseStorage implements IStorage {
         settings: existingSalary.settings ? JSON.parse(existingSalary.settings) : {
           isCalculatedInPayment: true, isSocsoEnabled: true, isEisEnabled: true, epfCalcMethod: "PERCENT", epfEmployeeRate: 11.0, epfEmployerRate: 13.0, hrdfEmployerRate: 1.0
         },
-        taxExemptions: existingSalary.taxExemptions ? JSON.parse(existingSalary.taxExemptions) : {},
+        taxExemptions: existingSalary.taxExemptions ? JSON.parse(existingSalary.taxExemptions) : [],
         remarks: ""
       };
       return result;
@@ -2094,7 +2094,7 @@ export class DatabaseStorage implements IStorage {
       deductions: { epfEmployee: 0, socsoEmployee: 0, eisEmployee: 0, advance: 0, unpaidLeave: 0, pcb39: 0, pcb38: 0, zakat: 0, other: 0 },
       contributions: { epfEmployer: 0, socsoEmployer: 0, eisEmployer: 0, medicalCard: 0, groupTermLife: 0, medicalCompany: 0, hrdf: 0 },
       settings: { isCalculatedInPayment: true, isSocsoEnabled: true, isEisEnabled: true, epfCalcMethod: "PERCENT", epfEmployeeRate: 11.0, epfEmployerRate: 13.0, hrdfEmployerRate: 1.0 },
-      taxExemptions: {},
+      taxExemptions: [],
       remarks: ""
     };
   }

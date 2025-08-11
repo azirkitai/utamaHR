@@ -739,7 +739,7 @@ export default function EmployeeSalaryDetailsPage() {
       const updatedData = {
         ...existingSalaryData,
         deductions: ensureDeductionFlags(existingSalaryData.deductions),
-        taxExemptions: existingSalaryData.taxExemptions ? 
+        taxExemptions: (existingSalaryData.taxExemptions && Array.isArray(existingSalaryData.taxExemptions)) ? 
           existingSalaryData.taxExemptions.map(ensureFlags) : [
           { 
             code: "TRAVEL", 
