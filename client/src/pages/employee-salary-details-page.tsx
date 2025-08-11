@@ -498,6 +498,9 @@ export default function EmployeeSalaryDetailsPage() {
   const [isTaxExemptionDialogOpen, setIsTaxExemptionDialogOpen] = useState(false);
   const [expandedTaxFlags, setExpandedTaxFlags] = useState<Set<string>>(new Set());
   const [expandedDeductionFlags, setExpandedDeductionFlags] = useState<Set<string>>(new Set());
+  
+  // BIK/VOLA info dialog state
+  const [isBikInfoDialogOpen, setIsBikInfoDialogOpen] = useState(false);
 
   // Get all employees for dropdown
   const { data: employees = [] } = useQuery<any[]>({
@@ -1851,7 +1854,8 @@ export default function EmployeeSalaryDetailsPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-6 w-6 p-0"
+                      onClick={() => setIsBikInfoDialogOpen(true)}
+                      className="h-6 w-6 p-0 text-blue-500 hover:text-blue-700"
                       data-testid="bik-info-button"
                     >
                       <Info className="h-3 w-3" />
@@ -2545,6 +2549,42 @@ export default function EmployeeSalaryDetailsPage() {
               data-testid="btn-save-contribution-item"
             >
               Add Item
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* BIK/VOLA Info Dialog */}
+      <Dialog open={isBikInfoDialogOpen} onOpenChange={setIsBikInfoDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <Info className="h-5 w-5 text-blue-500" />
+              <span>BIK/VOLA Information</span>
+            </DialogTitle>
+            <DialogDescription>
+              Information about BIK/VOLA exclusion from gross salary and payslip calculations.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <p className="text-sm text-gray-700">
+                <strong>BIK/VOLA will be excluded from total Gross amount calculation and Payslip</strong>
+              </p>
+              <div className="mt-3 text-xs text-gray-600 space-y-2">
+                <p>• BIK stands for "Benefit-in-Kind"</p>
+                <p>• VOLA stands for "Value of Living Accommodation"</p>
+                <p>• These items are included in statutory calculations if checkboxes are ticked</p>
+                <p>• However, they won't appear on the employee's payslip for privacy</p>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              onClick={() => setIsBikInfoDialogOpen(false)}
+              data-testid="btn-close-bik-info"
+            >
+              Understood
             </Button>
           </DialogFooter>
         </DialogContent>
