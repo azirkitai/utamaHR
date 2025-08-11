@@ -57,6 +57,7 @@ export default function ApplyClaimPage() {
   // Create claim application mutation
   const createClaimMutation = useMutation({
     mutationFn: async (claimData: InsertClaimApplication) => {
+      console.log('Sending claim data:', claimData);
       const token = localStorage.getItem('utamahr_token');
       const response = await fetch('/api/claim-applications', {
         method: 'POST',
@@ -69,6 +70,7 @@ export default function ApplyClaimPage() {
       
       if (!response.ok) {
         const error = await response.json();
+        console.log('Server validation error:', error);
         throw new Error(error.error || 'Gagal menghantar permohonan');
       }
       
@@ -286,11 +288,11 @@ export default function ApplyClaimPage() {
         claimCategory: 'financial',
         financialPolicyName: claimType,
         amount: claimAmount,
-        claimDate: new Date(claimDate),
+        claimDate: claimDate, // Send as string, server will convert
         particulars,
         remark,
         status: 'pending',
-        dateSubmitted: new Date(),
+        dateSubmitted: new Date().toISOString(), // Send as ISO string
       };
 
       createClaimMutation.mutate(claimData);
@@ -324,13 +326,13 @@ export default function ApplyClaimPage() {
         employeeId: selectedRequestor,
         claimType: 'overtime',
         claimCategory: 'overtime',
-        claimDate: new Date(claimDate),
+        claimDate: claimDate, // Send as string, server will convert
         startTime: startTime,
         endTime: endTime,
         reason: reason,
         remark: additionalDescription,
         status: 'pending',
-        dateSubmitted: new Date(),
+        dateSubmitted: new Date().toISOString(), // Send as ISO string
       };
 
       createClaimMutation.mutate(claimData);

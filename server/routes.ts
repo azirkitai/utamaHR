@@ -3288,8 +3288,10 @@ export function registerRoutes(app: Express): Server {
   // Create new claim application with validation
   app.post('/api/claim-applications', authenticateToken, async (req, res) => {
     try {
+      console.log('Received claim data:', req.body);
       const validationResult = insertClaimApplicationSchema.safeParse(req.body);
       if (!validationResult.success) {
+        console.log('Validation errors:', validationResult.error.issues);
         return res.status(400).json({ 
           error: 'Data tidak sah', 
           details: validationResult.error.issues 
