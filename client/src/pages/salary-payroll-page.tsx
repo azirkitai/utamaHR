@@ -36,6 +36,7 @@ export default function SalaryPayrollPage() {
   const [showNewPayrollModal, setShowNewPayrollModal] = useState(false);
   const [showSalarySummaryModal, setShowSalarySummaryModal] = useState(false);
   const [selectedEmployeeForSummary, setSelectedEmployeeForSummary] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState("salary-payroll-list");
   const [payrollFormData, setPayrollFormData] = useState({
     year: "2025",
     month: "August",
@@ -358,7 +359,7 @@ export default function SalaryPayrollPage() {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="salary-payroll-list" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <div className="flex justify-between items-center">
             <TabsList className="grid w-auto grid-cols-5 bg-gray-100">
               <TabsTrigger 
@@ -399,14 +400,16 @@ export default function SalaryPayrollPage() {
             </TabsList>
 
             {/* Run Payment Button - only show on Salary Payroll List tab */}
-            <Button 
-              className="bg-blue-900 hover:bg-blue-800 text-white"
-              onClick={() => setShowNewPayrollModal(true)}
-              data-testid="button-run-payment"
-            >
-              <Play className="w-4 h-4 mr-2" />
-              Run Payment
-            </Button>
+            {activeTab === "salary-payroll-list" && (
+              <Button 
+                className="bg-blue-900 hover:bg-blue-800 text-white"
+                onClick={() => setShowNewPayrollModal(true)}
+                data-testid="button-run-payment"
+              >
+                <Play className="w-4 h-4 mr-2" />
+                Run Payment
+              </Button>
+            )}
           </div>
 
           {/* Salary Payroll List Tab */}
