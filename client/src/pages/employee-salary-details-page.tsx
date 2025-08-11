@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Calculator, Save, Info, Settings, ChevronDown, ChevronUp, X, Trash2, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { PCB39_RELIEFS_2025 } from "@shared/pcb39-reliefs-2025";
 
 interface AdditionalItem {
@@ -974,19 +975,9 @@ export default function EmployeeSalaryDetailsPage() {
   // Save salary mutation
   const saveSalaryMutation = useMutation({
     mutationFn: async (data: MasterSalaryData) => {
-      if (existingSalaryData?.employeeId) {
-        return await fetch(`/api/employees/${selectedEmployeeId}/salary`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data)
-        }).then(res => res.json());
-      } else {
-        return await fetch(`/api/employees/${selectedEmployeeId}/salary`, {
-          method: "POST", 
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data)
-        }).then(res => res.json());
-      }
+      const method = existingSalaryData?.employeeId ? "PUT" : "POST";
+      const response = await apiRequest(method, `/api/employees/${selectedEmployeeId}/salary`, data);
+      return await response.json();
     },
     onSuccess: () => {
       toast({ title: "Master Salary saved.", description: "Maklumat gaji telah disimpan" });
