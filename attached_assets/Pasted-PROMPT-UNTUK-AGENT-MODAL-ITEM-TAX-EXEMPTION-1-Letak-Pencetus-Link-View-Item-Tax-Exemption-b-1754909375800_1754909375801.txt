@@ -1,0 +1,114 @@
+PROMPT UNTUK AGENT — MODAL “ITEM/TAX EXEMPTION”
+1) Letak & Pencetus
+Link “View Item/Tax Exemption” berada di bawah medan BIK/VOLA dalam seksyen Additional Item.
+
+Klik link itu → buka modal bertajuk “Item/Tax Exemption” di tengah skrin (fixed width ≈ 520px).
+
+2) Reka bentuk modal
+Header: Item/Tax Exemption
+
+Body: 8 input mengikut turutan WAJIB di bawah. Setiap input ialah currency field “RM 0.00”.
+
+Footer: butang Close (merah) di kanan. Tiada butang Save berasingan (auto-save on change).
+
+3) Susunan & Label (WAJIB IKUT ORDER NI)
+Travelling Allowance
+
+Child Care Allowance
+
+Gift
+
+Phone Allowance
+
+Reward
+
+Parking Allowance (ada baris flags di bawah—lihat 4)
+
+Meal Allowance
+
+Subsidies (ada dropdown kecil di kanan untuk pilih jenis jika diperlukan; default “General”)
+
+Semua label guna exact casing di atas. Jangan tukar.
+
+4) Flags (untuk item tertentu)
+Parking Allowance memaparkan 6 checkbox flags di baris kecil bawah amount:
+
+EPF, SOCSO, EIS, HRDF, PCB39, Fixed
+
+Default state semua OFF kecuali:
+
+PCB39 ON hanya jika kategori itu memang taxable (ikut polisi semasa; jika ragu, default OFF).
+
+Item lain tidak paparkan flags (simple amount sahaja).
+
+5) Tingkah laku & logik
+Nilai dalam modal bukan elaun baharu, ia adalah pengecualian/benefit mapping untuk pengiraan cukai PCB sahaja:
+
+Tidak menambah Gross Salary.
+
+Tidak masuk wage base EPF/SOCSO/EIS/HRDF kecuali item tersebut ada flags ditanda (contoh Parking Allowance).
+
+Kesan kepada PCB:
+
+Semua amount dalam modal ini masuk ke komponen pengecualian pada kalkulator PCB (dikurangkan daripada taxable income).
+
+Jika ada item bertanda PCB39 di flags (contoh Parking), treat sebagai taxable (masuk taxable income), bukan pengecualian.
+
+Fixed → nilai kekal bulan ke bulan sehingga HR ubah.
+
+6) Interaksi pengguna
+Auto-save on blur / on change dengan debounce 400ms. Tunjuk tick ✓ “Saved” kecil di kanan medan bila berjaya.
+
+Field hanya terima nombor ≥ 0, 2 d.p. Jika > had munasabah (cth 999,999.99) → tunjuk ralat.
+
+Modal boleh di-scroll jika tinggi melebihi viewport (max-height 80vh).
+
+7) Data model (simpan)
+json
+Copy
+Edit
+"taxExemptions": {
+  "travellingAllowance":   {"amount": 0},
+  "childCareAllowance":    {"amount": 0},
+  "gift":                  {"amount": 0},
+  "phoneAllowance":        {"amount": 0},
+  "reward":                {"amount": 0},
+  "parkingAllowance":      {"amount": 0, "flags": {"epf": false, "socso": false, "eis": false, "hrdf": false, "pcb39": false, "fixed": false}},
+  "mealAllowance":         {"amount": 0},
+  "subsidies":             {"amount": 0, "type": "General"}
+}
+8) Integrasi kiraan (ringkas)
+PCB (mode Calculate)
+taxableIncome = (basic + additionalTaxable + itemsWithPCB39Flag) − (sum(taxExemptions amounts yang bukan PCB39))
+pcb = taxTable(taxableIncome) − rebates
+
+Statutory wage base
+Ditambah/ditolak hanya jika flags pada item itu ditanda:
+
+epfBase += parkingAllowance when EPF=ON
+
+socsoBase += parkingAllowance when SOCSO=ON
+
+eisBase += parkingAllowance when EIS=ON
+
+hrdfBase += parkingAllowance when HRDF=ON
+
+9) UI/UX ketat
+Semua currency field guna prefix “RM” kelabu seperti screenshot.
+
+Icon gear kecil (⚙) di kanan label setiap input (untuk konsisten gaya), tiada tindakan apabila diklik (informational).
+
+Spacing, font, dan radius sama seperti komponen input lain di halaman.
+
+Warna link pembuka modal di halaman: biru + ikon info kecil kiri.
+
+10) Acceptance criteria (cek siap)
+Klik “View Item/Tax Exemption” → modal muncul dengan 8 medan ikut order sama.
+
+Edit sebarang amount → auto-save, tutup & buka semula modal nilai kekal.
+
+Parking Allowance menunjukkan 6 flags dengan default OFF; bila toggle, kesan masuk ke wage base/PCB mengikut 8).
+
+Gross Salary tidak berubah bila isi amount modal (melainkan item mempunyai PCB39 ON → masuk taxable).
+
+Tutup modal dengan butang Close (merah) tanpa dialog tambahan.

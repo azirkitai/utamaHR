@@ -502,6 +502,21 @@ export default function EmployeeSalaryDetailsPage() {
   // BIK/VOLA info dialog state
   const [isBikInfoDialogOpen, setIsBikInfoDialogOpen] = useState(false);
 
+  // Tax exemption state
+  const [taxExemptions, setTaxExemptions] = useState({
+    travellingAllowance: { amount: 0 },
+    childCareAllowance: { amount: 0 },
+    gift: { amount: 0 },
+    phoneAllowance: { amount: 0 },
+    reward: { amount: 0 },
+    parkingAllowance: { 
+      amount: 0, 
+      flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }
+    },
+    mealAllowance: { amount: 0 },
+    subsidies: { amount: 0 }
+  });
+
   // Get all employees for dropdown
   const { data: employees = [] } = useQuery<any[]>({
     queryKey: ["/api/employees"],
@@ -1235,23 +1250,29 @@ export default function EmployeeSalaryDetailsPage() {
   };
 
   // Tax exemption management functions
-  const updateTaxExemption = (code: string, amount: number) => {
-    updateSalaryData({
-      taxExemptions: (salaryData.taxExemptions || []).map(item =>
-        item.code === code ? { ...item, amount } : item
-      )
-    });
+  // Handle tax exemption updates using local state
+  const updateTaxExemption = (exemptionKey: string, field: string, value: number) => {
+    setTaxExemptions(prev => ({
+      ...prev,
+      [exemptionKey]: {
+        ...prev[exemptionKey],
+        [field]: value
+      }
+    }));
   };
 
-  const updateTaxExemptionFlag = (code: string, flag: keyof TaxExemptionItem['flags'], value: boolean) => {
-    updateSalaryData({
-      taxExemptions: (salaryData.taxExemptions || []).map(item =>
-        item.code === code ? { 
-          ...item, 
-          flags: { ...item.flags, [flag]: value }
-        } : item
-      )
-    });
+  // Handle tax exemption flag updates using local state
+  const updateTaxExemptionFlag = (exemptionKey: string, flag: string, value: boolean) => {
+    setTaxExemptions(prev => ({
+      ...prev,
+      [exemptionKey]: {
+        ...prev[exemptionKey],
+        flags: {
+          ...prev[exemptionKey]?.flags,
+          [flag]: value
+        }
+      }
+    }));
   };
 
   const toggleTaxFlags = (code: string) => {
@@ -2556,151 +2577,241 @@ export default function EmployeeSalaryDetailsPage() {
 
       {/* Tax Exemption Modal */}
       <Dialog open={isTaxExemptionDialogOpen} onOpenChange={setIsTaxExemptionDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Item/Tax Exemption</DialogTitle>
-            <DialogDescription>
-              Configure tax exemption settings for additional items and statutory deductions.
-            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-6">
-            {/* Additional Items Section */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Additional Items</h3>
-              <div className="space-y-4">
-                {salaryData.additionalItems.map((item) => (
-                  <div key={item.code} className="border rounded-lg p-4">
-                    <div className="flex justify-between items-center mb-3">
-                      <h4 className="font-medium">{item.label}</h4>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm text-gray-600">RM</span>
-                        <span className="font-medium">{item.amount.toFixed(2)}</span>
-                      </div>
-                    </div>
-                    
-                    {/* Statutory Checkboxes */}
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={item.flags.epf}
-                          onCheckedChange={(checked) => updateAdditionalItemFlag(item.code, "epf", !!checked)}
-                          data-testid={`${item.code}-epf-checkbox`}
-                        />
-                        <label className="text-sm">EPF</label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={item.flags.socso}
-                          onCheckedChange={(checked) => updateAdditionalItemFlag(item.code, "socso", !!checked)}
-                          data-testid={`${item.code}-socso-checkbox`}
-                        />
-                        <label className="text-sm">SOCSO</label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={item.flags.eis}
-                          onCheckedChange={(checked) => updateAdditionalItemFlag(item.code, "eis", !!checked)}
-                          data-testid={`${item.code}-eis-checkbox`}
-                        />
-                        <label className="text-sm">EIS</label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={item.flags.hrdf}
-                          onCheckedChange={(checked) => updateAdditionalItemFlag(item.code, "hrdf", !!checked)}
-                          data-testid={`${item.code}-hrdf-checkbox`}
-                        />
-                        <label className="text-sm">HRDF</label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={item.flags.pcb39}
-                          onCheckedChange={(checked) => updateAdditionalItemFlag(item.code, "pcb39", !!checked)}
-                          data-testid={`${item.code}-pcb39-checkbox`}
-                        />
-                        <label className="text-sm">PCB39</label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={item.flags.fixed}
-                          onCheckedChange={(checked) => updateAdditionalItemFlag(item.code, "fixed", !!checked)}
-                          data-testid={`${item.code}-fixed-checkbox`}
-                        />
-                        <label className="text-sm">Fixed</label>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+          <div className="space-y-4">
+            {/* Travelling Allowance */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="font-medium">Travelling Allowance</Label>
+                <Settings className="h-4 w-4 text-gray-400" />
+              </div>
+              <div className="flex">
+                <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                  <span className="text-sm font-medium text-gray-600">RM</span>
+                </div>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={taxExemptions.travellingAllowance?.amount || 0}
+                  onChange={(e) => updateTaxExemption('travellingAllowance', 'amount', parseFloat(e.target.value) || 0)}
+                  className="rounded-l-none"
+                  placeholder="0.00"
+                  data-testid="travelling-allowance-exemption"
+                />
               </div>
             </div>
 
-            {/* Deduction Items Section */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Deduction Items</h3>
-              <div className="space-y-4">
-                {expandedDeductionFlags.size > 0 && (
-                  <div className="space-y-3">
-                    <div className="border rounded-lg p-4">
-                      <div className="flex justify-between items-center mb-3">
-                        <h4 className="font-medium">EPF Employee</h4>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm text-gray-600">RM</span>
-                          <span className="font-medium">{salaryData.deductions.epfEmployee.toFixed(2)}</span>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox checked={true} disabled />
-                          <label className="text-sm text-gray-500">EPF (Auto)</label>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="border rounded-lg p-4">
-                      <div className="flex justify-between items-center mb-3">
-                        <h4 className="font-medium">SOCSO Employee</h4>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm text-gray-600">RM</span>
-                          <span className="font-medium">{salaryData.deductions.socsoEmployee.toFixed(2)}</span>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox checked={true} disabled />
-                          <label className="text-sm text-gray-500">SOCSO (Auto)</label>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="border rounded-lg p-4">
-                      <div className="flex justify-between items-center mb-3">
-                        <h4 className="font-medium">EIS Employee</h4>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm text-gray-600">RM</span>
-                          <span className="font-medium">{salaryData.deductions.eisEmployee.toFixed(2)}</span>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox checked={true} disabled />
-                          <label className="text-sm text-gray-500">EIS (Auto)</label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
+            {/* Child Care Allowance */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="font-medium">Child Care Allowance</Label>
+                <Settings className="h-4 w-4 text-gray-400" />
+              </div>
+              <div className="flex">
+                <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                  <span className="text-sm font-medium text-gray-600">RM</span>
+                </div>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={taxExemptions.childCareAllowance?.amount || 0}
+                  onChange={(e) => updateTaxExemption('childCareAllowance', 'amount', parseFloat(e.target.value) || 0)}
+                  className="rounded-l-none"
+                  placeholder="0.00"
+                  data-testid="childcare-allowance-exemption"
+                />
+              </div>
+            </div>
+
+            {/* Gift */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="font-medium">Gift</Label>
+                <Settings className="h-4 w-4 text-gray-400" />
+              </div>
+              <div className="flex">
+                <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                  <span className="text-sm font-medium text-gray-600">RM</span>
+                </div>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={taxExemptions.gift?.amount || 0}
+                  onChange={(e) => updateTaxExemption('gift', 'amount', parseFloat(e.target.value) || 0)}
+                  className="rounded-l-none"
+                  placeholder="0.00"
+                  data-testid="gift-exemption"
+                />
+              </div>
+            </div>
+
+            {/* Phone Allowance */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="font-medium">Phone Allowance</Label>
+                <Settings className="h-4 w-4 text-gray-400" />
+              </div>
+              <div className="flex">
+                <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                  <span className="text-sm font-medium text-gray-600">RM</span>
+                </div>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={taxExemptions.phoneAllowance?.amount || 0}
+                  onChange={(e) => updateTaxExemption('phoneAllowance', 'amount', parseFloat(e.target.value) || 0)}
+                  className="rounded-l-none"
+                  placeholder="0.00"
+                  data-testid="phone-allowance-exemption"
+                />
+              </div>
+            </div>
+
+            {/* Reward */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="font-medium">Reward</Label>
+                <Settings className="h-4 w-4 text-gray-400" />
+              </div>
+              <div className="flex">
+                <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                  <span className="text-sm font-medium text-gray-600">RM</span>
+                </div>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={taxExemptions.reward?.amount || 0}
+                  onChange={(e) => updateTaxExemption('reward', 'amount', parseFloat(e.target.value) || 0)}
+                  className="rounded-l-none"
+                  placeholder="0.00"
+                  data-testid="reward-exemption"
+                />
+              </div>
+            </div>
+
+            {/* Parking Allowance (with flags) */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="font-medium">Parking Allowance</Label>
+                <Settings className="h-4 w-4 text-gray-400" />
+              </div>
+              <div className="flex">
+                <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                  <span className="text-sm font-medium text-gray-600">RM</span>
+                </div>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={taxExemptions.parkingAllowance?.amount || 0}
+                  onChange={(e) => updateTaxExemption('parkingAllowance', 'amount', parseFloat(e.target.value) || 0)}
+                  className="rounded-l-none"
+                  placeholder="0.00"
+                  data-testid="parking-allowance-exemption"
+                />
+              </div>
+              {/* Flags for Parking Allowance */}
+              <div className="grid grid-cols-3 gap-2 mt-2">
+                <div className="flex items-center space-x-1">
+                  <Checkbox
+                    checked={taxExemptions.parkingAllowance?.flags?.epf || false}
+                    onCheckedChange={(checked) => updateTaxExemptionFlag('parkingAllowance', 'epf', !!checked)}
+                    data-testid="parking-epf-flag"
+                  />
+                  <label className="text-xs">EPF</label>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Checkbox
+                    checked={taxExemptions.parkingAllowance?.flags?.socso || false}
+                    onCheckedChange={(checked) => updateTaxExemptionFlag('parkingAllowance', 'socso', !!checked)}
+                    data-testid="parking-socso-flag"
+                  />
+                  <label className="text-xs">SOCSO</label>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Checkbox
+                    checked={taxExemptions.parkingAllowance?.flags?.eis || false}
+                    onCheckedChange={(checked) => updateTaxExemptionFlag('parkingAllowance', 'eis', !!checked)}
+                    data-testid="parking-eis-flag"
+                  />
+                  <label className="text-xs">EIS</label>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Checkbox
+                    checked={taxExemptions.parkingAllowance?.flags?.hrdf || false}
+                    onCheckedChange={(checked) => updateTaxExemptionFlag('parkingAllowance', 'hrdf', !!checked)}
+                    data-testid="parking-hrdf-flag"
+                  />
+                  <label className="text-xs">HRDF</label>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Checkbox
+                    checked={taxExemptions.parkingAllowance?.flags?.pcb39 || false}
+                    onCheckedChange={(checked) => updateTaxExemptionFlag('parkingAllowance', 'pcb39', !!checked)}
+                    data-testid="parking-pcb39-flag"
+                  />
+                  <label className="text-xs">PCB39</label>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Checkbox
+                    checked={taxExemptions.parkingAllowance?.flags?.fixed || false}
+                    onCheckedChange={(checked) => updateTaxExemptionFlag('parkingAllowance', 'fixed', !!checked)}
+                    data-testid="parking-fixed-flag"
+                  />
+                  <label className="text-xs">Fixed</label>
+                </div>
+              </div>
+            </div>
+
+            {/* Meal Allowance */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="font-medium">Meal Allowance</Label>
+                <Settings className="h-4 w-4 text-gray-400" />
+              </div>
+              <div className="flex">
+                <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                  <span className="text-sm font-medium text-gray-600">RM</span>
+                </div>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={taxExemptions.mealAllowance?.amount || 0}
+                  onChange={(e) => updateTaxExemption('mealAllowance', 'amount', parseFloat(e.target.value) || 0)}
+                  className="rounded-l-none"
+                  placeholder="0.00"
+                  data-testid="meal-allowance-exemption"
+                />
+              </div>
+            </div>
+
+            {/* Subsidies */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="font-medium">Subsidies</Label>
+                <Settings className="h-4 w-4 text-gray-400" />
+              </div>
+              <div className="flex">
+                <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                  <span className="text-sm font-medium text-gray-600">RM</span>
+                </div>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={taxExemptions.subsidies?.amount || 0}
+                  onChange={(e) => updateTaxExemption('subsidies', 'amount', parseFloat(e.target.value) || 0)}
+                  className="rounded-l-none"
+                  placeholder="0.00"
+                  data-testid="subsidies-exemption"
+                />
               </div>
             </div>
           </div>
           <DialogFooter>
             <Button 
-              variant="outline"
-              onClick={() => setIsTaxExemptionDialogOpen(false)}
-              data-testid="btn-cancel-tax-exemption"
-            >
-              Cancel
-            </Button>
-            <Button 
+              variant="destructive"
               onClick={() => setIsTaxExemptionDialogOpen(false)}
               data-testid="btn-close-tax-exemption"
             >
