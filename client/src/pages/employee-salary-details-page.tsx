@@ -377,13 +377,10 @@ export default function EmployeeSalaryDetailsPage() {
     }
   };
 
-  // PCB39 Rebate options
+  // PCB39 Rebate options - only 2 options as per MySyarikat reference
   const PCB39_REBATES_2025 = [
-    { code: "RB1", label: "Departure levy for umrah travel / religious travel for other religions" },
-    { code: "RB2", label: "Zakat rebate" },
-    { code: "RB3", label: "Disabled individual rebate" },
-    { code: "RB4", label: "Wife rebate" },
-    { code: "RB5", label: "Child rebate" }
+    { code: "ZAKAT", label: "Zakat" },
+    { code: "DEPARTURE_LEVY", label: "Departure levy for umrah travel / religious travel for other religions" }
   ];
   
   const [salaryData, setSalaryData] = useState<MasterSalaryData>({
