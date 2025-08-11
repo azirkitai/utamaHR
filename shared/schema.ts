@@ -870,6 +870,10 @@ export const insertClaimApplicationSchema = createInsertSchema(claimApplications
     (val) => val ? new Date(val as string | Date) : new Date(),
     z.date()
   ),
+  dateSubmitted: z.preprocess(
+    (val) => val ? new Date(val as string | Date) : new Date(),
+    z.date()
+  ),
 });
 export const updateClaimApplicationSchema = insertClaimApplicationSchema.partial();
 

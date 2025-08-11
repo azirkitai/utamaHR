@@ -302,7 +302,7 @@ export default function ApplyClaimPage() {
         particulars,
         remark,
         status: 'pending',
-        dateSubmitted: new Date().toISOString(), // Send as ISO string
+        dateSubmitted: new Date().toISOString(), // Send as ISO string, server will convert
       };
 
       createClaimMutation.mutate(claimData);
@@ -342,7 +342,7 @@ export default function ApplyClaimPage() {
         reason: reason,
         remark: additionalDescription,
         status: 'pending',
-        dateSubmitted: new Date().toISOString(), // Send as ISO string
+        dateSubmitted: new Date().toISOString(), // Send as ISO string, server will convert
       };
 
       createClaimMutation.mutate(claimData);
