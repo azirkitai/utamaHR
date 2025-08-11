@@ -333,6 +333,26 @@ export default function EmployeeSalaryDetailsPage() {
   const [showReliefSelector, setShowReliefSelector] = useState(false);
   const [selectedReliefCode, setSelectedReliefCode] = useState("");
   const [reliefAmount, setReliefAmount] = useState("0.00");
+  const [pcb39ReliefItems, setPcb39ReliefItems] = useState<Array<{code: string; label: string; amount: string}>>([]);
+
+  // Function to add relief item
+  const handleAddReliefItem = () => {
+    if (selectedReliefCode && reliefAmount) {
+      const selectedRelief = PCB39_RELIEFS_2025.find(relief => relief.code === selectedReliefCode);
+      if (selectedRelief) {
+        setPcb39ReliefItems(prev => [...prev, {
+          code: selectedReliefCode,
+          label: selectedRelief.label,
+          amount: reliefAmount
+        }]);
+        // Reset form
+        setSelectedReliefCode("");
+        setReliefAmount("0.00");
+        setShowReliefSelector(false);
+      }
+    }
+  };
+
   const [rebateCode, setRebateCode] = useState("");
   const [rebateAmount, setRebateAmount] = useState("");
   const [pcb39Tab, setPCB39Tab] = useState("relief");
@@ -3650,9 +3670,36 @@ export default function EmployeeSalaryDetailsPage() {
                 </TabsList>
                 
                 <TabsContent value="relief" className="space-y-3">
+                  {/* Display existing relief items */}
+                  {pcb39ReliefItems.length > 0 && (
+                    <div className="space-y-2">
+                      {pcb39ReliefItems.map((item, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <div className="flex-1">
+                            <p className="font-medium text-sm">{item.code}</p>
+                            <p className="text-xs text-gray-600">{item.label}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium">RM {item.amount}</span>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setPcb39ReliefItems(prev => prev.filter((_, i) => i !== index))}
+                              data-testid={`btn-remove-relief-${index}`}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   {!showReliefSelector ? (
                     <div className="text-center py-4">
-                      <p className="text-gray-500 text-sm mb-3">No relief items configured</p>
+                      {pcb39ReliefItems.length === 0 && (
+                        <p className="text-gray-500 text-sm mb-3">No relief items configured</p>
+                      )}
                       <Button
                         variant="outline"
                         size="sm"
@@ -3706,6 +3753,7 @@ export default function EmployeeSalaryDetailsPage() {
                           size="sm"
                           className="bg-blue-600 hover:bg-blue-700 text-white"
                           disabled={!selectedReliefCode || !reliefAmount}
+                          onClick={handleAddReliefItem}
                           data-testid="btn-add-pcb39-relief-confirm"
                         >
                           Add PCB39 Relief
