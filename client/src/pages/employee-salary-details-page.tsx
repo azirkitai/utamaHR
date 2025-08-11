@@ -2286,17 +2286,7 @@ export default function EmployeeSalaryDetailsPage() {
 
                 {/* Zakat */}
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label className="font-medium">Zakat</Label>
-                    <button
-                      type="button"
-                      onClick={() => toggleDeductionFlags('zakat')}
-                      className="hover:bg-gray-100 p-1 rounded"
-                      data-testid="zakat-settings-btn"
-                    >
-                      <Settings className="h-4 w-4 text-gray-400" />
-                    </button>
-                  </div>
+                  <Label className="font-medium">Zakat</Label>
                   <div className="flex">
                     <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
                       <span className="text-sm font-medium">RM</span>
@@ -2312,59 +2302,6 @@ export default function EmployeeSalaryDetailsPage() {
                       data-testid="zakat-deduction"
                     />
                   </div>
-                  {/* Flags for Zakat - Only show when expanded */}
-                  {expandedDeductionFlags.has('zakat') && (
-                    <div className="grid grid-cols-3 gap-2 mt-2">
-                      <div className="flex items-center space-x-1">
-                        <Checkbox
-                          checked={salaryData.deductions.flags?.zakat?.epf || false}
-                          onCheckedChange={(checked) => updateDeductionFlag('zakat', 'epf', !!checked)}
-                          data-testid="zakat-epf-flag"
-                        />
-                        <label className="text-xs">EPF</label>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Checkbox
-                          checked={salaryData.deductions.flags?.zakat?.socso || false}
-                          onCheckedChange={(checked) => updateDeductionFlag('zakat', 'socso', !!checked)}
-                          data-testid="zakat-socso-flag"
-                        />
-                        <label className="text-xs">SOCSO</label>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Checkbox
-                          checked={salaryData.deductions.flags?.zakat?.eis || false}
-                          onCheckedChange={(checked) => updateDeductionFlag('zakat', 'eis', !!checked)}
-                          data-testid="zakat-eis-flag"
-                        />
-                        <label className="text-xs">EIS</label>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Checkbox
-                          checked={salaryData.deductions.flags?.zakat?.hrdf || false}
-                          onCheckedChange={(checked) => updateDeductionFlag('zakat', 'hrdf', !!checked)}
-                          data-testid="zakat-hrdf-flag"
-                        />
-                        <label className="text-xs">HRDF</label>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Checkbox
-                          checked={salaryData.deductions.flags?.zakat?.pcb39 || false}
-                          onCheckedChange={(checked) => updateDeductionFlag('zakat', 'pcb39', !!checked)}
-                          data-testid="zakat-pcb39-flag"
-                        />
-                        <label className="text-xs">PCB39</label>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Checkbox
-                          checked={salaryData.deductions.flags?.zakat?.fixed || false}
-                          onCheckedChange={(checked) => updateDeductionFlag('zakat', 'fixed', !!checked)}
-                          data-testid="zakat-fixed-flag"
-                        />
-                        <label className="text-xs">Fixed</label>
-                      </div>
-                    </div>
-                  )}
                 </div>
 
                 {/* Other Deduction */}
