@@ -1536,8 +1536,8 @@ export default function EmployeeSalaryDetailsPage() {
                     <Input
                       type="number"
                       step="0.01"
-                      value={salaryData.additionalItems.find(item => item.code === "ADVANCE")?.amount || 0}
-                      onChange={(e) => updateAdditionalItemAmount("ADVANCE", parseFloat(e.target.value) || 0)}
+                      value={salaryData.additionalItems.find(item => item.code === "ADV")?.amount || 0}
+                      onChange={(e) => updateAdditionalItemAmount("ADV", parseFloat(e.target.value) || 0)}
                       className="rounded-l-none"
                       data-testid="advance-salary"
                     />
@@ -1554,8 +1554,8 @@ export default function EmployeeSalaryDetailsPage() {
                     <Input
                       type="number"
                       step="0.01"
-                      value={salaryData.additionalItems.find(item => item.code === "SUBSISTENCE")?.amount || 0}
-                      onChange={(e) => updateAdditionalItemAmount("SUBSISTENCE", parseFloat(e.target.value) || 0)}
+                      value={salaryData.additionalItems.find(item => item.code === "SUBS")?.amount || 0}
+                      onChange={(e) => updateAdditionalItemAmount("SUBS", parseFloat(e.target.value) || 0)}
                       className="rounded-l-none"
                       data-testid="subsistence-allowance"
                     />
@@ -1572,8 +1572,8 @@ export default function EmployeeSalaryDetailsPage() {
                     <Input
                       type="number"
                       step="0.01"
-                      value={salaryData.additionalItems.find(item => item.code === "EXTRA_RESP")?.amount || 0}
-                      onChange={(e) => updateAdditionalItemAmount("EXTRA_RESP", parseFloat(e.target.value) || 0)}
+                      value={salaryData.additionalItems.find(item => item.code === "RESP")?.amount || 0}
+                      onChange={(e) => updateAdditionalItemAmount("RESP", parseFloat(e.target.value) || 0)}
                       className="rounded-l-none"
                       data-testid="extra-responsibility"
                     />
