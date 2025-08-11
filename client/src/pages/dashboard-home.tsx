@@ -169,7 +169,7 @@ export default function DashboardHome() {
           <div className="relative z-10">
             <div className="flex justify-between items-start">
               <div className="pt-[79px] pb-[79px] text-[34px] font-semibold">
-                <h1 className="text-3xl font-bold mb-2" data-testid="text-welcome">
+                <h1 className="text-3xl font-bold mt-[-7px] mb-[-7px]" data-testid="text-welcome">
                   Hey,
                 </h1>
                 <h2 className="text-4xl font-bold text-cyan-100 mt-[9px] mb-[9px]">
