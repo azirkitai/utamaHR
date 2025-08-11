@@ -833,15 +833,16 @@ export default function EmployeeSalaryDetailsPage() {
       //
       // DEDUCTION ITEMS Logic:
       // ✅ Advance RM300 with SOCSO ✅ → RM300 adds to SOCSO wage base
-      // ✅ Advance RM300 with EPF ❌ → RM300 NOT added to EPF wage base
-      // ✅ PCB38 with PCB39 ✅ → PCB38 amount reduces taxable income
-      // ✅ Zakat with PCB39 ✅ → Zakat amount reduces taxable income
+      // ✅ Advance RM300 with EPF ❌ → RM300 NOT added to EPF wage base  
+      // ✅ PCB38 with PCB39 ✅ → PCB38 reduces monthly taxable income (tax relief)
+      // ✅ Zakat with PCB39 ✅ → Zakat reduces monthly taxable income (tax relief)
       //
       // CALCULATION EXAMPLE:
-      // Basic RM3000 + Advance Salary RM300 (SOCSO ✅, EPF ❌) = 
-      // EPF Base = RM3000 (Basic only, Advance EPF not ticked)
-      // SOCSO Base = RM3000 + RM300 = RM3300 (Basic + Advance SOCSO ticked)
-      // Gross Salary = RM3000 + RM300 = RM3300 (ALL items regardless of checkboxes)
+      // Basic RM3000 + Bonus RM500 (PCB39 ✅, SOCSO ❌) + Advance RM300 (SOCSO ✅, PCB39 ❌) = 
+      // EPF Base = RM3000 (Basic only, no additional items with EPF ✅)
+      // SOCSO Base = RM3000 + RM300 = RM3300 (Basic + Advance SOCSO ✅)
+      // PCB39 Taxable = RM3000 + RM500 = RM3500 (Basic + Bonus PCB39 ✅)
+      // Gross Salary = RM3000 + RM500 + RM300 = RM3800 (ALL items regardless of checkboxes)
       
       // Only include basic salary in statutory calculations if "Calculate in Payment" is enabled
       const basicSalaryMonthly = salaryData.settings?.isCalculatedInPayment 
@@ -2443,7 +2444,7 @@ export default function EmployeeSalaryDetailsPage() {
                     />
                   </div>
                   <p className="text-xs text-gray-500">
-                    How did we calculate this? Based on relief configuration and taxable income.
+                    How did we calculate this? Based on relief configuration and taxable income from PCB39-flagged items.
                   </p>
                 </div>
 

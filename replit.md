@@ -56,6 +56,13 @@ UtamaHR - A comprehensive HR Management System built from scratch with React, Ty
   - Uniform interface between Tax Exemption and Deduction sections
   - Items affected: Advance, PCB38, Zakat, Other Deduction for Deduction section
   - Complete functionality parity achieved across both major sections
+- Phase 10: Comprehensive Checkbox Logic Integration (✅ Completed)
+  - Implemented full checkbox flag logic for statutory calculations
+  - EPF/SOCSO/EIS/HRDF wage bases now properly filter based on checkbox flags
+  - Both Additional Items and Deduction Items flags integrated into calculations
+  - PCB39 checkbox logic: ticked items included in taxable income calculation
+  - Fixed checkbox: ensures amounts remain fixed monthly (automatic processing)
+  - Malaysia-compliant PCB39 implementation following LHDN regulations
 
 # User Preferences
 
