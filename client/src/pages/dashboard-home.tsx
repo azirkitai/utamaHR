@@ -165,7 +165,7 @@ export default function DashboardHome() {
     <DashboardLayout>
       <div className="p-6 space-y-6">
         {/* Welcome Hero Section */}
-        <div className="relative bg-gradient-to-r from-cyan-500 to-blue-600 rounded-2xl p-8 text-white overflow-hidden">
+        <div className="relative bg-gradient-to-r from-cyan-500 to-blue-600 rounded-2xl p-8 text-white overflow-hidden pt-[4px] pb-[4px]">
           <div className="relative z-10">
             <div className="flex justify-between items-start">
               <div className="pt-[79px] pb-[79px] text-[34px] font-semibold">
