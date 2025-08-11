@@ -63,7 +63,7 @@ interface SalarySettings {
 
 interface MasterSalaryData {
   employeeId: string;
-  salaryType: "Monthly" | "Hourly";
+  salaryType: "Monthly" | "Hourly" | "Daily";
   basicSalary: number;
   additionalItems: AdditionalItem[];
   deductions: DeductionItem;
@@ -333,22 +333,34 @@ export default function EmployeeSalaryDetailsPage() {
     setIsCalculating(true);
     
     try {
-      // Calculate wage bases based on additional items flags
-      const epfWageBase = salaryData.basicSalary + salaryData.additionalItems
+      // Convert daily salary to monthly for statutory calculations
+      const getMonthlyEquivalent = (amount: number) => {
+        if (salaryData.salaryType === "Daily") {
+          return amount * 26; // 26 working days per month
+        } else if (salaryData.salaryType === "Hourly") {
+          return amount * 8 * 26; // 8 hours * 26 days
+        }
+        return amount; // Monthly - no conversion needed
+      };
+
+      // Calculate wage bases based on additional items flags (convert to monthly for statutory)
+      const basicSalaryMonthly = getMonthlyEquivalent(salaryData.basicSalary);
+      
+      const epfWageBase = basicSalaryMonthly + salaryData.additionalItems
         .filter(item => item.flags.epf)
-        .reduce((sum, item) => sum + item.amount, 0);
+        .reduce((sum, item) => sum + getMonthlyEquivalent(item.amount), 0);
       
-      const socsoWageBase = salaryData.basicSalary + salaryData.additionalItems
+      const socsoWageBase = basicSalaryMonthly + salaryData.additionalItems
         .filter(item => item.flags.socso)
-        .reduce((sum, item) => sum + item.amount, 0);
+        .reduce((sum, item) => sum + getMonthlyEquivalent(item.amount), 0);
       
-      const eisWageBase = salaryData.basicSalary + salaryData.additionalItems
+      const eisWageBase = basicSalaryMonthly + salaryData.additionalItems
         .filter(item => item.flags.eis)
-        .reduce((sum, item) => sum + item.amount, 0);
+        .reduce((sum, item) => sum + getMonthlyEquivalent(item.amount), 0);
       
-      const hrdfWageBase = salaryData.basicSalary + salaryData.additionalItems
+      const hrdfWageBase = basicSalaryMonthly + salaryData.additionalItems
         .filter(item => item.flags.hrdf)
-        .reduce((sum, item) => sum + item.amount, 0);
+        .reduce((sum, item) => sum + getMonthlyEquivalent(item.amount), 0);
 
       // Calculate EPF
       let epfEmployee = 0;
@@ -405,7 +417,9 @@ export default function EmployeeSalaryDetailsPage() {
         grossSalary: `RM ${grossSalary.toFixed(2)}`,
         totalDeduction: `RM ${sumDeduction.toFixed(2)}`,
         companyContribution: `RM ${sumContribution.toFixed(2)}`,
-        computedSalary: `RM ${salaryData.basicSalary.toFixed(2)}`
+        computedSalary: salaryData.salaryType === "Monthly" 
+          ? `RM ${salaryData.basicSalary.toFixed(2)}`
+          : `RM ${basicSalaryMonthly.toFixed(2)} (Monthly equivalent)`
       });
 
       // Update salary data with calculated values (avoid triggering recalculation)
@@ -643,7 +657,7 @@ export default function EmployeeSalaryDetailsPage() {
                   <Label>Salary Type</Label>
                   <Select 
                     value={salaryData.salaryType} 
-                    onValueChange={(value) => updateSalaryData({ salaryType: value as "Monthly" | "Hourly" })}
+                    onValueChange={(value) => updateSalaryData({ salaryType: value as "Monthly" | "Hourly" | "Daily" })}
                     data-testid="salaryType"
                   >
                     <SelectTrigger>
@@ -652,12 +666,17 @@ export default function EmployeeSalaryDetailsPage() {
                     <SelectContent>
                       <SelectItem value="Monthly">Monthly</SelectItem>
                       <SelectItem value="Hourly">Hourly</SelectItem>
+                      <SelectItem value="Daily">Daily</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <Label>Basic Salary (RM)</Label>
+                  <Label>
+                    {salaryData.salaryType === "Monthly" ? "Basic Salary (RM/Month)" : 
+                     salaryData.salaryType === "Daily" ? "Basic Salary (RM/Day)" : 
+                     "Basic Salary (RM/Hour)"}
+                  </Label>
                   <Input
                     type="number"
                     step="0.01"
@@ -676,7 +695,10 @@ export default function EmployeeSalaryDetailsPage() {
                   data-testid="computedSalary"
                 />
                 <div className="text-xs text-gray-500 mt-1">
-                  How did we calculate this? {isCalculating ? "Calculating..." : "Based on basic salary"}
+                  How did we calculate this? {isCalculating ? "Calculating..." : 
+                    salaryData.salaryType === "Daily" ? "Daily rate × 26 working days" :
+                    salaryData.salaryType === "Hourly" ? "Hourly rate × 8 hours × 26 days" :
+                    "Based on monthly basic salary"}
                 </div>
               </div>
 
