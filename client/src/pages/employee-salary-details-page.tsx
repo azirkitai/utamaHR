@@ -821,34 +821,93 @@ export default function EmployeeSalaryDetailsPage() {
         return amount; // Monthly - no conversion needed
       };
 
-      // MySyarikat Additional Item Logic:
-      // Only items with specific checkboxes ticked are included in statutory calculations
-      // Example: Basic RM2000 + Subsistence RM200 (EPF ticked) + Extra Resp RM150 (EPF+SOCSO+EIS ticked) + Advance RM300 (no checkbox)
-      // EPF Base = RM2000 + RM200 + RM150 = RM2350 (only EPF-ticked items)
-      // SOCSO Base = RM2000 + RM150 = RM2150 (only SOCSO-ticked items)
-      // EIS Base = RM2000 + RM150 = RM2150 (only EIS-ticked items)
-      // Gross Salary = RM2000 + RM200 + RM150 + RM300 = RM2650 (ALL items regardless of checkboxes)
+      // 🔥 UtamaHR Comprehensive Checkbox Logic Implementation 🔥
+      //
+      // ADDITIONAL ITEMS Logic:
+      // ✅ EPF Checkbox ticked → Include in EPF calculation base
+      // ✅ SOCSO Checkbox ticked → Include in SOCSO calculation base  
+      // ✅ EIS Checkbox ticked → Include in EIS calculation base
+      // ✅ HRDF Checkbox ticked → Include in HRDF calculation base
+      // ✅ PCB39 Checkbox ticked → Include in PCB39 taxable income calculation
+      // ✅ Fixed Checkbox ticked → Amount remains fixed monthly (automatic)
+      //
+      // DEDUCTION ITEMS Logic:
+      // ✅ Advance RM300 with SOCSO ✅ → RM300 adds to SOCSO wage base
+      // ✅ Advance RM300 with EPF ❌ → RM300 NOT added to EPF wage base
+      // ✅ PCB38 with PCB39 ✅ → PCB38 amount reduces taxable income
+      // ✅ Zakat with PCB39 ✅ → Zakat amount reduces taxable income
+      //
+      // CALCULATION EXAMPLE:
+      // Basic RM3000 + Advance Salary RM300 (SOCSO ✅, EPF ❌) = 
+      // EPF Base = RM3000 (Basic only, Advance EPF not ticked)
+      // SOCSO Base = RM3000 + RM300 = RM3300 (Basic + Advance SOCSO ticked)
+      // Gross Salary = RM3000 + RM300 = RM3300 (ALL items regardless of checkboxes)
       
       // Only include basic salary in statutory calculations if "Calculate in Payment" is enabled
       const basicSalaryMonthly = salaryData.settings?.isCalculatedInPayment 
         ? getMonthlyEquivalent(salaryData.basicSalary) 
         : 0;
       
-      const epfWageBase = basicSalaryMonthly + salaryData.additionalItems
-        .filter(item => item.flags.epf)
-        .reduce((sum, item) => sum + getMonthlyEquivalent(item.amount), 0);
+      // Calculate wage bases including both Additional Items and Deduction Items based on flags
+      const epfWageBase = basicSalaryMonthly + 
+        salaryData.additionalItems
+          .filter(item => item.flags.epf)
+          .reduce((sum, item) => sum + getMonthlyEquivalent(item.amount), 0) +
+        // Include deduction items flagged for EPF (advance, unpaid leave, etc.)
+        (salaryData.deductions.flags?.advance?.epf ? salaryData.deductions.advance : 0) +
+        (salaryData.deductions.flags?.unpaidLeave?.epf ? salaryData.deductions.unpaidLeave : 0) +
+        (salaryData.deductions.flags?.pcb38?.epf ? salaryData.deductions.pcb38 : 0) +
+        (salaryData.deductions.flags?.zakat?.epf ? salaryData.deductions.zakat : 0) +
+        (salaryData.deductions.flags?.other?.epf ? salaryData.deductions.other : 0) +
+        // Include custom deduction items flagged for EPF
+        (salaryData.deductions.customItems || [])
+          .filter(item => item.flags?.epf)
+          .reduce((sum, item) => sum + item.amount, 0);
       
-      const socsoWageBase = basicSalaryMonthly + salaryData.additionalItems
-        .filter(item => item.flags.socso)
-        .reduce((sum, item) => sum + getMonthlyEquivalent(item.amount), 0);
+      const socsoWageBase = basicSalaryMonthly + 
+        salaryData.additionalItems
+          .filter(item => item.flags.socso)
+          .reduce((sum, item) => sum + getMonthlyEquivalent(item.amount), 0) +
+        // Include deduction items flagged for SOCSO
+        (salaryData.deductions.flags?.advance?.socso ? salaryData.deductions.advance : 0) +
+        (salaryData.deductions.flags?.unpaidLeave?.socso ? salaryData.deductions.unpaidLeave : 0) +
+        (salaryData.deductions.flags?.pcb38?.socso ? salaryData.deductions.pcb38 : 0) +
+        (salaryData.deductions.flags?.zakat?.socso ? salaryData.deductions.zakat : 0) +
+        (salaryData.deductions.flags?.other?.socso ? salaryData.deductions.other : 0) +
+        // Include custom deduction items flagged for SOCSO
+        (salaryData.deductions.customItems || [])
+          .filter(item => item.flags?.socso)
+          .reduce((sum, item) => sum + item.amount, 0);
       
-      const eisWageBase = basicSalaryMonthly + salaryData.additionalItems
-        .filter(item => item.flags.eis)
-        .reduce((sum, item) => sum + getMonthlyEquivalent(item.amount), 0);
+      const eisWageBase = basicSalaryMonthly + 
+        salaryData.additionalItems
+          .filter(item => item.flags.eis)
+          .reduce((sum, item) => sum + getMonthlyEquivalent(item.amount), 0) +
+        // Include deduction items flagged for EIS
+        (salaryData.deductions.flags?.advance?.eis ? salaryData.deductions.advance : 0) +
+        (salaryData.deductions.flags?.unpaidLeave?.eis ? salaryData.deductions.unpaidLeave : 0) +
+        (salaryData.deductions.flags?.pcb38?.eis ? salaryData.deductions.pcb38 : 0) +
+        (salaryData.deductions.flags?.zakat?.eis ? salaryData.deductions.zakat : 0) +
+        (salaryData.deductions.flags?.other?.eis ? salaryData.deductions.other : 0) +
+        // Include custom deduction items flagged for EIS
+        (salaryData.deductions.customItems || [])
+          .filter(item => item.flags?.eis)
+          .reduce((sum, item) => sum + item.amount, 0);
       
-      const hrdfWageBase = basicSalaryMonthly + salaryData.additionalItems
-        .filter(item => item.flags.hrdf)
-        .reduce((sum, item) => sum + getMonthlyEquivalent(item.amount), 0);
+      const hrdfWageBase = basicSalaryMonthly + 
+        salaryData.additionalItems
+          .filter(item => item.flags.hrdf)
+          .reduce((sum, item) => sum + getMonthlyEquivalent(item.amount), 0) +
+        // Include deduction items flagged for HRDF
+        (salaryData.deductions.flags?.advance?.hrdf ? salaryData.deductions.advance : 0) +
+        (salaryData.deductions.flags?.unpaidLeave?.hrdf ? salaryData.deductions.unpaidLeave : 0) +
+        (salaryData.deductions.flags?.pcb38?.hrdf ? salaryData.deductions.pcb38 : 0) +
+        (salaryData.deductions.flags?.zakat?.hrdf ? salaryData.deductions.zakat : 0) +
+        (salaryData.deductions.flags?.other?.hrdf ? salaryData.deductions.other : 0) +
+        // Include custom deduction items flagged for HRDF
+        (salaryData.deductions.customItems || [])
+          .filter(item => item.flags?.hrdf)
+          .reduce((sum, item) => sum + item.amount, 0);
 
       // Calculate EPF
       let epfEmployee = 0;
