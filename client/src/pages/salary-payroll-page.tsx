@@ -600,12 +600,12 @@ export default function SalaryPayrollPage() {
 
         {/* Run New Payroll Modal */}
         <Dialog open={showNewPayrollModal} onOpenChange={setShowNewPayrollModal}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader className="bg-blue-900 text-white p-4 -m-6 mb-6 rounded-t-lg">
               <DialogTitle className="text-lg font-semibold">Run New Payroll</DialogTitle>
             </DialogHeader>
 
-            <div className="space-y-4">
+            <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
               {/* Payroll Information Section */}
               <div className="space-y-4">
                 <h4 className="text-sm font-medium text-gray-700">Payroll Information</h4>
