@@ -406,7 +406,19 @@ export default function EmployeeSalaryDetailsPage() {
 
       // Calculate totals
       const sumAdditional = salaryData.additionalItems.reduce((sum, item) => sum + item.amount, 0);
-      const sumDeduction = Object.values(updatedDeductions).reduce((sum, value) => sum + value, 0);
+      
+      // Calculate total deductions including ALL deduction items
+      const sumDeduction = 
+        updatedDeductions.epfEmployee +
+        updatedDeductions.socsoEmployee +
+        updatedDeductions.eisEmployee +
+        salaryData.deductions.advance +
+        salaryData.deductions.unpaidLeave +
+        salaryData.deductions.pcb39 +
+        salaryData.deductions.pcb38 +
+        salaryData.deductions.zakat +
+        salaryData.deductions.other;
+      
       const sumContribution = Object.values(updatedContributions).reduce((sum, value) => sum + value, 0);
 
       const grossSalary = salaryData.basicSalary + sumAdditional;
