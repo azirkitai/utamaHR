@@ -72,9 +72,13 @@ export default function ClaimApprovalPage() {
   // Approve claim mutation
   const approveMutation = useMutation({
     mutationFn: async ({ claimId, approverId }: { claimId: string; approverId: string }) => {
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`/api/claim-applications/${claimId}/approve`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify({ approverId }),
       });
       if (!response.ok) throw new Error('Failed to approve claim');
@@ -89,9 +93,13 @@ export default function ClaimApprovalPage() {
   // Reject claim mutation
   const rejectMutation = useMutation({
     mutationFn: async ({ claimId, rejectorId, reason }: { claimId: string; rejectorId: string; reason: string }) => {
+      const token = localStorage.getItem('auth_token');
       const response = await fetch(`/api/claim-applications/${claimId}/reject`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify({ rejectorId, reason }),
       });
       if (!response.ok) throw new Error('Failed to reject claim');

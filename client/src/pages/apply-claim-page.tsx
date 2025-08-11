@@ -57,10 +57,12 @@ export default function ApplyClaimPage() {
   // Create claim application mutation
   const createClaimMutation = useMutation({
     mutationFn: async (claimData: InsertClaimApplication) => {
+      const token = localStorage.getItem('auth_token');
       const response = await fetch('/api/claim-applications', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(claimData),
       });
