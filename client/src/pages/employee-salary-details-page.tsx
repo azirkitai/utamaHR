@@ -828,7 +828,10 @@ export default function EmployeeSalaryDetailsPage() {
       // EIS Base = RM2000 + RM150 = RM2150 (only EIS-ticked items)
       // Gross Salary = RM2000 + RM200 + RM150 + RM300 = RM2650 (ALL items regardless of checkboxes)
       
-      const basicSalaryMonthly = getMonthlyEquivalent(salaryData.basicSalary);
+      // Only include basic salary in statutory calculations if "Calculate in Payment" is enabled
+      const basicSalaryMonthly = salaryData.settings?.calculateInPayment 
+        ? getMonthlyEquivalent(salaryData.basicSalary) 
+        : 0;
       
       const epfWageBase = basicSalaryMonthly + salaryData.additionalItems
         .filter(item => item.flags.epf)
@@ -1013,9 +1016,12 @@ export default function EmployeeSalaryDetailsPage() {
     toast({ title: "Recalculated", description: "All values have been recalculated" });
   };
 
-  // Calculate net salary
+  // Calculate net salary - consider "Calculate in Payment" toggle
   const calculateNetSalary = () => {
-    const grossSalary = salaryData.basicSalary + (salaryData.additionalItems?.reduce((sum, item) => sum + item.amount, 0) || 0);
+    // Basic salary only counted if "Calculate in Payment" is enabled
+    const basicSalaryInPayment = salaryData.settings?.calculateInPayment ? salaryData.basicSalary : 0;
+    const additionalItemsTotal = salaryData.additionalItems?.reduce((sum, item) => sum + item.amount, 0) || 0;
+    const grossSalary = basicSalaryInPayment + additionalItemsTotal;
     const totalDeductions = Object.values(salaryData.deductions).reduce((sum, value) => sum + (typeof value === 'number' ? value : 0), 0);
     return grossSalary - totalDeductions;
   };
