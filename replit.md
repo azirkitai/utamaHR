@@ -63,6 +63,13 @@ UtamaHR - A comprehensive HR Management System built from scratch with React, Ty
   - PCB39 checkbox logic: ticked items included in taxable income calculation
   - Fixed checkbox: ensures amounts remain fixed monthly (automatic processing)
   - Malaysia-compliant PCB39 implementation following LHDN regulations
+- Phase 11: Complete Claim Workflow with Real-Time Dashboard Integration (✅ Completed)
+  - Fixed authentication token standardization ('utamahr_token') across all components
+  - Resolved dateSubmitted validation errors with proper string-to-Date preprocessing
+  - Enhanced claim approval page to display employee names instead of UUIDs
+  - Updated pending approval statistics to show real database counts
+  - Complete workflow: Submit → Database → Approval page → Dashboard statistics
+  - Claims now appear immediately in /approval/claim with proper employee identification
 
 # User Preferences
 
