@@ -58,6 +58,60 @@ export default function SalaryPayrollPage() {
     enabled: !!selectedEmployeeForSummary?.id,
   });
 
+  // Calculate derived values from real salary data
+  const calculateSalarySummary = (salaryData: any) => {
+    if (!salaryData) return { netSalary: 0, grossSalary: 0, totalDeduction: 0, companyContribution: 0 };
+
+    const basicSalary = parseFloat(salaryData.basicSalary || 0);
+    const additionalItems = salaryData.additionalItems || [];
+    const deductions = salaryData.deductions || {};
+    const contributions = salaryData.contributions || {};
+
+    // Calculate total additional earnings
+    const totalAdditionalEarnings = additionalItems.reduce((sum: number, item: any) => {
+      return sum + (parseFloat(item.amount || 0));
+    }, 0);
+
+    // Calculate gross salary
+    const grossSalary = basicSalary + totalAdditionalEarnings;
+
+    // Calculate total deductions
+    const totalDeduction = 
+      (parseFloat(deductions.epfEmployee || 0)) +
+      (parseFloat(deductions.socsoEmployee || 0)) +
+      (parseFloat(deductions.eisEmployee || 0)) +
+      (parseFloat(deductions.advance || 0)) +
+      (parseFloat(deductions.unpaidLeave || 0)) +
+      (parseFloat(deductions.pcb39 || 0)) +
+      (parseFloat(deductions.pcb38 || 0)) +
+      (parseFloat(deductions.zakat || 0)) +
+      (parseFloat(deductions.other || 0));
+
+    // Calculate net salary
+    const netSalary = grossSalary - totalDeduction;
+
+    // Calculate total company contribution
+    const companyContribution = 
+      (parseFloat(contributions.epfEmployer || 0)) +
+      (parseFloat(contributions.socsoEmployer || 0)) +
+      (parseFloat(contributions.eisEmployer || 0)) +
+      (parseFloat(contributions.medicalCard || 0)) +
+      (parseFloat(contributions.groupTermLife || 0)) +
+      (parseFloat(contributions.medicalCompany || 0)) +
+      (parseFloat(contributions.hrdf || 0));
+
+    return { netSalary, grossSalary, totalDeduction, companyContribution };
+  };
+
+  const salarySummary = calculateSalarySummary(employeeSalaryData);
+
+  // Helper function to get additional item amount by code
+  const getAdditionalItemAmount = (code: string) => {
+    if (!employeeSalaryData?.additionalItems) return 0;
+    const item = employeeSalaryData.additionalItems.find((item: any) => item.code === code);
+    return parseFloat(item?.amount || 0);
+  };
+
   // Format employee data for salary table
   const employeeData = employeesFromDB.map((employee: any, index) => ({
     id: employee.id,
@@ -711,25 +765,25 @@ export default function SalaryPayrollPage() {
                     <div className="text-center">
                       <div className="text-sm text-gray-600 mb-1">Net Salary</div>
                       <div className="text-2xl font-bold text-blue-900">
-                        RM {(employeeSalaryData as any)?.netSalary?.toFixed(2) || '0.00'}
+                        RM {salarySummary.netSalary.toFixed(2)}
                       </div>
                     </div>
                     <div className="text-center">
                       <div className="text-sm text-gray-600 mb-1">Gross Salary</div>
                       <div className="text-2xl font-bold text-blue-900">
-                        RM {(employeeSalaryData as any)?.grossSalary?.toFixed(2) || '0.00'}
+                        RM {salarySummary.grossSalary.toFixed(2)}
                       </div>
                     </div>
                     <div className="text-center">
                       <div className="text-sm text-gray-600 mb-1">Deduction</div>
                       <div className="text-2xl font-bold text-blue-900">
-                        RM {(employeeSalaryData as any)?.totalDeduction?.toFixed(2) || '0.00'}
+                        RM {salarySummary.totalDeduction.toFixed(2)}
                       </div>
                     </div>
                     <div className="text-center">
                       <div className="text-sm text-gray-600 mb-1">Company Contribution</div>
                       <div className="text-2xl font-bold text-blue-900">
-                        RM {(employeeSalaryData as any)?.companyContribution?.toFixed(2) || '0.00'}
+                        RM {salarySummary.companyContribution.toFixed(2)}
                       </div>
                     </div>
                   </div>
@@ -740,35 +794,35 @@ export default function SalaryPayrollPage() {
                     <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
                       <div className="flex justify-between">
                         <span>Basic Salary</span>
-                        <span>RM {(employeeSalaryData as any)?.basic?.toFixed(2) || '0.00'}</span>
+                        <span>RM {parseFloat(employeeSalaryData?.basicSalary || 0).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Advance Salary</span>
-                        <span>RM {(employeeSalaryData as any)?.additionalItems?.advanceSalary?.toFixed(2) || '0.00'}</span>
+                        <span>RM {getAdditionalItemAmount('ADV').toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Salary Unit</span>
-                        <span>{(employeeSalaryData as any)?.settings?.salaryUnit || '1'}</span>
+                        <span>1</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Phone Allowance</span>
-                        <span>RM {(employeeSalaryData as any)?.additionalItems?.phoneAllowance?.toFixed(2) || '0.00'}</span>
+                        <span>RM 0.00</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Salary Type</span>
-                        <span>{(employeeSalaryData as any)?.settings?.salaryType || 'Monthly'}</span>
+                        <span>{employeeSalaryData?.salaryType || 'Monthly'}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Substance Allowance</span>
-                        <span>RM {(employeeSalaryData as any)?.additionalItems?.substanceAllowance?.toFixed(2) || '0.00'}</span>
+                        <span>Subsistence Allowance</span>
+                        <span>RM {getAdditionalItemAmount('SUBS').toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Salary</span>
-                        <span>RM {(employeeSalaryData as any)?.basic?.toFixed(2) || '0.00'}</span>
+                        <span>RM {parseFloat(employeeSalaryData?.basicSalary || 0).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Extra Responsibility Allowance</span>
-                        <span>RM {(employeeSalaryData as any)?.additionalItems?.extraResponsibilityAllowance?.toFixed(2) || '0.00'}</span>
+                        <span>RM {getAdditionalItemAmount('RESP').toFixed(2)}</span>
                       </div>
                     </div>
                   </div>
@@ -779,39 +833,39 @@ export default function SalaryPayrollPage() {
                     <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
                       <div className="flex justify-between">
                         <span>EPF Employee</span>
-                        <span>RM {(employeeSalaryData as any)?.epfEmployee?.toFixed(2) || '0.00'}</span>
+                        <span>RM {parseFloat(employeeSalaryData?.deductions?.epfEmployee || 0).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Advance</span>
-                        <span>RM {(employeeSalaryData as any)?.deductions?.advance?.toFixed(2) || '0.00'}</span>
+                        <span>RM {parseFloat(employeeSalaryData?.deductions?.advance || 0).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>SOCSO Employee</span>
-                        <span>RM {(employeeSalaryData as any)?.socsoEmployee?.toFixed(2) || '0.00'}</span>
+                        <span>RM {parseFloat(employeeSalaryData?.deductions?.socsoEmployee || 0).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Unpaid Leave</span>
-                        <span>RM {(employeeSalaryData as any)?.deductions?.unpaidLeave?.toFixed(2) || '0.00'}</span>
+                        <span>RM {parseFloat(employeeSalaryData?.deductions?.unpaidLeave || 0).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>EIS Employee</span>
-                        <span>RM {(employeeSalaryData as any)?.eisEmployee?.toFixed(2) || '0.00'}</span>
+                        <span>RM {parseFloat(employeeSalaryData?.deductions?.eisEmployee || 0).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Other Deduction</span>
-                        <span>RM {(employeeSalaryData as any)?.deductions?.other?.toFixed(2) || '0.00'}</span>
+                        <span>RM {parseFloat(employeeSalaryData?.deductions?.other || 0).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>PCB 39</span>
-                        <span>RM {(employeeSalaryData as any)?.pcb39?.toFixed(2) || '0.00'}</span>
+                        <span>RM {parseFloat(employeeSalaryData?.deductions?.pcb39 || 0).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Zakat</span>
-                        <span>RM {(employeeSalaryData as any)?.deductions?.zakat?.toFixed(2) || '0.00'}</span>
+                        <span>RM {parseFloat(employeeSalaryData?.deductions?.zakat || 0).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>PCB 38</span>
-                        <span>RM {(employeeSalaryData as any)?.deductions?.pcb38?.toFixed(2) || '0.00'}</span>
+                        <span>RM {parseFloat(employeeSalaryData?.deductions?.pcb38 || 0).toFixed(2)}</span>
                       </div>
                     </div>
                   </div>
@@ -822,31 +876,31 @@ export default function SalaryPayrollPage() {
                     <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
                       <div className="flex justify-between">
                         <span>EPF Employer</span>
-                        <span>RM {(employeeSalaryData as any)?.contributions?.epfEmployer?.toFixed(2) || '0.00'}</span>
+                        <span>RM {parseFloat(employeeSalaryData?.contributions?.epfEmployer || 0).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Medical Card</span>
-                        <span>RM {(employeeSalaryData as any)?.contributions?.medicalCard?.toFixed(2) || '0.00'}</span>
+                        <span>RM {parseFloat(employeeSalaryData?.contributions?.medicalCard || 0).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>SOCSO Employer</span>
-                        <span>RM {(employeeSalaryData as any)?.contributions?.socsoEmployer?.toFixed(2) || '0.00'}</span>
+                        <span>RM {parseFloat(employeeSalaryData?.contributions?.socsoEmployer || 0).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Group Term Life</span>
-                        <span>RM {(employeeSalaryData as any)?.contributions?.groupTermLife?.toFixed(2) || '0.00'}</span>
+                        <span>RM {parseFloat(employeeSalaryData?.contributions?.groupTermLife || 0).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>EIS Employer</span>
-                        <span>RM {(employeeSalaryData as any)?.contributions?.eisEmployer?.toFixed(2) || '0.00'}</span>
+                        <span>RM {parseFloat(employeeSalaryData?.contributions?.eisEmployer || 0).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Medical Company</span>
-                        <span>RM {(employeeSalaryData as any)?.contributions?.medicalCompany?.toFixed(2) || '0.00'}</span>
+                        <span>RM {parseFloat(employeeSalaryData?.contributions?.medicalCompany || 0).toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>HRDF</span>
-                        <span>RM {(employeeSalaryData as any)?.contributions?.hrdf?.toFixed(2) || '0.00'}</span>
+                        <span>RM {parseFloat(employeeSalaryData?.contributions?.hrdf || 0).toFixed(2)}</span>
                       </div>
                     </div>
                   </div>
