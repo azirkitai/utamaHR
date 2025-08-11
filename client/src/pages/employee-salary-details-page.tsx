@@ -834,15 +834,15 @@ export default function EmployeeSalaryDetailsPage() {
       // DEDUCTION ITEMS Logic:
       // ✅ Advance RM300 with SOCSO ✅ → RM300 adds to SOCSO wage base
       // ✅ Advance RM300 with EPF ❌ → RM300 NOT added to EPF wage base  
-      // ✅ PCB38 with PCB39 ✅ → PCB38 reduces monthly taxable income (tax relief)
-      // ✅ Zakat with PCB39 ✅ → Zakat reduces monthly taxable income (tax relief)
+      // ✅ PCB38 RM200 with PCB39 ✅ → PCB38 reduces taxable income (LHDN CP38 relief)
+      // ✅ Zakat RM100 with PCB39 ✅ → Zakat reduces taxable income (religious relief)
       //
       // CALCULATION EXAMPLE:
-      // Basic RM3000 + Bonus RM500 (PCB39 ✅, SOCSO ❌) + Advance RM300 (SOCSO ✅, PCB39 ❌) = 
-      // EPF Base = RM3000 (Basic only, no additional items with EPF ✅)
+      // Basic RM3000 + Bonus RM500 (PCB39 ✅) + Advance RM300 (SOCSO ✅) + PCB38 RM200 (PCB39 ✅) = 
+      // EPF Base = RM3000 (Basic only, no items with EPF ✅)
       // SOCSO Base = RM3000 + RM300 = RM3300 (Basic + Advance SOCSO ✅)
-      // PCB39 Taxable = RM3000 + RM500 = RM3500 (Basic + Bonus PCB39 ✅)
-      // Gross Salary = RM3000 + RM500 + RM300 = RM3800 (ALL items regardless of checkboxes)
+      // PCB39 Taxable = RM3000 + RM500 - RM200 = RM3300 (Basic + Bonus PCB39 ✅ - PCB38 relief)
+      // Gross Salary = RM3000 + RM500 + RM300 = RM3800 (ALL additional items, excluding deductions)
       
       // Only include basic salary in statutory calculations if "Calculate in Payment" is enabled
       const basicSalaryMonthly = salaryData.settings?.isCalculatedInPayment 
@@ -2476,6 +2476,9 @@ export default function EmployeeSalaryDetailsPage() {
                       data-testid="pcb38-deduction"
                     />
                   </div>
+                  <p className="text-xs text-gray-500">
+                    Fixed deduction as per LHDN Notice CP38 for tax arrears settlement.
+                  </p>
                   {/* Flags for PCB38 - Only show when expanded */}
                   {expandedDeductionFlags.has('pcb38') && (
                     <div className="grid grid-cols-3 gap-2 mt-2">
@@ -2533,7 +2536,17 @@ export default function EmployeeSalaryDetailsPage() {
 
                 {/* Zakat */}
                 <div className="space-y-2">
-                  <Label className="font-medium">Zakat</Label>
+                  <div className="flex items-center justify-between">
+                    <Label className="font-medium">Zakat</Label>
+                    <button
+                      type="button"
+                      onClick={() => toggleDeductionFlags('zakat')}
+                      className="hover:bg-gray-100 p-1 rounded"
+                      data-testid="zakat-settings-btn"
+                    >
+                      <Settings className="h-4 w-4 text-gray-400" />
+                    </button>
+                  </div>
                   <div className="flex">
                     <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
                       <span className="text-sm font-medium">RM</span>
@@ -2549,6 +2562,62 @@ export default function EmployeeSalaryDetailsPage() {
                       data-testid="zakat-deduction"
                     />
                   </div>
+                  {/* Flags for Zakat - Only show when expanded */}
+                  {expandedDeductionFlags.has('zakat') && (
+                    <div className="grid grid-cols-3 gap-2 mt-2">
+                      <div className="flex items-center space-x-1">
+                        <Checkbox
+                          checked={salaryData.deductions.flags?.zakat?.epf || false}
+                          onCheckedChange={(checked) => updateDeductionFlag('zakat', 'epf', !!checked)}
+                          data-testid="zakat-epf-flag"
+                        />
+                        <label className="text-xs">EPF</label>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Checkbox
+                          checked={salaryData.deductions.flags?.zakat?.socso || false}
+                          onCheckedChange={(checked) => updateDeductionFlag('zakat', 'socso', !!checked)}
+                          data-testid="zakat-socso-flag"
+                        />
+                        <label className="text-xs">SOCSO</label>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Checkbox
+                          checked={salaryData.deductions.flags?.zakat?.eis || false}
+                          onCheckedChange={(checked) => updateDeductionFlag('zakat', 'eis', !!checked)}
+                          data-testid="zakat-eis-flag"
+                        />
+                        <label className="text-xs">EIS</label>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Checkbox
+                          checked={salaryData.deductions.flags?.zakat?.hrdf || false}
+                          onCheckedChange={(checked) => updateDeductionFlag('zakat', 'hrdf', !!checked)}
+                          data-testid="zakat-hrdf-flag"
+                        />
+                        <label className="text-xs">HRDF</label>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Checkbox
+                          checked={salaryData.deductions.flags?.zakat?.pcb39 || false}
+                          onCheckedChange={(checked) => updateDeductionFlag('zakat', 'pcb39', !!checked)}
+                          data-testid="zakat-pcb39-flag"
+                        />
+                        <label className="text-xs">PCB39</label>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Checkbox
+                          checked={salaryData.deductions.flags?.zakat?.fixed || false}
+                          onCheckedChange={(checked) => updateDeductionFlag('zakat', 'fixed', !!checked)}
+                          data-testid="zakat-fixed-flag"
+                        />
+                        <label className="text-xs">Fixed</label>
+                      </div>
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-500">
+                    Religious contribution - PCB39 checkbox reduces taxable income if ticked.
+                  </p>
                 </div>
 
                 {/* Other Deduction */}
