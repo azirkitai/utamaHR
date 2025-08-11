@@ -160,7 +160,8 @@ interface SalarySettings {
   epfCalcMethod: "PERCENT" | "CUSTOM";
   epfEmployeeRate: number;
   epfEmployerRate: number;
-  hrdfEmployerRate: number;
+  hrdfEmployerRate?: number;
+  otherRemarks?: string;
 }
 
 interface MasterSalaryData {
@@ -1678,6 +1679,45 @@ export default function EmployeeSalaryDetailsPage() {
                       data-testid="epf-employer-rate"
                     />
                   </div>
+                </div>
+
+                {/* HRDF Settings */}
+                <div className="space-y-3 pt-4 border-t">
+                  <Label className="font-medium text-gray-700">HRDF Setting</Label>
+                  
+                  {/* HRDF Employer Rate */}
+                  <div className="space-y-2">
+                    <Label className="text-sm">Employer Rate</Label>
+                    <div className="flex">
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={salaryData.settings.hrdfEmployerRate || 1.00}
+                        onChange={(e) => updateSalaryData({ 
+                          settings: { ...salaryData.settings, hrdfEmployerRate: parseFloat(e.target.value) || 1.00 }
+                        })}
+                        className="rounded-r-none"
+                        data-testid="hrdf-employer-rate"
+                      />
+                      <div className="bg-gray-200 px-3 py-2 rounded-r-md border border-l-0 flex items-center">
+                        <span className="text-sm font-medium">%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Other Remarks */}
+                <div className="space-y-3 pt-4 border-t">
+                  <Label className="font-medium text-gray-700">Other Remarks</Label>
+                  <Textarea
+                    placeholder="Other Remarks"
+                    value={salaryData.settings.otherRemarks || ""}
+                    onChange={(e) => updateSalaryData({ 
+                      settings: { ...salaryData.settings, otherRemarks: e.target.value }
+                    })}
+                    className="min-h-[100px] resize-none"
+                    data-testid="other-remarks"
+                  />
                 </div>
               </div>
 
