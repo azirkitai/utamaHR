@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Calculator, Save, Info } from "lucide-react";
+import { Plus, Calculator, Save, Info, Settings, ChevronDown, ChevronUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface AdditionalItem {
@@ -221,6 +221,7 @@ export default function EmployeeSalaryDetailsPage() {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(employeeId || "");
   const [isCalculating, setIsCalculating] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
+  const [showStatutoryFlags, setShowStatutoryFlags] = useState<Record<string, boolean>>({});
   
   const [salaryData, setSalaryData] = useState<MasterSalaryData>({
     employeeId: employeeId || "",
@@ -493,6 +494,13 @@ export default function EmployeeSalaryDetailsPage() {
       flags: { ...updatedItems[index].flags, [flag]: value }
     };
     updateSalaryData({ additionalItems: updatedItems });
+  };
+
+  const toggleStatutoryFlags = (itemCode: string) => {
+    setShowStatutoryFlags(prev => ({
+      ...prev,
+      [itemCode]: !prev[itemCode]
+    }));
   };
 
   const updateDeduction = (field: keyof DeductionItem, value: number) => {
@@ -773,11 +781,30 @@ export default function EmployeeSalaryDetailsPage() {
                 <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Additional Item</h3>
               {salaryData.additionalItems.map((item, index) => (
                 <div key={item.code} className="space-y-3 p-3 border rounded-lg">
-                  <div className="flex items-center space-x-2">
-                    <Label className="font-medium">{item.label}</Label>
-                    {item.code === "BIK" && (
-                      <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">Special</span>
-                    )}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <Label className="font-medium">{item.label}</Label>
+                      {item.code === "BIK" && (
+                        <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">Special</span>
+                      )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleStatutoryFlags(item.code)}
+                      className={`h-6 w-6 p-0 hover:bg-gray-100 ${
+                        Object.values(item.flags).some(flag => flag) ? 'bg-blue-50 hover:bg-blue-100' : ''
+                      }`}
+                      data-testid={`settings-${item.code}`}
+                    >
+                      {showStatutoryFlags[item.code] ? (
+                        <ChevronUp className="h-3 w-3 text-gray-500" />
+                      ) : (
+                        <Settings className={`h-3 w-3 ${
+                          Object.values(item.flags).some(flag => flag) ? 'text-blue-600' : 'text-gray-500'
+                        }`} />
+                      )}
+                    </Button>
                   </div>
                   
                   <div className="flex items-center space-x-2">
@@ -793,61 +820,66 @@ export default function EmployeeSalaryDetailsPage() {
                     />
                   </div>
 
-                  {/* Statutory Flags */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        checked={item.flags.epf}
-                        onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'epf', checked)}
-                        data-testid={`${item.code}-epf`}
-                      />
-                      <Label className="text-xs">EPF</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        checked={item.flags.socso}
-                        onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'socso', checked)}
-                        data-testid={`${item.code}-socso`}
-                      />
-                      <Label className="text-xs">SOCSO</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        checked={item.flags.eis}
-                        onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'eis', checked)}
-                        data-testid={`${item.code}-eis`}
-                      />
-                      <Label className="text-xs">EIS</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        checked={item.flags.hrdf}
-                        onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'hrdf', checked)}
-                        data-testid={`${item.code}-hrdf`}
-                      />
-                      <Label className="text-xs">HRDF</Label>
-                    </div>
-                  </div>
+                  {/* Conditional Statutory Flags */}
+                  {showStatutoryFlags[item.code] && (
+                    <>
+                      {/* Statutory Flags */}
+                      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-100">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            checked={item.flags.epf}
+                            onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'epf', checked)}
+                            data-testid={`${item.code}-epf`}
+                          />
+                          <Label className="text-xs">EPF</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            checked={item.flags.socso}
+                            onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'socso', checked)}
+                            data-testid={`${item.code}-socso`}
+                          />
+                          <Label className="text-xs">SOCSO</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            checked={item.flags.eis}
+                            onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'eis', checked)}
+                            data-testid={`${item.code}-eis`}
+                          />
+                          <Label className="text-xs">EIS</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            checked={item.flags.hrdf}
+                            onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'hrdf', checked)}
+                            data-testid={`${item.code}-hrdf`}
+                          />
+                          <Label className="text-xs">HRDF</Label>
+                        </div>
+                      </div>
 
-                  {/* PCB39 and Fixed flags */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        checked={item.flags.pcb39}
-                        onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'pcb39', checked)}
-                        data-testid={`${item.code}-pcb39`}
-                      />
-                      <Label className="text-xs">PCB39</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        checked={item.flags.fixed}
-                        onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'fixed', checked)}
-                        data-testid={`${item.code}-fixed`}
-                      />
-                      <Label className="text-xs text-blue-600">Fixed</Label>
-                    </div>
-                  </div>
+                      {/* PCB39 and Fixed flags */}
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            checked={item.flags.pcb39}
+                            onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'pcb39', checked)}
+                            data-testid={`${item.code}-pcb39`}
+                          />
+                          <Label className="text-xs">PCB39</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            checked={item.flags.fixed}
+                            onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'fixed', checked)}
+                            data-testid={`${item.code}-fixed`}
+                          />
+                          <Label className="text-xs text-blue-600">Fixed</Label>
+                        </div>
+                      </div>
+                    </>
+                  )}
 
                   {/* Special notes */}
                   {item.code === "BIK" && (
