@@ -334,6 +334,12 @@ export default function EmployeeSalaryDetailsPage() {
   const [selectedReliefCode, setSelectedReliefCode] = useState("");
   const [reliefAmount, setReliefAmount] = useState("0.00");
   const [pcb39ReliefItems, setPcb39ReliefItems] = useState<Array<{code: string; label: string; amount: string}>>([]);
+  
+  // Rebate states
+  const [showRebateSelector, setShowRebateSelector] = useState(false);
+  const [selectedRebateCode, setSelectedRebateCode] = useState("");
+  const [rebateAmount, setRebateAmount] = useState("0.00");
+  const [pcb39RebateItems, setPcb39RebateItems] = useState<Array<{code: string; label: string; amount: string}>>([]);
 
   // Function to add relief item
   const handleAddReliefItem = () => {
@@ -353,20 +359,31 @@ export default function EmployeeSalaryDetailsPage() {
     }
   };
 
-  const [rebateCode, setRebateCode] = useState("");
-  const [rebateAmount, setRebateAmount] = useState("");
-  const [pcb39Tab, setPCB39Tab] = useState("relief");
-
-  
-  // PCB39 Relief options from official 2025 config
-  const reliefOptions = PCB39_RELIEFS_2025;
+  // Function to add rebate item
+  const handleAddRebateItem = () => {
+    if (selectedRebateCode && rebateAmount) {
+      const selectedRebate = PCB39_REBATES_2025.find(rebate => rebate.code === selectedRebateCode);
+      if (selectedRebate) {
+        setPcb39RebateItems(prev => [...prev, {
+          code: selectedRebateCode,
+          label: selectedRebate.label,
+          amount: rebateAmount
+        }]);
+        // Reset form
+        setSelectedRebateCode("");
+        setRebateAmount("0.00");
+        setShowRebateSelector(false);
+      }
+    }
+  };
 
   // PCB39 Rebate options
-  const rebateOptions = [
-    { code: "ZAKAT", label: "Zakat" },
-    { code: "LOW_INCOME", label: "Low Income Rebate" },
-    { code: "DISABILITY", label: "Disability Rebate" },
-    { code: "SENIOR", label: "Senior Citizen Rebate" }
+  const PCB39_REBATES_2025 = [
+    { code: "RB1", label: "Departure levy for umrah travel / religious travel for other religions" },
+    { code: "RB2", label: "Zakat rebate" },
+    { code: "RB3", label: "Disabled individual rebate" },
+    { code: "RB4", label: "Wife rebate" },
+    { code: "RB5", label: "Child rebate" }
   ];
   
   const [salaryData, setSalaryData] = useState<MasterSalaryData>({
@@ -3776,17 +3793,109 @@ export default function EmployeeSalaryDetailsPage() {
                 </TabsContent>
                 
                 <TabsContent value="rebate" className="space-y-3">
-                  <div className="text-center py-4">
-                    <p className="text-gray-500 text-sm mb-3">No rebate items configured</p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-blue-600 border-blue-600 hover:bg-blue-50"
-                      data-testid="btn-add-pcb39-rebate"
-                    >
-                      Add PCB39 Rebate
-                    </Button>
-                  </div>
+                  {/* Display existing rebate items */}
+                  {pcb39RebateItems.length > 0 && (
+                    <div className="space-y-2">
+                      {pcb39RebateItems.map((item, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <div className="flex-1">
+                            <p className="font-medium text-sm">{item.code}</p>
+                            <p className="text-xs text-gray-600">{item.label}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium">RM {item.amount}</span>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setPcb39RebateItems(prev => prev.filter((_, i) => i !== index))}
+                              data-testid={`btn-remove-rebate-${index}`}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {!showRebateSelector ? (
+                    <div className="text-center py-4">
+                      {pcb39RebateItems.length === 0 && (
+                        <p className="text-gray-500 text-sm mb-3">No rebate items configured</p>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                        onClick={() => setShowRebateSelector(true)}
+                        data-testid="btn-add-pcb39-rebate"
+                      >
+                        Add PCB39 Rebate
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Select Rebate</Label>
+                        <Select value={selectedRebateCode} onValueChange={setSelectedRebateCode}>
+                          <SelectTrigger data-testid="select-rebate">
+                            <SelectValue placeholder="Select Rebate" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {PCB39_REBATES_2025.map((rebate) => (
+                              <SelectItem key={rebate.code} value={rebate.code}>
+                                {rebate.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      {selectedRebateCode && (
+                        <div className="space-y-2">
+                          <Label>Amount</Label>
+                          <div className="flex">
+                            <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                              <span className="text-sm font-medium">RM</span>
+                            </div>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={rebateAmount}
+                              onChange={(e) => setRebateAmount(e.target.value)}
+                              className="rounded-l-none"
+                              placeholder="0.00"
+                              data-testid="input-rebate-amount"
+                            />
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          className="bg-blue-600 hover:bg-blue-700 text-white"
+                          disabled={!selectedRebateCode || !rebateAmount}
+                          onClick={handleAddRebateItem}
+                          data-testid="btn-add-pcb39-rebate-confirm"
+                        >
+                          Add PCB39 Rebate
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setShowRebateSelector(false);
+                            setSelectedRebateCode("");
+                            setRebateAmount("0.00");
+                          }}
+                          data-testid="btn-cancel-rebate"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </TabsContent>
               </Tabs>
             )}
