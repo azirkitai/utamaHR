@@ -34,6 +34,8 @@ export default function SalaryPayrollPage() {
   const [dateRange, setDateRange] = useState("01/2025 - 12/2025");
   const [selectedEmployee, setSelectedEmployee] = useState("All employee");
   const [showNewPayrollModal, setShowNewPayrollModal] = useState(false);
+  const [showSalarySummaryModal, setShowSalarySummaryModal] = useState(false);
+  const [selectedEmployeeForSummary, setSelectedEmployeeForSummary] = useState<any>(null);
   const [payrollFormData, setPayrollFormData] = useState({
     year: "2025",
     month: "August",
@@ -48,6 +50,12 @@ export default function SalaryPayrollPage() {
   // Fetch real employee data from database
   const { data: employeesFromDB = [], isLoading: isLoadingEmployees } = useQuery<Employee[]>({
     queryKey: ["/api/employees"],
+  });
+
+  // Fetch employee salary data for selected employee
+  const { data: employeeSalaryData, isLoading: isLoadingSalary } = useQuery({
+    queryKey: ["/api/employees", selectedEmployeeForSummary?.id, "salary"],
+    enabled: !!selectedEmployeeForSummary?.id,
   });
 
   // Format employee data for salary table
@@ -81,9 +89,13 @@ export default function SalaryPayrollPage() {
     }));
   };
 
+  const handleViewEmployeeSalary = (employee: any) => {
+    setSelectedEmployeeForSummary(employee);
+    setShowSalarySummaryModal(true);
+  };
+
   const handleGeneratePayroll = () => {
-    // Handle generate payroll logic here
-    console.log("Generate Payroll:", payrollFormData);
+    console.log("Generating payroll with data:", payrollFormData);
     setShowNewPayrollModal(false);
   };
 
@@ -159,6 +171,7 @@ export default function SalaryPayrollPage() {
                         variant="outline"
                         size="sm"
                         className="p-1 h-7 w-7 border-gray-300"
+                        onClick={() => handleViewEmployeeSalary(employee)}
                         data-testid={`button-view-${employee.id}`}
                       >
                         <Eye className="w-3 h-3" />
@@ -660,6 +673,193 @@ export default function SalaryPayrollPage() {
                 </Button>
               </div>
             </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Salary Summary Modal */}
+        <Dialog open={showSalarySummaryModal} onOpenChange={setShowSalarySummaryModal}>
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 -m-6 mb-6 rounded-t-lg">
+              <DialogTitle className="text-lg font-semibold">
+                {selectedEmployeeForSummary?.name || 'Employee'} - Salary Summary
+              </DialogTitle>
+            </DialogHeader>
+
+            {selectedEmployeeForSummary && (
+              <Tabs defaultValue="salary-details" className="space-y-6">
+                <div className="flex space-x-4 border-b">
+                  <TabsList className="grid w-auto grid-cols-2 bg-transparent">
+                    <TabsTrigger 
+                      value="salary-details" 
+                      className="data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 px-4 border-b-2 border-transparent data-[state=active]:border-cyan-600"
+                    >
+                      Salary Details
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="personal-details" 
+                      className="data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 px-4 border-b-2 border-transparent data-[state=active]:border-cyan-600"
+                    >
+                      Personal Details
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
+
+                {/* Salary Details Tab */}
+                <TabsContent value="salary-details" className="space-y-6">
+                  {/* Summary Cards */}
+                  <div className="grid grid-cols-4 gap-4 mb-6">
+                    <div className="text-center">
+                      <div className="text-sm text-gray-600 mb-1">Net Salary</div>
+                      <div className="text-2xl font-bold text-blue-900">
+                        RM {(employeeSalaryData as any)?.netSalary?.toFixed(2) || '0.00'}
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-sm text-gray-600 mb-1">Gross Salary</div>
+                      <div className="text-2xl font-bold text-blue-900">
+                        RM {(employeeSalaryData as any)?.grossSalary?.toFixed(2) || '0.00'}
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-sm text-gray-600 mb-1">Deduction</div>
+                      <div className="text-2xl font-bold text-blue-900">
+                        RM {(employeeSalaryData as any)?.totalDeduction?.toFixed(2) || '0.00'}
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-sm text-gray-600 mb-1">Company Contribution</div>
+                      <div className="text-2xl font-bold text-blue-900">
+                        RM {(employeeSalaryData as any)?.companyContribution?.toFixed(2) || '0.00'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Gross Salary Section */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Gross Salary</h3>
+                    <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
+                      <div className="flex justify-between">
+                        <span>Basic Salary</span>
+                        <span>RM {(employeeSalaryData as any)?.basic?.toFixed(2) || '0.00'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Advance Salary</span>
+                        <span>RM {(employeeSalaryData as any)?.additionalItems?.advanceSalary?.toFixed(2) || '0.00'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Salary Unit</span>
+                        <span>{(employeeSalaryData as any)?.settings?.salaryUnit || '1'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Phone Allowance</span>
+                        <span>RM {(employeeSalaryData as any)?.additionalItems?.phoneAllowance?.toFixed(2) || '0.00'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Salary Type</span>
+                        <span>{(employeeSalaryData as any)?.settings?.salaryType || 'Monthly'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Substance Allowance</span>
+                        <span>RM {(employeeSalaryData as any)?.additionalItems?.substanceAllowance?.toFixed(2) || '0.00'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Salary</span>
+                        <span>RM {(employeeSalaryData as any)?.basic?.toFixed(2) || '0.00'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Extra Responsibility Allowance</span>
+                        <span>RM {(employeeSalaryData as any)?.additionalItems?.extraResponsibilityAllowance?.toFixed(2) || '0.00'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Deduction Section */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Deduction</h3>
+                    <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
+                      <div className="flex justify-between">
+                        <span>EPF Employee</span>
+                        <span>RM {(employeeSalaryData as any)?.epfEmployee?.toFixed(2) || '0.00'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Advance</span>
+                        <span>RM {(employeeSalaryData as any)?.deductions?.advance?.toFixed(2) || '0.00'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>SOCSO Employee</span>
+                        <span>RM {(employeeSalaryData as any)?.socsoEmployee?.toFixed(2) || '0.00'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Unpaid Leave</span>
+                        <span>RM {(employeeSalaryData as any)?.deductions?.unpaidLeave?.toFixed(2) || '0.00'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>EIS Employee</span>
+                        <span>RM {(employeeSalaryData as any)?.eisEmployee?.toFixed(2) || '0.00'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Other Deduction</span>
+                        <span>RM {(employeeSalaryData as any)?.deductions?.other?.toFixed(2) || '0.00'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>PCB 39</span>
+                        <span>RM {(employeeSalaryData as any)?.pcb39?.toFixed(2) || '0.00'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Zakat</span>
+                        <span>RM {(employeeSalaryData as any)?.deductions?.zakat?.toFixed(2) || '0.00'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>PCB 38</span>
+                        <span>RM {(employeeSalaryData as any)?.deductions?.pcb38?.toFixed(2) || '0.00'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Company Contribution Section */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Company Contribution</h3>
+                    <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
+                      <div className="flex justify-between">
+                        <span>EPF Employer</span>
+                        <span>RM {(employeeSalaryData as any)?.contributions?.epfEmployer?.toFixed(2) || '0.00'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Medical Card</span>
+                        <span>RM {(employeeSalaryData as any)?.contributions?.medicalCard?.toFixed(2) || '0.00'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>SOCSO Employer</span>
+                        <span>RM {(employeeSalaryData as any)?.contributions?.socsoEmployer?.toFixed(2) || '0.00'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Group Term Life</span>
+                        <span>RM {(employeeSalaryData as any)?.contributions?.groupTermLife?.toFixed(2) || '0.00'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>EIS Employer</span>
+                        <span>RM {(employeeSalaryData as any)?.contributions?.eisEmployer?.toFixed(2) || '0.00'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Medical Company</span>
+                        <span>RM {(employeeSalaryData as any)?.contributions?.medicalCompany?.toFixed(2) || '0.00'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>HRDF</span>
+                        <span>RM {(employeeSalaryData as any)?.contributions?.hrdf?.toFixed(2) || '0.00'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* Personal Details Tab */}
+                <TabsContent value="personal-details" className="space-y-6">
+                  <div className="text-center text-gray-500 py-8">
+                    Personal Details information will be displayed here
+                  </div>
+                </TabsContent>
+              </Tabs>
+            )}
           </DialogContent>
         </Dialog>
       </div>
