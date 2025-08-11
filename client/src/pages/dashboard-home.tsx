@@ -135,7 +135,14 @@ export default function DashboardHome() {
     return "Good Evening";
   };
 
-  const userName = dashboardData?.user?.username || 'SITI NADIAH SABRI';
+  // Get current user's employee data for fullName
+  const { data: currentEmployee } = useQuery({
+    queryKey: ["/api/user/employee"],
+    queryFn: () => authenticatedFetch("/api/user/employee"),
+    enabled: !!dashboardData?.user?.id,
+  });
+
+  const userName = currentEmployee?.fullName || dashboardData?.user?.username || 'User';
 
   // Check if user has privileged access to view Today Statistic and Pending Approval cards
   const hasPrivilegedAccess = (dashboardData?.user as any)?.role && ['Super Admin', 'Admin', 'HR Manager', 'PIC'].includes((dashboardData.user as any).role);

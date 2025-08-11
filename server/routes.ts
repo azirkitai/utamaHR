@@ -243,6 +243,23 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Get current user's employee data endpoint
+  app.get("/api/user/employee", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      const employee = await storage.getEmployeeByUserId(currentUser.id);
+      
+      if (!employee) {
+        return res.status(404).json({ error: "Employee data not found" });
+      }
+
+      res.json(employee);
+    } catch (error) {
+      console.error("Get user employee error:", error);
+      res.status(500).json({ error: "Gagal mendapatkan data pekerja" });
+    }
+  });
+
   // Announcements endpoints
   app.get("/api/announcements", authenticateToken, async (req, res) => {
     try {
