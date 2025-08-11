@@ -58,6 +58,25 @@ interface TaxExemptionItem {
   };
 }
 
+interface PCB39Relief {
+  code: string;
+  label: string;
+  amount: number;
+}
+
+interface PCB39Rebate {
+  code: string;
+  label: string;
+  amount: number;
+}
+
+interface PCB39Settings {
+  mode: "custom" | "calculate";
+  amount: number;
+  reliefs: PCB39Relief[];
+  rebates: PCB39Rebate[];
+}
+
 interface DeductionItem {
   epfEmployee: number;
   socsoEmployee: number;
@@ -69,6 +88,7 @@ interface DeductionItem {
   zakat: number;
   other: number;
   customItems: CustomDeductionItem[];
+  pcb39Settings?: PCB39Settings;
   flags?: {
     advance: {
       epf: boolean;
@@ -295,6 +315,34 @@ export default function EmployeeSalaryDetailsPage() {
   const [isCalculating, setIsCalculating] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [showStatutoryFlags, setShowStatutoryFlags] = useState<Record<string, boolean>>({});
+  const [showPCB39Modal, setShowPCB39Modal] = useState(false);
+  const [pcb39Mode, setPCB39Mode] = useState<"custom" | "calculate">("custom");
+  const [reliefCode, setReliefCode] = useState("");
+  const [reliefAmount, setReliefAmount] = useState("");
+  const [rebateCode, setRebateCode] = useState("");
+  const [rebateAmount, setRebateAmount] = useState("");
+
+  
+  // PCB39 Relief options
+  const reliefOptions = [
+    { code: "IND", label: "Individual Relief" },
+    { code: "SPOUSE", label: "Spouse Relief" },
+    { code: "EPF", label: "EPF Contribution" },
+    { code: "SOCSO", label: "SOCSO Contribution" },
+    { code: "INSURANCE", label: "Life Insurance Premium" },
+    { code: "EDUCATION", label: "Education Fees" },
+    { code: "MEDICAL", label: "Medical Expenses" },
+    { code: "PARENT", label: "Parent Relief" },
+    { code: "CHILD", label: "Child Relief" }
+  ];
+
+  // PCB39 Rebate options
+  const rebateOptions = [
+    { code: "ZAKAT", label: "Zakat" },
+    { code: "LOW_INCOME", label: "Low Income Rebate" },
+    { code: "DISABILITY", label: "Disability Rebate" },
+    { code: "SENIOR", label: "Senior Citizen Rebate" }
+  ];
   
   const [salaryData, setSalaryData] = useState<MasterSalaryData>({
     employeeId: employeeId || "",
@@ -338,6 +386,12 @@ export default function EmployeeSalaryDetailsPage() {
       zakat: 0,
       other: 0,
       customItems: [],
+      pcb39Settings: {
+        mode: "custom",
+        amount: 0,
+        reliefs: [],
+        rebates: []
+      },
       flags: {
         advance: { epf: true, socso: true, eis: true, hrdf: false, pcb39: false, fixed: false },
         unpaidLeave: { epf: true, socso: true, eis: true, hrdf: false, pcb39: false, fixed: false },
@@ -833,6 +887,163 @@ export default function EmployeeSalaryDetailsPage() {
         )
       }
     });
+  };
+
+  // PCB39 helper functions
+  const addPCB39Relief = () => {
+    const selectedRelief = reliefOptions.find(r => r.code === reliefCode);
+    if (!selectedRelief || !reliefAmount) return;
+
+    const amount = parseFloat(reliefAmount);
+    if (isNaN(amount) || amount <= 0) return;
+
+    setSalaryData(prev => ({
+      ...prev,
+      deductions: {
+        ...prev.deductions,
+        pcb39Settings: {
+          ...prev.deductions.pcb39Settings!,
+          reliefs: [
+            ...prev.deductions.pcb39Settings!.reliefs.filter(r => r.code !== reliefCode),
+            { code: reliefCode, label: selectedRelief.label, amount }
+          ]
+        }
+      }
+    }));
+
+    setReliefCode("");
+    setReliefAmount("");
+    setIsDirty(true);
+  };
+
+  const addPCB39Rebate = () => {
+    const selectedRebate = rebateOptions.find(r => r.code === rebateCode);
+    if (!selectedRebate || !rebateAmount) return;
+
+    const amount = parseFloat(rebateAmount);
+    if (isNaN(amount) || amount <= 0) return;
+
+    setSalaryData(prev => ({
+      ...prev,
+      deductions: {
+        ...prev.deductions,
+        pcb39Settings: {
+          ...prev.deductions.pcb39Settings!,
+          rebates: [
+            ...prev.deductions.pcb39Settings!.rebates.filter(r => r.code !== rebateCode),
+            { code: rebateCode, label: selectedRebate.label, amount }
+          ]
+        }
+      }
+    }));
+
+    setRebateCode("");
+    setRebateAmount("");
+    setIsDirty(true);
+  };
+
+  const removePCB39Relief = (code: string) => {
+    setSalaryData(prev => ({
+      ...prev,
+      deductions: {
+        ...prev.deductions,
+        pcb39Settings: {
+          ...prev.deductions.pcb39Settings!,
+          reliefs: prev.deductions.pcb39Settings!.reliefs.filter(r => r.code !== code)
+        }
+      }
+    }));
+    setIsDirty(true);
+  };
+
+  const removePCB39Rebate = (code: string) => {
+    setSalaryData(prev => ({
+      ...prev,
+      deductions: {
+        ...prev.deductions,
+        pcb39Settings: {
+          ...prev.deductions.pcb39Settings!,
+          rebates: prev.deductions.pcb39Settings!.rebates.filter(r => r.code !== code)
+        }
+      }
+    }));
+    setIsDirty(true);
+  };
+
+  const updatePCB39Mode = (mode: "custom" | "calculate") => {
+    setPCB39Mode(mode);
+    setSalaryData(prev => ({
+      ...prev,
+      deductions: {
+        ...prev.deductions,
+        pcb39Settings: {
+          ...prev.deductions.pcb39Settings!,
+          mode
+        }
+      }
+    }));
+    setIsDirty(true);
+  };
+
+  const calculatePCB39Amount = () => {
+    if (!salaryData.deductions.pcb39Settings || salaryData.deductions.pcb39Settings.mode !== "calculate") {
+      return salaryData.deductions.pcb39;
+    }
+
+    // Basic taxable income calculation
+    let taxableIncome = salaryData.basicSalary;
+    
+    // Add taxable additional items
+    salaryData.additionalItems.forEach(item => {
+      if (item.flags?.pcb39) {
+        taxableIncome += item.amount;
+      }
+    });
+
+    // Subtract reliefs
+    const totalReliefs = salaryData.deductions.pcb39Settings.reliefs.reduce((sum, relief) => sum + relief.amount, 0);
+    taxableIncome -= totalReliefs;
+
+    // Subtract deductions marked as PCB39
+    if (salaryData.deductions.flags?.advance?.pcb39) taxableIncome -= salaryData.deductions.advance;
+    if (salaryData.deductions.flags?.unpaidLeave?.pcb39) taxableIncome -= salaryData.deductions.unpaidLeave;
+    if (salaryData.deductions.flags?.pcb38?.pcb39) taxableIncome -= salaryData.deductions.pcb38;
+    if (salaryData.deductions.flags?.zakat?.pcb39) taxableIncome -= salaryData.deductions.zakat;
+    if (salaryData.deductions.flags?.other?.pcb39) taxableIncome -= salaryData.deductions.other;
+
+    // Subtract custom deduction items marked as PCB39
+    salaryData.deductions.customItems.forEach(item => {
+      if (item.flags?.pcb39) {
+        taxableIncome -= item.amount;
+      }
+    });
+
+    // Simple PCB calculation (monthly) - this would use LHDN tax table in real implementation
+    let monthlyTax = 0;
+    const annualTaxableIncome = Math.max(0, taxableIncome * 12);
+    
+    // Simplified progressive tax calculation
+    if (annualTaxableIncome > 5000) {
+      if (annualTaxableIncome <= 20000) {
+        monthlyTax = 0; // First RM20,000 is 0%
+      } else if (annualTaxableIncome <= 35000) {
+        monthlyTax = ((annualTaxableIncome - 20000) * 0.01) / 12; // 1% on next RM15,000
+      } else if (annualTaxableIncome <= 50000) {
+        monthlyTax = (150 + (annualTaxableIncome - 35000) * 0.03) / 12; // 3% on next RM15,000
+      } else if (annualTaxableIncome <= 70000) {
+        monthlyTax = (600 + (annualTaxableIncome - 50000) * 0.08) / 12; // 8% on next RM20,000
+      } else if (annualTaxableIncome <= 100000) {
+        monthlyTax = (2200 + (annualTaxableIncome - 70000) * 0.14) / 12; // 14% on next RM30,000
+      } else {
+        monthlyTax = (6400 + (annualTaxableIncome - 100000) * 0.21) / 12; // 21% above RM100,000
+      }
+    }
+
+    // Subtract rebates
+    const totalRebates = salaryData.deductions.pcb39Settings.rebates.reduce((sum, rebate) => sum + rebate.amount, 0);
+    monthlyTax = Math.max(0, monthlyTax - totalRebates);
+
+    return roundToCent(monthlyTax);
   };
 
   // Tax exemption management functions
@@ -1477,15 +1688,41 @@ export default function EmployeeSalaryDetailsPage() {
                 </div>
               </div>
 
-              <div>
-                <Label>PCB 39 <span className="text-xs bg-orange-100 text-orange-600 px-1 rounded">Custom</span></Label>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>PCB 39 
+                    <span className={`text-xs px-1 rounded ml-2 ${
+                      salaryData.deductions.pcb39Settings?.mode === "calculate" 
+                        ? "bg-green-100 text-green-600" 
+                        : "bg-orange-100 text-orange-600"
+                    }`}>
+                      {salaryData.deductions.pcb39Settings?.mode === "calculate" ? "Auto Calculate" : "Custom"}
+                    </span>
+                  </Label>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowPCB39Modal(true)}
+                    className="text-xs text-gray-500 hover:bg-gray-100 h-6 px-2"
+                    data-testid="openPCB39Modal"
+                  >
+                    <Settings className="w-3 h-3" />
+                  </Button>
+                </div>
                 <Input
                   type="number"
                   step="0.01"
                   value={salaryData.deductions.pcb39}
                   onChange={(e) => updateDeduction('pcb39', parseFloat(e.target.value) || 0)}
+                  readOnly={salaryData.deductions.pcb39Settings?.mode === "calculate"}
+                  className={salaryData.deductions.pcb39Settings?.mode === "calculate" ? "bg-gray-50" : ""}
                   data-testid="pcb39"
                 />
+                {salaryData.deductions.pcb39Settings?.mode === "calculate" && (
+                  <div className="text-xs text-gray-500">
+                    Auto-calculated based on taxable income, reliefs & rebates
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -1994,6 +2231,228 @@ export default function EmployeeSalaryDetailsPage() {
                       data-testid="btnCloseTaxExemption"
                     >
                       Close
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {/* PCB39 Modal */}
+              <Dialog open={showPCB39Modal} onOpenChange={setShowPCB39Modal}>
+                <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center space-x-2">
+                      <span>PCB39 Configuration</span>
+                      <span className={`text-xs px-2 py-1 rounded ${
+                        salaryData.deductions.pcb39Settings?.mode === "calculate" 
+                          ? "bg-green-100 text-green-600" 
+                          : "bg-orange-100 text-orange-600"
+                      }`}>
+                        {salaryData.deductions.pcb39Settings?.mode === "calculate" ? "Auto Calculate" : "Custom"}
+                      </span>
+                    </DialogTitle>
+                    <DialogDescription>
+                      Configure PCB39 calculation mode, reliefs, and rebates for accurate tax computation.
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="space-y-6 py-4">
+                    {/* Mode Selection */}
+                    <div className="space-y-3">
+                      <h4 className="font-medium text-gray-900">Calculation Mode</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <Button
+                          variant={pcb39Mode === "custom" ? "default" : "outline"}
+                          onClick={() => updatePCB39Mode("custom")}
+                          className="h-auto p-4 text-left"
+                          data-testid="pcb39-custom-mode"
+                        >
+                          <div>
+                            <div className="font-medium">Custom</div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              Masukkan amount PCB39 secara manual
+                            </div>
+                          </div>
+                        </Button>
+                        <Button
+                          variant={pcb39Mode === "calculate" ? "default" : "outline"}
+                          onClick={() => updatePCB39Mode("calculate")}
+                          className="h-auto p-4 text-left"
+                          data-testid="pcb39-calculate-mode"
+                        >
+                          <div>
+                            <div className="font-medium">Calculate</div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              Auto-kira berdasarkan LHDN formula
+                            </div>
+                          </div>
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Current PCB39 Amount */}
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <div className="text-sm font-medium text-gray-700 mb-2">Current PCB39 Amount</div>
+                      <div className="text-2xl font-bold text-gray-900">
+                        RM {salaryData.deductions.pcb39Settings?.mode === "calculate" 
+                          ? calculatePCB39Amount().toFixed(2)
+                          : salaryData.deductions.pcb39.toFixed(2)
+                        }
+                      </div>
+                      {salaryData.deductions.pcb39Settings?.mode === "calculate" && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          Auto-calculated based on taxable income, reliefs & rebates
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Reliefs Section */}
+                    <div className="space-y-3">
+                      <h4 className="font-medium text-gray-900">Tax Reliefs</h4>
+                      <div className="grid grid-cols-3 gap-3">
+                        <Select value={reliefCode} onValueChange={setReliefCode}>
+                          <SelectTrigger data-testid="select-relief-type">
+                            <SelectValue placeholder="Pilih Relief" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {reliefOptions.map(relief => (
+                              <SelectItem key={relief.code} value={relief.code}>
+                                {relief.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder="Amount (RM)"
+                          value={reliefAmount}
+                          onChange={(e) => setReliefAmount(e.target.value)}
+                          data-testid="input-relief-amount"
+                        />
+                        <Button 
+                          onClick={addPCB39Relief}
+                          disabled={!reliefCode || !reliefAmount}
+                          data-testid="btn-add-relief"
+                        >
+                          Add Relief
+                        </Button>
+                      </div>
+                      
+                      {/* Current Reliefs */}
+                      {salaryData.deductions.pcb39Settings?.reliefs && salaryData.deductions.pcb39Settings.reliefs.length > 0 && (
+                        <div className="space-y-2">
+                          <div className="text-sm font-medium text-gray-700">Current Reliefs:</div>
+                          {salaryData.deductions.pcb39Settings.reliefs.map((relief) => (
+                            <div key={relief.code} className="flex items-center justify-between p-3 bg-white border rounded-lg">
+                              <div>
+                                <div className="font-medium">{relief.label}</div>
+                                <div className="text-sm text-gray-500">RM {relief.amount.toFixed(2)}</div>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removePCB39Relief(relief.code)}
+                                className="text-red-600 hover:text-red-700"
+                                data-testid={`remove-relief-${relief.code}`}
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Rebates Section */}
+                    <div className="space-y-3">
+                      <h4 className="font-medium text-gray-900">Tax Rebates</h4>
+                      <div className="grid grid-cols-3 gap-3">
+                        <Select value={rebateCode} onValueChange={setRebateCode}>
+                          <SelectTrigger data-testid="select-rebate-type">
+                            <SelectValue placeholder="Pilih Rebate" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {rebateOptions.map(rebate => (
+                              <SelectItem key={rebate.code} value={rebate.code}>
+                                {rebate.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder="Amount (RM)"
+                          value={rebateAmount}
+                          onChange={(e) => setRebateAmount(e.target.value)}
+                          data-testid="input-rebate-amount"
+                        />
+                        <Button 
+                          onClick={addPCB39Rebate}
+                          disabled={!rebateCode || !rebateAmount}
+                          data-testid="btn-add-rebate"
+                        >
+                          Add Rebate
+                        </Button>
+                      </div>
+                      
+                      {/* Current Rebates */}
+                      {salaryData.deductions.pcb39Settings?.rebates && salaryData.deductions.pcb39Settings.rebates.length > 0 && (
+                        <div className="space-y-2">
+                          <div className="text-sm font-medium text-gray-700">Current Rebates:</div>
+                          {salaryData.deductions.pcb39Settings.rebates.map((rebate) => (
+                            <div key={rebate.code} className="flex items-center justify-between p-3 bg-white border rounded-lg">
+                              <div>
+                                <div className="font-medium">{rebate.label}</div>
+                                <div className="text-sm text-gray-500">RM {rebate.amount.toFixed(2)}</div>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removePCB39Rebate(rebate.code)}
+                                className="text-red-600 hover:text-red-700"
+                                data-testid={`remove-rebate-${rebate.code}`}
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Calculation Summary */}
+                    {salaryData.deductions.pcb39Settings?.mode === "calculate" && (
+                      <div className="p-4 bg-blue-50 rounded-lg">
+                        <div className="text-sm font-medium text-blue-900 mb-2">Calculation Summary</div>
+                        <div className="space-y-1 text-xs text-blue-700">
+                          <div>Basic Salary: RM {salaryData.basicSalary.toFixed(2)}</div>
+                          <div>Total Reliefs: RM {(salaryData.deductions.pcb39Settings?.reliefs?.reduce((sum, r) => sum + r.amount, 0) || 0).toFixed(2)}</div>
+                          <div>Total Rebates: RM {(salaryData.deductions.pcb39Settings?.rebates?.reduce((sum, r) => sum + r.amount, 0) || 0).toFixed(2)}</div>
+                          <div className="border-t pt-1 font-medium">Monthly PCB39: RM {calculatePCB39Amount().toFixed(2)}</div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <DialogFooter>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowPCB39Modal(false)}
+                      data-testid="btn-cancel-pcb39"
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        if (salaryData.deductions.pcb39Settings?.mode === "calculate") {
+                          updateDeduction('pcb39', calculatePCB39Amount());
+                        }
+                        setShowPCB39Modal(false);
+                      }}
+                      data-testid="btn-save-pcb39"
+                    >
+                      Save & Apply
                     </Button>
                   </DialogFooter>
                 </DialogContent>
