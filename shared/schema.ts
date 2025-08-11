@@ -38,7 +38,8 @@ export const employees = pgTable("employees", {
   bumiStatus: text("bumi_status"),
   familyMembers: integer("family_members").default(0),
   
-  // Role field (only visible to authorized roles)
+  // Staff ID and Role field (only visible to authorized roles)
+  staffId: text("staff_id"), // Employee staff/employee ID
   role: text("role").default("Staff/Employee"), // Super Admin, Admin, HR Manager, PIC, Finance/Account, Manager/Supervisor, Staff/Employee
   
   // Driving License Details
@@ -389,6 +390,7 @@ export const approvalSettings = pgTable("approval_settings", {
 export const companyLeaveTypes = pgTable("company_leave_types", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   leaveType: text("leave_type").notNull().unique(), // The leave type name
+  name: text("name"), // Leave type name (alias for leaveType for backward compatibility)
   enabled: boolean("enabled").default(true), // Whether this leave type is enabled for the company
   entitlementDays: integer("entitlement_days").default(0), // Default entitlement days
   description: text("description"), // Description of the leave type
@@ -527,10 +529,14 @@ export const claimApplications = pgTable('claim_applications', {
   claimType: text('claim_type').notNull(), // 'financial' or 'overtime'
   claimCategory: text('claim_category').notNull(), // For financial: policy name, for overtime: 'overtime'
   claimDate: timestamp('claim_date').notNull(),
+  dateSubmitted: timestamp('date_submitted').defaultNow().notNull(), // When application was submitted
   amount: decimal('amount', { precision: 10, scale: 2 }), // For financial claims
   particulars: text('particulars'), // Description/details
   remark: text('remark'), // Additional notes
   supportingDocuments: text('supporting_documents').array().default(sql`'{}'`), // File paths/URLs
+  
+  // Financial claim specific fields
+  financialPolicyName: text('financial_policy_name'), // Name of the financial policy applied
   
   // Overtime specific fields
   startTime: text('start_time'), // HH:MM format
@@ -542,10 +548,13 @@ export const claimApplications = pgTable('claim_applications', {
   calculatedAmount: decimal('calculated_amount', { precision: 10, scale: 2 }), // Auto-calculated OT pay
   
   status: text('status').notNull().default('Pending'), // 'Pending', 'First Level Approved', 'Approved', 'Rejected'
+  firstLevelApproverId: varchar('first_level_approver_id').references(() => employees.id), // First level approver
+  secondLevelApproverId: varchar('second_level_approver_id').references(() => employees.id), // Second level approver
   approvedBy: varchar('approved_by').references(() => employees.id), // Who approved (final approver)
   approvedAt: timestamp('approved_at'),
   rejectedBy: varchar('rejected_by').references(() => employees.id), // Who rejected
   rejectedAt: timestamp('rejected_at'),
+  dateRejected: timestamp('date_rejected'), // When it was rejected
   rejectionReason: text('rejection_reason'), // Why rejected
   
   createdAt: timestamp('created_at').defaultNow().notNull(),

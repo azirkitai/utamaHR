@@ -704,10 +704,10 @@ export class DatabaseStorage implements IStorage {
     // Clean up null values for dates that might cause type issues
     const cleanedData = {
       ...insertWorkExperience,
-      startDate: insertWorkExperience.startDate || null,
-      endDate: insertWorkExperience.endDate || null,
+      startDate: insertWorkExperience.startDate || undefined,
+      endDate: insertWorkExperience.endDate || undefined,
     };
-    const [record] = await db.insert(workExperiences).values([cleanedData]).returning();
+    const [record] = await db.insert(workExperiences).values(cleanedData).returning();
     return record;
   }
 
@@ -1833,7 +1833,7 @@ export class DatabaseStorage implements IStorage {
             .where(
               and(
                 eq(leaveApplications.employeeId, employee.id),
-                eq(leaveApplications.leaveType, leaveType.name),
+                eq(leaveApplications.leaveType, leaveType.leaveType),
                 eq(leaveApplications.status, 'Approved'),
                 sql`EXTRACT(YEAR FROM ${leaveApplications.startDate}) = ${year}`
               )
@@ -1860,7 +1860,7 @@ export class DatabaseStorage implements IStorage {
           if (remainingDays > 0) {
             const carryForwardRecord = await this.createLeaveBalanceCarryForward({
               employeeId: employee.id,
-              leaveType: leaveType.name,
+              leaveType: leaveType.leaveType,
               year: year,
               entitlementDays: entitlementDays.toString(),
               usedDays: totalUsed.toString(),
@@ -1913,7 +1913,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .delete(financialClaimPolicies)
       .where(eq(financialClaimPolicies.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // =================== CLAIM APPLICATION METHODS ===================
@@ -1976,7 +1976,7 @@ export class DatabaseStorage implements IStorage {
         status: newStatus,
         firstLevelApproverId,
         secondLevelApproverId,
-        dateApproved: newStatus === 'approved' ? new Date() : null
+        approvedAt: newStatus === 'approved' ? new Date() : null
       })
       .where(eq(claimApplications.id, id))
       .returning();
@@ -2173,7 +2173,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .delete(salaryBasicEarnings)
       .where(eq(salaryBasicEarnings.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   async createSalaryAdditionalItem(data: InsertSalaryAdditionalItem): Promise<SalaryAdditionalItem> {
@@ -2197,7 +2197,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .delete(salaryAdditionalItems)
       .where(eq(salaryAdditionalItems.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   async createSalaryDeductionItem(data: InsertSalaryDeductionItem): Promise<SalaryDeductionItem> {
@@ -2221,7 +2221,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .delete(salaryDeductionItems)
       .where(eq(salaryDeductionItems.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   async createSalaryCompanyContribution(data: InsertSalaryCompanyContribution): Promise<SalaryCompanyContribution> {
@@ -2245,7 +2245,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .delete(salaryCompanyContributions)
       .where(eq(salaryCompanyContributions.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 }
 

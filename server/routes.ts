@@ -3311,7 +3311,7 @@ export function registerRoutes(app: Express): Server {
         }
 
         // Check per-application limit
-        if (data.amount > policy.limitPerApplication) {
+        if (policy.limitPerApplication && data.amount > policy.limitPerApplication) {
           return res.status(400).json({ 
             error: `Jumlah melebihi had setiap permohonan: RM${policy.limitPerApplication}` 
           });
@@ -3327,9 +3327,9 @@ export function registerRoutes(app: Express): Server {
           new Date(claim.dateSubmitted).getFullYear() === currentYear
         );
         
-        const totalApprovedAmount = approvedClaims.reduce((sum, claim) => sum + (claim.amount || 0), 0);
+        const totalApprovedAmount = approvedClaims.reduce((sum, claim) => sum + Number(claim.amount || 0), 0);
         
-        if (totalApprovedAmount + data.amount > policy.annualLimit) {
+        if (policy.annualLimit && totalApprovedAmount + Number(data.amount) > Number(policy.annualLimit)) {
           return res.status(400).json({ 
             error: `Jumlah melebihi had tahunan: RM${policy.annualLimit}. Jumlah yang telah diluluskan: RM${totalApprovedAmount}` 
           });
