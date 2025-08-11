@@ -2039,6 +2039,93 @@ export class DatabaseStorage implements IStorage {
     return salary || undefined;
   }
 
+  // Master Salary Data methods (JSON-based approach)
+  async getMasterSalaryData(employeeId: string): Promise<any> {
+    // Check if salary data exists in JSON format (in-memory approach)
+    // For now, we'll store in a simple table or use JSON fields
+    const [employee] = await db.select().from(employees).where(eq(employees.id, employeeId));
+    if (!employee) {
+      return null;
+    }
+
+    // Return default structure if no saved data
+    return {
+      employeeId,
+      salaryType: "Monthly",
+      basicSalary: 0,
+      additionalItems: [
+        { 
+          code: "ADV", 
+          label: "Advance Salary", 
+          amount: 0,
+          flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }
+        },
+        { 
+          code: "SUBS", 
+          label: "Subsistence Allowance", 
+          amount: 0,
+          flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }
+        },
+        { 
+          code: "RESP", 
+          label: "Extra Responsibility Allowance", 
+          amount: 0,
+          flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }
+        },
+        { 
+          code: "BIK", 
+          label: "BIK/VOLA", 
+          amount: 0, 
+          hideOnPayslip: true,
+          flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }
+        }
+      ],
+      deductions: {
+        epfEmployee: 0,
+        socsoEmployee: 0,
+        eisEmployee: 0,
+        advance: 0,
+        unpaidLeave: 0,
+        pcb39: 0,
+        pcb38: 0,
+        zakat: 0,
+        other: 0
+      },
+      contributions: {
+        epfEmployer: 0,
+        socsoEmployer: 0,
+        eisEmployer: 0,
+        medicalCard: 0,
+        groupTermLife: 0,
+        medicalCompany: 0,
+        hrdf: 0
+      },
+      settings: {
+        isCalculatedInPayment: true,
+        isSocsoEnabled: true,
+        isEisEnabled: true,
+        epfCalcMethod: "PERCENT", // Updated to ensure consistency
+        epfEmployeeRate: 11.0,
+        epfEmployerRate: 13.0,
+        hrdfEmployerRate: 1.0
+      },
+      remarks: ""
+    };
+  }
+
+  async saveMasterSalaryData(data: any): Promise<any> {
+    // For now, we'll just return the data as saved
+    // In real implementation, this would be stored in database
+    console.log('Saving master salary data:', data);
+    
+    // Ensure epfCalcMethod is either PERCENT or CUSTOM (not FIXED)
+    if (data.settings?.epfCalcMethod === "FIXED") {
+      data.settings.epfCalcMethod = "CUSTOM";
+    }
+    
+    return data;
+  }
+
   async createSalaryBasicEarning(data: InsertSalaryBasicEarning): Promise<SalaryBasicEarning> {
     const [earning] = await db
       .insert(salaryBasicEarnings)

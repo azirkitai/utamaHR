@@ -3413,11 +3413,11 @@ export function registerRoutes(app: Express): Server {
 
   // =================== EMPLOYEE SALARY ROUTES ===================
   
-  // Get employee salary details
+  // Get employee salary details (Master Salary format)
   app.get('/api/employees/:employeeId/salary', authenticateToken, async (req, res) => {
     try {
       const { employeeId } = req.params;
-      const salaryData = await storage.getEmployeeSalaryByEmployeeId(employeeId);
+      const salaryData = await storage.getMasterSalaryData(employeeId);
       
       if (!salaryData) {
         return res.status(404).json({ error: 'Maklumat gaji pekerja tidak dijumpai' });
@@ -3430,13 +3430,13 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Create employee salary
+  // Create employee salary (Master Salary format)
   app.post('/api/employees/:employeeId/salary', authenticateToken, async (req, res) => {
     try {
       const { employeeId } = req.params;
       const salaryData = { ...req.body, employeeId };
       
-      const salary = await storage.createEmployeeSalary(salaryData);
+      const salary = await storage.saveMasterSalaryData(salaryData);
       res.status(201).json(salary);
     } catch (error) {
       console.error('Error creating employee salary:', error);
@@ -3444,11 +3444,13 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Update employee salary
+  // Update employee salary (Master Salary format)
   app.put('/api/employees/:employeeId/salary', authenticateToken, async (req, res) => {
     try {
       const { employeeId } = req.params;
-      const salary = await storage.updateEmployeeSalary(employeeId, req.body);
+      const salaryData = { ...req.body, employeeId };
+      
+      const salary = await storage.saveMasterSalaryData(salaryData);
       
       if (!salary) {
         return res.status(404).json({ error: 'Maklumat gaji pekerja tidak dijumpai' });
