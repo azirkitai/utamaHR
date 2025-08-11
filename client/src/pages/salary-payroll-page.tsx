@@ -356,61 +356,59 @@ export default function SalaryPayrollPage() {
             </div>
             <h1 className="text-3xl font-bold text-gray-900">Salary Payroll</h1>
           </div>
+          
+          {/* Run Payment Button - moved to header, only show on Salary Payroll List tab */}
+          {activeTab === "salary-payroll-list" && (
+            <Button 
+              className="bg-blue-900 hover:bg-blue-800 text-white"
+              onClick={() => setShowNewPayrollModal(true)}
+              data-testid="button-run-payment"
+            >
+              <Play className="w-4 h-4 mr-2" />
+              Run Payment
+            </Button>
+          )}
         </div>
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <div className="flex justify-between items-center">
-            <TabsList className="grid w-auto grid-cols-5 bg-gray-100">
-              <TabsTrigger 
-                value="salary-payroll-list" 
-                className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white px-4"
-                data-testid="tab-salary-payroll-list"
-              >
-                Salary Payroll List
-              </TabsTrigger>
-              <TabsTrigger 
-                value="employee-salary-table" 
-                className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white px-4"
-                data-testid="tab-employee-salary-table"
-              >
-                Employee Salary Table
-              </TabsTrigger>
-              <TabsTrigger 
-                value="task" 
-                className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white px-4"
-                data-testid="tab-task"
-              >
-                Task
-              </TabsTrigger>
-              <TabsTrigger 
-                value="report" 
-                className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white px-4"
-                data-testid="tab-report"
-              >
-                Report
-              </TabsTrigger>
-              <TabsTrigger 
-                value="summary" 
-                className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white px-4"
-                data-testid="tab-summary"
-              >
-                Summary
-              </TabsTrigger>
-            </TabsList>
-
-            {/* Run Payment Button - only show on Salary Payroll List tab */}
-            {activeTab === "salary-payroll-list" && (
-              <Button 
-                className="bg-blue-900 hover:bg-blue-800 text-white"
-                onClick={() => setShowNewPayrollModal(true)}
-                data-testid="button-run-payment"
-              >
-                <Play className="w-4 h-4 mr-2" />
-                Run Payment
-              </Button>
-            )}
-          </div>
+          <TabsList className="grid w-auto grid-cols-5 bg-gray-100">
+            <TabsTrigger 
+              value="salary-payroll-list" 
+              className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white px-4"
+              data-testid="tab-salary-payroll-list"
+            >
+              Salary Payroll List
+            </TabsTrigger>
+            <TabsTrigger 
+              value="employee-salary-table" 
+              className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white px-4"
+              data-testid="tab-employee-salary-table"
+            >
+              Employee Salary Table
+            </TabsTrigger>
+            <TabsTrigger 
+              value="task" 
+              className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white px-4"
+              data-testid="tab-task"
+            >
+              Task
+            </TabsTrigger>
+            <TabsTrigger 
+              value="report" 
+              className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white px-4"
+              data-testid="tab-report"
+            >
+              Report
+            </TabsTrigger>
+            <TabsTrigger 
+              value="summary" 
+              className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white px-4"
+              data-testid="tab-summary"
+            >
+              Summary
+            </TabsTrigger>
+          </TabsList>
 
           {/* Salary Payroll List Tab */}
           <TabsContent value="salary-payroll-list" className="space-y-6">
