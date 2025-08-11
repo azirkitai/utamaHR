@@ -2279,7 +2279,26 @@ export default function EmployeeSalaryDetailsPage() {
               <Dialog open={showPCB39Modal} onOpenChange={setShowPCB39Modal}>
                 <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle>PCB39</DialogTitle>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <DialogTitle>PCB39</DialogTitle>
+                        <DialogDescription>
+                          Configure PCB39 tax relief and rebate settings for employee
+                        </DialogDescription>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Label className="text-sm text-gray-600">Mode:</Label>
+                        <Select value={pcb39Mode} onValueChange={setPCB39Mode}>
+                          <SelectTrigger className="w-32">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="calculate">Calculate</SelectItem>
+                            <SelectItem value="custom">Custom</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
                   </DialogHeader>
                   
                   <div className="space-y-4">
@@ -2369,7 +2388,7 @@ export default function EmployeeSalaryDetailsPage() {
                               className="bg-gray-600 hover:bg-gray-700 text-white w-full"
                               data-testid="btn-add-pcb39-relief"
                             >
-                              Add PCB39 Relief
+                              + Add Relief
                             </Button>
                           </div>
                         </div>
@@ -2477,7 +2496,7 @@ export default function EmployeeSalaryDetailsPage() {
                               className="bg-gray-600 hover:bg-gray-700 text-white w-full"
                               data-testid="btn-add-pcb39-rebate"
                             >
-                              Add PCB39 Relief
+                              + Add Rebate
                             </Button>
                           </div>
                         </div>
