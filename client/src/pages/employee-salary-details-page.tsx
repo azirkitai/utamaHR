@@ -2300,7 +2300,7 @@ export default function EmployeeSalaryDetailsPage() {
                       </div>
                       <div className="flex items-center gap-2">
                         <Label className="text-sm text-gray-600">Mode:</Label>
-                        <Select value={pcb39Mode} onValueChange={setPCB39Mode}>
+                        <Select value={pcb39Mode} onValueChange={(value) => setPCB39Mode(value as "custom" | "calculate")}>
                           <SelectTrigger className="w-32">
                             <SelectValue />
                           </SelectTrigger>
