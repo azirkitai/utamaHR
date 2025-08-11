@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Calculator, Save, Info, Settings, ChevronDown, ChevronUp, X, Trash2, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { PCB39_RELIEFS_2025 } from "@shared/pcb39-reliefs-2025";
@@ -3621,24 +3622,61 @@ export default function EmployeeSalaryDetailsPage() {
           )}
 
           <div className="space-y-4">
-            {/* Amount Input */}
-            <div className="space-y-2">
-              <div className="flex">
-                <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
-                  <span className="text-sm font-medium">RM</span>
+            {pcb39Mode === "custom" ? (
+              /* Amount Input for Custom Mode */
+              <div className="space-y-2">
+                <div className="flex">
+                  <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                    <span className="text-sm font-medium">RM</span>
+                  </div>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={pcb39CustomAmount}
+                    onChange={(e) => setPCB39CustomAmount(e.target.value)}
+                    className="rounded-l-none"
+                    placeholder="0.00"
+                    data-testid="pcb39-modal-amount"
+                  />
                 </div>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={pcb39CustomAmount}
-                  onChange={(e) => setPCB39CustomAmount(e.target.value)}
-                  className="rounded-l-none"
-                  placeholder="0.00"
-                  disabled={pcb39Mode === "calculate"}
-                  data-testid="pcb39-modal-amount"
-                />
               </div>
-            </div>
+            ) : (
+              /* Relief and Rebate Tabs for Calculate Mode */
+              <Tabs defaultValue="relief" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="relief">Relief</TabsTrigger>
+                  <TabsTrigger value="rebate">Rebate</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="relief" className="space-y-3">
+                  <div className="text-center py-4">
+                    <p className="text-gray-500 text-sm mb-3">No relief items configured</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                      data-testid="btn-add-pcb39-relief"
+                    >
+                      Add PCB39 Relief
+                    </Button>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="rebate" className="space-y-3">
+                  <div className="text-center py-4">
+                    <p className="text-gray-500 text-sm mb-3">No rebate items configured</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                      data-testid="btn-add-pcb39-rebate"
+                    >
+                      Add PCB39 Rebate
+                    </Button>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            )}
           </div>
 
           <DialogFooter>
