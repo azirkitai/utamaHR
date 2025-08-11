@@ -1572,7 +1572,18 @@ export default function EmployeeSalaryDetailsPage() {
                 
                 {/* Advance Salary */}
                 <div className="space-y-2">
-                  <Label className="font-medium">Advance Salary</Label>
+                  <div className="flex items-center space-x-2">
+                    <Label className="font-medium">Advance Salary</Label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleStatutoryFlags("ADV")}
+                      className="h-6 w-6 p-0 text-blue-500 hover:text-blue-700"
+                      data-testid="advance-salary-settings-toggle"
+                    >
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                  </div>
                   <div className="flex">
                     <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
                       <span className="text-sm font-medium">RM</span>
@@ -1586,11 +1597,76 @@ export default function EmployeeSalaryDetailsPage() {
                       data-testid="advance-salary"
                     />
                   </div>
+                  
+                  {/* Show statutory flags when toggled */}
+                  {showStatutoryFlags["ADV"] && (
+                    <div className="grid grid-cols-3 gap-2 mt-2 p-3 bg-gray-50 rounded border">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.additionalItems.find(item => item.code === "ADV")?.flags?.epf || false}
+                          onCheckedChange={(checked) => updateAdditionalItemFlag("ADV", "epf", !!checked)}
+                          data-testid="advance-salary-epf"
+                        />
+                        <Label className="text-sm">EPF</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.additionalItems.find(item => item.code === "ADV")?.flags?.socso || false}
+                          onCheckedChange={(checked) => updateAdditionalItemFlag("ADV", "socso", !!checked)}
+                          data-testid="advance-salary-socso"
+                        />
+                        <Label className="text-sm">SOCSO</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.additionalItems.find(item => item.code === "ADV")?.flags?.eis || false}
+                          onCheckedChange={(checked) => updateAdditionalItemFlag("ADV", "eis", !!checked)}
+                          data-testid="advance-salary-eis"
+                        />
+                        <Label className="text-sm">EIS</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.additionalItems.find(item => item.code === "ADV")?.flags?.hrdf || false}
+                          onCheckedChange={(checked) => updateAdditionalItemFlag("ADV", "hrdf", !!checked)}
+                          data-testid="advance-salary-hrdf"
+                        />
+                        <Label className="text-sm">HRDF</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.additionalItems.find(item => item.code === "ADV")?.flags?.pcb39 || false}
+                          onCheckedChange={(checked) => updateAdditionalItemFlag("ADV", "pcb39", !!checked)}
+                          data-testid="advance-salary-pcb39"
+                        />
+                        <Label className="text-sm">PCB39</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.additionalItems.find(item => item.code === "ADV")?.flags?.fixed || false}
+                          onCheckedChange={(checked) => updateAdditionalItemFlag("ADV", "fixed", !!checked)}
+                          data-testid="advance-salary-fixed"
+                        />
+                        <Label className="text-sm">Fixed</Label>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Subsistence Allowance */}
                 <div className="space-y-2">
-                  <Label className="font-medium">Subsistence Allowance</Label>
+                  <div className="flex items-center space-x-2">
+                    <Label className="font-medium">Subsistence Allowance</Label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleStatutoryFlags("SUBS")}
+                      className="h-6 w-6 p-0 text-blue-500 hover:text-blue-700"
+                      data-testid="subsistence-allowance-settings-toggle"
+                    >
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                  </div>
                   <div className="flex">
                     <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
                       <span className="text-sm font-medium">RM</span>
@@ -1604,11 +1680,76 @@ export default function EmployeeSalaryDetailsPage() {
                       data-testid="subsistence-allowance"
                     />
                   </div>
+                  
+                  {/* Show statutory flags when toggled */}
+                  {showStatutoryFlags["SUBS"] && (
+                    <div className="grid grid-cols-3 gap-2 mt-2 p-3 bg-gray-50 rounded border">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.additionalItems.find(item => item.code === "SUBS")?.flags?.epf || false}
+                          onCheckedChange={(checked) => updateAdditionalItemFlag("SUBS", "epf", !!checked)}
+                          data-testid="subsistence-allowance-epf"
+                        />
+                        <Label className="text-sm">EPF</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.additionalItems.find(item => item.code === "SUBS")?.flags?.socso || false}
+                          onCheckedChange={(checked) => updateAdditionalItemFlag("SUBS", "socso", !!checked)}
+                          data-testid="subsistence-allowance-socso"
+                        />
+                        <Label className="text-sm">SOCSO</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.additionalItems.find(item => item.code === "SUBS")?.flags?.eis || false}
+                          onCheckedChange={(checked) => updateAdditionalItemFlag("SUBS", "eis", !!checked)}
+                          data-testid="subsistence-allowance-eis"
+                        />
+                        <Label className="text-sm">EIS</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.additionalItems.find(item => item.code === "SUBS")?.flags?.hrdf || false}
+                          onCheckedChange={(checked) => updateAdditionalItemFlag("SUBS", "hrdf", !!checked)}
+                          data-testid="subsistence-allowance-hrdf"
+                        />
+                        <Label className="text-sm">HRDF</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.additionalItems.find(item => item.code === "SUBS")?.flags?.pcb39 || false}
+                          onCheckedChange={(checked) => updateAdditionalItemFlag("SUBS", "pcb39", !!checked)}
+                          data-testid="subsistence-allowance-pcb39"
+                        />
+                        <Label className="text-sm">PCB39</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.additionalItems.find(item => item.code === "SUBS")?.flags?.fixed || false}
+                          onCheckedChange={(checked) => updateAdditionalItemFlag("SUBS", "fixed", !!checked)}
+                          data-testid="subsistence-allowance-fixed"
+                        />
+                        <Label className="text-sm">Fixed</Label>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Extra Responsibility Allowance */}
                 <div className="space-y-2">
-                  <Label className="font-medium">Extra Responsibility Allowance</Label>
+                  <div className="flex items-center space-x-2">
+                    <Label className="font-medium">Extra Responsibility Allowance</Label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleStatutoryFlags("RESP")}
+                      className="h-6 w-6 p-0 text-blue-500 hover:text-blue-700"
+                      data-testid="extra-responsibility-settings-toggle"
+                    >
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                  </div>
                   <div className="flex">
                     <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
                       <span className="text-sm font-medium">RM</span>
@@ -1622,6 +1763,60 @@ export default function EmployeeSalaryDetailsPage() {
                       data-testid="extra-responsibility"
                     />
                   </div>
+                  
+                  {/* Show statutory flags when toggled */}
+                  {showStatutoryFlags["RESP"] && (
+                    <div className="grid grid-cols-3 gap-2 mt-2 p-3 bg-gray-50 rounded border">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.additionalItems.find(item => item.code === "RESP")?.flags?.epf || false}
+                          onCheckedChange={(checked) => updateAdditionalItemFlag("RESP", "epf", !!checked)}
+                          data-testid="extra-responsibility-epf"
+                        />
+                        <Label className="text-sm">EPF</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.additionalItems.find(item => item.code === "RESP")?.flags?.socso || false}
+                          onCheckedChange={(checked) => updateAdditionalItemFlag("RESP", "socso", !!checked)}
+                          data-testid="extra-responsibility-socso"
+                        />
+                        <Label className="text-sm">SOCSO</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.additionalItems.find(item => item.code === "RESP")?.flags?.eis || false}
+                          onCheckedChange={(checked) => updateAdditionalItemFlag("RESP", "eis", !!checked)}
+                          data-testid="extra-responsibility-eis"
+                        />
+                        <Label className="text-sm">EIS</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.additionalItems.find(item => item.code === "RESP")?.flags?.hrdf || false}
+                          onCheckedChange={(checked) => updateAdditionalItemFlag("RESP", "hrdf", !!checked)}
+                          data-testid="extra-responsibility-hrdf"
+                        />
+                        <Label className="text-sm">HRDF</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.additionalItems.find(item => item.code === "RESP")?.flags?.pcb39 || false}
+                          onCheckedChange={(checked) => updateAdditionalItemFlag("RESP", "pcb39", !!checked)}
+                          data-testid="extra-responsibility-pcb39"
+                        />
+                        <Label className="text-sm">PCB39</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.additionalItems.find(item => item.code === "RESP")?.flags?.fixed || false}
+                          onCheckedChange={(checked) => updateAdditionalItemFlag("RESP", "fixed", !!checked)}
+                          data-testid="extra-responsibility-fixed"
+                        />
+                        <Label className="text-sm">Fixed</Label>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* BIK/VOLA */}
