@@ -45,6 +45,12 @@ interface CustomDeductionItem {
   };
 }
 
+interface CustomContributionItem {
+  id: string;
+  name: string;
+  amount: number;
+}
+
 interface TaxExemptionItem {
   code: string;
   label: string;
@@ -143,6 +149,7 @@ interface ContributionItem {
   groupTermLife: number;
   medicalCompany: number;
   hrdf: number;
+  customItems: CustomContributionItem[];
 }
 
 interface SalarySettings {
@@ -324,6 +331,8 @@ export default function EmployeeSalaryDetailsPage() {
   const [rebateCode, setRebateCode] = useState("");
   const [rebateAmount, setRebateAmount] = useState("");
   const [pcb39Tab, setPCB39Tab] = useState("relief");
+  const [showAddContributionItemDialog, setShowAddContributionItemDialog] = useState(false);
+  const [newContributionItemName, setNewContributionItemName] = useState("");
 
   
   // PCB39 Relief options from official 2025 config
@@ -400,7 +409,8 @@ export default function EmployeeSalaryDetailsPage() {
       medicalCard: 0,
       groupTermLife: 0,
       medicalCompany: 0,
-      hrdf: 0
+      hrdf: 0,
+      customItems: []
     },
     settings: {
       isCalculatedInPayment: true,
@@ -704,7 +714,17 @@ export default function EmployeeSalaryDetailsPage() {
         salaryData.deductions.other +
         customDeductionsSum;
       
-      const sumContribution = Object.values(updatedContributions).reduce((sum, value) => sum + value, 0);
+      // Calculate total contributions including custom items
+      const customContributionsSum = (salaryData.contributions.customItems || []).reduce((sum, item) => sum + item.amount, 0);
+      const sumContribution = 
+        updatedContributions.epfEmployer +
+        updatedContributions.socsoEmployer +
+        updatedContributions.eisEmployer +
+        updatedContributions.medicalCard +
+        updatedContributions.groupTermLife +
+        updatedContributions.medicalCompany +
+        updatedContributions.hrdf +
+        customContributionsSum;
 
       const grossSalary = salaryData.basicSalary + sumAdditional;
       const netSalary = grossSalary - sumDeduction;
@@ -837,6 +857,50 @@ export default function EmployeeSalaryDetailsPage() {
   const updateContribution = (field: keyof ContributionItem, value: number) => {
     updateSalaryData({ 
       contributions: { ...salaryData.contributions, [field]: value }
+    });
+  };
+
+  const addCustomContributionItem = () => {
+    if (!newContributionItemName.trim()) return;
+    
+    const newItem: CustomContributionItem = {
+      id: `custom_${Date.now()}`,
+      name: newContributionItemName.trim(),
+      amount: 0
+    };
+    
+    updateSalaryData({
+      contributions: {
+        ...salaryData.contributions,
+        customItems: [...(salaryData.contributions.customItems || []), newItem]
+      }
+    });
+    
+    setNewContributionItemName("");
+    setShowAddContributionItemDialog(false);
+  };
+
+  const removeCustomContributionItem = (index: number) => {
+    const updatedItems = [...(salaryData.contributions.customItems || [])];
+    updatedItems.splice(index, 1);
+    
+    updateSalaryData({
+      contributions: {
+        ...salaryData.contributions,
+        customItems: updatedItems
+      }
+    });
+  };
+
+  const updateCustomContributionItem = (index: number, amount: number) => {
+    const updatedItems = [...(salaryData.contributions.customItems || [])];
+    updatedItems[index] = { ...updatedItems[index], amount };
+    
+    updateSalaryData({
+      contributions: {
+        ...salaryData.contributions,
+        customItems: updatedItems
+      }
     });
   };
 
@@ -2679,37 +2743,245 @@ export default function EmployeeSalaryDetailsPage() {
 
               {/* Column 4 - Company Contribution */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Company Contribution</h3>
+                <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold">Company Contribution</h3>
+                </div>
                 
-                <div className="grid grid-cols-1 gap-6">
-                  <div className="bg-white p-4 rounded-lg border">
-                    <h4 className="font-medium text-gray-900 mb-3">EPF Contribution</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span>Employee (11%)</span>
-                        <span>RM {(salaryData.basicSalary * 0.11).toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Employer (12%)</span>
-                        <span>RM {(salaryData.basicSalary * 0.12).toFixed(2)}</span>
+                {/* EPF Employer */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="font-medium">EPF Employer</Label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-sm text-gray-600">How did we calculate this?</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="p-0 h-4 w-4 text-blue-500 hover:text-blue-700"
+                          data-testid="info-epf-employer"
+                        >
+                          <Info className="h-3 w-3" />
+                        </Button>
                       </div>
                     </div>
                   </div>
-                  
-                  <div className="bg-white p-4 rounded-lg border">
-                    <h4 className="font-medium text-gray-900 mb-3">SOCSO Contribution</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span>Employee (0.5%)</span>
-                        <span>RM {Math.min(salaryData.basicSalary * 0.005, 19.75).toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Employer (1.75%)</span>
-                        <span>RM {Math.min(salaryData.basicSalary * 0.0175, 69.05).toFixed(2)}</span>
-                      </div>
+                  <div className="flex">
+                    <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                      <span className="text-sm font-medium">RM</span>
                     </div>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={salaryData.contributions.epfEmployer.toFixed(2)}
+                      onChange={(e) => updateContribution('epfEmployer', parseFloat(e.target.value) || 0)}
+                      className="rounded-l-none bg-gray-100"
+                      readOnly
+                      data-testid="epfEmployer"
+                    />
                   </div>
                 </div>
+
+                {/* SOCSO Employer */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="font-medium">SOCSO Employer</Label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-sm text-gray-600">How did we calculate this?</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="p-0 h-4 w-4 text-blue-500 hover:text-blue-700"
+                          data-testid="info-socso-employer"
+                        >
+                          <Info className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex">
+                    <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                      <span className="text-sm font-medium">RM</span>
+                    </div>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={salaryData.contributions.socsoEmployer.toFixed(2)}
+                      onChange={(e) => updateContribution('socsoEmployer', parseFloat(e.target.value) || 0)}
+                      className="rounded-l-none bg-gray-100"
+                      readOnly
+                      data-testid="socsoEmployer"
+                    />
+                  </div>
+                </div>
+
+                {/* EIS Employer */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="font-medium">EIS Employer</Label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-sm text-gray-600">How did we calculate this?</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="p-0 h-4 w-4 text-blue-500 hover:text-blue-700"
+                          data-testid="info-eis-employer"
+                        >
+                          <Info className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex">
+                    <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                      <span className="text-sm font-medium">RM</span>
+                    </div>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={salaryData.contributions.eisEmployer.toFixed(2)}
+                      onChange={(e) => updateContribution('eisEmployer', parseFloat(e.target.value) || 0)}
+                      className="rounded-l-none bg-gray-100"
+                      readOnly
+                      data-testid="eisEmployer"
+                    />
+                  </div>
+                </div>
+
+                {/* Medical Card */}
+                <div className="space-y-2">
+                  <Label className="font-medium">Medical Card</Label>
+                  <div className="flex">
+                    <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                      <span className="text-sm font-medium">RM</span>
+                    </div>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={salaryData.contributions.medicalCard}
+                      onChange={(e) => updateContribution('medicalCard', parseFloat(e.target.value) || 0)}
+                      className="rounded-l-none"
+                      data-testid="medicalCard"
+                    />
+                  </div>
+                </div>
+
+                {/* Group Term Life */}
+                <div className="space-y-2">
+                  <Label className="font-medium">Group Term Life</Label>
+                  <div className="flex">
+                    <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                      <span className="text-sm font-medium">RM</span>
+                    </div>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={salaryData.contributions.groupTermLife}
+                      onChange={(e) => updateContribution('groupTermLife', parseFloat(e.target.value) || 0)}
+                      className="rounded-l-none"
+                      data-testid="groupTermLife"
+                    />
+                  </div>
+                </div>
+
+                {/* Medical Company */}
+                <div className="space-y-2">
+                  <Label className="font-medium">Medical Company</Label>
+                  <div className="flex">
+                    <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                      <span className="text-sm font-medium">RM</span>
+                    </div>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={salaryData.contributions.medicalCompany}
+                      onChange={(e) => updateContribution('medicalCompany', parseFloat(e.target.value) || 0)}
+                      className="rounded-l-none"
+                      data-testid="medicalCompany"
+                    />
+                  </div>
+                </div>
+
+                {/* HRDF */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="font-medium">HRDF</Label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-sm text-gray-600">How did we calculate this?</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="p-0 h-4 w-4 text-blue-500 hover:text-blue-700"
+                          data-testid="info-hrdf"
+                        >
+                          <Info className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex">
+                    <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                      <span className="text-sm font-medium">RM</span>
+                    </div>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={salaryData.contributions.hrdf.toFixed(2)}
+                      onChange={(e) => updateContribution('hrdf', parseFloat(e.target.value) || 0)}
+                      className="rounded-l-none bg-gray-100"
+                      readOnly
+                      data-testid="hrdf"
+                    />
+                  </div>
+                </div>
+
+                {/* Custom Contribution Items */}
+                {salaryData.contributions.customItems && salaryData.contributions.customItems.length > 0 && (
+                  <div className="space-y-3">
+                    {salaryData.contributions.customItems.map((item, index) => (
+                      <div key={index} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="font-medium">{item.name}</Label>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeCustomContributionItem(index)}
+                            className="text-red-500 hover:text-red-700 p-1 h-6 w-6"
+                            data-testid={`remove-contribution-${index}`}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <div className="flex">
+                          <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                            <span className="text-sm font-medium">RM</span>
+                          </div>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={item.amount}
+                            onChange={(e) => updateCustomContributionItem(index, parseFloat(e.target.value) || 0)}
+                            className="rounded-l-none"
+                            data-testid={`custom-contribution-${index}`}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Add Contribution Item Button */}
+                <Button
+                  variant="outline"
+                  onClick={() => setShowAddContributionItemDialog(true)}
+                  className="w-full flex items-center gap-2 mt-4 border-2 border-dashed border-gray-300 hover:border-gray-400 py-6"
+                  data-testid="add-contribution-item"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Contribution Item
+                </Button>
               </div>
             </div>
 
@@ -2756,6 +3028,49 @@ export default function EmployeeSalaryDetailsPage() {
                 Calculate Payroll
               </Button>
             </div>
+
+            {/* Add Contribution Item Dialog */}
+            <Dialog open={showAddContributionItemDialog} onOpenChange={setShowAddContributionItemDialog}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add Contribution Item</DialogTitle>
+                  <DialogDescription>
+                    Add a new custom contribution item to the employee's salary
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="contributionItemName">Item Name</Label>
+                    <Input
+                      id="contributionItemName"
+                      value={newContributionItemName}
+                      onChange={(e) => setNewContributionItemName(e.target.value)}
+                      placeholder="Enter contribution item name"
+                      data-testid="input-contribution-name"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setShowAddContributionItemDialog(false);
+                      setNewContributionItemName("");
+                    }}
+                    data-testid="btn-cancel-contribution"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={addCustomContributionItem}
+                    disabled={!newContributionItemName.trim()}
+                    data-testid="btn-add-contribution"
+                  >
+                    Add Item
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </CardContent>
         </Card>
       )}
