@@ -504,20 +504,38 @@ export default function EmployeeSalaryDetailsPage() {
 
   // Tax exemption state
   const [taxExemptions, setTaxExemptions] = useState({
-    travellingAllowance: { amount: 0 },
+    travellingAllowance: { 
+      amount: 0, 
+      flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }
+    },
     childCareAllowance: { 
       amount: 0, 
       flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }
     },
-    gift: { amount: 0 },
-    phoneAllowance: { amount: 0 },
-    reward: { amount: 0 },
+    gift: { 
+      amount: 0, 
+      flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }
+    },
+    phoneAllowance: { 
+      amount: 0, 
+      flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }
+    },
+    reward: { 
+      amount: 0, 
+      flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }
+    },
     parkingAllowance: { 
       amount: 0, 
       flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }
     },
-    mealAllowance: { amount: 0 },
-    subsidies: { amount: 0 }
+    mealAllowance: { 
+      amount: 0, 
+      flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }
+    },
+    subsidies: { 
+      amount: 0, 
+      flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }
+    }
   });
 
   // State to track which tax exemption settings are expanded
@@ -1261,7 +1279,7 @@ export default function EmployeeSalaryDetailsPage() {
     setTaxExemptions(prev => ({
       ...prev,
       [exemptionKey]: {
-        ...prev[exemptionKey],
+        ...(prev as any)[exemptionKey],
         [field]: value
       }
     }));
@@ -1272,9 +1290,9 @@ export default function EmployeeSalaryDetailsPage() {
     setTaxExemptions(prev => ({
       ...prev,
       [exemptionKey]: {
-        ...prev[exemptionKey],
+        ...(prev as any)[exemptionKey],
         flags: {
-          ...prev[exemptionKey]?.flags,
+          ...(prev as any)[exemptionKey]?.flags,
           [flag]: value
         }
       }
@@ -2605,7 +2623,14 @@ export default function EmployeeSalaryDetailsPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label className="font-medium">Travelling Allowance</Label>
-                <Settings className="h-4 w-4 text-gray-400" />
+                <button
+                  type="button"
+                  onClick={() => toggleTaxExemptionSetting('travellingAllowance')}
+                  className="hover:bg-gray-100 p-1 rounded"
+                  data-testid="travelling-allowance-settings-btn"
+                >
+                  <Settings className="h-4 w-4 text-gray-400" />
+                </button>
               </div>
               <div className="flex">
                 <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
@@ -2621,6 +2646,59 @@ export default function EmployeeSalaryDetailsPage() {
                   data-testid="travelling-allowance-exemption"
                 />
               </div>
+              {/* Flags for Travelling Allowance - Only show when expanded */}
+              {expandedTaxExemptionSettings.has('travellingAllowance') && (
+                <div className="grid grid-cols-3 gap-2 mt-2">
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.travellingAllowance?.flags?.epf || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('travellingAllowance', 'epf', !!checked)}
+                      data-testid="travelling-epf-flag"
+                    />
+                    <label className="text-xs">EPF</label>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.travellingAllowance?.flags?.socso || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('travellingAllowance', 'socso', !!checked)}
+                      data-testid="travelling-socso-flag"
+                    />
+                    <label className="text-xs">SOCSO</label>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.travellingAllowance?.flags?.eis || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('travellingAllowance', 'eis', !!checked)}
+                      data-testid="travelling-eis-flag"
+                    />
+                    <label className="text-xs">EIS</label>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.travellingAllowance?.flags?.hrdf || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('travellingAllowance', 'hrdf', !!checked)}
+                      data-testid="travelling-hrdf-flag"
+                    />
+                    <label className="text-xs">HRDF</label>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.travellingAllowance?.flags?.pcb39 || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('travellingAllowance', 'pcb39', !!checked)}
+                      data-testid="travelling-pcb39-flag"
+                    />
+                    <label className="text-xs">PCB39</label>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.travellingAllowance?.flags?.fixed || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('travellingAllowance', 'fixed', !!checked)}
+                      data-testid="travelling-fixed-flag"
+                    />
+                    <label className="text-xs">Fixed</label>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Child Care Allowance */}
@@ -2709,7 +2787,14 @@ export default function EmployeeSalaryDetailsPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label className="font-medium">Gift</Label>
-                <Settings className="h-4 w-4 text-gray-400" />
+                <button
+                  type="button"
+                  onClick={() => toggleTaxExemptionSetting('gift')}
+                  className="hover:bg-gray-100 p-1 rounded"
+                  data-testid="gift-settings-btn"
+                >
+                  <Settings className="h-4 w-4 text-gray-400" />
+                </button>
               </div>
               <div className="flex">
                 <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
@@ -2725,13 +2810,73 @@ export default function EmployeeSalaryDetailsPage() {
                   data-testid="gift-exemption"
                 />
               </div>
+              {/* Flags for Gift - Only show when expanded */}
+              {expandedTaxExemptionSettings.has('gift') && (
+                <div className="grid grid-cols-3 gap-2 mt-2">
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.gift?.flags?.epf || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('gift', 'epf', !!checked)}
+                      data-testid="gift-epf-flag"
+                    />
+                    <label className="text-xs">EPF</label>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.gift?.flags?.socso || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('gift', 'socso', !!checked)}
+                      data-testid="gift-socso-flag"
+                    />
+                    <label className="text-xs">SOCSO</label>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.gift?.flags?.eis || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('gift', 'eis', !!checked)}
+                      data-testid="gift-eis-flag"
+                    />
+                    <label className="text-xs">EIS</label>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.gift?.flags?.hrdf || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('gift', 'hrdf', !!checked)}
+                      data-testid="gift-hrdf-flag"
+                    />
+                    <label className="text-xs">HRDF</label>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.gift?.flags?.pcb39 || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('gift', 'pcb39', !!checked)}
+                      data-testid="gift-pcb39-flag"
+                    />
+                    <label className="text-xs">PCB39</label>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.gift?.flags?.fixed || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('gift', 'fixed', !!checked)}
+                      data-testid="gift-fixed-flag"
+                    />
+                    <label className="text-xs">Fixed</label>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Phone Allowance */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label className="font-medium">Phone Allowance</Label>
-                <Settings className="h-4 w-4 text-gray-400" />
+                <button
+                  type="button"
+                  onClick={() => toggleTaxExemptionSetting('phoneAllowance')}
+                  className="hover:bg-gray-100 p-1 rounded"
+                  data-testid="phone-allowance-settings-btn"
+                >
+                  <Settings className="h-4 w-4 text-gray-400" />
+                </button>
               </div>
               <div className="flex">
                 <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
@@ -2747,13 +2892,73 @@ export default function EmployeeSalaryDetailsPage() {
                   data-testid="phone-allowance-exemption"
                 />
               </div>
+              {/* Flags for Phone Allowance - Only show when expanded */}
+              {expandedTaxExemptionSettings.has('phoneAllowance') && (
+                <div className="grid grid-cols-3 gap-2 mt-2">
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.phoneAllowance?.flags?.epf || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('phoneAllowance', 'epf', !!checked)}
+                      data-testid="phone-epf-flag"
+                    />
+                    <label className="text-xs">EPF</label>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.phoneAllowance?.flags?.socso || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('phoneAllowance', 'socso', !!checked)}
+                      data-testid="phone-socso-flag"
+                    />
+                    <label className="text-xs">SOCSO</label>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.phoneAllowance?.flags?.eis || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('phoneAllowance', 'eis', !!checked)}
+                      data-testid="phone-eis-flag"
+                    />
+                    <label className="text-xs">EIS</label>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.phoneAllowance?.flags?.hrdf || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('phoneAllowance', 'hrdf', !!checked)}
+                      data-testid="phone-hrdf-flag"
+                    />
+                    <label className="text-xs">HRDF</label>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.phoneAllowance?.flags?.pcb39 || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('phoneAllowance', 'pcb39', !!checked)}
+                      data-testid="phone-pcb39-flag"
+                    />
+                    <label className="text-xs">PCB39</label>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.phoneAllowance?.flags?.fixed || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('phoneAllowance', 'fixed', !!checked)}
+                      data-testid="phone-fixed-flag"
+                    />
+                    <label className="text-xs">Fixed</label>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Reward */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label className="font-medium">Reward</Label>
-                <Settings className="h-4 w-4 text-gray-400" />
+                <button
+                  type="button"
+                  onClick={() => toggleTaxExemptionSetting('reward')}
+                  className="hover:bg-gray-100 p-1 rounded"
+                  data-testid="reward-settings-btn"
+                >
+                  <Settings className="h-4 w-4 text-gray-400" />
+                </button>
               </div>
               <div className="flex">
                 <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
@@ -2769,6 +2974,59 @@ export default function EmployeeSalaryDetailsPage() {
                   data-testid="reward-exemption"
                 />
               </div>
+              {/* Flags for Reward - Only show when expanded */}
+              {expandedTaxExemptionSettings.has('reward') && (
+                <div className="grid grid-cols-3 gap-2 mt-2">
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.reward?.flags?.epf || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('reward', 'epf', !!checked)}
+                      data-testid="reward-epf-flag"
+                    />
+                    <label className="text-xs">EPF</label>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.reward?.flags?.socso || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('reward', 'socso', !!checked)}
+                      data-testid="reward-socso-flag"
+                    />
+                    <label className="text-xs">SOCSO</label>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.reward?.flags?.eis || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('reward', 'eis', !!checked)}
+                      data-testid="reward-eis-flag"
+                    />
+                    <label className="text-xs">EIS</label>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.reward?.flags?.hrdf || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('reward', 'hrdf', !!checked)}
+                      data-testid="reward-hrdf-flag"
+                    />
+                    <label className="text-xs">HRDF</label>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.reward?.flags?.pcb39 || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('reward', 'pcb39', !!checked)}
+                      data-testid="reward-pcb39-flag"
+                    />
+                    <label className="text-xs">PCB39</label>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.reward?.flags?.fixed || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('reward', 'fixed', !!checked)}
+                      data-testid="reward-fixed-flag"
+                    />
+                    <label className="text-xs">Fixed</label>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Parking Allowance (with flags) */}
@@ -2857,7 +3115,14 @@ export default function EmployeeSalaryDetailsPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label className="font-medium">Meal Allowance</Label>
-                <Settings className="h-4 w-4 text-gray-400" />
+                <button
+                  type="button"
+                  onClick={() => toggleTaxExemptionSetting('mealAllowance')}
+                  className="hover:bg-gray-100 p-1 rounded"
+                  data-testid="meal-allowance-settings-btn"
+                >
+                  <Settings className="h-4 w-4 text-gray-400" />
+                </button>
               </div>
               <div className="flex">
                 <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
@@ -2873,13 +3138,73 @@ export default function EmployeeSalaryDetailsPage() {
                   data-testid="meal-allowance-exemption"
                 />
               </div>
+              {/* Flags for Meal Allowance - Only show when expanded */}
+              {expandedTaxExemptionSettings.has('mealAllowance') && (
+                <div className="grid grid-cols-3 gap-2 mt-2">
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.mealAllowance?.flags?.epf || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('mealAllowance', 'epf', !!checked)}
+                      data-testid="meal-epf-flag"
+                    />
+                    <label className="text-xs">EPF</label>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.mealAllowance?.flags?.socso || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('mealAllowance', 'socso', !!checked)}
+                      data-testid="meal-socso-flag"
+                    />
+                    <label className="text-xs">SOCSO</label>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.mealAllowance?.flags?.eis || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('mealAllowance', 'eis', !!checked)}
+                      data-testid="meal-eis-flag"
+                    />
+                    <label className="text-xs">EIS</label>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.mealAllowance?.flags?.hrdf || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('mealAllowance', 'hrdf', !!checked)}
+                      data-testid="meal-hrdf-flag"
+                    />
+                    <label className="text-xs">HRDF</label>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.mealAllowance?.flags?.pcb39 || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('mealAllowance', 'pcb39', !!checked)}
+                      data-testid="meal-pcb39-flag"
+                    />
+                    <label className="text-xs">PCB39</label>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.mealAllowance?.flags?.fixed || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('mealAllowance', 'fixed', !!checked)}
+                      data-testid="meal-fixed-flag"
+                    />
+                    <label className="text-xs">Fixed</label>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Subsidies */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label className="font-medium">Subsidies</Label>
-                <Settings className="h-4 w-4 text-gray-400" />
+                <button
+                  type="button"
+                  onClick={() => toggleTaxExemptionSetting('subsidies')}
+                  className="hover:bg-gray-100 p-1 rounded"
+                  data-testid="subsidies-settings-btn"
+                >
+                  <Settings className="h-4 w-4 text-gray-400" />
+                </button>
               </div>
               <div className="flex">
                 <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
@@ -2895,6 +3220,59 @@ export default function EmployeeSalaryDetailsPage() {
                   data-testid="subsidies-exemption"
                 />
               </div>
+              {/* Flags for Subsidies - Only show when expanded */}
+              {expandedTaxExemptionSettings.has('subsidies') && (
+                <div className="grid grid-cols-3 gap-2 mt-2">
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.subsidies?.flags?.epf || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('subsidies', 'epf', !!checked)}
+                      data-testid="subsidies-epf-flag"
+                    />
+                    <label className="text-xs">EPF</label>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.subsidies?.flags?.socso || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('subsidies', 'socso', !!checked)}
+                      data-testid="subsidies-socso-flag"
+                    />
+                    <label className="text-xs">SOCSO</label>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.subsidies?.flags?.eis || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('subsidies', 'eis', !!checked)}
+                      data-testid="subsidies-eis-flag"
+                    />
+                    <label className="text-xs">EIS</label>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.subsidies?.flags?.hrdf || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('subsidies', 'hrdf', !!checked)}
+                      data-testid="subsidies-hrdf-flag"
+                    />
+                    <label className="text-xs">HRDF</label>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.subsidies?.flags?.pcb39 || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('subsidies', 'pcb39', !!checked)}
+                      data-testid="subsidies-pcb39-flag"
+                    />
+                    <label className="text-xs">PCB39</label>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Checkbox
+                      checked={taxExemptions.subsidies?.flags?.fixed || false}
+                      onCheckedChange={(checked) => updateTaxExemptionFlag('subsidies', 'fixed', !!checked)}
+                      data-testid="subsidies-fixed-flag"
+                    />
+                    <label className="text-xs">Fixed</label>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>
