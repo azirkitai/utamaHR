@@ -829,7 +829,7 @@ export default function EmployeeSalaryDetailsPage() {
       // Gross Salary = RM2000 + RM200 + RM150 + RM300 = RM2650 (ALL items regardless of checkboxes)
       
       // Only include basic salary in statutory calculations if "Calculate in Payment" is enabled
-      const basicSalaryMonthly = salaryData.settings?.calculateInPayment 
+      const basicSalaryMonthly = salaryData.settings?.isCalculatedInPayment 
         ? getMonthlyEquivalent(salaryData.basicSalary) 
         : 0;
       
@@ -873,7 +873,7 @@ export default function EmployeeSalaryDetailsPage() {
         : { employee: 0, employer: 0, wageBase: 0, eligible: false };
 
       // Calculate HRDF
-      const hrdf = roundToCent(hrdfWageBase * salaryData.settings.hrdfEmployerRate / 100);
+      const hrdf = roundToCent(hrdfWageBase * (salaryData.settings.hrdfEmployerRate || 1.00) / 100);
 
       // Calculate PCB39 based on mode
       let pcb39Amount = salaryData.deductions.pcb39; // Default to current value
@@ -1019,7 +1019,7 @@ export default function EmployeeSalaryDetailsPage() {
   // Calculate net salary - consider "Calculate in Payment" toggle
   const calculateNetSalary = () => {
     // Basic salary only counted if "Calculate in Payment" is enabled
-    const basicSalaryInPayment = salaryData.settings?.calculateInPayment ? salaryData.basicSalary : 0;
+    const basicSalaryInPayment = salaryData.settings?.isCalculatedInPayment ? salaryData.basicSalary : 0;
     const additionalItemsTotal = salaryData.additionalItems?.reduce((sum, item) => sum + item.amount, 0) || 0;
     const grossSalary = basicSalaryInPayment + additionalItemsTotal;
     const totalDeductions = Object.values(salaryData.deductions).reduce((sum, value) => sum + (typeof value === 'number' ? value : 0), 0);
@@ -1238,6 +1238,11 @@ export default function EmployeeSalaryDetailsPage() {
   };
 
   // PCB39 helper functions
+  const [reliefCode, setReliefCode] = useState("");
+  const [rebateCode, setRebateCode] = useState("");
+  const reliefOptions = PCB39_RELIEFS_2025;
+  const rebateOptions = PCB39_REBATES_2025;
+
   const addPCB39Relief = () => {
     const selectedRelief = reliefOptions.find(r => r.code === reliefCode);
     if (!selectedRelief || !reliefAmount) return;
