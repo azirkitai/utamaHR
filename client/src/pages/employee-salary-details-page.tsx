@@ -3674,7 +3674,7 @@ export default function EmployeeSalaryDetailsPage() {
                           <SelectContent>
                             {PCB39_RELIEFS_2025.map((relief) => (
                               <SelectItem key={relief.code} value={relief.code}>
-                                {relief.description}
+                                {relief.code} - {relief.label}
                               </SelectItem>
                             ))}
                           </SelectContent>
