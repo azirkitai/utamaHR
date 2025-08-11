@@ -480,44 +480,47 @@ export default function EmployeeSalaryDetailsPage() {
           </Card>
         </div>
 
-        {/* Main Form Grid - 4 columns */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          
-          {/* Column 1 - Basic Earning */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Basic Earning</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label>Salary Type</Label>
-                <Select 
-                  value={salaryData.salaryType} 
-                  onValueChange={(value) => updateSalaryData({ salaryType: value as "Monthly" | "Hourly" })}
-                  data-testid="salaryType"
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Monthly">Monthly</SelectItem>
-                    <SelectItem value="Hourly">Hourly</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+        {/* Main Form - Single Card with Grid Layout */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Master Salary Configuration</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+              
+              {/* Column 1 - Basic Earning */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Basic Earning</h3>
+                
+                <div>
+                  <Label>Salary Type</Label>
+                  <Select 
+                    value={salaryData.salaryType} 
+                    onValueChange={(value) => updateSalaryData({ salaryType: value as "Monthly" | "Hourly" })}
+                    data-testid="salaryType"
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Monthly">Monthly</SelectItem>
+                      <SelectItem value="Hourly">Hourly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div>
-                <Label>Basic Salary (RM)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={salaryData.basicSalary}
-                  onChange={(e) => updateSalaryData({ basicSalary: parseFloat(e.target.value) || 0 })}
-                  data-testid="basicSalary"
-                />
-              </div>
+                <div>
+                  <Label>Basic Salary (RM)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={salaryData.basicSalary}
+                    onChange={(e) => updateSalaryData({ basicSalary: parseFloat(e.target.value) || 0 })}
+                    data-testid="basicSalary"
+                  />
+                </div>
 
-              <div>
+                <div>
                 <Label>Computed Salary (RM)</Label>
                 <Input 
                   value={computedValues.computedSalary} 
@@ -602,37 +605,33 @@ export default function EmployeeSalaryDetailsPage() {
                     data-testid="epfEmployerRate"
                   />
                 </div>
+                </div>
+
+                <div>
+                  <h4 className="font-medium">HRDF Setting</h4>
+                  <Label>HRDF Employer Rate (%)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={salaryData.settings.hrdfEmployerRate}
+                    onChange={(e) => updateSettings('hrdfEmployerRate', parseFloat(e.target.value) || 0)}
+                    data-testid="hrdfEmployerRate"
+                  />
+                </div>
+
+                <div>
+                  <Label>Remarks</Label>
+                  <Textarea
+                    value={salaryData.remarks}
+                    onChange={(e) => updateSalaryData({ remarks: e.target.value })}
+                    data-testid="remarks"
+                  />
+                </div>
               </div>
 
-              <div>
-                <h4 className="font-medium">HRDF Setting</h4>
-                <Label>HRDF Employer Rate (%)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={salaryData.settings.hrdfEmployerRate}
-                  onChange={(e) => updateSettings('hrdfEmployerRate', parseFloat(e.target.value) || 0)}
-                  data-testid="hrdfEmployerRate"
-                />
-              </div>
-
-              <div>
-                <Label>Remarks</Label>
-                <Textarea
-                  value={salaryData.remarks}
-                  onChange={(e) => updateSalaryData({ remarks: e.target.value })}
-                  data-testid="remarks"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Column 2 - Additional Item */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Additional Item</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+              {/* Column 2 - Additional Item */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Additional Item</h3>
               {salaryData.additionalItems.map((item, index) => (
                 <div key={item.code} className="space-y-2">
                   <Label>{item.label}</Label>
@@ -667,31 +666,28 @@ export default function EmployeeSalaryDetailsPage() {
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add Additional Item
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Column 3 - Deduction Item */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Deduction Item</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label>EPF Employee</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={salaryData.deductions.epfEmployee}
-                  onChange={(e) => updateDeduction('epfEmployee', parseFloat(e.target.value) || 0)}
-                  readOnly={salaryData.settings.epfCalcMethod === "PERCENT"}
-                  className={salaryData.settings.epfCalcMethod === "PERCENT" ? "bg-gray-50" : ""}
-                  data-testid="epfEmployee"
-                />
-                <div className="text-xs text-gray-500 mt-1">
-                  How did we calculate this? {isCalculating ? "Calculating..." : "Based on EPF settings"}
-                </div>
+                </Button>
               </div>
+
+              {/* Column 3 - Deduction Item */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Deduction Item</h3>
+                
+                <div>
+                  <Label>EPF Employee</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={salaryData.deductions.epfEmployee}
+                    onChange={(e) => updateDeduction('epfEmployee', parseFloat(e.target.value) || 0)}
+                    readOnly={salaryData.settings.epfCalcMethod === "PERCENT"}
+                    className={salaryData.settings.epfCalcMethod === "PERCENT" ? "bg-gray-50" : ""}
+                    data-testid="epfEmployee"
+                  />
+                  <div className="text-xs text-gray-500 mt-1">
+                    How did we calculate this? {isCalculating ? "Calculating..." : "Based on EPF settings"}
+                  </div>
+                </div>
 
               <div>
                 <Label>SOCSO Employee</Label>
@@ -792,16 +788,13 @@ export default function EmployeeSalaryDetailsPage() {
                   data-testid="otherDeduction"
                 />
               </div>
-            </CardContent>
-          </Card>
+              </div>
 
-          {/* Column 4 - Company Contribution */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Company Contribution</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
+              {/* Column 4 - Company Contribution */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Company Contribution</h3>
+                
+                <div>
                 <Label>EPF Employer</Label>
                 <Input
                   type="number"
@@ -902,10 +895,11 @@ export default function EmployeeSalaryDetailsPage() {
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add Contribution Item
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );
