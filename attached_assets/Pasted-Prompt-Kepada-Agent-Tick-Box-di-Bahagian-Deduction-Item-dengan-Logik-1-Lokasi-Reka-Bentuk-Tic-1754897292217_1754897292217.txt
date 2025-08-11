@@ -1,0 +1,112 @@
+Prompt Kepada Agent – Tick Box di Bahagian Deduction Item (dengan Logik)
+1. Lokasi & Reka Bentuk
+Tick box flags berada terus di bawah input RM setiap deduction yang boleh diedit oleh HR.
+
+Contoh medan deduction yang ada tick box:
+
+Advance Deduction
+
+Unpaid Leave
+
+PCB 38
+
+Zakat
+
+Other Deduction
+
+Deduction statutory auto-kira (contoh: EPF Employee, SOCSO Employee, EIS Employee) tidak ada tick box, sebab dikira mengikut undang-undang.
+
+2. Senarai Tick Box & Fungsi
+EPF
+
+Jika ON, amount deduction ini mengurangkan wage base EPF.
+
+Jika OFF, amount deduction ini tidak menjejaskan EPF.
+
+Contoh: Potongan gaji kerana unpaid leave → wage base EPF patut berkurang.
+
+SOCSO
+
+Jika ON, amount deduction ini mengurangkan wage base SOCSO.
+
+Jika OFF, SOCSO tetap dikira seolah-olah deduction itu tidak wujud.
+
+Contoh: Potongan unpaid leave yang patut tolak SOCSO.
+
+EIS
+
+Jika ON, amount deduction ini mengurangkan wage base EIS.
+
+Jika OFF, EIS dikira seperti tiada deduction.
+
+Contoh: Potongan unpaid leave patut tolak EIS.
+
+HRDF
+
+Jika ON, amount deduction ini mengurangkan wage base HRDF.
+
+Contoh: Potongan khas yang menyebabkan gaji asas HRDF berkurang.
+
+PCB39
+
+Jika ON, deduction ini akan mengurangkan taxable income PCB39.
+
+Contoh utama: Zakat → jika PCB39 ditanda, jumlah zakat akan terus tolak taxable income PCB.
+
+Fixed
+
+Jika ON, deduction ini akan kekal secara automatik setiap bulan tanpa HR perlu masukkan semula.
+
+Jika OFF, deduction hanya terpakai untuk bulan ini sahaja.
+
+3. Logik Pengiraan
+Langkah kiraan payroll yang berkaitan dengan flags ini:
+
+3.1 Wage Base Statutory
+Untuk EPF Wage Base:
+epfWageBase = basicSalary + sum(additionalItems.amount where EPF=ON) - sum(deductions.amount where EPF=ON)
+
+Untuk SOCSO Wage Base:
+socsoWageBase = basicSalary + sum(additionalItems.amount where SOCSO=ON) - sum(deductions.amount where SOCSO=ON)
+
+Untuk EIS Wage Base:
+eisWageBase = basicSalary + sum(additionalItems.amount where EIS=ON) - sum(deductions.amount where EIS=ON)
+
+Untuk HRDF Wage Base:
+hrdfWageBase = basicSalary + sum(additionalItems.amount where HRDF=ON) - sum(deductions.amount where HRDF=ON)
+
+3.2 PCB39 Taxable Income
+pcbTaxableIncome = (basicSalary + sum(additionalItems.amount where PCB39=ON)) - sum(deductions.amount where PCB39=ON) - sum(taxExemptions.amount)
+
+3.3 Fixed
+Deduction yang Fixed=ON akan dibawa ke bulan seterusnya secara automatik ketika generate master salary untuk bulan baru.
+
+4. Arahan Kedudukan Dalam Kod
+Gunakan komponen tick box yang sama seperti Additional Item untuk konsistensi reka bentuk.
+
+Letakkan tick box hanya di bawah deduction manual.
+
+Pastikan semua flags disimpan dalam data model seperti ini:
+
+json
+Copy
+Edit
+{
+  "deductions": [
+    {
+      "code": "ADV",
+      "label": "Advance Deduction",
+      "amount": 0,
+      "flags": {
+        "epf": true,
+        "socso": false,
+        "eis": true,
+        "hrdf": false,
+        "pcb39": false,
+        "fixed": false
+      }
+    }
+  ]
+}
+Pastikan recompute() baca flags ini sebelum mengira wage base, statutory contribution, dan PCB.
+

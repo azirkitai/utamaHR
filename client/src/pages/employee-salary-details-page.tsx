@@ -61,6 +61,48 @@ interface DeductionItem {
   zakat: number;
   other: number;
   customItems: CustomDeductionItem[];
+  flags?: {
+    advance: {
+      epf: boolean;
+      socso: boolean;
+      eis: boolean;
+      hrdf: boolean;
+      pcb39: boolean;
+      fixed: boolean;
+    };
+    unpaidLeave: {
+      epf: boolean;
+      socso: boolean;
+      eis: boolean;
+      hrdf: boolean;
+      pcb39: boolean;
+      fixed: boolean;
+    };
+    pcb38: {
+      epf: boolean;
+      socso: boolean;
+      eis: boolean;
+      hrdf: boolean;
+      pcb39: boolean;
+      fixed: boolean;
+    };
+    zakat: {
+      epf: boolean;
+      socso: boolean;
+      eis: boolean;
+      hrdf: boolean;
+      pcb39: boolean;
+      fixed: boolean;
+    };
+    other: {
+      epf: boolean;
+      socso: boolean;
+      eis: boolean;
+      hrdf: boolean;
+      pcb39: boolean;
+      fixed: boolean;
+    };
+  };
 }
 
 interface ContributionItem {
@@ -287,7 +329,14 @@ export default function EmployeeSalaryDetailsPage() {
       pcb38: 0,
       zakat: 0,
       other: 0,
-      customItems: []
+      customItems: [],
+      flags: {
+        advance: { epf: true, socso: true, eis: true, hrdf: false, pcb39: false, fixed: false },
+        unpaidLeave: { epf: true, socso: true, eis: true, hrdf: false, pcb39: false, fixed: false },
+        pcb38: { epf: false, socso: false, eis: false, hrdf: false, pcb39: true, fixed: false },
+        zakat: { epf: false, socso: false, eis: false, hrdf: false, pcb39: true, fixed: false },
+        other: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }
+      }
     },
     contributions: {
       epfEmployer: 0,
@@ -376,6 +425,7 @@ export default function EmployeeSalaryDetailsPage() {
   // Dialog state for tax exemption modal
   const [isTaxExemptionDialogOpen, setIsTaxExemptionDialogOpen] = useState(false);
   const [expandedTaxFlags, setExpandedTaxFlags] = useState<Set<string>>(new Set());
+  const [expandedDeductionFlags, setExpandedDeductionFlags] = useState<Set<string>>(new Set());
 
   // Get all employees for dropdown
   const { data: employees = [] } = useQuery<any[]>({
@@ -403,8 +453,20 @@ export default function EmployeeSalaryDetailsPage() {
         flags: item.flags || { epf: false, socso: false, eis: false, hrdf: false, pcb39: true, fixed: false }
       });
       
+      const ensureDeductionFlags = (deductions: any) => ({
+        ...deductions,
+        flags: deductions.flags || {
+          advance: { epf: true, socso: true, eis: true, hrdf: false, pcb39: false, fixed: false },
+          unpaidLeave: { epf: true, socso: true, eis: true, hrdf: false, pcb39: false, fixed: false },
+          pcb38: { epf: false, socso: false, eis: false, hrdf: false, pcb39: true, fixed: false },
+          zakat: { epf: false, socso: false, eis: false, hrdf: false, pcb39: true, fixed: false },
+          other: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }
+        }
+      });
+      
       const updatedData = {
         ...existingSalaryData,
+        deductions: ensureDeductionFlags(existingSalaryData.deductions),
         taxExemptions: existingSalaryData.taxExemptions ? 
           existingSalaryData.taxExemptions.map(ensureFlags) : [
           { 
@@ -764,6 +826,31 @@ export default function EmployeeSalaryDetailsPage() {
       newSet.add(code);
     }
     setExpandedTaxFlags(newSet);
+  };
+
+  const toggleDeductionFlags = (field: string) => {
+    const newSet = new Set(expandedDeductionFlags);
+    if (newSet.has(field)) {
+      newSet.delete(field);
+    } else {
+      newSet.add(field);
+    }
+    setExpandedDeductionFlags(newSet);
+  };
+
+  const updateDeductionFlag = (field: keyof DeductionItem['flags'], flag: keyof DeductionItem['flags'][typeof field], value: boolean) => {
+    updateSalaryData({
+      deductions: {
+        ...salaryData.deductions,
+        flags: {
+          ...salaryData.deductions.flags,
+          [field]: {
+            ...salaryData.deductions.flags?.[field],
+            [flag]: value
+          }
+        }
+      }
+    });
   };
 
   if (isLoading) {
@@ -1249,8 +1336,20 @@ export default function EmployeeSalaryDetailsPage() {
                 </div>
               </div>
 
-              <div>
-                <Label>Advance Deduction</Label>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>Advance Deduction</Label>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => toggleDeductionFlags('advance')}
+                    className="text-xs text-gray-500 hover:bg-gray-100 h-6 px-2"
+                    data-testid="toggleAdvanceFlags"
+                  >
+                    <Settings className="w-3 h-3 mr-1" />
+                    {expandedDeductionFlags.has('advance') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                  </Button>
+                </div>
                 <Input
                   type="number"
                   step="0.01"
@@ -1258,6 +1357,64 @@ export default function EmployeeSalaryDetailsPage() {
                   onChange={(e) => updateDeduction('advance', parseFloat(e.target.value) || 0)}
                   data-testid="advanceDeduction"
                 />
+                {expandedDeductionFlags.has('advance') && (
+                  <div className="p-3 bg-gray-50 rounded-lg border">
+                    <div className="text-xs font-medium text-gray-700 mb-2">Statutory & Tax Settings</div>
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.deductions.flags?.advance?.epf || false}
+                          onCheckedChange={(checked) => updateDeductionFlag('advance', 'epf', !!checked)}
+                          data-testid="checkbox-advance-epf"
+                        />
+                        <Label className="text-xs">EPF</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.deductions.flags?.advance?.socso || false}
+                          onCheckedChange={(checked) => updateDeductionFlag('advance', 'socso', !!checked)}
+                          data-testid="checkbox-advance-socso"
+                        />
+                        <Label className="text-xs">SOCSO</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.deductions.flags?.advance?.eis || false}
+                          onCheckedChange={(checked) => updateDeductionFlag('advance', 'eis', !!checked)}
+                          data-testid="checkbox-advance-eis"
+                        />
+                        <Label className="text-xs">EIS</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.deductions.flags?.advance?.hrdf || false}
+                          onCheckedChange={(checked) => updateDeductionFlag('advance', 'hrdf', !!checked)}
+                          data-testid="checkbox-advance-hrdf"
+                        />
+                        <Label className="text-xs">HRDF</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.deductions.flags?.advance?.pcb39 || false}
+                          onCheckedChange={(checked) => updateDeductionFlag('advance', 'pcb39', !!checked)}
+                          data-testid="checkbox-advance-pcb39"
+                        />
+                        <Label className="text-xs font-medium text-blue-600">PCB39</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.deductions.flags?.advance?.fixed || false}
+                          onCheckedChange={(checked) => updateDeductionFlag('advance', 'fixed', !!checked)}
+                          data-testid="checkbox-advance-fixed"
+                        />
+                        <Label className="text-xs font-medium text-green-600">Fixed</Label>
+                      </div>
+                    </div>
+                    <div className="mt-2 text-[10px] text-gray-500">
+                      💡 EPF/SOCSO/EIS: Kurangkan wage base | PCB39: Kurangkan taxable income | Fixed: Auto-kekalkan
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -1286,8 +1443,20 @@ export default function EmployeeSalaryDetailsPage() {
                 />
               </div>
 
-              <div>
-                <Label>PCB 38</Label>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>PCB 38</Label>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => toggleDeductionFlags('pcb38')}
+                    className="text-xs text-gray-500 hover:bg-gray-100 h-6 px-2"
+                    data-testid="togglePcb38Flags"
+                  >
+                    <Settings className="w-3 h-3 mr-1" />
+                    {expandedDeductionFlags.has('pcb38') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                  </Button>
+                </div>
                 <Input
                   type="number"
                   step="0.01"
@@ -1295,10 +1464,77 @@ export default function EmployeeSalaryDetailsPage() {
                   onChange={(e) => updateDeduction('pcb38', parseFloat(e.target.value) || 0)}
                   data-testid="pcb38"
                 />
+                {expandedDeductionFlags.has('pcb38') && (
+                  <div className="p-3 bg-gray-50 rounded-lg border">
+                    <div className="text-xs font-medium text-gray-700 mb-2">Statutory & Tax Settings</div>
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.deductions.flags?.pcb38?.epf || false}
+                          onCheckedChange={(checked) => updateDeductionFlag('pcb38', 'epf', !!checked)}
+                          data-testid="checkbox-pcb38-epf"
+                        />
+                        <Label className="text-xs">EPF</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.deductions.flags?.pcb38?.socso || false}
+                          onCheckedChange={(checked) => updateDeductionFlag('pcb38', 'socso', !!checked)}
+                          data-testid="checkbox-pcb38-socso"
+                        />
+                        <Label className="text-xs">SOCSO</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.deductions.flags?.pcb38?.eis || false}
+                          onCheckedChange={(checked) => updateDeductionFlag('pcb38', 'eis', !!checked)}
+                          data-testid="checkbox-pcb38-eis"
+                        />
+                        <Label className="text-xs">EIS</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.deductions.flags?.pcb38?.hrdf || false}
+                          onCheckedChange={(checked) => updateDeductionFlag('pcb38', 'hrdf', !!checked)}
+                          data-testid="checkbox-pcb38-hrdf"
+                        />
+                        <Label className="text-xs">HRDF</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.deductions.flags?.pcb38?.pcb39 || false}
+                          onCheckedChange={(checked) => updateDeductionFlag('pcb38', 'pcb39', !!checked)}
+                          data-testid="checkbox-pcb38-pcb39"
+                        />
+                        <Label className="text-xs font-medium text-blue-600">PCB39</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.deductions.flags?.pcb38?.fixed || false}
+                          onCheckedChange={(checked) => updateDeductionFlag('pcb38', 'fixed', !!checked)}
+                          data-testid="checkbox-pcb38-fixed"
+                        />
+                        <Label className="text-xs font-medium text-green-600">Fixed</Label>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div>
-                <Label>Zakat</Label>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>Zakat</Label>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => toggleDeductionFlags('zakat')}
+                    className="text-xs text-gray-500 hover:bg-gray-100 h-6 px-2"
+                    data-testid="toggleZakatFlags"
+                  >
+                    <Settings className="w-3 h-3 mr-1" />
+                    {expandedDeductionFlags.has('zakat') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                  </Button>
+                </div>
                 <Input
                   type="number"
                   step="0.01"
@@ -1306,10 +1542,80 @@ export default function EmployeeSalaryDetailsPage() {
                   onChange={(e) => updateDeduction('zakat', parseFloat(e.target.value) || 0)}
                   data-testid="zakat"
                 />
+                {expandedDeductionFlags.has('zakat') && (
+                  <div className="p-3 bg-gray-50 rounded-lg border">
+                    <div className="text-xs font-medium text-gray-700 mb-2">Statutory & Tax Settings</div>
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.deductions.flags?.zakat?.epf || false}
+                          onCheckedChange={(checked) => updateDeductionFlag('zakat', 'epf', !!checked)}
+                          data-testid="checkbox-zakat-epf"
+                        />
+                        <Label className="text-xs">EPF</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.deductions.flags?.zakat?.socso || false}
+                          onCheckedChange={(checked) => updateDeductionFlag('zakat', 'socso', !!checked)}
+                          data-testid="checkbox-zakat-socso"
+                        />
+                        <Label className="text-xs">SOCSO</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.deductions.flags?.zakat?.eis || false}
+                          onCheckedChange={(checked) => updateDeductionFlag('zakat', 'eis', !!checked)}
+                          data-testid="checkbox-zakat-eis"
+                        />
+                        <Label className="text-xs">EIS</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.deductions.flags?.zakat?.hrdf || false}
+                          onCheckedChange={(checked) => updateDeductionFlag('zakat', 'hrdf', !!checked)}
+                          data-testid="checkbox-zakat-hrdf"
+                        />
+                        <Label className="text-xs">HRDF</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.deductions.flags?.zakat?.pcb39 || false}
+                          onCheckedChange={(checked) => updateDeductionFlag('zakat', 'pcb39', !!checked)}
+                          data-testid="checkbox-zakat-pcb39"
+                        />
+                        <Label className="text-xs font-medium text-blue-600">PCB39</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.deductions.flags?.zakat?.fixed || false}
+                          onCheckedChange={(checked) => updateDeductionFlag('zakat', 'fixed', !!checked)}
+                          data-testid="checkbox-zakat-fixed"
+                        />
+                        <Label className="text-xs font-medium text-green-600">Fixed</Label>
+                      </div>
+                    </div>
+                    <div className="mt-2 text-[10px] text-gray-500">
+                      💡 Zakat: Biasanya PCB39=ON untuk tolak cukai pendapatan
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div>
-                <Label>Other Deduction</Label>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>Other Deduction</Label>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => toggleDeductionFlags('other')}
+                    className="text-xs text-gray-500 hover:bg-gray-100 h-6 px-2"
+                    data-testid="toggleOtherFlags"
+                  >
+                    <Settings className="w-3 h-3 mr-1" />
+                    {expandedDeductionFlags.has('other') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                  </Button>
+                </div>
                 <Input
                   type="number"
                   step="0.01"
@@ -1317,6 +1623,61 @@ export default function EmployeeSalaryDetailsPage() {
                   onChange={(e) => updateDeduction('other', parseFloat(e.target.value) || 0)}
                   data-testid="otherDeduction"
                 />
+                {expandedDeductionFlags.has('other') && (
+                  <div className="p-3 bg-gray-50 rounded-lg border">
+                    <div className="text-xs font-medium text-gray-700 mb-2">Statutory & Tax Settings</div>
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.deductions.flags?.other?.epf || false}
+                          onCheckedChange={(checked) => updateDeductionFlag('other', 'epf', !!checked)}
+                          data-testid="checkbox-other-epf"
+                        />
+                        <Label className="text-xs">EPF</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.deductions.flags?.other?.socso || false}
+                          onCheckedChange={(checked) => updateDeductionFlag('other', 'socso', !!checked)}
+                          data-testid="checkbox-other-socso"
+                        />
+                        <Label className="text-xs">SOCSO</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.deductions.flags?.other?.eis || false}
+                          onCheckedChange={(checked) => updateDeductionFlag('other', 'eis', !!checked)}
+                          data-testid="checkbox-other-eis"
+                        />
+                        <Label className="text-xs">EIS</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.deductions.flags?.other?.hrdf || false}
+                          onCheckedChange={(checked) => updateDeductionFlag('other', 'hrdf', !!checked)}
+                          data-testid="checkbox-other-hrdf"
+                        />
+                        <Label className="text-xs">HRDF</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.deductions.flags?.other?.pcb39 || false}
+                          onCheckedChange={(checked) => updateDeductionFlag('other', 'pcb39', !!checked)}
+                          data-testid="checkbox-other-pcb39"
+                        />
+                        <Label className="text-xs font-medium text-blue-600">PCB39</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.deductions.flags?.other?.fixed || false}
+                          onCheckedChange={(checked) => updateDeductionFlag('other', 'fixed', !!checked)}
+                          data-testid="checkbox-other-fixed"
+                        />
+                        <Label className="text-xs font-medium text-green-600">Fixed</Label>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Custom Deduction Items */}
