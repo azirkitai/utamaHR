@@ -2041,8 +2041,40 @@ export class DatabaseStorage implements IStorage {
 
   // Master Salary Data methods (JSON-based approach)
   async getMasterSalaryData(employeeId: string): Promise<any> {
-    // Check if salary data exists in JSON format (in-memory approach)
-    // For now, we'll store in a simple table or use JSON fields
+    // Try to get existing salary data from database
+    const [existingSalary] = await db
+      .select()
+      .from(employeeSalaries)
+      .where(eq(employeeSalaries.employeeId, employeeId));
+
+    if (existingSalary) {
+      // Parse JSON fields and return existing data
+      const result = {
+        employeeId,
+        salaryType: existingSalary.salaryType || "Monthly",
+        basicSalary: parseFloat(existingSalary.basicSalary || "0"),
+        additionalItems: existingSalary.additionalItems ? JSON.parse(existingSalary.additionalItems) : [
+          { code: "ADV", label: "Advance Salary", amount: 0, flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }},
+          { code: "SUBS", label: "Subsistence Allowance", amount: 0, flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }},
+          { code: "RESP", label: "Extra Responsibility Allowance", amount: 0, flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }},
+          { code: "BIK", label: "BIK/VOLA", amount: 0, hideOnPayslip: true, flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }}
+        ],
+        deductions: existingSalary.deductions ? JSON.parse(existingSalary.deductions) : {
+          epfEmployee: 0, socsoEmployee: 0, eisEmployee: 0, advance: 0, unpaidLeave: 0, pcb39: 0, pcb38: 0, zakat: 0, other: 0
+        },
+        contributions: existingSalary.contributions ? JSON.parse(existingSalary.contributions) : {
+          epfEmployer: 0, socsoEmployer: 0, eisEmployer: 0, medicalCard: 0, groupTermLife: 0, medicalCompany: 0, hrdf: 0
+        },
+        settings: existingSalary.settings ? JSON.parse(existingSalary.settings) : {
+          isCalculatedInPayment: true, isSocsoEnabled: true, isEisEnabled: true, epfCalcMethod: "PERCENT", epfEmployeeRate: 11.0, epfEmployerRate: 13.0, hrdfEmployerRate: 1.0
+        },
+        taxExemptions: existingSalary.taxExemptions ? JSON.parse(existingSalary.taxExemptions) : {},
+        remarks: ""
+      };
+      return result;
+    }
+
+    // Check if employee exists
     const [employee] = await db.select().from(employees).where(eq(employees.id, employeeId));
     if (!employee) {
       return null;
@@ -2054,76 +2086,70 @@ export class DatabaseStorage implements IStorage {
       salaryType: "Monthly",
       basicSalary: 0,
       additionalItems: [
-        { 
-          code: "ADV", 
-          label: "Advance Salary", 
-          amount: 0,
-          flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }
-        },
-        { 
-          code: "SUBS", 
-          label: "Subsistence Allowance", 
-          amount: 0,
-          flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }
-        },
-        { 
-          code: "RESP", 
-          label: "Extra Responsibility Allowance", 
-          amount: 0,
-          flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }
-        },
-        { 
-          code: "BIK", 
-          label: "BIK/VOLA", 
-          amount: 0, 
-          hideOnPayslip: true,
-          flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }
-        }
+        { code: "ADV", label: "Advance Salary", amount: 0, flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }},
+        { code: "SUBS", label: "Subsistence Allowance", amount: 0, flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }},
+        { code: "RESP", label: "Extra Responsibility Allowance", amount: 0, flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }},
+        { code: "BIK", label: "BIK/VOLA", amount: 0, hideOnPayslip: true, flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }}
       ],
-      deductions: {
-        epfEmployee: 0,
-        socsoEmployee: 0,
-        eisEmployee: 0,
-        advance: 0,
-        unpaidLeave: 0,
-        pcb39: 0,
-        pcb38: 0,
-        zakat: 0,
-        other: 0
-      },
-      contributions: {
-        epfEmployer: 0,
-        socsoEmployer: 0,
-        eisEmployer: 0,
-        medicalCard: 0,
-        groupTermLife: 0,
-        medicalCompany: 0,
-        hrdf: 0
-      },
-      settings: {
-        isCalculatedInPayment: true,
-        isSocsoEnabled: true,
-        isEisEnabled: true,
-        epfCalcMethod: "PERCENT", // Updated to ensure consistency
-        epfEmployeeRate: 11.0,
-        epfEmployerRate: 13.0,
-        hrdfEmployerRate: 1.0
-      },
+      deductions: { epfEmployee: 0, socsoEmployee: 0, eisEmployee: 0, advance: 0, unpaidLeave: 0, pcb39: 0, pcb38: 0, zakat: 0, other: 0 },
+      contributions: { epfEmployer: 0, socsoEmployer: 0, eisEmployer: 0, medicalCard: 0, groupTermLife: 0, medicalCompany: 0, hrdf: 0 },
+      settings: { isCalculatedInPayment: true, isSocsoEnabled: true, isEisEnabled: true, epfCalcMethod: "PERCENT", epfEmployeeRate: 11.0, epfEmployerRate: 13.0, hrdfEmployerRate: 1.0 },
+      taxExemptions: {},
       remarks: ""
     };
   }
 
   async saveMasterSalaryData(data: any): Promise<any> {
-    // For now, we'll just return the data as saved
-    // In real implementation, this would be stored in database
     console.log('Saving master salary data:', data);
     
     // Ensure epfCalcMethod is either PERCENT or CUSTOM (not FIXED)
     if (data.settings?.epfCalcMethod === "FIXED") {
       data.settings.epfCalcMethod = "CUSTOM";
     }
+
+    const { employeeId, salaryType, basicSalary, additionalItems, deductions, contributions, settings, taxExemptions } = data;
     
-    return data;
+    // Prepare JSON strings for database storage
+    const dataToSave = {
+      employeeId,
+      salaryType: salaryType || "Monthly",
+      basicSalary: basicSalary?.toString() || "0.00",
+      additionalItems: additionalItems ? JSON.stringify(additionalItems) : null,
+      deductions: deductions ? JSON.stringify(deductions) : null,
+      contributions: contributions ? JSON.stringify(contributions) : null,
+      settings: settings ? JSON.stringify(settings) : null,
+      taxExemptions: taxExemptions ? JSON.stringify(taxExemptions) : null,
+    };
+
+    // Check if record exists
+    const [existing] = await db
+      .select()
+      .from(employeeSalaries)
+      .where(eq(employeeSalaries.employeeId, employeeId));
+
+    if (existing) {
+      // Update existing record
+      const [updated] = await db
+        .update(employeeSalaries)
+        .set({
+          ...dataToSave,
+          updatedAt: new Date()
+        })
+        .where(eq(employeeSalaries.employeeId, employeeId))
+        .returning();
+      
+      console.log('Updated salary record:', updated);
+      return data; // Return original data structure for frontend
+    } else {
+      // Create new record
+      const [created] = await db
+        .insert(employeeSalaries)
+        .values(dataToSave)
+        .returning();
+      
+      console.log('Created salary record:', created);
+      return data; // Return original data structure for frontend
+    }
   }
 
   async createSalaryBasicEarning(data: InsertSalaryBasicEarning): Promise<SalaryBasicEarning> {

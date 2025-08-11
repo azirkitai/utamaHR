@@ -1063,7 +1063,26 @@ export type UpdateLeavePolicySetting = z.infer<typeof updateLeavePolicySettingSc
 export const employeeSalaries = pgTable("employee_salaries", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   employeeId: varchar("employee_id").notNull().references(() => employees.id, { onDelete: "cascade" }),
+  
+  // Basic salary information
+  salaryType: text("salary_type").default("Monthly"), // Monthly, Daily, Hourly
   basicSalary: decimal("basic_salary", { precision: 10, scale: 2 }).default("0.00"),
+  
+  // Additional items stored as JSON
+  additionalItems: text("additional_items"), // JSON string of AdditionalItem[]
+  
+  // Deductions stored as JSON
+  deductions: text("deductions"), // JSON string of deduction amounts and settings
+  
+  // Contributions stored as JSON
+  contributions: text("contributions"), // JSON string of contribution amounts
+  
+  // Tax exemptions stored as JSON
+  taxExemptions: text("tax_exemptions"), // JSON string of tax exemption items
+  
+  // Settings stored as JSON
+  settings: text("settings"), // JSON string of salary calculation settings
+  
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -1118,6 +1137,12 @@ export const insertEmployeeSalarySchema = createInsertSchema(employeeSalaries).o
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  additionalItems: z.string().optional(),
+  deductions: z.string().optional(),
+  contributions: z.string().optional(),
+  taxExemptions: z.string().optional(),
+  settings: z.string().optional(),
 });
 export const updateEmployeeSalarySchema = insertEmployeeSalarySchema.partial();
 
