@@ -1,0 +1,140 @@
+Arahan Untuk Agent — Kiraan SOCSO (PERKESO)
+Objektif
+Implement fungsi kiraan SOCSO dengan:
+
+Wage ceiling: RM 5,950.00 (guna nilai ini kerana ia padankan output yang sistem paparkan).
+
+Pembundaran: ke 5 sen terdekat.
+
+Kategori: Category 1 (Employment Injury + Invalidity) dan Category 2 (Employment Injury sahaja).
+
+Output: { wageBase, employee, employer, category }.
+
+Keperluan
+Wage base (asas gaji) = min(gajiDilapor, 5950.00).
+
+Rounding: guna kaedah nearest 0.05
+
+rounded = Math.round(n * 20) / 20.
+
+Rate mengikut kategori:
+
+Category 1: Employer 1.75%, Employee 0.50%.
+
+Category 2: Employer 1.25%, Employee 0%.
+
+Pemilihan kategori (decision):
+
+Lalai: Category 1 untuk pekerja < 60 tahun dan diliputi Skim Keilatan.
+
+Category 2 jika:
+
+pekerja ≥ 60 tahun (pekerja baharu), atau
+
+individu yang menerima Invalidity Pension dan terus bekerja, atau
+
+majikan hanya mendaftar Employment Injury Scheme untuk pekerja tersebut.
+
+Jika UI ada toggle “Category”, hormati pilihan UI; jika tiada, guna logik umur di atas.
+
+Kontrak Fungsi
+ts
+Copy
+Edit
+type SocsoInput = {
+  reportedWage: number;     // gaji dilapor
+  category?: 1 | 2;         // jika diberi, override logik umur
+  age?: number;             // untuk auto pilih kategori jika category tak diberi
+};
+
+type SocsoResult = {
+  wageBase: number;         // asas kiraan (cap pada 5950)
+  employee: number;         // caruman pekerja
+  employer: number;         // caruman majikan
+  category: 1 | 2;          // kategori akhir yang digunakan
+};
+Implementasi (JavaScript/TypeScript)
+javascript
+Copy
+Edit
+// Pembundaran ke 5 sen terdekat
+function roundToNearest5Cents(n) {
+  return Math.round(n * 20) / 20; // 1 / 0.05 = 20
+}
+
+export function calcSocso(input) {
+  const CEILING = 5950.00;
+
+  // Tentukan kategori akhir
+  let categoryFinal = input.category;
+  if (!categoryFinal) {
+    if (typeof input.age === 'number' && input.age >= 60) {
+      categoryFinal = 2;
+    } else {
+      categoryFinal = 1;
+    }
+  }
+
+  // Tetapkan kadar mengikut kategori
+  let employerRate = 0;
+  let employeeRate = 0;
+  if (categoryFinal === 1) {
+    employerRate = 0.0175; // 1.75%
+    employeeRate = 0.005;  // 0.50%
+  } else {
+    employerRate = 0.0125; // 1.25%
+    employeeRate = 0.0;    // 0%
+  }
+
+  // Wage base (cap)
+  const wageBase = Math.min(Number(input.reportedWage || 0), CEILING);
+
+  // Kiraan kasar
+  const rawEmployer = wageBase * employerRate;
+  const rawEmployee = wageBase * employeeRate;
+
+  // Pembundaran 5 sen
+  const employer = roundToNearest5Cents(rawEmployer);
+  const employee = roundToNearest5Cents(rawEmployee);
+
+  return { wageBase, employer, employee, category: categoryFinal };
+}
+
+// Contoh:
+// Category 1, gaji dilapor 10,000 → wageBase 5,950
+// Employer ~104.125 → 104.15, Employee 29.75
+// console.log(calcSocso({ reportedWage: 10000, category: 1 }));
+Validasi & Ujian (WAJIB)
+T1 (Category 1): reportedWage=10000 → wageBase=5950, employee=29.75, employer=104.15.
+
+T2 (Category 2): reportedWage=5950, age=60 (tiada category diberi) → employee=0.00, employer=74.40 (5950 × 1.25% = 74.375 → 74.40).
+
+T3 (Bawah ceiling): reportedWage=3000, Cat 1 → employee=15.00, employer=52.50.
+
+T4 (Bulat 5 sen): guna nilai yang menghasilkan *.012–.014 atau *.062–.064 untuk mengesahkan pembundaran naik ke .05 atau .10 yang betul.
+
+Penerangan Ringkas — Category 1 vs Category 2
+Category 1 — Employment Injury + Invalidity
+Siapa: Lazimnya pekerja di bawah 60 tahun dan dilindungi skim keilatan.
+
+Kadar caruman:
+
+Majikan: 1.75% daripada wage base (cap 5,950).
+
+Pekerja: 0.50% daripada wage base (cap 5,950).
+
+Contoh (gaji dilapor RM10,000):
+Wage base = 5,950 → Pekerja 29.75; Majikan 104.15 (pembundaran 5 sen).
+
+Category 2 — Employment Injury sahaja
+Siapa: Biasanya pekerja 60 tahun ke atas (pekerja baru), atau penerima Invalidity Pension yang masih bekerja, atau kes di mana hanya Skim Bencana Pekerjaan didaftarkan.
+
+Kadar caruman:
+
+Majikan: 1.25% daripada wage base (cap 5,950).
+
+Pekerja: 0%.
+
+Contoh (gaji dilapor RM5,950):
+Pekerja 0.00; Majikan 74.40 (5,950 × 1.25% = 74.375 → 74.40).
+

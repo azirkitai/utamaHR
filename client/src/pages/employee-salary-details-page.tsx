@@ -67,54 +67,65 @@ interface MasterSalaryData {
 // Helper functions for calculations
 const roundToCent = (value: number): number => Math.round(value * 100) / 100;
 
-const calcSocso = (basicSalary: number): { employee: number; employer: number } => {
-  // Simplified SOCSO calculation - should be based on official rate table
-  if (basicSalary <= 30) return { employee: 0, employer: 0 };
-  if (basicSalary <= 50) return { employee: 0.15, employer: 0.35 };
-  if (basicSalary <= 70) return { employee: 0.25, employer: 0.55 };
-  if (basicSalary <= 100) return { employee: 0.35, employer: 0.75 };
-  if (basicSalary <= 140) return { employee: 0.55, employer: 1.15 };
-  if (basicSalary <= 200) return { employee: 0.85, employer: 1.75 };
-  if (basicSalary <= 300) return { employee: 1.35, employer: 2.75 };
-  if (basicSalary <= 400) return { employee: 1.75, employer: 3.55 };
-  if (basicSalary <= 500) return { employee: 2.25, employer: 4.55 };
-  if (basicSalary <= 600) return { employee: 2.75, employer: 5.55 };
-  if (basicSalary <= 700) return { employee: 3.25, employer: 6.55 };
-  if (basicSalary <= 800) return { employee: 3.75, employer: 7.55 };
-  if (basicSalary <= 900) return { employee: 4.25, employer: 8.55 };
-  if (basicSalary <= 1000) return { employee: 4.75, employer: 9.55 };
-  if (basicSalary <= 1100) return { employee: 5.25, employer: 10.55 };
-  if (basicSalary <= 1200) return { employee: 5.75, employer: 11.55 };
-  if (basicSalary <= 1300) return { employee: 6.25, employer: 12.55 };
-  if (basicSalary <= 1400) return { employee: 6.75, employer: 13.55 };
-  if (basicSalary <= 1500) return { employee: 7.25, employer: 14.55 };
-  if (basicSalary <= 1600) return { employee: 7.75, employer: 15.55 };
-  if (basicSalary <= 1700) return { employee: 8.25, employer: 16.55 };
-  if (basicSalary <= 1800) return { employee: 8.75, employer: 17.55 };
-  if (basicSalary <= 1900) return { employee: 9.25, employer: 18.55 };
-  if (basicSalary <= 2000) return { employee: 9.75, employer: 19.55 };
-  if (basicSalary <= 2100) return { employee: 10.25, employer: 20.55 };
-  if (basicSalary <= 2200) return { employee: 10.75, employer: 21.55 };
-  if (basicSalary <= 2300) return { employee: 11.25, employer: 22.55 };
-  if (basicSalary <= 2400) return { employee: 11.75, employer: 23.55 };
-  if (basicSalary <= 2500) return { employee: 12.25, employer: 24.55 };
-  if (basicSalary <= 2600) return { employee: 12.75, employer: 25.55 };
-  if (basicSalary <= 2700) return { employee: 13.25, employer: 26.55 };
-  if (basicSalary <= 2800) return { employee: 13.75, employer: 27.55 };
-  if (basicSalary <= 2900) return { employee: 14.25, employer: 28.55 };
-  if (basicSalary <= 3000) return { employee: 14.75, employer: 29.55 };
-  if (basicSalary <= 3100) return { employee: 15.25, employer: 30.55 };
-  if (basicSalary <= 3200) return { employee: 15.75, employer: 31.55 };
-  if (basicSalary <= 3300) return { employee: 16.25, employer: 32.55 };
-  if (basicSalary <= 3400) return { employee: 16.75, employer: 33.55 };
-  if (basicSalary <= 3500) return { employee: 17.25, employer: 34.55 };
-  if (basicSalary <= 3600) return { employee: 17.75, employer: 35.55 };
-  if (basicSalary <= 3700) return { employee: 18.25, employer: 36.55 };
-  if (basicSalary <= 3800) return { employee: 18.75, employer: 37.55 };
-  if (basicSalary <= 3900) return { employee: 19.25, employer: 38.55 };
-  if (basicSalary <= 4000) return { employee: 19.75, employer: 39.55 };
-  // For above 4000, use the highest rate
-  return { employee: 19.75, employer: 39.55 };
+// Pembundaran ke 5 sen terdekat
+const roundToNearest5Cents = (n: number): number => Math.round(n * 20) / 20;
+
+// SOCSO calculation mengikut spesifikasi PERKESO
+type SocsoInput = {
+  reportedWage: number;     // gaji dilapor
+  category?: 1 | 2;         // jika diberi, override logik umur
+  age?: number;             // untuk auto pilih kategori jika category tak diberi
+};
+
+type SocsoResult = {
+  wageBase: number;         // asas kiraan (cap pada 5950)
+  employee: number;         // caruman pekerja
+  employer: number;         // caruman majikan
+  category: 1 | 2;          // kategori akhir yang digunakan
+};
+
+const calcSocso = (input: SocsoInput): SocsoResult => {
+  const CEILING = 5950.00;
+
+  // Tentukan kategori akhir
+  let categoryFinal = input.category;
+  if (!categoryFinal) {
+    if (typeof input.age === 'number' && input.age >= 60) {
+      categoryFinal = 2;
+    } else {
+      categoryFinal = 1;
+    }
+  }
+
+  // Tetapkan kadar mengikut kategori
+  let employerRate = 0;
+  let employeeRate = 0;
+  if (categoryFinal === 1) {
+    employerRate = 0.0175; // 1.75%
+    employeeRate = 0.005;  // 0.50%
+  } else {
+    employerRate = 0.0125; // 1.25%
+    employeeRate = 0.0;    // 0%
+  }
+
+  // Wage base (cap)
+  const wageBase = Math.min(Number(input.reportedWage || 0), CEILING);
+
+  // Kiraan kasar
+  const rawEmployer = wageBase * employerRate;
+  const rawEmployee = wageBase * employeeRate;
+
+  // Pembundaran 5 sen
+  const employer = roundToNearest5Cents(rawEmployer);
+  const employee = roundToNearest5Cents(rawEmployee);
+
+  return { wageBase, employer, employee, category: categoryFinal };
+};
+
+// Legacy function for backward compatibility
+const calcSocsoLegacy = (basicSalary: number): { employee: number; employer: number } => {
+  const result = calcSocso({ reportedWage: basicSalary, category: 1 });
+  return { employee: result.employee, employer: result.employer };
 };
 
 const calcEis = (basicSalary: number): { employee: number; employer: number } => {
@@ -236,7 +247,10 @@ export default function EmployeeSalaryDetailsPage() {
       }
 
       // Calculate SOCSO
-      const socso = salaryData.settings.isSocsoEnabled ? calcSocso(salaryData.basicSalary) : { employee: 0, employer: 0 };
+      // Calculate SOCSO using new implementation with proper PERKESO rates
+      const socso = salaryData.settings.isSocsoEnabled 
+        ? calcSocso({ reportedWage: salaryData.basicSalary, category: 1 })
+        : { employee: 0, employer: 0, wageBase: 0, category: 1 as const };
       
       // Calculate EIS
       const eis = salaryData.settings.isEisEnabled ? calcEis(salaryData.basicSalary) : { employee: 0, employer: 0 };
