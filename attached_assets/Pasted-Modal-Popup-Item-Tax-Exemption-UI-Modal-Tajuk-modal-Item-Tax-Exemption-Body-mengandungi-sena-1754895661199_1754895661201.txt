@@ -1,0 +1,81 @@
+Modal Popup – “Item/Tax Exemption”
+UI Modal:
+
+Tajuk modal: Item/Tax Exemption
+
+Body mengandungi senarai input amount RM untuk kategori pengecualian cukai LHDN, contoh:
+
+Travelling Allowance
+
+Child Care Allowance
+
+Gift
+
+Phone Allowance
+
+Reward
+
+Parking Allowance
+
+Meal Allowance
+
+Subsidies
+
+Setiap item:
+
+Label nama
+
+Input RM (2 d.p.)
+
+Ikon gear kecil (⚙) untuk buka setting flags statutory (optional jika mahu konsisten dengan sistem).
+
+Bawah senarai, butang Close (warna merah) untuk tutup modal.
+
+3. Fungsi Modal
+Bila modal dibuka, nilai input prefill ikut data yang tersimpan dalam taxExemptions[] untuk pekerja tersebut.
+
+Bila user masukkan nilai, sistem simpan ke taxExemptions[] (on change atau on save).
+
+Nilai dari modal tidak menambah kepada gross salary kerana ini adalah pengecualian cukai, tetapi digunakan untuk pengiraan PCB (mengurangkan taxable income).
+
+Pastikan semua nilai ini tidak termasuk dalam wage base EPF, SOCSO, EIS, HRDF (melainkan HR override manual).
+
+4. Integrasi Dengan PCB39
+PCB39 calculation perlu tolak jumlah dari semua item dalam taxExemptions[].
+
+PCB taxable income = (Basic Salary + Additional Items taxable) – (Total Tax Exemptions).
+
+5. Data Model
+json
+Copy
+Edit
+"taxExemptions": [
+  { "code": "TRAVEL", "label": "Travelling Allowance", "amount": 0 },
+  { "code": "CHILDCARE", "label": "Child Care Allowance", "amount": 0 },
+  { "code": "GIFT", "label": "Gift", "amount": 0 },
+  { "code": "PHONE", "label": "Phone Allowance", "amount": 0 },
+  { "code": "REWARD", "label": "Reward", "amount": 0 },
+  { "code": "PARKING", "label": "Parking Allowance", "amount": 0 },
+  { "code": "MEAL", "label": "Meal Allowance", "amount": 0 },
+  { "code": "SUBSIDIES", "label": "Subsidies", "amount": 0 }
+]
+6. Acceptance Criteria
+Klik link View Item/Tax Exemption → modal muncul.
+
+Semua nilai boleh diedit, disimpan, dan di-load semula.
+
+Nilai ini tidak mempengaruhi Gross Salary, hanya PCB39.
+
+UI responsive dan mesra pengguna.
+
+Kalau nak, saya boleh buatkan wireframe modal ini + kod contoh untuk fungsi buka/tutup dan simpan data supaya agent terus boleh implement ikut flow yang betul.
+
+
+
+
+
+
+
+
+
+Ask ChatGPT

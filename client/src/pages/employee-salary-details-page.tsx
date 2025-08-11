@@ -36,6 +36,12 @@ interface CustomDeductionItem {
   amount: number;
 }
 
+interface TaxExemptionItem {
+  code: string;
+  label: string;
+  amount: number;
+}
+
 interface DeductionItem {
   epfEmployee: number;
   socsoEmployee: number;
@@ -77,6 +83,7 @@ interface MasterSalaryData {
   deductions: DeductionItem;
   contributions: ContributionItem;
   settings: SalarySettings;
+  taxExemptions: TaxExemptionItem[];
   remarks: string;
 }
 
@@ -292,6 +299,16 @@ export default function EmployeeSalaryDetailsPage() {
       epfEmployerRate: 13.0,
       hrdfEmployerRate: 1.0
     },
+    taxExemptions: [
+      { code: "TRAVEL", label: "Travelling Allowance", amount: 0 },
+      { code: "CHILDCARE", label: "Child Care Allowance", amount: 0 },
+      { code: "GIFT", label: "Gift", amount: 0 },
+      { code: "PHONE", label: "Phone Allowance", amount: 0 },
+      { code: "REWARD", label: "Reward", amount: 0 },
+      { code: "PARKING", label: "Parking Allowance", amount: 0 },
+      { code: "MEAL", label: "Meal Allowance", amount: 0 },
+      { code: "SUBSIDIES", label: "Subsidies", amount: 0 }
+    ],
     remarks: ""
   });
 
@@ -307,6 +324,9 @@ export default function EmployeeSalaryDetailsPage() {
   const [isDeductionDialogOpen, setIsDeductionDialogOpen] = useState(false);
   const [newDeductionLabel, setNewDeductionLabel] = useState("");
   const [newDeductionAmount, setNewDeductionAmount] = useState(0);
+
+  // Dialog state for tax exemption modal
+  const [isTaxExemptionDialogOpen, setIsTaxExemptionDialogOpen] = useState(false);
 
   // Get all employees for dropdown
   const { data: employees = [] } = useQuery<any[]>({
@@ -328,7 +348,21 @@ export default function EmployeeSalaryDetailsPage() {
   // Update local state when data is loaded
   useEffect(() => {
     if (existingSalaryData) {
-      setSalaryData(existingSalaryData);
+      // Ensure taxExemptions field exists with default values
+      const updatedData = {
+        ...existingSalaryData,
+        taxExemptions: existingSalaryData.taxExemptions || [
+          { code: "TRAVEL", label: "Travelling Allowance", amount: 0 },
+          { code: "CHILDCARE", label: "Child Care Allowance", amount: 0 },
+          { code: "GIFT", label: "Gift", amount: 0 },
+          { code: "PHONE", label: "Phone Allowance", amount: 0 },
+          { code: "REWARD", label: "Reward", amount: 0 },
+          { code: "PARKING", label: "Parking Allowance", amount: 0 },
+          { code: "MEAL", label: "Meal Allowance", amount: 0 },
+          { code: "SUBSIDIES", label: "Subsidies", amount: 0 }
+        ]
+      };
+      setSalaryData(updatedData);
       setIsDirty(false);
     }
   }, [existingSalaryData]);
@@ -604,6 +638,15 @@ export default function EmployeeSalaryDetailsPage() {
           item.id === id ? { ...item, [field]: value } : item
         )
       }
+    });
+  };
+
+  // Tax exemption management functions
+  const updateTaxExemption = (code: string, amount: number) => {
+    updateSalaryData({
+      taxExemptions: (salaryData.taxExemptions || []).map(item =>
+        item.code === code ? { ...item, amount } : item
+      )
     });
   };
 
@@ -1010,7 +1053,11 @@ export default function EmployeeSalaryDetailsPage() {
                 </div>
               ))}
               
-              <div className="text-sm text-blue-600 underline cursor-pointer">
+              <div 
+                className="text-sm text-blue-600 underline cursor-pointer hover:text-blue-800"
+                onClick={() => setIsTaxExemptionDialogOpen(true)}
+                data-testid="viewTaxExemption"
+              >
                 💡 View Item/Tax Exemption
               </div>
               
@@ -1238,6 +1285,49 @@ export default function EmployeeSalaryDetailsPage() {
                       data-testid="btnAddDeduction"
                     >
                       Tambah
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {/* Tax Exemption Modal */}
+              <Dialog open={isTaxExemptionDialogOpen} onOpenChange={setIsTaxExemptionDialogOpen}>
+                <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Item/Tax Exemption</DialogTitle>
+                    <DialogDescription>
+                      Masukkan jumlah pengecualian cukai LHDN untuk mengurangkan taxable income dalam pengiraan PCB.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    {(salaryData.taxExemptions || []).map((item) => (
+                      <div key={item.code} className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor={item.code} className="text-right">
+                          {item.label}
+                        </Label>
+                        <Input
+                          id={item.code}
+                          type="number"
+                          step="0.01"
+                          value={item.amount}
+                          onChange={(e) => updateTaxExemption(item.code, parseFloat(e.target.value) || 0)}
+                          className="col-span-2"
+                          placeholder="0.00"
+                          data-testid={`taxExemption-${item.code}`}
+                        />
+                        <div className="text-xs text-gray-500">
+                          ⚙️
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <DialogFooter>
+                    <Button 
+                      variant="destructive"
+                      onClick={() => setIsTaxExemptionDialogOpen(false)}
+                      data-testid="btnCloseTaxExemption"
+                    >
+                      Close
                     </Button>
                   </DialogFooter>
                 </DialogContent>
