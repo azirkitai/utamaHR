@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Calculator, Save, Info, Settings, ChevronDown, ChevronUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -29,6 +30,12 @@ interface AdditionalItem {
   };
 }
 
+interface CustomDeductionItem {
+  id: string;
+  label: string;
+  amount: number;
+}
+
 interface DeductionItem {
   epfEmployee: number;
   socsoEmployee: number;
@@ -39,6 +46,7 @@ interface DeductionItem {
   pcb38: number;
   zakat: number;
   other: number;
+  customItems: CustomDeductionItem[];
 }
 
 interface ContributionItem {
@@ -263,7 +271,8 @@ export default function EmployeeSalaryDetailsPage() {
       pcb39: 0,
       pcb38: 0,
       zakat: 0,
-      other: 0
+      other: 0,
+      customItems: []
     },
     contributions: {
       epfEmployer: 0,
@@ -293,6 +302,11 @@ export default function EmployeeSalaryDetailsPage() {
     companyContribution: "Calculating...",
     computedSalary: "Calculating..."
   });
+
+  // Dialog state for adding custom deduction items
+  const [isDeductionDialogOpen, setIsDeductionDialogOpen] = useState(false);
+  const [newDeductionLabel, setNewDeductionLabel] = useState("");
+  const [newDeductionAmount, setNewDeductionAmount] = useState(0);
 
   // Get all employees for dropdown
   const { data: employees = [] } = useQuery<any[]>({
@@ -408,6 +422,7 @@ export default function EmployeeSalaryDetailsPage() {
       const sumAdditional = salaryData.additionalItems.reduce((sum, item) => sum + item.amount, 0);
       
       // Calculate total deductions including ALL deduction items
+      const customDeductionsSum = (salaryData.deductions.customItems || []).reduce((sum, item) => sum + item.amount, 0);
       const sumDeduction = 
         updatedDeductions.epfEmployee +
         updatedDeductions.socsoEmployee +
@@ -417,7 +432,8 @@ export default function EmployeeSalaryDetailsPage() {
         salaryData.deductions.pcb39 +
         salaryData.deductions.pcb38 +
         salaryData.deductions.zakat +
-        salaryData.deductions.other;
+        salaryData.deductions.other +
+        customDeductionsSum;
       
       const sumContribution = Object.values(updatedContributions).reduce((sum, value) => sum + value, 0);
 
@@ -545,6 +561,49 @@ export default function EmployeeSalaryDetailsPage() {
   const updateSettings = (field: keyof SalarySettings, value: any) => {
     updateSalaryData({ 
       settings: { ...salaryData.settings, [field]: value }
+    });
+  };
+
+  // Custom deduction management functions
+  const addCustomDeduction = () => {
+    if (!newDeductionLabel.trim()) return;
+    
+    const newItem: CustomDeductionItem = {
+      id: Date.now().toString(),
+      label: newDeductionLabel.trim(),
+      amount: newDeductionAmount
+    };
+    
+    updateSalaryData({
+      deductions: {
+        ...salaryData.deductions,
+        customItems: [...(salaryData.deductions.customItems || []), newItem]
+      }
+    });
+    
+    // Reset dialog state
+    setNewDeductionLabel("");
+    setNewDeductionAmount(0);
+    setIsDeductionDialogOpen(false);
+  };
+
+  const removeCustomDeduction = (id: string) => {
+    updateSalaryData({
+      deductions: {
+        ...salaryData.deductions,
+        customItems: (salaryData.deductions.customItems || []).filter(item => item.id !== id)
+      }
+    });
+  };
+
+  const updateCustomDeduction = (id: string, field: 'label' | 'amount', value: string | number) => {
+    updateSalaryData({
+      deductions: {
+        ...salaryData.deductions,
+        customItems: (salaryData.deductions.customItems || []).map(item =>
+          item.id === id ? { ...item, [field]: value } : item
+        )
+      }
     });
   };
 
@@ -1096,6 +1155,93 @@ export default function EmployeeSalaryDetailsPage() {
                   data-testid="otherDeduction"
                 />
               </div>
+
+              {/* Custom Deduction Items */}
+              {(salaryData.deductions.customItems || []).map((item) => (
+                <div key={item.id} className="flex space-x-2">
+                  <div className="flex-1">
+                    <Label>{item.label}</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={item.amount}
+                      onChange={(e) => updateCustomDeduction(item.id, 'amount', parseFloat(e.target.value) || 0)}
+                      data-testid={`customDeduction-${item.id}`}
+                    />
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => removeCustomDeduction(item.id)}
+                    className="mt-6 text-red-600 hover:text-red-700"
+                    data-testid={`removeCustomDeduction-${item.id}`}
+                  >
+                    ×
+                  </Button>
+                </div>
+              ))}
+
+              {/* Add Additional Item Button */}
+              <Dialog open={isDeductionDialogOpen} onOpenChange={setIsDeductionDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full border-gray-300 text-gray-600 hover:bg-gray-50"
+                    data-testid="btnAddDeductionItem"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Additional Item
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Tambah Item Deduction</DialogTitle>
+                    <DialogDescription>
+                      Masukkan maklumat untuk deduction item baru yang akan ditambahkan.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div>
+                      <Label htmlFor="deductionLabel">Jenis Deduction</Label>
+                      <Input
+                        id="deductionLabel"
+                        value={newDeductionLabel}
+                        onChange={(e) => setNewDeductionLabel(e.target.value)}
+                        placeholder="Contoh: Pinjaman Koperasi, Denda, etc."
+                        data-testid="inputDeductionLabel"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="deductionAmount">Jumlah (RM)</Label>
+                      <Input
+                        id="deductionAmount"
+                        type="number"
+                        step="0.01"
+                        value={newDeductionAmount}
+                        onChange={(e) => setNewDeductionAmount(parseFloat(e.target.value) || 0)}
+                        placeholder="0.00"
+                        data-testid="inputDeductionAmount"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setIsDeductionDialogOpen(false)}
+                      data-testid="btnCancelDeduction"
+                    >
+                      Batal
+                    </Button>
+                    <Button 
+                      onClick={addCustomDeduction}
+                      disabled={!newDeductionLabel.trim()}
+                      data-testid="btnAddDeduction"
+                    >
+                      Tambah
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
               </div>
 
               {/* Column 4 - Company Contribution */}
