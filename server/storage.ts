@@ -1506,10 +1506,34 @@ export class DatabaseStorage implements IStorage {
         )
       );
 
+      // Count pending financial claim applications
+      const [pendingFinancialResult] = await db.select({
+        count: count(claimApplications.id)
+      })
+      .from(claimApplications)
+      .where(
+        and(
+          eq(claimApplications.claimCategory, 'financial'),
+          eq(claimApplications.status, 'pending')
+        )
+      );
+
+      // Count pending overtime claim applications
+      const [pendingOvertimeResult] = await db.select({
+        count: count(claimApplications.id)
+      })
+      .from(claimApplications)
+      .where(
+        and(
+          eq(claimApplications.claimCategory, 'overtime'),
+          eq(claimApplications.status, 'pending')
+        )
+      );
+
       return {
         pendingLeave: Number(pendingLeaveResult?.count || 0),
-        pendingClaim: 0, // TODO: Implement when claim system is ready
-        pendingOvertime: 0, // TODO: Implement when overtime system is ready
+        pendingClaim: Number(pendingFinancialResult?.count || 0),
+        pendingOvertime: Number(pendingOvertimeResult?.count || 0),
         pendingPayroll: 0, // TODO: Implement when payroll system is ready
         pendingVoucher: 0 // TODO: Implement when voucher system is ready
       };
