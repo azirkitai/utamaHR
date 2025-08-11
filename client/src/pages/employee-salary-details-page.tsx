@@ -1190,7 +1190,7 @@ export default function EmployeeSalaryDetailsPage() {
                     data-testid="btnAddDeductionItem"
                   >
                     <Plus className="w-4 h-4 mr-2" />
-                    Add Additional Item
+                    Add Deduction Item
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[425px]">
