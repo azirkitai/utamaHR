@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Calculator, Save, Info, Settings, ChevronDown, ChevronUp, X, Trash2 } from "lucide-react";
+import { Plus, Calculator, Save, Info, Settings, ChevronDown, ChevronUp, X, Trash2, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { PCB39_RELIEFS_2025 } from "@shared/pcb39-reliefs-2025";
 
@@ -327,6 +327,8 @@ export default function EmployeeSalaryDetailsPage() {
   const [showPCB39Modal, setShowPCB39Modal] = useState(false);
   const [showUnpaidLeaveModal, setShowUnpaidLeaveModal] = useState(false);
   const [pcb39Mode, setPCB39Mode] = useState<"custom" | "calculate">("custom");
+  const [pcb39CustomAmount, setPCB39CustomAmount] = useState("0.00");
+  const [showPCB39Info, setShowPCB39Info] = useState(false);
   const [reliefCode, setReliefCode] = useState("");
   const [reliefAmount, setReliefAmount] = useState("");
   const [rebateCode, setRebateCode] = useState("");
@@ -3571,6 +3573,90 @@ export default function EmployeeSalaryDetailsPage() {
             >
               <X className="w-4 h-4 mr-2" />
               Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* PCB39 Modal */}
+      <Dialog open={showPCB39Modal} onOpenChange={setShowPCB39Modal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-lg font-semibold">PCB39</DialogTitle>
+              <div className="flex items-center space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setShowPCB39Info(!showPCB39Info)}
+                  className="hover:bg-gray-100 p-1 rounded"
+                  data-testid="pcb39-info-toggle"
+                >
+                  {showPCB39Info ? <EyeOff className="h-4 w-4 text-gray-400" /> : <Eye className="h-4 w-4 text-gray-400" />}
+                </button>
+                <Select value={pcb39Mode} onValueChange={(value: "custom" | "calculate") => setPCB39Mode(value)}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="custom">Custom</SelectItem>
+                    <SelectItem value="calculate">Calculate</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </DialogHeader>
+          
+          {/* Info Section - Collapsible */}
+          {showPCB39Info && (
+            <div className="p-3 bg-gray-50 rounded-lg border text-sm space-y-2">
+              <div>
+                <strong>Custom</strong>
+                <p className="text-gray-600">enable user to set custom amount.</p>
+              </div>
+              <div>
+                <strong>Calculate</strong>
+                <p className="text-gray-600">amount will be calculated by system.</p>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-4">
+            {/* Amount Input */}
+            <div className="space-y-2">
+              <div className="flex">
+                <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                  <span className="text-sm font-medium">RM</span>
+                </div>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={pcb39CustomAmount}
+                  onChange={(e) => setPCB39CustomAmount(e.target.value)}
+                  className="rounded-l-none"
+                  placeholder="0.00"
+                  disabled={pcb39Mode === "calculate"}
+                  data-testid="pcb39-modal-amount"
+                />
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outline"
+              onClick={() => setShowPCB39Modal(false)}
+              data-testid="btn-cancel-pcb39"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                // Handle save logic here
+                setShowPCB39Modal(false);
+              }}
+              data-testid="btn-save-pcb39"
+            >
+              Save
             </Button>
           </DialogFooter>
         </DialogContent>
