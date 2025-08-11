@@ -76,8 +76,11 @@ export default function ClaimApprovalPage() {
 
   // Helper function to get employee name by ID
   const getEmployeeName = (employeeId: string) => {
+    console.log('Looking for employee with ID:', employeeId);
+    console.log('Available employees data:', employeesData);
     const employee = employeesData.find((emp: any) => emp.id === employeeId);
-    return employee ? employee.name : employeeId;
+    console.log('Found employee:', employee);
+    return employee ? employee.name : `Unknown Employee (${employeeId.slice(0, 8)}...)`;
   };
 
   // Approve claim mutation
