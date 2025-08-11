@@ -662,9 +662,11 @@ export default function EmployeeSalaryDetailsPage() {
       // Calculate PCB39 based on mode
       let pcb39Amount = salaryData.deductions.pcb39; // Default to current value
       
-      if (pcb39Mode === "calculate" && salaryData.deductions.pcb39Settings?.reliefs) {
-        // Calculate mode: Sum relief amounts
-        pcb39Amount = salaryData.deductions.pcb39Settings.reliefs.reduce((sum, relief) => sum + relief.amount, 0);
+      if (pcb39Mode === "calculate" && salaryData.deductions.pcb39Settings) {
+        // Calculate mode: Sum relief and rebate amounts
+        const reliefTotal = salaryData.deductions.pcb39Settings.reliefs?.reduce((sum, relief) => sum + relief.amount, 0) || 0;
+        const rebateTotal = salaryData.deductions.pcb39Settings.rebates?.reduce((sum, rebate) => sum + rebate.amount, 0) || 0;
+        pcb39Amount = reliefTotal + rebateTotal;
       }
       // For custom mode, we keep the manually entered value (pcb39Amount remains unchanged)
 
@@ -2349,7 +2351,7 @@ export default function EmployeeSalaryDetailsPage() {
                               <span className="text-sm font-medium">Custom Mode Active</span>
                             </div>
                             <p className="text-xs text-orange-600 mt-1">
-                              Relief selection is disabled. Enter PCB39 amount manually below.
+                              Manual entry mode - Set your own PCB39 deduction amount.
                             </p>
                             <div className="mt-3 grid grid-cols-4 gap-3 items-end">
                               <div className="col-span-2">
@@ -2381,12 +2383,20 @@ export default function EmployeeSalaryDetailsPage() {
                         
                         {pcb39Mode === "calculate" && (
                           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                            <div className="flex items-center gap-2 text-blue-700">
-                              <Calculator className="h-4 w-4" />
-                              <span className="text-sm font-medium">Calculate Mode Active</span>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2 text-blue-700">
+                                <Calculator className="h-4 w-4" />
+                                <span className="text-sm font-medium">Calculate Mode Active</span>
+                              </div>
+                              <div className="text-sm font-bold text-blue-700">
+                                Current PCB39: RM {(
+                                  (salaryData.deductions.pcb39Settings?.reliefs?.reduce((sum, relief) => sum + relief.amount, 0) || 0) +
+                                  (salaryData.deductions.pcb39Settings?.rebates?.reduce((sum, rebate) => sum + rebate.amount, 0) || 0)
+                                ).toFixed(2)}
+                              </div>
                             </div>
                             <p className="text-xs text-blue-600 mt-1">
-                              Select relief options to automatically calculate PCB39 amount.
+                              System will automatically calculate PCB39 based on your relief selections.
                             </p>
                           </div>
                         )}
@@ -2520,19 +2530,27 @@ export default function EmployeeSalaryDetailsPage() {
                               <span className="text-sm font-medium">Custom Mode Active</span>
                             </div>
                             <p className="text-xs text-orange-600 mt-1">
-                              Rebate selection is disabled. PCB39 amount will be entered manually.
+                              Manual entry mode - Set your own PCB39 deduction amount.
                             </p>
                           </div>
                         )}
                         
                         {pcb39Mode === "calculate" && (
                           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                            <div className="flex items-center gap-2 text-blue-700">
-                              <Calculator className="h-4 w-4" />
-                              <span className="text-sm font-medium">Calculate Mode Active</span>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2 text-blue-700">
+                                <Calculator className="h-4 w-4" />
+                                <span className="text-sm font-medium">Calculate Mode Active</span>
+                              </div>
+                              <div className="text-sm font-bold text-blue-700">
+                                Current PCB39: RM {(
+                                  (salaryData.deductions.pcb39Settings?.reliefs?.reduce((sum, relief) => sum + relief.amount, 0) || 0) +
+                                  (salaryData.deductions.pcb39Settings?.rebates?.reduce((sum, rebate) => sum + rebate.amount, 0) || 0)
+                                ).toFixed(2)}
+                              </div>
                             </div>
                             <p className="text-xs text-blue-600 mt-1">
-                              Select rebate options to automatically calculate PCB39 amount.
+                              System will automatically calculate PCB39 based on your rebate selections.
                             </p>
                           </div>
                         )}
