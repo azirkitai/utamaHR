@@ -2554,6 +2554,162 @@ export default function EmployeeSalaryDetailsPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Tax Exemption Modal */}
+      <Dialog open={isTaxExemptionDialogOpen} onOpenChange={setIsTaxExemptionDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Item/Tax Exemption</DialogTitle>
+            <DialogDescription>
+              Configure tax exemption settings for additional items and statutory deductions.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6">
+            {/* Additional Items Section */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Additional Items</h3>
+              <div className="space-y-4">
+                {salaryData.additionalItems.map((item) => (
+                  <div key={item.code} className="border rounded-lg p-4">
+                    <div className="flex justify-between items-center mb-3">
+                      <h4 className="font-medium">{item.label}</h4>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-600">RM</span>
+                        <span className="font-medium">{item.amount.toFixed(2)}</span>
+                      </div>
+                    </div>
+                    
+                    {/* Statutory Checkboxes */}
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={item.flags.epf}
+                          onCheckedChange={(checked) => updateAdditionalItemFlag(item.code, "epf", !!checked)}
+                          data-testid={`${item.code}-epf-checkbox`}
+                        />
+                        <label className="text-sm">EPF</label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={item.flags.socso}
+                          onCheckedChange={(checked) => updateAdditionalItemFlag(item.code, "socso", !!checked)}
+                          data-testid={`${item.code}-socso-checkbox`}
+                        />
+                        <label className="text-sm">SOCSO</label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={item.flags.eis}
+                          onCheckedChange={(checked) => updateAdditionalItemFlag(item.code, "eis", !!checked)}
+                          data-testid={`${item.code}-eis-checkbox`}
+                        />
+                        <label className="text-sm">EIS</label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={item.flags.hrdf}
+                          onCheckedChange={(checked) => updateAdditionalItemFlag(item.code, "hrdf", !!checked)}
+                          data-testid={`${item.code}-hrdf-checkbox`}
+                        />
+                        <label className="text-sm">HRDF</label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={item.flags.pcb39}
+                          onCheckedChange={(checked) => updateAdditionalItemFlag(item.code, "pcb39", !!checked)}
+                          data-testid={`${item.code}-pcb39-checkbox`}
+                        />
+                        <label className="text-sm">PCB39</label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={item.flags.fixed}
+                          onCheckedChange={(checked) => updateAdditionalItemFlag(item.code, "fixed", !!checked)}
+                          data-testid={`${item.code}-fixed-checkbox`}
+                        />
+                        <label className="text-sm">Fixed</label>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Deduction Items Section */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Deduction Items</h3>
+              <div className="space-y-4">
+                {expandedDeductionFlags.size > 0 && (
+                  <div className="space-y-3">
+                    <div className="border rounded-lg p-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <h4 className="font-medium">EPF Employee</h4>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm text-gray-600">RM</span>
+                          <span className="font-medium">{salaryData.deductions.epfEmployee.toFixed(2)}</span>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox checked={true} disabled />
+                          <label className="text-sm text-gray-500">EPF (Auto)</label>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="border rounded-lg p-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <h4 className="font-medium">SOCSO Employee</h4>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm text-gray-600">RM</span>
+                          <span className="font-medium">{salaryData.deductions.socsoEmployee.toFixed(2)}</span>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox checked={true} disabled />
+                          <label className="text-sm text-gray-500">SOCSO (Auto)</label>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="border rounded-lg p-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <h4 className="font-medium">EIS Employee</h4>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm text-gray-600">RM</span>
+                          <span className="font-medium">{salaryData.deductions.eisEmployee.toFixed(2)}</span>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox checked={true} disabled />
+                          <label className="text-sm text-gray-500">EIS (Auto)</label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline"
+              onClick={() => setIsTaxExemptionDialogOpen(false)}
+              data-testid="btn-cancel-tax-exemption"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => setIsTaxExemptionDialogOpen(false)}
+              data-testid="btn-close-tax-exemption"
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* BIK/VOLA Info Dialog */}
       <Dialog open={isBikInfoDialogOpen} onOpenChange={setIsBikInfoDialogOpen}>
         <DialogContent className="max-w-md">
