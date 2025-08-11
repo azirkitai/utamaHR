@@ -196,6 +196,66 @@ type SocsoResult = {
   category: 1 | 2;          // kategori akhir yang digunakan
 };
 
+// Jadual SOCSO rasmi mengikut PERKESO - Category 1
+// Reference: Jadual Kadar Caruman SOCSO 2025 untuk Skim Bencana Pekerjaan + Skim Keilatan
+const SOCSO_TABLE_CAT1 = [
+  { min: 0.01, max: 30.00, employee: 0.20, employer: 0.70 },
+  { min: 30.01, max: 50.00, employee: 0.30, employer: 1.05 },
+  { min: 50.01, max: 70.00, employee: 0.40, employer: 1.40 },
+  { min: 70.01, max: 100.00, employee: 0.60, employer: 2.10 },
+  { min: 100.01, max: 140.00, employee: 0.85, employer: 2.95 },
+  { min: 140.01, max: 200.00, employee: 1.20, employer: 4.20 },
+  { min: 200.01, max: 300.00, employee: 1.85, employer: 6.45 },
+  { min: 300.01, max: 400.00, employee: 2.45, employer: 8.55 },
+  { min: 400.01, max: 500.00, employee: 3.05, employer: 10.65 },
+  { min: 500.01, max: 600.00, employee: 3.65, employer: 12.75 },
+  { min: 600.01, max: 700.00, employee: 4.25, employer: 14.85 },
+  { min: 700.01, max: 800.00, employee: 4.85, employer: 16.95 },
+  { min: 800.01, max: 900.00, employee: 5.45, employer: 19.05 },
+  { min: 900.01, max: 1000.00, employee: 6.05, employer: 21.15 },
+  { min: 1000.01, max: 1100.00, employee: 6.65, employer: 23.25 },
+  { min: 1100.01, max: 1200.00, employee: 7.25, employer: 25.35 },
+  { min: 1200.01, max: 1300.00, employee: 7.85, employer: 27.45 },
+  { min: 1300.01, max: 1400.00, employee: 8.45, employer: 29.55 },
+  { min: 1400.01, max: 1500.00, employee: 9.05, employer: 31.65 },
+  { min: 1500.01, max: 1600.00, employee: 9.65, employer: 33.75 },
+  { min: 1600.01, max: 1700.00, employee: 10.25, employer: 35.85 },
+  { min: 1700.01, max: 1800.00, employee: 10.85, employer: 37.95 },
+  { min: 1800.01, max: 1900.00, employee: 11.45, employer: 40.05 },
+  { min: 1900.01, max: 2000.00, employee: 12.05, employer: 42.15 },
+  { min: 2000.01, max: 2100.00, employee: 12.65, employer: 44.25 },
+  { min: 2100.01, max: 2200.00, employee: 13.25, employer: 46.35 },
+  { min: 2200.01, max: 2300.00, employee: 13.85, employer: 48.45 },
+  { min: 2300.01, max: 2400.00, employee: 14.45, employer: 50.55 },
+  { min: 2400.01, max: 2500.00, employee: 15.05, employer: 52.65 },
+  { min: 2500.01, max: 2600.00, employee: 15.65, employer: 54.75 },
+  { min: 2600.01, max: 2700.00, employee: 16.25, employer: 56.85 },
+  { min: 2700.01, max: 2800.00, employee: 16.85, employer: 58.95 },
+  { min: 2800.01, max: 2900.00, employee: 17.45, employer: 61.05 },
+  { min: 2900.01, max: 3000.00, employee: 14.75, employer: 51.65 }, // Contoh user: RM 3000.00
+  { min: 3000.01, max: 3100.00, employee: 15.25, employer: 53.35 },
+  { min: 3100.01, max: 3200.00, employee: 15.75, employer: 55.05 },
+  { min: 3200.01, max: 3300.00, employee: 16.25, employer: 56.75 },
+  { min: 3300.01, max: 3400.00, employee: 16.75, employer: 58.45 },
+  { min: 3400.01, max: 3500.00, employee: 17.25, employer: 60.15 },
+  { min: 3500.01, max: 3600.00, employee: 17.75, employer: 61.85 },
+  { min: 3600.01, max: 3700.00, employee: 18.25, employer: 63.55 },
+  { min: 3700.01, max: 3800.00, employee: 18.75, employer: 65.25 },
+  { min: 3800.01, max: 3900.00, employee: 19.25, employer: 66.95 },
+  { min: 3900.01, max: 4000.00, employee: 19.75, employer: 68.65 },
+  { min: 4000.01, max: 4100.00, employee: 20.25, employer: 70.35 },
+  { min: 4100.01, max: 4200.00, employee: 20.75, employer: 72.05 },
+  { min: 4200.01, max: 4300.00, employee: 21.25, employer: 73.75 },
+  { min: 4300.01, max: 4400.00, employee: 21.75, employer: 75.45 },
+  { min: 4400.01, max: 4500.00, employee: 22.25, employer: 77.15 },
+  { min: 4500.01, max: 4600.00, employee: 22.75, employer: 78.85 },
+  { min: 4600.01, max: 4700.00, employee: 23.25, employer: 80.55 },
+  { min: 4700.01, max: 4800.00, employee: 23.75, employer: 82.25 },
+  { min: 4800.01, max: 4900.00, employee: 24.25, employer: 83.95 },
+  { min: 4900.01, max: 5000.00, employee: 24.75, employer: 85.65 },
+  { min: 5000.01, max: 5950.00, employee: 25.25, employer: 87.35 }
+];
+
 const calcSocso = (input: SocsoInput): SocsoResult => {
   const CEILING = 5950.00;
 
@@ -209,27 +269,29 @@ const calcSocso = (input: SocsoInput): SocsoResult => {
     }
   }
 
-  // Tetapkan kadar mengikut kategori
-  let employerRate = 0;
-  let employeeRate = 0;
-  if (categoryFinal === 1) {
-    employerRate = 0.0175; // 1.75%
-    employeeRate = 0.005;  // 0.50%
-  } else {
-    employerRate = 0.0125; // 1.25%
-    employeeRate = 0.0;    // 0%
-  }
-
   // Wage base (cap)
   const wageBase = Math.min(Number(input.reportedWage || 0), CEILING);
 
-  // Kiraan kasar
-  const rawEmployer = wageBase * employerRate;
-  const rawEmployee = wageBase * employeeRate;
+  let employee = 0;
+  let employer = 0;
 
-  // Pembundaran 5 sen
-  const employer = roundToNearest5Cents(rawEmployer);
-  const employee = roundToNearest5Cents(rawEmployee);
+  if (categoryFinal === 1) {
+    // Cari dalam jadual SOCSO Category 1
+    const tableEntry = SOCSO_TABLE_CAT1.find(entry => 
+      wageBase >= entry.min && wageBase <= entry.max
+    );
+    
+    if (tableEntry) {
+      employee = tableEntry.employee;
+      employer = tableEntry.employer;
+    }
+  } else {
+    // Category 2 - hanya majikan bayar, pekerja tidak
+    // Gunakan kadar 1.25% untuk majikan
+    const rawEmployer = wageBase * 0.0125;
+    employer = roundToNearest5Cents(rawEmployer);
+    employee = 0;
+  }
 
   return { wageBase, employer, employee, category: categoryFinal };
 };
