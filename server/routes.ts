@@ -3413,6 +3413,30 @@ export function registerRoutes(app: Express): Server {
 
   // =================== EMPLOYEE SALARY ROUTES ===================
   
+  // Get employee details (for Personal Details in salary summary)
+  app.get('/api/employees/:employeeId/details', authenticateToken, async (req, res) => {
+    try {
+      const { employeeId } = req.params;
+      
+      // Get employee with employment and contact details
+      const [employeeData] = await db
+        .select()
+        .from(employees)
+        .leftJoin(employment, eq(employees.id, employment.employeeId))
+        .leftJoin(contact, eq(employees.id, contact.employeeId))
+        .where(eq(employees.id, employeeId));
+        
+      if (!employeeData) {
+        return res.status(404).json({ error: 'Pekerja tidak dijumpai' });
+      }
+      
+      res.json(employeeData);
+    } catch (error) {
+      console.error('Error getting employee details:', error);
+      res.status(500).json({ error: 'Gagal mengambil maklumat pekerja' });
+    }
+  });
+  
   // Get employee salary details (Master Salary format)
   app.get('/api/employees/:employeeId/salary', authenticateToken, async (req, res) => {
     try {

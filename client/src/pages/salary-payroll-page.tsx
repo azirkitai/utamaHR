@@ -148,6 +148,12 @@ export default function SalaryPayrollPage() {
     setShowSalarySummaryModal(true);
   };
 
+  // Fetch employee details including employment and contact data
+  const { data: employeeDetails } = useQuery({
+    queryKey: ["/api/employees", selectedEmployeeForSummary?.id, "details"],
+    enabled: !!selectedEmployeeForSummary?.id,
+  });
+
   const handleGeneratePayroll = () => {
     console.log("Generating payroll with data:", payrollFormData);
     setShowNewPayrollModal(false);
@@ -908,8 +914,117 @@ export default function SalaryPayrollPage() {
 
                 {/* Personal Details Tab */}
                 <TabsContent value="personal-details" className="space-y-6">
-                  <div className="text-center text-gray-500 py-8">
-                    Personal Details information will be displayed here
+                  {/* Personal Details Section */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Personal Details</h3>
+                    <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
+                      <div className="flex justify-between">
+                        <span>Name</span>
+                        <span>{employeeDetails?.employees?.fullName || selectedEmployeeForSummary?.fullName || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Company</span>
+                        <span>{employeeDetails?.employment?.company || 'UtamaHR'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Employee ID</span>
+                        <span>{selectedEmployeeForSummary?.staffId || employeeDetails?.employees?.staffId || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Department</span>
+                        <span>{employeeDetails?.employment?.department || 'Human Resource'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>NRIC</span>
+                        <span>{employeeDetails?.employees?.nric || selectedEmployeeForSummary?.nric || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Designation</span>
+                        <span>{employeeDetails?.employment?.designation || 'Not Stated'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Date of Birth</span>
+                        <span>{employeeDetails?.employees?.dateOfBirth ? new Date(employeeDetails.employees.dateOfBirth).toLocaleDateString() : (selectedEmployeeForSummary?.dateOfBirth ? new Date(selectedEmployeeForSummary.dateOfBirth).toLocaleDateString() : 'N/A')}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Date Joining</span>
+                        <span>{employeeDetails?.employment?.dateJoining ? new Date(employeeDetails.employment.dateJoining).toLocaleDateString() : 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Employee Status</span>
+                        <span>
+                          <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
+                            {employeeDetails?.employment?.employmentStatus === 'Employed' ? 'Include in Payroll / Payment' : 'Include in Payroll / Payment'}
+                          </span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Contribution Details Section */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Contribution Details</h3>
+                    <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
+                      <div className="flex justify-between">
+                        <span>SOCSO/EIS No</span>
+                        <span>Not Stated</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Deduction SOCSO/EIS</span>
+                        <span>Wages up to RM4000</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>EPF No</span>
+                        <span>Not Stated</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Deduction EPF Employee</span>
+                        <span>8.00 % (Policy)</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>EPF Contribution Start Date</span>
+                        <span>After 1 August 2021</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Deduction EPF Employer</span>
+                        <span>13.00 % (Policy)</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Income Tax No</span>
+                        <span>Not Stated</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Deduction HRDF</span>
+                        <span>1.00%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bank Details Section */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Bank Details</h3>
+                    <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
+                      <div className="flex justify-between">
+                        <span>Bank</span>
+                        <span>Not Stated</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Account Type</span>
+                        <span>Not Stated</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Account No</span>
+                        <span>Not Stated</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Account Status</span>
+                        <span>Not Stated</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Branch</span>
+                        <span>Not Stated</span>
+                      </div>
+                    </div>
                   </div>
                 </TabsContent>
               </Tabs>
