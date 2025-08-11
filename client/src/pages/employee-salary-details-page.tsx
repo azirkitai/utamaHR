@@ -326,7 +326,7 @@ export default function EmployeeSalaryDetailsPage() {
     }, 300);
     
     return () => clearTimeout(timer);
-  }, [salaryData.basicSalary, salaryData.settings, salaryData.additionalItems]);
+  }, [salaryData.basicSalary, salaryData.settings, salaryData.additionalItems, salaryData.deductions, salaryData.contributions]);
 
   // Recalculation function
   const recompute = () => {
