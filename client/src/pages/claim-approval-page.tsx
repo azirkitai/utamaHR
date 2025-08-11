@@ -69,6 +69,17 @@ export default function ClaimApprovalPage() {
     queryKey: ["/api/approval-settings/financial"],
   });
 
+  // Fetch employees data for name lookup
+  const { data: employeesData = [] } = useQuery({
+    queryKey: ["/api/employees"],
+  });
+
+  // Helper function to get employee name by ID
+  const getEmployeeName = (employeeId: string) => {
+    const employee = employeesData.find((emp: any) => emp.id === employeeId);
+    return employee ? employee.name : employeeId;
+  };
+
   // Approve claim mutation
   const approveMutation = useMutation({
     mutationFn: async ({ claimId, approverId }: { claimId: string; approverId: string }) => {
@@ -424,7 +435,7 @@ export default function ClaimApprovalPage() {
                         />
                       </TableCell>
                       <TableCell>{index + 1}</TableCell>
-                      <TableCell className="font-medium">{item.employeeId}</TableCell>
+                      <TableCell className="font-medium">{getEmployeeName(item.employeeId)}</TableCell>
                       <TableCell>{item.claimType}</TableCell>
                       <TableCell>{getStatusBadge(item.status)}</TableCell>
                       <TableCell>{item.financialPolicyName || item.reason}</TableCell>
@@ -483,7 +494,7 @@ export default function ClaimApprovalPage() {
                         />
                       </TableCell>
                       <TableCell>{index + 1}</TableCell>
-                      <TableCell className="font-medium">{item.employeeId}</TableCell>
+                      <TableCell className="font-medium">{getEmployeeName(item.employeeId)}</TableCell>
                       <TableCell>{getStatusBadge(item.status)}</TableCell>
                       <TableCell>{item.reason}</TableCell>
                       <TableCell>{item.startTime} - {item.endTime}</TableCell>
