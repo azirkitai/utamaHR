@@ -321,6 +321,7 @@ export default function EmployeeSalaryDetailsPage() {
   const [reliefAmount, setReliefAmount] = useState("");
   const [rebateCode, setRebateCode] = useState("");
   const [rebateAmount, setRebateAmount] = useState("");
+  const [pcb39Tab, setPCB39Tab] = useState("relief");
 
   
   // PCB39 Relief options
@@ -1012,7 +1013,7 @@ export default function EmployeeSalaryDetailsPage() {
     if (salaryData.deductions.flags?.other?.pcb39) taxableIncome -= salaryData.deductions.other;
 
     // Subtract custom deduction items marked as PCB39
-    salaryData.deductions.customItems.forEach(item => {
+    (salaryData.deductions.customItems || []).forEach(item => {
       if (item.flags?.pcb39) {
         taxableIncome -= item.amount;
       }
@@ -1216,6 +1217,7 @@ export default function EmployeeSalaryDetailsPage() {
         </div>
 
         {/* Main Form - Single Card with Grid Layout */}
+        {selectedEmployeeId && (
         <Card>
           <CardHeader>
             <CardTitle>Master Salary Configuration</CardTitle>
@@ -2238,221 +2240,256 @@ export default function EmployeeSalaryDetailsPage() {
 
               {/* PCB39 Modal */}
               <Dialog open={showPCB39Modal} onOpenChange={setShowPCB39Modal}>
-                <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle className="flex items-center space-x-2">
-                      <span>PCB39 Configuration</span>
-                      <span className={`text-xs px-2 py-1 rounded ${
-                        salaryData.deductions.pcb39Settings?.mode === "calculate" 
-                          ? "bg-green-100 text-green-600" 
-                          : "bg-orange-100 text-orange-600"
-                      }`}>
-                        {salaryData.deductions.pcb39Settings?.mode === "calculate" ? "Auto Calculate" : "Custom"}
-                      </span>
-                    </DialogTitle>
-                    <DialogDescription>
-                      Configure PCB39 calculation mode, reliefs, and rebates for accurate tax computation.
-                    </DialogDescription>
+                    <DialogTitle>PCB39</DialogTitle>
                   </DialogHeader>
                   
-                  <div className="space-y-6 py-4">
-                    {/* Mode Selection */}
-                    <div className="space-y-3">
-                      <h4 className="font-medium text-gray-900">Calculation Mode</h4>
-                      <div className="grid grid-cols-2 gap-4">
-                        <Button
-                          variant={pcb39Mode === "custom" ? "default" : "outline"}
-                          onClick={() => updatePCB39Mode("custom")}
-                          className="h-auto p-4 text-left"
-                          data-testid="pcb39-custom-mode"
-                        >
-                          <div>
-                            <div className="font-medium">Custom</div>
-                            <div className="text-xs text-gray-500 mt-1">
-                              Masukkan amount PCB39 secara manual
-                            </div>
+                  <div className="space-y-4">
+                    {/* Tab Navigation */}
+                    <div className="flex border-b">
+                      <button
+                        onClick={() => setPCB39Tab("relief")}
+                        className={`px-4 py-2 font-medium text-sm ${
+                          pcb39Tab === "relief" 
+                            ? "border-b-2 border-blue-500 text-blue-600" 
+                            : "text-gray-500 hover:text-gray-700"
+                        }`}
+                        data-testid="tab-relief"
+                      >
+                        Relief
+                      </button>
+                      <button
+                        onClick={() => setPCB39Tab("rebate")}
+                        className={`px-4 py-2 font-medium text-sm ${
+                          pcb39Tab === "rebate" 
+                            ? "border-b-2 border-blue-500 text-blue-600" 
+                            : "text-gray-500 hover:text-gray-700"
+                        }`}
+                        data-testid="tab-rebate"
+                      >
+                        Rebate
+                      </button>
+                    </div>
+
+                    {/* Relief Tab */}
+                    {pcb39Tab === "relief" && (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-12 gap-3 items-end">
+                          <div className="col-span-6">
+                            <Label className="text-sm">Select Relief</Label>
+                            <Select value={reliefCode} onValueChange={setReliefCode}>
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select Relief" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {reliefOptions.map(option => (
+                                  <SelectItem key={option.code} value={option.code}>
+                                    {option.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
-                        </Button>
-                        <Button
-                          variant={pcb39Mode === "calculate" ? "default" : "outline"}
-                          onClick={() => updatePCB39Mode("calculate")}
-                          className="h-auto p-4 text-left"
-                          data-testid="pcb39-calculate-mode"
-                        >
-                          <div>
-                            <div className="font-medium">Calculate</div>
-                            <div className="text-xs text-gray-500 mt-1">
-                              Auto-kira berdasarkan LHDN formula
-                            </div>
+                          
+                          <div className="col-span-3">
+                            <Label className="text-sm">MYR</Label>
+                            <Input
+                              type="number"
+                              placeholder="0.00"
+                              value={reliefAmount}
+                              onChange={(e) => setReliefAmount(e.target.value)}
+                              className="w-full"
+                            />
                           </div>
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Current PCB39 Amount */}
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                      <div className="text-sm font-medium text-gray-700 mb-2">Current PCB39 Amount</div>
-                      <div className="text-2xl font-bold text-gray-900">
-                        RM {salaryData.deductions.pcb39Settings?.mode === "calculate" 
-                          ? calculatePCB39Amount().toFixed(2)
-                          : salaryData.deductions.pcb39.toFixed(2)
-                        }
-                      </div>
-                      {salaryData.deductions.pcb39Settings?.mode === "calculate" && (
-                        <div className="text-xs text-gray-500 mt-1">
-                          Auto-calculated based on taxable income, reliefs & rebates
+                          
+                          <div className="col-span-1">
+                            <Button 
+                              onClick={() => {
+                                setReliefCode("");
+                                setReliefAmount("");
+                              }}
+                              size="sm"
+                              className="bg-red-600 hover:bg-red-700 text-white px-2"
+                              data-testid="btn-clear-relief"
+                            >
+                              <span className="text-lg">×</span>
+                            </Button>
+                          </div>
+                          
+                          <div className="col-span-2">
+                            <Button 
+                              onClick={addPCB39Relief}
+                              disabled={!reliefCode || !reliefAmount}
+                              size="sm"
+                              className="bg-gray-600 hover:bg-gray-700 text-white w-full"
+                              data-testid="btn-add-pcb39-relief"
+                            >
+                              Add PCB39 Relief
+                            </Button>
+                          </div>
                         </div>
-                      )}
-                    </div>
 
-                    {/* Reliefs Section */}
-                    <div className="space-y-3">
-                      <h4 className="font-medium text-gray-900">Tax Reliefs</h4>
-                      <div className="grid grid-cols-3 gap-3">
-                        <Select value={reliefCode} onValueChange={setReliefCode}>
-                          <SelectTrigger data-testid="select-relief-type">
-                            <SelectValue placeholder="Pilih Relief" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {reliefOptions.map(relief => (
-                              <SelectItem key={relief.code} value={relief.code}>
-                                {relief.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          placeholder="Amount (RM)"
-                          value={reliefAmount}
-                          onChange={(e) => setReliefAmount(e.target.value)}
-                          data-testid="input-relief-amount"
-                        />
-                        <Button 
-                          onClick={addPCB39Relief}
-                          disabled={!reliefCode || !reliefAmount}
-                          data-testid="btn-add-relief"
-                        >
-                          Add Relief
-                        </Button>
-                      </div>
-                      
-                      {/* Current Reliefs */}
-                      {salaryData.deductions.pcb39Settings?.reliefs && salaryData.deductions.pcb39Settings.reliefs.length > 0 && (
-                        <div className="space-y-2">
-                          <div className="text-sm font-medium text-gray-700">Current Reliefs:</div>
-                          {salaryData.deductions.pcb39Settings.reliefs.map((relief) => (
-                            <div key={relief.code} className="flex items-center justify-between p-3 bg-white border rounded-lg">
-                              <div>
-                                <div className="font-medium">{relief.label}</div>
-                                <div className="text-sm text-gray-500">RM {relief.amount.toFixed(2)}</div>
+                        {/* Relief Items List */}
+                        {salaryData.deductions.pcb39Settings?.reliefs && salaryData.deductions.pcb39Settings.reliefs.length > 0 && (
+                          <div className="space-y-2 max-h-48 overflow-y-auto border rounded p-3">
+                            {salaryData.deductions.pcb39Settings.reliefs.map((relief, index) => (
+                              <div key={`${relief.code}-${index}`} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                                <div className="flex-1">
+                                  <div className="text-sm font-medium">{relief.label}</div>
+                                  <div className="flex gap-4 mt-1">
+                                    <label className="flex items-center gap-1 text-xs">
+                                      <input type="checkbox" checked disabled /> EPF
+                                    </label>
+                                    <label className="flex items-center gap-1 text-xs">
+                                      <input type="checkbox" checked disabled /> SOCSO
+                                    </label>
+                                    <label className="flex items-center gap-1 text-xs">
+                                      <input type="checkbox" checked disabled /> EIS
+                                    </label>
+                                    <label className="flex items-center gap-1 text-xs">
+                                      <input type="checkbox" disabled /> HRDF
+                                    </label>
+                                    <label className="flex items-center gap-1 text-xs">
+                                      <input type="checkbox" checked disabled /> PCB39
+                                    </label>
+                                    <label className="flex items-center gap-1 text-xs">
+                                      <input type="checkbox" disabled /> Fixed
+                                    </label>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="text-sm">RM {relief.amount.toFixed(2)}</div>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => removePCB39Relief(relief.code)}
+                                    className="text-red-600 hover:text-red-700 p-1 h-auto"
+                                    data-testid={`remove-relief-${relief.code}`}
+                                  >
+                                    ×
+                                  </Button>
+                                </div>
                               </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removePCB39Relief(relief.code)}
-                                className="text-red-600 hover:text-red-700"
-                                data-testid={`remove-relief-${relief.code}`}
-                              >
-                                Remove
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Rebates Section */}
-                    <div className="space-y-3">
-                      <h4 className="font-medium text-gray-900">Tax Rebates</h4>
-                      <div className="grid grid-cols-3 gap-3">
-                        <Select value={rebateCode} onValueChange={setRebateCode}>
-                          <SelectTrigger data-testid="select-rebate-type">
-                            <SelectValue placeholder="Pilih Rebate" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {rebateOptions.map(rebate => (
-                              <SelectItem key={rebate.code} value={rebate.code}>
-                                {rebate.label}
-                              </SelectItem>
                             ))}
-                          </SelectContent>
-                        </Select>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          placeholder="Amount (RM)"
-                          value={rebateAmount}
-                          onChange={(e) => setRebateAmount(e.target.value)}
-                          data-testid="input-rebate-amount"
-                        />
-                        <Button 
-                          onClick={addPCB39Rebate}
-                          disabled={!rebateCode || !rebateAmount}
-                          data-testid="btn-add-rebate"
-                        >
-                          Add Rebate
-                        </Button>
+                          </div>
+                        )}
                       </div>
-                      
-                      {/* Current Rebates */}
-                      {salaryData.deductions.pcb39Settings?.rebates && salaryData.deductions.pcb39Settings.rebates.length > 0 && (
-                        <div className="space-y-2">
-                          <div className="text-sm font-medium text-gray-700">Current Rebates:</div>
-                          {salaryData.deductions.pcb39Settings.rebates.map((rebate) => (
-                            <div key={rebate.code} className="flex items-center justify-between p-3 bg-white border rounded-lg">
-                              <div>
-                                <div className="font-medium">{rebate.label}</div>
-                                <div className="text-sm text-gray-500">RM {rebate.amount.toFixed(2)}</div>
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removePCB39Rebate(rebate.code)}
-                                className="text-red-600 hover:text-red-700"
-                                data-testid={`remove-rebate-${rebate.code}`}
-                              >
-                                Remove
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                    )}
 
-                    {/* Calculation Summary */}
-                    {salaryData.deductions.pcb39Settings?.mode === "calculate" && (
-                      <div className="p-4 bg-blue-50 rounded-lg">
-                        <div className="text-sm font-medium text-blue-900 mb-2">Calculation Summary</div>
-                        <div className="space-y-1 text-xs text-blue-700">
-                          <div>Basic Salary: RM {salaryData.basicSalary.toFixed(2)}</div>
-                          <div>Total Reliefs: RM {(salaryData.deductions.pcb39Settings?.reliefs?.reduce((sum, r) => sum + r.amount, 0) || 0).toFixed(2)}</div>
-                          <div>Total Rebates: RM {(salaryData.deductions.pcb39Settings?.rebates?.reduce((sum, r) => sum + r.amount, 0) || 0).toFixed(2)}</div>
-                          <div className="border-t pt-1 font-medium">Monthly PCB39: RM {calculatePCB39Amount().toFixed(2)}</div>
+                    {/* Rebate Tab */}
+                    {pcb39Tab === "rebate" && (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-12 gap-3 items-end">
+                          <div className="col-span-6">
+                            <Label className="text-sm">Select Relief</Label>
+                            <Select value={rebateCode} onValueChange={setRebateCode}>
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select Relief" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {rebateOptions.map(option => (
+                                  <SelectItem key={option.code} value={option.code}>
+                                    {option.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div className="col-span-3">
+                            <Label className="text-sm">MYR</Label>
+                            <Input
+                              type="number"
+                              placeholder="0.00"
+                              value={rebateAmount}
+                              onChange={(e) => setRebateAmount(e.target.value)}
+                              className="w-full"
+                            />
+                          </div>
+                          
+                          <div className="col-span-1">
+                            <Button 
+                              onClick={() => {
+                                setRebateCode("");
+                                setRebateAmount("");
+                              }}
+                              size="sm"
+                              className="bg-red-600 hover:bg-red-700 text-white px-2"
+                              data-testid="btn-clear-rebate"
+                            >
+                              <span className="text-lg">×</span>
+                            </Button>
+                          </div>
+                          
+                          <div className="col-span-2">
+                            <Button 
+                              onClick={addPCB39Rebate}
+                              disabled={!rebateCode || !rebateAmount}
+                              size="sm"
+                              className="bg-gray-600 hover:bg-gray-700 text-white w-full"
+                              data-testid="btn-add-pcb39-rebate"
+                            >
+                              Add PCB39 Relief
+                            </Button>
+                          </div>
                         </div>
+
+                        {/* Rebate Items List */}
+                        {salaryData.deductions.pcb39Settings?.rebates && salaryData.deductions.pcb39Settings.rebates.length > 0 && (
+                          <div className="space-y-2 max-h-48 overflow-y-auto border rounded p-3">
+                            {salaryData.deductions.pcb39Settings.rebates.map((rebate, index) => (
+                              <div key={`${rebate.code}-${index}`} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                                <div className="flex-1">
+                                  <div className="text-sm font-medium">{rebate.label}</div>
+                                  <div className="flex gap-4 mt-1">
+                                    <label className="flex items-center gap-1 text-xs">
+                                      <input type="checkbox" checked disabled /> EPF
+                                    </label>
+                                    <label className="flex items-center gap-1 text-xs">
+                                      <input type="checkbox" checked disabled /> SOCSO
+                                    </label>
+                                    <label className="flex items-center gap-1 text-xs">
+                                      <input type="checkbox" checked disabled /> EIS
+                                    </label>
+                                    <label className="flex items-center gap-1 text-xs">
+                                      <input type="checkbox" disabled /> HRDF
+                                    </label>
+                                    <label className="flex items-center gap-1 text-xs">
+                                      <input type="checkbox" checked disabled /> PCB39
+                                    </label>
+                                    <label className="flex items-center gap-1 text-xs">
+                                      <input type="checkbox" disabled /> Fixed
+                                    </label>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="text-sm">RM {rebate.amount.toFixed(2)}</div>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => removePCB39Rebate(rebate.code)}
+                                    className="text-red-600 hover:text-red-700 p-1 h-auto"
+                                    data-testid={`remove-rebate-${rebate.code}`}
+                                  >
+                                    ×
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
 
-                  <DialogFooter>
+                  <DialogFooter className="mt-6">
                     <Button 
-                      variant="outline" 
                       onClick={() => setShowPCB39Modal(false)}
-                      data-testid="btn-cancel-pcb39"
+                      className="bg-red-600 hover:bg-red-700 text-white"
+                      data-testid="btn-close-pcb39"
                     >
-                      Cancel
-                    </Button>
-                    <Button 
-                      onClick={() => {
-                        if (salaryData.deductions.pcb39Settings?.mode === "calculate") {
-                          updateDeduction('pcb39', calculatePCB39Amount());
-                        }
-                        setShowPCB39Modal(false);
-                      }}
-                      data-testid="btn-save-pcb39"
-                    >
-                      Save & Apply
+                      Close
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -2463,125 +2500,85 @@ export default function EmployeeSalaryDetailsPage() {
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Company Contribution</h3>
                 
+                <div className="grid grid-cols-1 gap-6">
+                  <div className="bg-white p-4 rounded-lg border">
+                    <h4 className="font-medium text-gray-900 mb-3">EPF Contribution</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Employee (11%)</span>
+                        <span>RM {(salaryData.basicSalary * 0.11).toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Employer (12%)</span>
+                        <span>RM {(salaryData.basicSalary * 0.12).toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg border">
+                    <h4 className="font-medium text-gray-900 mb-3">SOCSO Contribution</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Employee (0.5%)</span>
+                        <span>RM {Math.min(salaryData.basicSalary * 0.005, 19.75).toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Employer (1.75%)</span>
+                        <span>RM {Math.min(salaryData.basicSalary * 0.0175, 69.05).toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Summary Section */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg mt-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Summary</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                <Label>EPF Employer</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={salaryData.contributions.epfEmployer}
-                  onChange={(e) => updateContribution('epfEmployer', parseFloat(e.target.value) || 0)}
-                  readOnly={salaryData.settings.epfCalcMethod === "PERCENT"}
-                  className={salaryData.settings.epfCalcMethod === "PERCENT" ? "bg-gray-50" : ""}
-                  data-testid="epfEmployer"
-                />
-                <div className="text-xs text-gray-500 mt-1">
-                  How did we calculate this? {isCalculating ? "Calculating..." : "Based on EPF settings"}
+                  <h4 className="font-medium text-gray-700 mb-2">Gross Salary</h4>
+                  <div className="text-2xl font-bold text-green-600">
+                    RM {(salaryData.basicSalary + salaryData.allowances.total).toFixed(2)}
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium text-gray-700 mb-2">Total Deductions</h4>
+                  <div className="text-2xl font-bold text-red-600">
+                    RM {Object.values(salaryData.deductions).reduce((sum, value) => sum + (typeof value === 'number' ? value : 0), 0).toFixed(2)}
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium text-gray-700 mb-2">Net Salary</h4>
+                  <div className="text-2xl font-bold text-blue-600">
+                    RM {calculateNetSalary().toFixed(2)}
+                  </div>
                 </div>
               </div>
+            </div>
 
-              <div>
-                <Label>SOCSO Employer</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={salaryData.contributions.socsoEmployer}
-                  readOnly
-                  className="bg-gray-50"
-                  data-testid="socsoEmployer"
-                />
-                <div className="text-xs text-gray-500 mt-1">
-                  How did we calculate this? {isCalculating ? "Calculating..." : "Based on SOCSO rate table"}
-                </div>
-              </div>
-
-              <div>
-                <Label>EIS Employer</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={salaryData.contributions.eisEmployer}
-                  readOnly
-                  className="bg-gray-50"
-                  data-testid="eisEmployer"
-                />
-                <div className="text-xs text-gray-500 mt-1">
-                  {(() => {
-                    if (isCalculating) return "Calculating...";
-                    if (!salaryData.settings.isEisEnabled) return "EIS disabled in settings";
-                    if (salaryData.contributions.eisEmployer === 0) {
-                      const debugReasons = whyEisZero({
-                        reportedWage: salaryData.basicSalary,
-                        isEisEnabled: salaryData.settings.isEisEnabled,
-                        exempt: false
-                      });
-                      return debugReasons.length > 0 ? `Why 0.00? ${debugReasons.join(', ')}` : "0.2% of basic salary (RM5,000 ceiling)";
-                    }
-                    return "0.2% of basic salary (RM5,000 ceiling)";
-                  })()}
-                </div>
-              </div>
-
-              <div>
-                <Label>Medical Card</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={salaryData.contributions.medicalCard}
-                  onChange={(e) => updateContribution('medicalCard', parseFloat(e.target.value) || 0)}
-                  data-testid="medicalCard"
-                />
-              </div>
-
-              <div>
-                <Label>Group Term Life</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={salaryData.contributions.groupTermLife}
-                  onChange={(e) => updateContribution('groupTermLife', parseFloat(e.target.value) || 0)}
-                  data-testid="groupTermLife"
-                />
-              </div>
-
-              <div>
-                <Label>Medical Company</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={salaryData.contributions.medicalCompany}
-                  onChange={(e) => updateContribution('medicalCompany', parseFloat(e.target.value) || 0)}
-                  data-testid="medicalCompany"
-                />
-              </div>
-
-              <div>
-                <Label>HRDF Contribution</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={salaryData.contributions.hrdf}
-                  readOnly
-                  className="bg-gray-50"
-                  data-testid="hrdfContribution"
-                />
-                <div className="text-xs text-gray-500 mt-1">
-                  How did we calculate this? {isCalculating ? "Calculating..." : "Based on HRDF rate"}
-                </div>
-              </div>
-
-              <Button
-                variant="outline"
-                className="w-full border-gray-300 text-gray-600 hover:bg-gray-50"
-                data-testid="btnAddContributionItem"
+            <div className="flex justify-end gap-3 mt-8">
+              <Button 
+                onClick={handleSave}
+                className="bg-green-600 hover:bg-green-700 text-white"
+                data-testid="btn-save-salary"
               >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Contribution Item
-                </Button>
-              </div>
+                Save
+              </Button>
+              <Button 
+                onClick={handleCalculatePayroll}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                data-testid="btn-calculate-payroll"
+              >
+                Calculate Payroll
+              </Button>
             </div>
           </CardContent>
         </Card>
-      </div>
+      )}
+    </div>
     </DashboardLayout>
   );
 }
