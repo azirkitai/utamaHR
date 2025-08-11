@@ -870,64 +870,73 @@ export default function SalaryPayrollPage() {
                       </div>
                       
                       {/* Overtime Rate Row */}
-                      <div className="flex justify-between items-center col-span-2 mt-2 p-2 border rounded-lg bg-gray-50">
-                        <div className="flex items-center space-x-2">
-                          <span className="font-medium">Overtime Rate</span>
-                          <button
-                            onClick={() => setShowOvertimeDropdown(!showOvertimeDropdown)}
-                            className="p-1 text-gray-500 hover:text-gray-700"
-                            data-testid="button-overtime-settings"
-                          >
-                            <Settings className="w-4 h-4" />
-                          </button>
+                      <div className="relative col-span-2 mt-4 p-3 border-2 rounded-lg bg-gradient-to-r from-blue-50 to-cyan-50">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-semibold text-blue-800">Overtime Rate</span>
+                            <button
+                              onClick={() => setShowOvertimeDropdown(!showOvertimeDropdown)}
+                              className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded"
+                              data-testid="button-overtime-settings"
+                            >
+                              <Settings className="w-4 h-4" />
+                            </button>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm font-medium text-gray-700">RM</span>
+                            <Input
+                              value={overtimeRateType === 'fixed' 
+                                ? calculateOvertimeRate(parseFloat(employeeSalaryData?.basicSalary || 0)).toFixed(2)
+                                : customOvertimeRate.toFixed(2)
+                              }
+                              readOnly={overtimeRateType === 'fixed'}
+                              onChange={(e) => setCustomOvertimeRate(parseFloat(e.target.value) || 0)}
+                              className="w-24 text-right font-semibold border-2"
+                              data-testid="input-overtime-rate"
+                            />
+                          </div>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm text-gray-600">RM</span>
-                          <Input
-                            value={overtimeRateType === 'fixed' 
-                              ? calculateOvertimeRate(parseFloat(employeeSalaryData?.basicSalary || 0)).toFixed(2)
-                              : customOvertimeRate.toFixed(2)
-                            }
-                            readOnly={overtimeRateType === 'fixed'}
-                            onChange={(e) => setCustomOvertimeRate(parseFloat(e.target.value) || 0)}
-                            className="w-20 text-right"
-                            data-testid="input-overtime-rate"
-                          />
+                        
+                        {/* Current Rate Type Indicator */}
+                        <div className="mt-2 text-xs text-blue-600 font-medium">
+                          Mode: {overtimeRateType === 'fixed' ? 'Fixed (Formula Based)' : 'Custom (Manual Input)'}
                         </div>
                         
                         {/* Overtime Settings Dropdown */}
                         {showOvertimeDropdown && (
                           <div 
                             ref={dropdownRef}
-                            className="absolute mt-2 w-48 bg-white border rounded-lg shadow-lg p-2 z-50" 
-                            style={{marginTop: '2rem'}}
+                            className="absolute top-full left-0 mt-2 w-64 bg-white border-2 border-blue-200 rounded-lg shadow-xl p-3 z-50"
                           >
-                            <div className="space-y-2">
+                            <div className="space-y-3">
+                              <div className="text-sm font-semibold text-gray-800 border-b pb-2">Pilih Mode Overtime Rate:</div>
                               <button
                                 onClick={() => {
                                   setOvertimeRateType('fixed');
                                   setShowOvertimeDropdown(false);
                                 }}
-                                className={`w-full text-left p-2 rounded hover:bg-gray-100 ${
-                                  overtimeRateType === 'fixed' ? 'bg-blue-50 text-blue-600' : ''
+                                className={`w-full text-left p-3 rounded-lg hover:bg-gray-100 border ${
+                                  overtimeRateType === 'fixed' ? 'bg-blue-50 text-blue-700 border-blue-300' : 'border-gray-200'
                                 }`}
                                 data-testid="button-fixed-rate"
                               >
-                                <div className="font-medium">Fixed</div>
-                                <div className="text-sm text-gray-500">Guna formula standard</div>
+                                <div className="font-semibold">🔧 Fixed</div>
+                                <div className="text-sm text-gray-600">Guna formula standard Akta Kerja 1955</div>
+                                <div className="text-xs text-gray-500 mt-1">Normal: 1.5x | Rest Day: 2.0x | Holiday: 3.0x</div>
                               </button>
                               <button
                                 onClick={() => {
                                   setOvertimeRateType('custom');
                                   setShowOvertimeDropdown(false);
                                 }}
-                                className={`w-full text-left p-2 rounded hover:bg-gray-100 ${
-                                  overtimeRateType === 'custom' ? 'bg-blue-50 text-blue-600' : ''
+                                className={`w-full text-left p-3 rounded-lg hover:bg-gray-100 border ${
+                                  overtimeRateType === 'custom' ? 'bg-blue-50 text-blue-700 border-blue-300' : 'border-gray-200'
                                 }`}
                                 data-testid="button-custom-rate"
                               >
-                                <div className="font-medium">Custom</div>
-                                <div className="text-sm text-gray-500">Admin masukkan sendiri kadar bayaran</div>
+                                <div className="font-semibold">✏️ Custom</div>
+                                <div className="text-sm text-gray-600">Admin masukkan sendiri kadar bayaran</div>
+                                <div className="text-xs text-gray-500 mt-1">Manual input untuk kadar overtime yang dikehendaki</div>
                               </button>
                             </div>
                           </div>
