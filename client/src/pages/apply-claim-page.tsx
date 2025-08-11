@@ -57,10 +57,20 @@ export default function ApplyClaimPage() {
   // Create claim application mutation
   const createClaimMutation = useMutation({
     mutationFn: async (claimData: InsertClaimApplication) => {
-      return await apiRequest('/api/claim-applications', {
+      const response = await fetch('/api/claim-applications', {
         method: 'POST',
-        body: claimData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(claimData),
       });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Gagal menghantar permohonan');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -271,8 +281,9 @@ export default function ApplyClaimPage() {
       const claimData: InsertClaimApplication = {
         employeeId: selectedRequestor,
         claimType: 'financial',
+        claimCategory: 'financial',
         financialPolicyName: claimType,
-        amount: parseFloat(claimAmount),
+        amount: claimAmount,
         claimDate: new Date(claimDate),
         particulars,
         remark,
@@ -310,11 +321,11 @@ export default function ApplyClaimPage() {
       const claimData: InsertClaimApplication = {
         employeeId: selectedRequestor,
         claimType: 'overtime',
+        claimCategory: 'overtime',
         claimDate: new Date(claimDate),
-        overtimeStartTime: startTime,
-        overtimeEndTime: endTime,
-        overtimeHours: totalHours,
-        overtimeReason: reason,
+        startTime: startTime,
+        endTime: endTime,
+        reason: reason,
         remark: additionalDescription,
         status: 'pending',
         dateSubmitted: new Date(),
