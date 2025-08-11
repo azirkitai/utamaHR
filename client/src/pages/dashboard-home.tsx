@@ -175,7 +175,7 @@ export default function DashboardHome() {
                 <h2 className="text-4xl font-bold text-cyan-100 mb-2">
                   {getGreeting()}
                 </h2>
-                <h3 className="text-2xl font-semibold mb-4">
+                <h3 className="font-semibold mb-4 text-[32px]">
                   {userName.toUpperCase()}!
                 </h3>
                 <p className="text-cyan-100 text-lg">
