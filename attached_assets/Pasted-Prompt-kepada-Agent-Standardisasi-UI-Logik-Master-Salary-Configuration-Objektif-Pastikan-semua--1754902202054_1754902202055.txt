@@ -1,0 +1,127 @@
+Prompt kepada Agent – Standardisasi UI & Logik Master Salary Configuration
+Objektif:
+Pastikan semua modul gaji (MySyarikat, HRSystem, dan modul lain) guna layout, susunan, label, dan logik pengiraan yang konsisten, tanpa bercampur-campur pattern.
+
+1. Layout & Struktur Tetap
+Susunan column (desktop view):
+
+Basic Earning (kiri)
+
+Additional Item (tengah)
+
+Deduction Item (kanan)
+
+Company Contribution (panel biru di kanan / bawah jika mobile)
+
+Basic Earning Section:
+
+Salary Type (dropdown: Monthly / Hourly / Daily)
+
+Basic Salary (RM/Month)
+
+Computed Salary (RM) – read-only, auto update ikut jenis salary type.
+
+Settings (switch/toggle):
+
+Calculated in Payment
+
+SOCSO Enabled
+
+EIS Enabled
+
+EPF Setting:
+
+EPF Calculation Method (dropdown: By Percentage / Fixed)
+
+EPF Employee Rate (%)
+
+EPF Employer Rate (%)
+
+Additional Item Section:
+
+Advance Salary
+
+Subsistence Allowance
+
+Extra Responsibility Allowance
+
+BIK/VOLA (checkbox “Special” + info)
+
+Button View Item/Tax Exemption
+
+Deduction Item Section:
+
+EPF Employee (auto calculated, read-only)
+
+SOCSO Employee (auto calculated, read-only)
+
+EIS Employee (auto calculated, read-only)
+
+Advance Deduction
+
+Unpaid Leave (auto calculated ikut hari)
+
+PCB39 (modal calculation + relief dropdown ikut config standard PCB39)
+
+PCB38
+
+Zakat
+
+Other Deduction
+
+Company Contribution Section:
+
+EPF Employer
+
+SOCSO Employer
+
+EIS Employer
+
+HRDF Employer
+
+Medical Card
+
+Group Term Life
+
+Medical Company
+
+2. Logik Pengiraan Tetap
+EPF: (Basic Salary + Allowance yang contribute EPF) × Rate (%)
+
+SOCSO: Guna jadual rasmi (Category 1/2) – auto detect ikut status pekerja.
+
+EIS: 0.2% × Basic Salary (capped RM5,000) – auto detect.
+
+Unpaid Leave: (Basic Salary ÷ Total Working Days in Month) × No. of Leave Days
+
+PCB39:
+
+Relief list ikut config tunggal (rujuk PCB39_RELIEFS_2025).
+
+Auto deduct dari taxable sebelum kira PCB.
+
+Company Contribution ikut statutory settings.
+
+3. Reka Bentuk & UX
+Warna & Spacing ikut tema MySyarikat (label di atas input, helper text di bawah input).
+
+Semua “auto calculated” ada teks kecil “How did we calculate this? Based on…”
+
+Semua nilai auto calculated = read-only input (tidak boleh edit manual).
+
+Gunakan ikon ⚙ untuk buka setting tambahan bagi item yang configurable.
+
+4. Kod & Integration
+Semua page yang ada fungsi gaji mesti import satu komponen standard (contoh: SalaryConfigForm.vue) supaya UI & logik seragam.
+
+PCB39 modal ambil relief list dari config tunggal.
+
+Pastikan semua pengiraan share utils function tunggal (salaryCalculations.ts) untuk EPF, SOCSO, EIS, PCB39.
+
+5. Acceptance Criteria
+Semua page payroll/gaji guna layout, label, dan logik yang sama.
+
+Dropdown PCB39 sama di semua tempat.
+
+Tiada lagi perbezaan istilah atau kedudukan field antara modul.
+

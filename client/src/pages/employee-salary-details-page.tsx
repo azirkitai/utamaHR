@@ -910,6 +910,14 @@ export default function EmployeeSalaryDetailsPage() {
     });
   };
 
+  // New helper functions for standardized layout
+  const updateAdditionalItemAmount = (itemCode: string, amount: number) => {
+    const updatedItems = salaryData.additionalItems.map(item => 
+      item.code === itemCode ? { ...item, amount } : item
+    );
+    updateSalaryData({ additionalItems: updatedItems });
+  };
+
   // Custom deduction management functions
   const addCustomDeduction = () => {
     if (!newDeductionLabel.trim()) return;
@@ -1340,10 +1348,13 @@ export default function EmployeeSalaryDetailsPage() {
               
               {/* Column 1 - Basic Earning */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Basic Earning</h3>
+                <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold">Basic Earning</h3>
+                </div>
                 
-                <div>
-                  <Label>Salary Type</Label>
+                {/* Salary Type */}
+                <div className="space-y-2">
+                  <Label className="font-medium">Salary Type</Label>
                   <Select 
                     value={salaryData.salaryType} 
                     onValueChange={(value) => updateSalaryData({ salaryType: value as "Monthly" | "Hourly" | "Daily" })}
@@ -1360,1493 +1371,535 @@ export default function EmployeeSalaryDetailsPage() {
                   </Select>
                 </div>
 
-                <div>
-                  <Label>
+                {/* Basic Salary */}
+                <div className="space-y-2">
+                  <Label className="font-medium">
                     {salaryData.salaryType === "Monthly" ? "Basic Salary (RM/Month)" : 
                      salaryData.salaryType === "Daily" ? "Basic Salary (RM/Day)" : 
                      "Basic Salary (RM/Hour)"}
                   </Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={salaryData.basicSalary}
-                    onChange={(e) => updateSalaryData({ basicSalary: parseFloat(e.target.value) || 0 })}
-                    data-testid="basicSalary"
-                  />
-                </div>
-
-                <div>
-                <Label>Computed Salary (RM)</Label>
-                <Input 
-                  value={computedValues.computedSalary} 
-                  readOnly 
-                  className="bg-gray-50"
-                  data-testid="computedSalary"
-                />
-                <div className="text-xs text-gray-500 mt-1">
-                  How did we calculate this? {isCalculating ? "Calculating..." : 
-                    salaryData.salaryType === "Daily" ? "Daily rate × 26 working days" :
-                    salaryData.salaryType === "Hourly" ? "Hourly rate × 8 hours × 26 days" :
-                    "Based on monthly basic salary"}
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <h4 className="font-medium">Settings</h4>
-                
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    checked={salaryData.settings.isCalculatedInPayment}
-                    onCheckedChange={(checked) => updateSettings('isCalculatedInPayment', checked)}
-                    data-testid="isCalculatedInPayment"
-                  />
-                  <Label>Calculated in Payment</Label>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    checked={salaryData.settings.isSocsoEnabled}
-                    onCheckedChange={(checked) => updateSettings('isSocsoEnabled', checked)}
-                    data-testid="isSocsoEnabled"
-                  />
-                  <Label>SOCSO Enabled</Label>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    checked={salaryData.settings.isEisEnabled}
-                    onCheckedChange={(checked) => updateSettings('isEisEnabled', checked)}
-                    data-testid="isEisEnabled"
-                  />
-                  <Label>EIS Enabled</Label>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <h4 className="font-medium">EPF Setting</h4>
-                
-                <div>
-                  <Label>EPF Calculation Method</Label>
-                  <Select 
-                    value={salaryData.settings.epfCalcMethod} 
-                    onValueChange={(value) => updateSettings('epfCalcMethod', value)}
-                    data-testid="epfCalcMethod"
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="PERCENT">By Percentage</SelectItem>
-                      <SelectItem value="CUSTOM">Custom</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Conditional EPF Rate Inputs */}
-                {salaryData.settings.epfCalcMethod === "PERCENT" ? (
-                  <>
-                    <div>
-                      <Label>EPF Employee Rate (%)</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={salaryData.settings.epfEmployeeRate}
-                        onChange={(e) => updateSettings('epfEmployeeRate', parseFloat(e.target.value) || 0)}
-                        data-testid="epfEmployeeRate"
-                      />
+                  <div className="flex">
+                    <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                      <span className="text-sm font-medium">RM</span>
                     </div>
-
-                    <div>
-                      <Label>EPF Employer Rate (%)</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={salaryData.settings.epfEmployerRate}
-                        onChange={(e) => updateSettings('epfEmployerRate', parseFloat(e.target.value) || 0)}
-                        data-testid="epfEmployerRate"
-                      />
-                    </div>
-                  </>
-                ) : (
-                  <div className="space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <div className="flex items-start space-x-2">
-                      <div className="w-5 h-5 bg-gray-400 rounded-full flex items-center justify-center text-white text-xs font-bold mt-0.5">
-                        ⓘ
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        <p className="font-medium">Auto calculation for EPF has been turned off.</p>
-                        <p>Please make sure to check your EPF amount inserted.</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start space-x-2">
-                      <div className="w-5 h-5 bg-gray-400 rounded-full flex items-center justify-center text-white text-xs font-bold mt-0.5">
-                        ⓘ
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        <p className="font-medium">For PCB39 Calculation, EPF amount will be</p>
-                        <p>considered as normal remuneration.</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                </div>
-
-                <div>
-                  <h4 className="font-medium">HRDF Setting</h4>
-                  <Label>HRDF Employer Rate (%)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={salaryData.settings.hrdfEmployerRate}
-                    onChange={(e) => updateSettings('hrdfEmployerRate', parseFloat(e.target.value) || 0)}
-                    data-testid="hrdfEmployerRate"
-                  />
-                </div>
-
-                <div>
-                  <Label>Remarks</Label>
-                  <Textarea
-                    value={salaryData.remarks}
-                    onChange={(e) => updateSalaryData({ remarks: e.target.value })}
-                    data-testid="remarks"
-                  />
-                </div>
-              </div>
-
-              {/* Column 2 - Additional Item */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Additional Item</h3>
-              {salaryData.additionalItems.map((item, index) => (
-                <div key={item.code} className="space-y-3 p-3 border rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Label className="font-medium">{item.label}</Label>
-                      {item.code === "BIK" && (
-                        <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">Special</span>
-                      )}
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleStatutoryFlags(item.code)}
-                      className={`h-6 w-6 p-0 hover:bg-gray-100 ${
-                        Object.values(item.flags).some(flag => flag) ? 'bg-blue-50 hover:bg-blue-100' : ''
-                      }`}
-                      data-testid={`settings-${item.code}`}
-                    >
-                      {showStatutoryFlags[item.code] ? (
-                        <ChevronUp className="h-3 w-3 text-gray-500" />
-                      ) : (
-                        <Settings className={`h-3 w-3 ${
-                          Object.values(item.flags).some(flag => flag) ? 'text-blue-600' : 'text-gray-500'
-                        }`} />
-                      )}
-                    </Button>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm font-medium">RM</span>
                     <Input
                       type="number"
                       step="0.01"
-                      min="0"
-                      value={item.amount}
-                      onChange={(e) => updateAdditionalItem(index, 'amount', parseFloat(e.target.value) || 0)}
-                      className="flex-1"
-                      data-testid={item.code === "ADV" ? "advanceSalary" : item.code === "SUBS" ? "subsistenceAllowance" : item.code === "RESP" ? "extraResponsibilityAllowance" : "bikVola"}
+                      value={salaryData.basicSalary}
+                      onChange={(e) => updateSalaryData({ basicSalary: parseFloat(e.target.value) || 0 })}
+                      className="rounded-l-none"
+                      data-testid="basicSalary"
+                    />
+                  </div>
+                </div>
+
+                {/* Computed Salary */}
+                <div className="space-y-2">
+                  <Label className="font-medium">Computed Salary (RM)</Label>
+                  <div className="flex">
+                    <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                      <span className="text-sm font-medium">RM</span>
+                    </div>
+                    <Input
+                      type="text"
+                      value={computedValues.computedSalary.replace('RM ', '')}
+                      className="rounded-l-none bg-gray-100"
+                      readOnly
+                      data-testid="computedSalary"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    How did we calculate this? Based on salary type and basic salary amount.
+                  </p>
+                </div>
+
+                {/* Settings Section */}
+                <div className="space-y-3 pt-4 border-t">
+                  <Label className="font-medium text-gray-700">Settings</Label>
+                  
+                  {/* Calculated in Payment */}
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">Calculated in Payment</Label>
+                    <Switch
+                      checked={salaryData.settings.isCalculatedInPayment}
+                      onCheckedChange={(checked) => updateSalaryData({ 
+                        settings: { ...salaryData.settings, isCalculatedInPayment: checked }
+                      })}
+                      data-testid="switch-calculated-payment"
                     />
                   </div>
 
-                  {/* Conditional Statutory Flags */}
-                  {showStatutoryFlags[item.code] && (
-                    <>
-                      {/* Statutory Flags */}
-                      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-100">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            checked={item.flags.epf}
-                            onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'epf', !!checked)}
-                            data-testid={`${item.code}-epf`}
-                          />
-                          <Label className="text-xs">EPF</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            checked={item.flags.socso}
-                            onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'socso', !!checked)}
-                            data-testid={`${item.code}-socso`}
-                          />
-                          <Label className="text-xs">SOCSO</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            checked={item.flags.eis}
-                            onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'eis', !!checked)}
-                            data-testid={`${item.code}-eis`}
-                          />
-                          <Label className="text-xs">EIS</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            checked={item.flags.hrdf}
-                            onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'hrdf', !!checked)}
-                            data-testid={`${item.code}-hrdf`}
-                          />
-                          <Label className="text-xs">HRDF</Label>
-                        </div>
-                      </div>
+                  {/* SOCSO Enabled */}
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">SOCSO Enabled</Label>
+                    <Switch
+                      checked={salaryData.settings.isSocsoEnabled}
+                      onCheckedChange={(checked) => updateSalaryData({ 
+                        settings: { ...salaryData.settings, isSocsoEnabled: checked }
+                      })}
+                      data-testid="switch-socso-enabled"
+                    />
+                  </div>
 
-                      {/* PCB39 and Fixed flags */}
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            checked={item.flags.pcb39}
-                            onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'pcb39', !!checked)}
-                            data-testid={`${item.code}-pcb39`}
-                          />
-                          <Label className="text-xs">PCB39</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            checked={item.flags.fixed}
-                            onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'fixed', !!checked)}
-                            data-testid={`${item.code}-fixed`}
-                          />
-                          <Label className="text-xs text-blue-600">Fixed</Label>
-                        </div>
-                      </div>
-                    </>
-                  )}
-
-                  {/* Special notes */}
-                  {item.code === "BIK" && (
-                    <div className="text-xs text-gray-500 italic">
-                      💡 Item will not be displayed on payslip
-                    </div>
-                  )}
+                  {/* EIS Enabled */}
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm">EIS Enabled</Label>
+                    <Switch
+                      checked={salaryData.settings.isEisEnabled}
+                      onCheckedChange={(checked) => updateSalaryData({ 
+                        settings: { ...salaryData.settings, isEisEnabled: checked }
+                      })}
+                      data-testid="switch-eis-enabled"
+                    />
+                  </div>
                 </div>
-              ))}
-              
-              <div 
-                className="text-sm text-blue-600 underline cursor-pointer hover:text-blue-800"
-                onClick={() => setIsTaxExemptionDialogOpen(true)}
-                data-testid="viewTaxExemption"
-              >
-                💡 View Item/Tax Exemption
+
+                {/* EPF Settings */}
+                <div className="space-y-3 pt-4 border-t">
+                  <Label className="font-medium text-gray-700">EPF Setting</Label>
+                  
+                  {/* EPF Calculation Method */}
+                  <div className="space-y-2">
+                    <Label className="text-sm">EPF Calculation Method</Label>
+                    <Select 
+                      value={salaryData.settings.epfCalcMethod} 
+                      onValueChange={(value) => updateSalaryData({ 
+                        settings: { ...salaryData.settings, epfCalcMethod: value as "PERCENT" | "CUSTOM" }
+                      })}
+                      data-testid="epf-calc-method"
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="PERCENT">By Percentage</SelectItem>
+                        <SelectItem value="CUSTOM">Fixed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* EPF Employee Rate */}
+                  <div className="space-y-2">
+                    <Label className="text-sm">EPF Employee Rate (%)</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      value={salaryData.settings.epfEmployeeRate}
+                      onChange={(e) => updateSalaryData({ 
+                        settings: { ...salaryData.settings, epfEmployeeRate: parseFloat(e.target.value) || 0 }
+                      })}
+                      data-testid="epf-employee-rate"
+                    />
+                  </div>
+
+                  {/* EPF Employer Rate */}
+                  <div className="space-y-2">
+                    <Label className="text-sm">EPF Employer Rate (%)</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      value={salaryData.settings.epfEmployerRate}
+                      onChange={(e) => updateSalaryData({ 
+                        settings: { ...salaryData.settings, epfEmployerRate: parseFloat(e.target.value) || 0 }
+                      })}
+                      data-testid="epf-employer-rate"
+                    />
+                  </div>
+                </div>
               </div>
-              
-              <Button
-                variant="outline"
-                className="w-full border-green-300 text-green-600 hover:bg-green-50"
-                data-testid="btnAddAdditionalItem"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Additional Item
-                </Button>
+
+
+
+              {/* Column 2 - Additional Item */}
+              <div className="space-y-4">
+                <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold">Additional Item</h3>
+                </div>
+                
+                {/* Advance Salary */}
+                <div className="space-y-2">
+                  <Label className="font-medium">Advance Salary</Label>
+                  <div className="flex">
+                    <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                      <span className="text-sm font-medium">RM</span>
+                    </div>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={salaryData.additionalItems.find(item => item.code === "ADVANCE")?.amount || 0}
+                      onChange={(e) => updateAdditionalItemAmount("ADVANCE", parseFloat(e.target.value) || 0)}
+                      className="rounded-l-none"
+                      data-testid="advance-salary"
+                    />
+                  </div>
+                </div>
+
+                {/* Subsistence Allowance */}
+                <div className="space-y-2">
+                  <Label className="font-medium">Subsistence Allowance</Label>
+                  <div className="flex">
+                    <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                      <span className="text-sm font-medium">RM</span>
+                    </div>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={salaryData.additionalItems.find(item => item.code === "SUBSISTENCE")?.amount || 0}
+                      onChange={(e) => updateAdditionalItemAmount("SUBSISTENCE", parseFloat(e.target.value) || 0)}
+                      className="rounded-l-none"
+                      data-testid="subsistence-allowance"
+                    />
+                  </div>
+                </div>
+
+                {/* Extra Responsibility Allowance */}
+                <div className="space-y-2">
+                  <Label className="font-medium">Extra Responsibility Allowance</Label>
+                  <div className="flex">
+                    <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                      <span className="text-sm font-medium">RM</span>
+                    </div>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={salaryData.additionalItems.find(item => item.code === "EXTRA_RESP")?.amount || 0}
+                      onChange={(e) => updateAdditionalItemAmount("EXTRA_RESP", parseFloat(e.target.value) || 0)}
+                      className="rounded-l-none"
+                      data-testid="extra-responsibility"
+                    />
+                  </div>
+                </div>
+
+                {/* BIK/VOLA */}
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Label className="font-medium">BIK/VOLA</Label>
+                    <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">Special</span>
+                    <Checkbox
+                      checked={salaryData.additionalItems.find(item => item.code === "BIK")?.flags.special || false}
+                      onCheckedChange={(checked) => updateAdditionalItemFlag("BIK", "special", checked as boolean)}
+                      data-testid="bik-special-checkbox"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0"
+                      data-testid="bik-info-button"
+                    >
+                      <Info className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  <div className="flex">
+                    <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                      <span className="text-sm font-medium">RM</span>
+                    </div>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={salaryData.additionalItems.find(item => item.code === "BIK")?.amount || 0}
+                      onChange={(e) => updateAdditionalItemAmount("BIK", parseFloat(e.target.value) || 0)}
+                      className="rounded-l-none"
+                      data-testid="bik-vola"
+                    />
+                  </div>
+                </div>
+
+                {/* View Item/Tax Exemption Button */}
+                <div className="pt-4 border-t">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowTaxExemptionDialog(true)}
+                    className="w-full"
+                    data-testid="btn-view-tax-exemption"
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    View Item/Tax Exemption
+                  </Button>
+                </div>
               </div>
 
               {/* Column 3 - Deduction Item */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Deduction Item</h3>
+                <div className="bg-gradient-to-r from-red-600 to-red-700 text-white p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold">Deduction Item</h3>
+                </div>
                 
-                <div>
-                  <Label>EPF Employee</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={salaryData.deductions.epfEmployee}
-                    onChange={(e) => updateDeduction('epfEmployee', parseFloat(e.target.value) || 0)}
-                    readOnly={salaryData.settings.epfCalcMethod === "PERCENT"}
-                    className={salaryData.settings.epfCalcMethod === "PERCENT" ? "bg-gray-50" : ""}
-                    data-testid="epfEmployee"
-                  />
-                  <div className="text-xs text-gray-500 mt-1">
-                    How did we calculate this? {isCalculating ? "Calculating..." : "Based on EPF settings"}
+                {/* EPF Employee (auto calculated) */}
+                <div className="space-y-2">
+                  <Label className="font-medium">EPF Employee</Label>
+                  <div className="flex">
+                    <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                      <span className="text-sm font-medium">RM</span>
+                    </div>
+                    <Input
+                      type="text"
+                      value={salaryData.deductions.epfEmployee.toFixed(2)}
+                      className="rounded-l-none bg-gray-100"
+                      readOnly
+                      data-testid="epf-employee-deduction"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    How did we calculate this? Based on EPF rate × basic salary.
+                  </p>
+                </div>
+
+                {/* SOCSO Employee (auto calculated) */}
+                <div className="space-y-2">
+                  <Label className="font-medium">SOCSO Employee</Label>
+                  <div className="flex">
+                    <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                      <span className="text-sm font-medium">RM</span>
+                    </div>
+                    <Input
+                      type="text"
+                      value={salaryData.deductions.socsoEmployee.toFixed(2)}
+                      className="rounded-l-none bg-gray-100"
+                      readOnly
+                      data-testid="socso-employee-deduction"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    How did we calculate this? Based on SOCSO official table.
+                  </p>
+                </div>
+
+                {/* EIS Employee (auto calculated) */}
+                <div className="space-y-2">
+                  <Label className="font-medium">EIS Employee</Label>
+                  <div className="flex">
+                    <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                      <span className="text-sm font-medium">RM</span>
+                    </div>
+                    <Input
+                      type="text"
+                      value={salaryData.deductions.eisEmployee.toFixed(2)}
+                      className="rounded-l-none bg-gray-100"
+                      readOnly
+                      data-testid="eis-employee-deduction"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    How did we calculate this? 0.2% × basic salary (capped RM5,000).
+                  </p>
+                </div>
+
+                {/* Advance Deduction */}
+                <div className="space-y-2">
+                  <Label className="font-medium">Advance Deduction</Label>
+                  <div className="flex">
+                    <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                      <span className="text-sm font-medium">RM</span>
+                    </div>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={salaryData.deductions.advance}
+                      onChange={(e) => updateSalaryData({ 
+                        deductions: { ...salaryData.deductions, advance: parseFloat(e.target.value) || 0 }
+                      })}
+                      className="rounded-l-none"
+                      data-testid="advance-deduction"
+                    />
                   </div>
                 </div>
 
-              <div>
-                <Label>SOCSO Employee</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={salaryData.deductions.socsoEmployee}
-                  readOnly
-                  className="bg-gray-50"
-                  data-testid="socsoEmployee"
-                />
-                <div className="text-xs text-gray-500 mt-1">
-                  How did we calculate this? {isCalculating ? "Calculating..." : "Based on SOCSO rate table"}
-                </div>
-              </div>
-
-              <div>
-                <Label>EIS Employee</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={salaryData.deductions.eisEmployee}
-                  readOnly
-                  className="bg-gray-50"
-                  data-testid="eisEmployee"
-                />
-                <div className="text-xs text-gray-500 mt-1">
-                  {(() => {
-                    if (isCalculating) return "Calculating...";
-                    if (!salaryData.settings.isEisEnabled) return "EIS disabled in settings";
-                    if (salaryData.deductions.eisEmployee === 0) {
-                      const debugReasons = whyEisZero({
-                        reportedWage: salaryData.basicSalary,
-                        isEisEnabled: salaryData.settings.isEisEnabled,
-                        exempt: false
-                      });
-                      return debugReasons.length > 0 ? `Why 0.00? ${debugReasons.join(', ')}` : "0.2% of basic salary (RM5,000 ceiling)";
-                    }
-                    return "0.2% of basic salary (RM5,000 ceiling)";
-                  })()}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label>Advance Deduction</Label>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => toggleDeductionFlags('advance')}
-                    className="text-xs text-gray-500 hover:bg-gray-100 h-6 px-2"
-                    data-testid="toggleAdvanceFlags"
-                  >
-                    <Settings className="w-3 h-3 mr-1" />
-                    {expandedDeductionFlags.has('advance') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                  </Button>
-                </div>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={salaryData.deductions.advance}
-                  onChange={(e) => updateDeduction('advance', parseFloat(e.target.value) || 0)}
-                  data-testid="advanceDeduction"
-                />
-                {expandedDeductionFlags.has('advance') && (
-                  <div className="p-3 bg-gray-50 rounded-lg border">
-                    <div className="text-xs font-medium text-gray-700 mb-2">Statutory & Tax Settings</div>
-                    <div className="grid grid-cols-2 gap-3 text-xs">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={salaryData.deductions.flags?.advance?.epf || false}
-                          onCheckedChange={(checked) => updateDeductionFlag('advance', 'epf', !!checked)}
-                          data-testid="checkbox-advance-epf"
-                        />
-                        <Label className="text-xs">EPF</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={salaryData.deductions.flags?.advance?.socso || false}
-                          onCheckedChange={(checked) => updateDeductionFlag('advance', 'socso', !!checked)}
-                          data-testid="checkbox-advance-socso"
-                        />
-                        <Label className="text-xs">SOCSO</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={salaryData.deductions.flags?.advance?.eis || false}
-                          onCheckedChange={(checked) => updateDeductionFlag('advance', 'eis', !!checked)}
-                          data-testid="checkbox-advance-eis"
-                        />
-                        <Label className="text-xs">EIS</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={salaryData.deductions.flags?.advance?.hrdf || false}
-                          onCheckedChange={(checked) => updateDeductionFlag('advance', 'hrdf', !!checked)}
-                          data-testid="checkbox-advance-hrdf"
-                        />
-                        <Label className="text-xs">HRDF</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={salaryData.deductions.flags?.advance?.pcb39 || false}
-                          onCheckedChange={(checked) => updateDeductionFlag('advance', 'pcb39', !!checked)}
-                          data-testid="checkbox-advance-pcb39"
-                        />
-                        <Label className="text-xs font-medium text-blue-600">PCB39</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={salaryData.deductions.flags?.advance?.fixed || false}
-                          onCheckedChange={(checked) => updateDeductionFlag('advance', 'fixed', !!checked)}
-                          data-testid="checkbox-advance-fixed"
-                        />
-                        <Label className="text-xs font-medium text-green-600">Fixed</Label>
-                      </div>
+                {/* Unpaid Leave (auto calculated) */}
+                <div className="space-y-2">
+                  <Label className="font-medium">Unpaid Leave</Label>
+                  <div className="flex">
+                    <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                      <span className="text-sm font-medium">RM</span>
                     </div>
-                    <div className="mt-2 text-[10px] text-gray-500">
-                      💡 EPF/SOCSO/EIS: Kurangkan wage base | PCB39: Kurangkan taxable income | Fixed: Auto-kekalkan
-                    </div>
+                    <Input
+                      type="text"
+                      value={salaryData.deductions.unpaidLeave.toFixed(2)}
+                      className="rounded-l-none bg-gray-100"
+                      readOnly
+                      data-testid="unpaid-leave-deduction"
+                    />
                   </div>
-                )}
-              </div>
-
-              <div>
-                <Label>Unpaid Leave</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={salaryData.deductions.unpaidLeave}
-                  readOnly
-                  className="bg-gray-50"
-                  data-testid="unpaidLeave"
-                />
-                <div className="text-xs text-gray-500 mt-1">
-                  How did we calculate this? {isCalculating ? "Calculating..." : "Based on unpaid leave days"}
+                  <p className="text-xs text-gray-500">
+                    How did we calculate this? (Basic salary ÷ working days) × leave days.
+                  </p>
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label>PCB 39 
-                    <span className={`text-xs px-1 rounded ml-2 ${
-                      salaryData.deductions.pcb39Settings?.mode === "calculate" 
-                        ? "bg-green-100 text-green-600" 
-                        : "bg-orange-100 text-orange-600"
-                    }`}>
-                      {salaryData.deductions.pcb39Settings?.mode === "calculate" ? "Auto Calculate" : "Custom"}
-                    </span>
-                  </Label>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowPCB39Modal(true)}
-                    className="text-xs text-gray-500 hover:bg-gray-100 h-6 px-2"
-                    data-testid="openPCB39Modal"
-                  >
-                    <Settings className="w-3 h-3" />
-                  </Button>
-                </div>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={salaryData.deductions.pcb39}
-                  onChange={(e) => updateDeduction('pcb39', parseFloat(e.target.value) || 0)}
-                  readOnly={salaryData.deductions.pcb39Settings?.mode === "calculate"}
-                  className={salaryData.deductions.pcb39Settings?.mode === "calculate" ? "bg-gray-50" : ""}
-                  data-testid="pcb39"
-                />
-                {salaryData.deductions.pcb39Settings?.mode === "calculate" && (
-                  <div className="text-xs text-gray-500">
-                    Auto-calculated based on taxable income, reliefs & rebates
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label>PCB 38</Label>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => toggleDeductionFlags('pcb38')}
-                    className="text-xs text-gray-500 hover:bg-gray-100 h-6 px-2"
-                    data-testid="togglePcb38Flags"
-                  >
-                    <Settings className="w-3 h-3 mr-1" />
-                    {expandedDeductionFlags.has('pcb38') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                  </Button>
-                </div>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={salaryData.deductions.pcb38}
-                  onChange={(e) => updateDeduction('pcb38', parseFloat(e.target.value) || 0)}
-                  data-testid="pcb38"
-                />
-                {expandedDeductionFlags.has('pcb38') && (
-                  <div className="p-3 bg-gray-50 rounded-lg border">
-                    <div className="text-xs font-medium text-gray-700 mb-2">Statutory & Tax Settings</div>
-                    <div className="grid grid-cols-2 gap-3 text-xs">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={salaryData.deductions.flags?.pcb38?.epf || false}
-                          onCheckedChange={(checked) => updateDeductionFlag('pcb38', 'epf', !!checked)}
-                          data-testid="checkbox-pcb38-epf"
-                        />
-                        <Label className="text-xs">EPF</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={salaryData.deductions.flags?.pcb38?.socso || false}
-                          onCheckedChange={(checked) => updateDeductionFlag('pcb38', 'socso', !!checked)}
-                          data-testid="checkbox-pcb38-socso"
-                        />
-                        <Label className="text-xs">SOCSO</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={salaryData.deductions.flags?.pcb38?.eis || false}
-                          onCheckedChange={(checked) => updateDeductionFlag('pcb38', 'eis', !!checked)}
-                          data-testid="checkbox-pcb38-eis"
-                        />
-                        <Label className="text-xs">EIS</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={salaryData.deductions.flags?.pcb38?.hrdf || false}
-                          onCheckedChange={(checked) => updateDeductionFlag('pcb38', 'hrdf', !!checked)}
-                          data-testid="checkbox-pcb38-hrdf"
-                        />
-                        <Label className="text-xs">HRDF</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={salaryData.deductions.flags?.pcb38?.pcb39 || false}
-                          onCheckedChange={(checked) => updateDeductionFlag('pcb38', 'pcb39', !!checked)}
-                          data-testid="checkbox-pcb38-pcb39"
-                        />
-                        <Label className="text-xs font-medium text-blue-600">PCB39</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={salaryData.deductions.flags?.pcb38?.fixed || false}
-                          onCheckedChange={(checked) => updateDeductionFlag('pcb38', 'fixed', !!checked)}
-                          data-testid="checkbox-pcb38-fixed"
-                        />
-                        <Label className="text-xs font-medium text-green-600">Fixed</Label>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label>Zakat</Label>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => toggleDeductionFlags('zakat')}
-                    className="text-xs text-gray-500 hover:bg-gray-100 h-6 px-2"
-                    data-testid="toggleZakatFlags"
-                  >
-                    <Settings className="w-3 h-3 mr-1" />
-                    {expandedDeductionFlags.has('zakat') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                  </Button>
-                </div>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={salaryData.deductions.zakat}
-                  onChange={(e) => updateDeduction('zakat', parseFloat(e.target.value) || 0)}
-                  data-testid="zakat"
-                />
-                {expandedDeductionFlags.has('zakat') && (
-                  <div className="p-3 bg-gray-50 rounded-lg border">
-                    <div className="text-xs font-medium text-gray-700 mb-2">Statutory & Tax Settings</div>
-                    <div className="grid grid-cols-2 gap-3 text-xs">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={salaryData.deductions.flags?.zakat?.epf || false}
-                          onCheckedChange={(checked) => updateDeductionFlag('zakat', 'epf', !!checked)}
-                          data-testid="checkbox-zakat-epf"
-                        />
-                        <Label className="text-xs">EPF</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={salaryData.deductions.flags?.zakat?.socso || false}
-                          onCheckedChange={(checked) => updateDeductionFlag('zakat', 'socso', !!checked)}
-                          data-testid="checkbox-zakat-socso"
-                        />
-                        <Label className="text-xs">SOCSO</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={salaryData.deductions.flags?.zakat?.eis || false}
-                          onCheckedChange={(checked) => updateDeductionFlag('zakat', 'eis', !!checked)}
-                          data-testid="checkbox-zakat-eis"
-                        />
-                        <Label className="text-xs">EIS</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={salaryData.deductions.flags?.zakat?.hrdf || false}
-                          onCheckedChange={(checked) => updateDeductionFlag('zakat', 'hrdf', !!checked)}
-                          data-testid="checkbox-zakat-hrdf"
-                        />
-                        <Label className="text-xs">HRDF</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={salaryData.deductions.flags?.zakat?.pcb39 || false}
-                          onCheckedChange={(checked) => updateDeductionFlag('zakat', 'pcb39', !!checked)}
-                          data-testid="checkbox-zakat-pcb39"
-                        />
-                        <Label className="text-xs font-medium text-blue-600">PCB39</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={salaryData.deductions.flags?.zakat?.fixed || false}
-                          onCheckedChange={(checked) => updateDeductionFlag('zakat', 'fixed', !!checked)}
-                          data-testid="checkbox-zakat-fixed"
-                        />
-                        <Label className="text-xs font-medium text-green-600">Fixed</Label>
-                      </div>
-                    </div>
-                    <div className="mt-2 text-[10px] text-gray-500">
-                      💡 Zakat: Biasanya PCB39=ON untuk tolak cukai pendapatan
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label>Other Deduction</Label>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => toggleDeductionFlags('other')}
-                    className="text-xs text-gray-500 hover:bg-gray-100 h-6 px-2"
-                    data-testid="toggleOtherFlags"
-                  >
-                    <Settings className="w-3 h-3 mr-1" />
-                    {expandedDeductionFlags.has('other') ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                  </Button>
-                </div>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={salaryData.deductions.other}
-                  onChange={(e) => updateDeduction('other', parseFloat(e.target.value) || 0)}
-                  data-testid="otherDeduction"
-                />
-                {expandedDeductionFlags.has('other') && (
-                  <div className="p-3 bg-gray-50 rounded-lg border">
-                    <div className="text-xs font-medium text-gray-700 mb-2">Statutory & Tax Settings</div>
-                    <div className="grid grid-cols-2 gap-3 text-xs">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={salaryData.deductions.flags?.other?.epf || false}
-                          onCheckedChange={(checked) => updateDeductionFlag('other', 'epf', !!checked)}
-                          data-testid="checkbox-other-epf"
-                        />
-                        <Label className="text-xs">EPF</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={salaryData.deductions.flags?.other?.socso || false}
-                          onCheckedChange={(checked) => updateDeductionFlag('other', 'socso', !!checked)}
-                          data-testid="checkbox-other-socso"
-                        />
-                        <Label className="text-xs">SOCSO</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={salaryData.deductions.flags?.other?.eis || false}
-                          onCheckedChange={(checked) => updateDeductionFlag('other', 'eis', !!checked)}
-                          data-testid="checkbox-other-eis"
-                        />
-                        <Label className="text-xs">EIS</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={salaryData.deductions.flags?.other?.hrdf || false}
-                          onCheckedChange={(checked) => updateDeductionFlag('other', 'hrdf', !!checked)}
-                          data-testid="checkbox-other-hrdf"
-                        />
-                        <Label className="text-xs">HRDF</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={salaryData.deductions.flags?.other?.pcb39 || false}
-                          onCheckedChange={(checked) => updateDeductionFlag('other', 'pcb39', !!checked)}
-                          data-testid="checkbox-other-pcb39"
-                        />
-                        <Label className="text-xs font-medium text-blue-600">PCB39</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          checked={salaryData.deductions.flags?.other?.fixed || false}
-                          onCheckedChange={(checked) => updateDeductionFlag('other', 'fixed', !!checked)}
-                          data-testid="checkbox-other-fixed"
-                        />
-                        <Label className="text-xs font-medium text-green-600">Fixed</Label>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Custom Deduction Items */}
-              {(salaryData.deductions.customItems || []).map((item) => (
-                <div key={item.id} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label>{item.label}</Label>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => toggleDeductionFlags(`custom-${item.id}`)}
-                        className="text-xs text-gray-500 hover:bg-gray-100 h-6 px-2"
-                        data-testid={`toggleCustomFlags-${item.id}`}
-                      >
-                        <Settings className="w-3 h-3 mr-1" />
-                        {expandedDeductionFlags.has(`custom-${item.id}`) ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeCustomDeduction(item.id)}
-                        className="text-red-600 hover:text-red-700 h-6 px-2"
-                        data-testid={`removeCustomDeduction-${item.id}`}
-                      >
-                        ×
-                      </Button>
-                    </div>
-                  </div>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={item.amount}
-                    onChange={(e) => updateCustomDeduction(item.id, 'amount', parseFloat(e.target.value) || 0)}
-                    data-testid={`customDeduction-${item.id}`}
-                  />
-                  {expandedDeductionFlags.has(`custom-${item.id}`) && (
-                    <div className="p-3 bg-gray-50 rounded-lg border">
-                      <div className="text-xs font-medium text-gray-700 mb-2">Statutory & Tax Settings</div>
-                      <div className="grid grid-cols-2 gap-3 text-xs">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            checked={item.flags?.epf || false}
-                            onCheckedChange={(checked) => updateCustomDeductionFlag(item.id, 'epf', !!checked)}
-                            data-testid={`checkbox-custom-${item.id}-epf`}
-                          />
-                          <Label className="text-xs">EPF</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            checked={item.flags?.socso || false}
-                            onCheckedChange={(checked) => updateCustomDeductionFlag(item.id, 'socso', !!checked)}
-                            data-testid={`checkbox-custom-${item.id}-socso`}
-                          />
-                          <Label className="text-xs">SOCSO</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            checked={item.flags?.eis || false}
-                            onCheckedChange={(checked) => updateCustomDeductionFlag(item.id, 'eis', !!checked)}
-                            data-testid={`checkbox-custom-${item.id}-eis`}
-                          />
-                          <Label className="text-xs">EIS</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            checked={item.flags?.hrdf || false}
-                            onCheckedChange={(checked) => updateCustomDeductionFlag(item.id, 'hrdf', !!checked)}
-                            data-testid={`checkbox-custom-${item.id}-hrdf`}
-                          />
-                          <Label className="text-xs">HRDF</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            checked={item.flags?.pcb39 || false}
-                            onCheckedChange={(checked) => updateCustomDeductionFlag(item.id, 'pcb39', !!checked)}
-                            data-testid={`checkbox-custom-${item.id}-pcb39`}
-                          />
-                          <Label className="text-xs font-medium text-blue-600">PCB39</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            checked={item.flags?.fixed || false}
-                            onCheckedChange={(checked) => updateCustomDeductionFlag(item.id, 'fixed', !!checked)}
-                            data-testid={`checkbox-custom-${item.id}-fixed`}
-                          />
-                          <Label className="text-xs font-medium text-green-600">Fixed</Label>
-                        </div>
-                      </div>
-                      <div className="mt-2 text-[10px] text-gray-500">
-                        💡 Customize bagaimana {item.label} mempengaruhi kiraan EPF/SOCSO/EIS/HRDF/PCB39
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-
-              {/* Add Additional Item Button */}
-              <Dialog open={isDeductionDialogOpen} onOpenChange={setIsDeductionDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full border-gray-300 text-gray-600 hover:bg-gray-50"
-                    data-testid="btnAddDeductionItem"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Deduction Item
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                  <DialogHeader>
-                    <DialogTitle>Tambah Item Deduction</DialogTitle>
-                    <DialogDescription>
-                      Masukkan maklumat untuk deduction item baru yang akan ditambahkan.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div>
-                      <Label htmlFor="deductionLabel">Jenis Deduction</Label>
-                      <Input
-                        id="deductionLabel"
-                        value={newDeductionLabel}
-                        onChange={(e) => setNewDeductionLabel(e.target.value)}
-                        placeholder="Contoh: Pinjaman Koperasi, Denda, etc."
-                        data-testid="inputDeductionLabel"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="deductionAmount">Jumlah (RM)</Label>
-                      <Input
-                        id="deductionAmount"
-                        type="number"
-                        step="0.01"
-                        value={newDeductionAmount}
-                        onChange={(e) => setNewDeductionAmount(parseFloat(e.target.value) || 0)}
-                        placeholder="0.00"
-                        data-testid="inputDeductionAmount"
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setIsDeductionDialogOpen(false)}
-                      data-testid="btnCancelDeduction"
+                {/* PCB39 */}
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Label className="font-medium">PCB39</Label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowPCB39Dialog(true)}
+                      className="h-6 w-6 p-0"
+                      data-testid="pcb39-config-button"
                     >
-                      Batal
+                      <Settings className="h-3 w-3" />
                     </Button>
-                    <Button 
-                      onClick={addCustomDeduction}
-                      disabled={!newDeductionLabel.trim()}
-                      data-testid="btnAddDeduction"
-                    >
-                      Tambah
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-
-              {/* Tax Exemption Modal */}
-              <Dialog open={isTaxExemptionDialogOpen} onOpenChange={setIsTaxExemptionDialogOpen}>
-                <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>Item/Tax Exemption</DialogTitle>
-                    <DialogDescription>
-                      Masukkan jumlah pengecualian cukai LHDN untuk mengurangkan taxable income dalam pengiraan PCB.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    {(salaryData.taxExemptions || []).map((item) => (
-                      <div key={item.code} className="space-y-2">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor={item.code} className="text-right">
-                            {item.label}
-                          </Label>
-                          <Input
-                            id={item.code}
-                            type="number"
-                            step="0.01"
-                            value={item.amount}
-                            onChange={(e) => updateTaxExemption(item.code, parseFloat(e.target.value) || 0)}
-                            className="col-span-2"
-                            placeholder="0.00"
-                            data-testid={`taxExemption-${item.code}`}
-                          />
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => toggleTaxFlags(item.code)}
-                            className="text-xs text-gray-500 hover:bg-gray-100"
-                            data-testid={`toggleTaxFlags-${item.code}`}
-                          >
-                            <Settings className="w-3 h-3 mr-1" />
-                            {expandedTaxFlags.has(item.code) ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                          </Button>
-                        </div>
-                        
-                        {expandedTaxFlags.has(item.code) && (
-                          <div className="ml-8 p-3 bg-gray-50 rounded-lg border">
-                            <div className="text-xs font-medium text-gray-700 mb-2">Statutory & Tax Settings</div>
-                            <div className="grid grid-cols-2 gap-3 text-xs">
-                              <div className="flex items-center space-x-2">
-                                <Checkbox
-                                  id={`${item.code}-epf`}
-                                  checked={item.flags?.epf || false}
-                                  onCheckedChange={(checked) => updateTaxExemptionFlag(item.code, 'epf', !!checked)}
-                                  data-testid={`checkbox-${item.code}-epf`}
-                                />
-                                <Label htmlFor={`${item.code}-epf`} className="text-xs">EPF</Label>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <Checkbox
-                                  id={`${item.code}-socso`}
-                                  checked={item.flags?.socso || false}
-                                  onCheckedChange={(checked) => updateTaxExemptionFlag(item.code, 'socso', !!checked)}
-                                  data-testid={`checkbox-${item.code}-socso`}
-                                />
-                                <Label htmlFor={`${item.code}-socso`} className="text-xs">SOCSO</Label>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <Checkbox
-                                  id={`${item.code}-eis`}
-                                  checked={item.flags?.eis || false}
-                                  onCheckedChange={(checked) => updateTaxExemptionFlag(item.code, 'eis', !!checked)}
-                                  data-testid={`checkbox-${item.code}-eis`}
-                                />
-                                <Label htmlFor={`${item.code}-eis`} className="text-xs">EIS</Label>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <Checkbox
-                                  id={`${item.code}-hrdf`}
-                                  checked={item.flags?.hrdf || false}
-                                  onCheckedChange={(checked) => updateTaxExemptionFlag(item.code, 'hrdf', !!checked)}
-                                  data-testid={`checkbox-${item.code}-hrdf`}
-                                />
-                                <Label htmlFor={`${item.code}-hrdf`} className="text-xs">HRDF</Label>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <Checkbox
-                                  id={`${item.code}-pcb39`}
-                                  checked={item.flags?.pcb39 || false}
-                                  onCheckedChange={(checked) => updateTaxExemptionFlag(item.code, 'pcb39', !!checked)}
-                                  data-testid={`checkbox-${item.code}-pcb39`}
-                                />
-                                <Label htmlFor={`${item.code}-pcb39`} className="text-xs font-medium text-blue-600">PCB39</Label>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <Checkbox
-                                  id={`${item.code}-fixed`}
-                                  checked={item.flags?.fixed || false}
-                                  onCheckedChange={(checked) => updateTaxExemptionFlag(item.code, 'fixed', !!checked)}
-                                  data-testid={`checkbox-${item.code}-fixed`}
-                                />
-                                <Label htmlFor={`${item.code}-fixed`} className="text-xs font-medium text-green-600">Fixed</Label>
-                              </div>
-                            </div>
-                            <div className="mt-2 text-[10px] text-gray-500">
-                              💡 PCB39: Include dalam taxable income | Fixed: Auto-kekalkan setiap bulan
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ))}
                   </div>
-                  <DialogFooter>
-                    <Button 
-                      variant="destructive"
-                      onClick={() => setIsTaxExemptionDialogOpen(false)}
-                      data-testid="btnCloseTaxExemption"
-                    >
-                      Close
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-
-              {/* PCB39 Modal */}
-              <Dialog open={showPCB39Modal} onOpenChange={setShowPCB39Modal}>
-                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                  <DialogHeader>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <DialogTitle>PCB39</DialogTitle>
-                        <DialogDescription>
-                          Configure PCB39 tax relief and rebate settings for employee
-                        </DialogDescription>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Label className="text-sm text-gray-600">Mode:</Label>
-                        <Select value={pcb39Mode} onValueChange={(value) => setPCB39Mode(value as "custom" | "calculate")}>
-                          <SelectTrigger className="w-32">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="calculate">Calculate</SelectItem>
-                            <SelectItem value="custom">Custom</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                  <div className="flex">
+                    <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                      <span className="text-sm font-medium">RM</span>
                     </div>
-                  </DialogHeader>
-                  
-                  <div className="space-y-4">
-                    {/* Tab Navigation */}
-                    <div className="flex border-b">
-                      <button
-                        onClick={() => setPCB39Tab("relief")}
-                        className={`px-4 py-2 font-medium text-sm ${
-                          pcb39Tab === "relief" 
-                            ? "border-b-2 border-blue-500 text-blue-600" 
-                            : "text-gray-500 hover:text-gray-700"
-                        }`}
-                        data-testid="tab-relief"
-                      >
-                        Relief
-                      </button>
-                      <button
-                        onClick={() => setPCB39Tab("rebate")}
-                        className={`px-4 py-2 font-medium text-sm ${
-                          pcb39Tab === "rebate" 
-                            ? "border-b-2 border-blue-500 text-blue-600" 
-                            : "text-gray-500 hover:text-gray-700"
-                        }`}
-                        data-testid="tab-rebate"
-                      >
-                        Rebate
-                      </button>
-                    </div>
-
-                    {/* Relief Tab */}
-                    {pcb39Tab === "relief" && (
-                      <div className="space-y-4">
-                        {/* Mode Info Display */}
-                        {pcb39Mode === "custom" && (
-                          <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                            <div className="flex items-center gap-2 text-orange-700">
-                              <Info className="h-4 w-4" />
-                              <span className="text-sm font-medium">Custom Mode Active</span>
-                            </div>
-                            <p className="text-xs text-orange-600 mt-1">
-                              Manual entry mode - Set your own PCB39 deduction amount.
-                            </p>
-                            <div className="mt-3 grid grid-cols-4 gap-3 items-end">
-                              <div className="col-span-2">
-                                <Label className="text-sm text-orange-700">Custom PCB39 Amount</Label>
-                                <Input
-                                  type="number"
-                                  placeholder="0.00"
-                                  value={salaryData.deductions.pcb39}
-                                  onChange={(e) => {
-                                    const value = parseFloat(e.target.value) || 0;
-                                    setSalaryData(prev => ({
-                                      ...prev,
-                                      deductions: {
-                                        ...prev.deductions,
-                                        pcb39: value
-                                      }
-                                    }));
-                                    setIsDirty(true);
-                                  }}
-                                  className="w-full bg-white"
-                                />
-                              </div>
-                              <div className="col-span-2 text-xs text-orange-600">
-                                Manual entry mode - direct PCB39 deduction amount
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                        
-                        {pcb39Mode === "calculate" && (
-                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2 text-blue-700">
-                                <Calculator className="h-4 w-4" />
-                                <span className="text-sm font-medium">Calculate Mode Active</span>
-                              </div>
-                              <div className="text-sm font-bold text-blue-700">
-                                Current PCB39: RM {(
-                                  (salaryData.deductions.pcb39Settings?.reliefs?.reduce((sum, relief) => sum + relief.amount, 0) || 0) +
-                                  (salaryData.deductions.pcb39Settings?.rebates?.reduce((sum, rebate) => sum + rebate.amount, 0) || 0)
-                                ).toFixed(2)}
-                              </div>
-                            </div>
-                            <p className="text-xs text-blue-600 mt-1">
-                              System will automatically calculate PCB39 based on your relief selections.
-                            </p>
-                          </div>
-                        )}
-
-                        <div className={`grid grid-cols-12 gap-3 items-end ${pcb39Mode === "custom" ? "opacity-50 pointer-events-none" : ""}`}>
-                          <div className="col-span-6">
-                            <Label className="text-sm">Select Relief</Label>
-                            <Select 
-                              value={reliefCode} 
-                              onValueChange={setReliefCode}
-                              disabled={pcb39Mode === "custom"}
-                            >
-                              <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select Relief" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {reliefOptions.map(option => (
-                                  <SelectItem key={option.code} value={option.code}>
-                                    <div className="flex items-center justify-between w-full">
-                                      <span>{option.label}</span>
-                                      {option.cap && (
-                                        <span className="text-xs text-gray-500 ml-2">
-                                          Cap: RM{option.cap}
-                                        </span>
-                                      )}
-                                    </div>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          
-                          <div className="col-span-3">
-                            <Label className="text-sm">MYR</Label>
-                            <Input
-                              type="number"
-                              placeholder="0.00"
-                              value={reliefAmount}
-                              onChange={(e) => setReliefAmount(e.target.value)}
-                              className="w-full"
-                              disabled={pcb39Mode === "custom"}
-                            />
-                          </div>
-                          
-                          <div className="col-span-1">
-                            <Button 
-                              onClick={() => {
-                                setReliefCode("");
-                                setReliefAmount("");
-                              }}
-                              size="sm"
-                              className="bg-red-600 hover:bg-red-700 text-white px-2"
-                              data-testid="btn-clear-relief"
-                              disabled={pcb39Mode === "custom"}
-                            >
-                              <span className="text-lg">×</span>
-                            </Button>
-                          </div>
-                          
-                          <div className="col-span-2">
-                            <Button 
-                              onClick={addPCB39Relief}
-                              disabled={!reliefCode || !reliefAmount || pcb39Mode === "custom"}
-                              size="sm"
-                              className="bg-gray-600 hover:bg-gray-700 text-white w-full disabled:opacity-50"
-                              data-testid="btn-add-pcb39-relief"
-                            >
-                              + Add Relief
-                            </Button>
-                          </div>
-                        </div>
-
-                        {/* Relief Items List */}
-                        {salaryData.deductions.pcb39Settings?.reliefs && salaryData.deductions.pcb39Settings.reliefs.length > 0 && (
-                          <div className="space-y-3">
-                            <div className="text-sm font-medium text-gray-700">Added Relief Items:</div>
-                            <div className="space-y-2 max-h-48 overflow-y-auto border rounded p-3">
-                            {salaryData.deductions.pcb39Settings.reliefs.map((relief, index) => (
-                              <div key={`${relief.code}-${index}`} className="flex items-center justify-between p-3 bg-gray-50 rounded border">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2">
-                                    <div className="text-sm font-medium">{relief.label}</div>
-                                    <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                                      {relief.code}
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-2 mt-1">
-                                    <div className="text-xs text-green-600">PCB39 Relief</div>
-                                    {relief.cap && (
-                                      <div className="text-xs text-gray-500">
-                                        Cap: RM{relief.cap.toFixed(2)}
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                                <div className="text-right flex items-center gap-2">
-                                  <div className="text-sm font-semibold">RM {relief.amount.toFixed(2)}</div>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => removePCB39Relief(index)}
-                                    className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1 h-auto"
-                                    data-testid={`remove-relief-${relief.code}`}
-                                  >
-                                    <X className="h-3 w-3" />
-                                  </Button>
-                                </div>
-                              </div>
-                            ))}
-                            </div>
-                            {/* Total Relief Summary */}
-                            <div className="border-t pt-2 flex justify-between items-center bg-blue-50 p-2 rounded">
-                              <div className="text-sm font-medium text-blue-700">Total Relief Amount:</div>
-                              <div className="text-sm font-bold text-blue-700">
-                                RM {salaryData.deductions.pcb39Settings.reliefs.reduce((sum, relief) => sum + relief.amount, 0).toFixed(2)}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Rebate Tab */}
-                    {pcb39Tab === "rebate" && (
-                      <div className="space-y-4">
-                        {/* Mode Info Display */}
-                        {pcb39Mode === "custom" && (
-                          <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                            <div className="flex items-center gap-2 text-orange-700">
-                              <Info className="h-4 w-4" />
-                              <span className="text-sm font-medium">Custom Mode Active</span>
-                            </div>
-                            <p className="text-xs text-orange-600 mt-1">
-                              Manual entry mode - Set your own PCB39 deduction amount.
-                            </p>
-                          </div>
-                        )}
-                        
-                        {pcb39Mode === "calculate" && (
-                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2 text-blue-700">
-                                <Calculator className="h-4 w-4" />
-                                <span className="text-sm font-medium">Calculate Mode Active</span>
-                              </div>
-                              <div className="text-sm font-bold text-blue-700">
-                                Current PCB39: RM {(
-                                  (salaryData.deductions.pcb39Settings?.reliefs?.reduce((sum, relief) => sum + relief.amount, 0) || 0) +
-                                  (salaryData.deductions.pcb39Settings?.rebates?.reduce((sum, rebate) => sum + rebate.amount, 0) || 0)
-                                ).toFixed(2)}
-                              </div>
-                            </div>
-                            <p className="text-xs text-blue-600 mt-1">
-                              System will automatically calculate PCB39 based on your rebate selections.
-                            </p>
-                          </div>
-                        )}
-
-                        <div className={`grid grid-cols-12 gap-3 items-end ${pcb39Mode === "custom" ? "opacity-50 pointer-events-none" : ""}`}>
-                          <div className="col-span-6">
-                            <Label className="text-sm">Select Relief</Label>
-                            <Select 
-                              value={rebateCode} 
-                              onValueChange={setRebateCode}
-                              disabled={pcb39Mode === "custom"}
-                            >
-                              <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select Relief" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {rebateOptions.map(option => (
-                                  <SelectItem key={option.code} value={option.code}>
-                                    {option.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          
-                          <div className="col-span-3">
-                            <Label className="text-sm">MYR</Label>
-                            <Input
-                              type="number"
-                              placeholder="0.00"
-                              value={rebateAmount}
-                              onChange={(e) => setRebateAmount(e.target.value)}
-                              className="w-full"
-                              disabled={pcb39Mode === "custom"}
-                            />
-                          </div>
-                          
-                          <div className="col-span-1">
-                            <Button 
-                              onClick={() => {
-                                setRebateCode("");
-                                setRebateAmount("");
-                              }}
-                              size="sm"
-                              className="bg-red-600 hover:bg-red-700 text-white px-2"
-                              data-testid="btn-clear-rebate"
-                              disabled={pcb39Mode === "custom"}
-                            >
-                              <span className="text-lg">×</span>
-                            </Button>
-                          </div>
-                          
-                          <div className="col-span-2">
-                            <Button 
-                              onClick={addPCB39Rebate}
-                              disabled={!rebateCode || !rebateAmount || pcb39Mode === "custom"}
-                              size="sm"
-                              className="bg-gray-600 hover:bg-gray-700 text-white w-full disabled:opacity-50"
-                              data-testid="btn-add-pcb39-rebate"
-                            >
-                              + Add Rebate
-                            </Button>
-                          </div>
-                        </div>
-
-                        {/* Rebate Items List */}
-                        {salaryData.deductions.pcb39Settings?.rebates && salaryData.deductions.pcb39Settings.rebates.length > 0 && (
-                          <div className="space-y-2 max-h-48 overflow-y-auto border rounded p-3">
-                            {salaryData.deductions.pcb39Settings.rebates.map((rebate, index) => (
-                              <div key={`${rebate.code}-${index}`} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                                <div className="flex-1">
-                                  <div className="text-sm font-medium">{rebate.label}</div>
-                                  <div className="flex gap-4 mt-1">
-                                    <label className="flex items-center gap-1 text-xs">
-                                      <input type="checkbox" checked disabled /> EPF
-                                    </label>
-                                    <label className="flex items-center gap-1 text-xs">
-                                      <input type="checkbox" checked disabled /> SOCSO
-                                    </label>
-                                    <label className="flex items-center gap-1 text-xs">
-                                      <input type="checkbox" checked disabled /> EIS
-                                    </label>
-                                    <label className="flex items-center gap-1 text-xs">
-                                      <input type="checkbox" disabled /> HRDF
-                                    </label>
-                                    <label className="flex items-center gap-1 text-xs">
-                                      <input type="checkbox" checked disabled /> PCB39
-                                    </label>
-                                    <label className="flex items-center gap-1 text-xs">
-                                      <input type="checkbox" disabled /> Fixed
-                                    </label>
-                                  </div>
-                                </div>
-                                <div className="text-right">
-                                  <div className="text-sm">RM {rebate.amount.toFixed(2)}</div>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => removePCB39Rebate(rebate.code)}
-                                    className="text-red-600 hover:text-red-700 p-1 h-auto"
-                                    data-testid={`remove-rebate-${rebate.code}`}
-                                  >
-                                    ×
-                                  </Button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
+                    <Input
+                      type="text"
+                      value={salaryData.deductions.pcb39.toFixed(2)}
+                      className="rounded-l-none bg-gray-100"
+                      readOnly
+                      data-testid="pcb39-deduction"
+                    />
                   </div>
+                  <p className="text-xs text-gray-500">
+                    How did we calculate this? Based on relief configuration and taxable income.
+                  </p>
+                </div>
 
-                  <DialogFooter className="mt-6">
-                    <Button 
-                      onClick={() => setShowPCB39Modal(false)}
-                      className="bg-red-600 hover:bg-red-700 text-white"
-                      data-testid="btn-close-pcb39"
-                    >
-                      Close
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+                {/* PCB38 */}
+                <div className="space-y-2">
+                  <Label className="font-medium">PCB38</Label>
+                  <div className="flex">
+                    <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                      <span className="text-sm font-medium">RM</span>
+                    </div>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={salaryData.deductions.pcb38}
+                      onChange={(e) => updateSalaryData({ 
+                        deductions: { ...salaryData.deductions, pcb38: parseFloat(e.target.value) || 0 }
+                      })}
+                      className="rounded-l-none"
+                      data-testid="pcb38-deduction"
+                    />
+                  </div>
+                </div>
+
+                {/* Zakat */}
+                <div className="space-y-2">
+                  <Label className="font-medium">Zakat</Label>
+                  <div className="flex">
+                    <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                      <span className="text-sm font-medium">RM</span>
+                    </div>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={salaryData.deductions.zakat}
+                      onChange={(e) => updateSalaryData({ 
+                        deductions: { ...salaryData.deductions, zakat: parseFloat(e.target.value) || 0 }
+                      })}
+                      className="rounded-l-none"
+                      data-testid="zakat-deduction"
+                    />
+                  </div>
+                </div>
+
+                {/* Other Deduction */}
+                <div className="space-y-2">
+                  <Label className="font-medium">Other Deduction</Label>
+                  <div className="flex">
+                    <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                      <span className="text-sm font-medium">RM</span>
+                    </div>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={salaryData.deductions.other}
+                      onChange={(e) => updateSalaryData({ 
+                        deductions: { ...salaryData.deductions, other: parseFloat(e.target.value) || 0 }
+                      })}
+                      className="rounded-l-none"
+                      data-testid="other-deduction"
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Column 4 - Company Contribution */}
               <div className="space-y-4">
-                <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-lg">
+                <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-4 rounded-lg">
                   <h3 className="text-lg font-semibold">Company Contribution</h3>
                 </div>
                 
                 {/* EPF Employer */}
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label className="font-medium">EPF Employer</Label>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm text-gray-600">How did we calculate this?</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="p-0 h-4 w-4 text-blue-500 hover:text-blue-700"
-                          data-testid="info-epf-employer"
-                        >
-                          <Info className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
+                  <Label className="font-medium">EPF Employer</Label>
                   <div className="flex">
                     <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
                       <span className="text-sm font-medium">RM</span>
                     </div>
                     <Input
-                      type="number"
-                      step="0.01"
+                      type="text"
                       value={salaryData.contributions.epfEmployer.toFixed(2)}
-                      onChange={(e) => updateContribution('epfEmployer', parseFloat(e.target.value) || 0)}
                       className="rounded-l-none bg-gray-100"
                       readOnly
-                      data-testid="epfEmployer"
+                      data-testid="epf-employer-contribution"
                     />
                   </div>
+                  <p className="text-xs text-gray-500">
+                    How did we calculate this? Based on EPF employer rate × basic salary.
+                  </p>
                 </div>
 
                 {/* SOCSO Employer */}
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label className="font-medium">SOCSO Employer</Label>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm text-gray-600">How did we calculate this?</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="p-0 h-4 w-4 text-blue-500 hover:text-blue-700"
-                          data-testid="info-socso-employer"
-                        >
-                          <Info className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
+                  <Label className="font-medium">SOCSO Employer</Label>
                   <div className="flex">
                     <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
                       <span className="text-sm font-medium">RM</span>
                     </div>
                     <Input
-                      type="number"
-                      step="0.01"
+                      type="text"
                       value={salaryData.contributions.socsoEmployer.toFixed(2)}
-                      onChange={(e) => updateContribution('socsoEmployer', parseFloat(e.target.value) || 0)}
                       className="rounded-l-none bg-gray-100"
                       readOnly
-                      data-testid="socsoEmployer"
+                      data-testid="socso-employer-contribution"
                     />
                   </div>
+                  <p className="text-xs text-gray-500">
+                    How did we calculate this? Based on SOCSO official table.
+                  </p>
                 </div>
 
                 {/* EIS Employer */}
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label className="font-medium">EIS Employer</Label>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm text-gray-600">How did we calculate this?</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="p-0 h-4 w-4 text-blue-500 hover:text-blue-700"
-                          data-testid="info-eis-employer"
-                        >
-                          <Info className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
+                  <Label className="font-medium">EIS Employer</Label>
                   <div className="flex">
                     <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
                       <span className="text-sm font-medium">RM</span>
                     </div>
                     <Input
-                      type="number"
-                      step="0.01"
+                      type="text"
                       value={salaryData.contributions.eisEmployer.toFixed(2)}
-                      onChange={(e) => updateContribution('eisEmployer', parseFloat(e.target.value) || 0)}
                       className="rounded-l-none bg-gray-100"
                       readOnly
-                      data-testid="eisEmployer"
+                      data-testid="eis-employer-contribution"
                     />
                   </div>
+                  <p className="text-xs text-gray-500">
+                    How did we calculate this? 0.2% × basic salary (capped RM5,000).
+                  </p>
+                </div>
+
+                {/* HRDF Employer */}
+                <div className="space-y-2">
+                  <Label className="font-medium">HRDF Employer</Label>
+                  <div className="flex">
+                    <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                      <span className="text-sm font-medium">RM</span>
+                    </div>
+                    <Input
+                      type="text"
+                      value={salaryData.contributions.hrdf.toFixed(2)}
+                      className="rounded-l-none bg-gray-100"
+                      readOnly
+                      data-testid="hrdf-employer-contribution"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    How did we calculate this? Based on HRDF rate × basic salary.
+                  </p>
                 </div>
 
                 {/* Medical Card */}
@@ -2860,9 +1913,11 @@ export default function EmployeeSalaryDetailsPage() {
                       type="number"
                       step="0.01"
                       value={salaryData.contributions.medicalCard}
-                      onChange={(e) => updateContribution('medicalCard', parseFloat(e.target.value) || 0)}
+                      onChange={(e) => updateSalaryData({ 
+                        contributions: { ...salaryData.contributions, medicalCard: parseFloat(e.target.value) || 0 }
+                      })}
                       className="rounded-l-none"
-                      data-testid="medicalCard"
+                      data-testid="medical-card-contribution"
                     />
                   </div>
                 </div>
@@ -2878,9 +1933,11 @@ export default function EmployeeSalaryDetailsPage() {
                       type="number"
                       step="0.01"
                       value={salaryData.contributions.groupTermLife}
-                      onChange={(e) => updateContribution('groupTermLife', parseFloat(e.target.value) || 0)}
+                      onChange={(e) => updateSalaryData({ 
+                        contributions: { ...salaryData.contributions, groupTermLife: parseFloat(e.target.value) || 0 }
+                      })}
                       className="rounded-l-none"
-                      data-testid="groupTermLife"
+                      data-testid="group-term-life-contribution"
                     />
                   </div>
                 </div>
@@ -2896,181 +1953,56 @@ export default function EmployeeSalaryDetailsPage() {
                       type="number"
                       step="0.01"
                       value={salaryData.contributions.medicalCompany}
-                      onChange={(e) => updateContribution('medicalCompany', parseFloat(e.target.value) || 0)}
+                      onChange={(e) => updateSalaryData({ 
+                        contributions: { ...salaryData.contributions, medicalCompany: parseFloat(e.target.value) || 0 }
+                      })}
                       className="rounded-l-none"
-                      data-testid="medicalCompany"
+                      data-testid="medical-company-contribution"
                     />
                   </div>
                 </div>
+              </div>
+            </div>
 
-                {/* HRDF */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
+            {/* Payroll Calculation Section */}
+            <div className="grid grid-cols-1 gap-6 mt-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Final Calculation</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                     <div>
-                      <Label className="font-medium">HRDF</Label>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm text-gray-600">How did we calculate this?</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="p-0 h-4 w-4 text-blue-500 hover:text-blue-700"
-                          data-testid="info-hrdf"
-                        >
-                          <Info className="h-3 w-3" />
-                        </Button>
-                      </div>
+                      <Label className="text-sm text-gray-600">Gross Salary</Label>
+                      <div className="text-lg font-bold text-blue-600">{computedValues.grossSalary}</div>
+                    </div>
+                    <div>
+                      <Label className="text-sm text-gray-600">Total Deduction</Label>
+                      <div className="text-lg font-bold text-red-600">{computedValues.totalDeduction}</div>
+                    </div>
+                    <div>
+                      <Label className="text-sm text-gray-600">Net Salary</Label>
+                      <div className="text-lg font-bold text-green-600">{computedValues.netSalary}</div>
+                    </div>
+                    <div>
+                      <Label className="text-sm text-gray-600">Company Contribution</Label>
+                      <div className="text-lg font-bold text-purple-600">{computedValues.companyContribution}</div>
                     </div>
                   </div>
-                  <div className="flex">
-                    <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
-                      <span className="text-sm font-medium">RM</span>
-                    </div>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={salaryData.contributions.hrdf.toFixed(2)}
-                      onChange={(e) => updateContribution('hrdf', parseFloat(e.target.value) || 0)}
-                      className="rounded-l-none bg-gray-100"
-                      readOnly
-                      data-testid="hrdf"
-                    />
+                  
+                  <div className="flex justify-center mt-6">
+                    <Button
+                      onClick={handleManualRecalculate}
+                      disabled={isCalculating}
+                      className="bg-gradient-to-r from-green-600 to-green-700 text-white"
+                      data-testid="btn-calculate-payroll"
+                    >
+                      Calculate Payroll
+                    </Button>
                   </div>
-                </div>
-
-                {/* Custom Contribution Items */}
-                {salaryData.contributions.customItems && salaryData.contributions.customItems.length > 0 && (
-                  <div className="space-y-3">
-                    {salaryData.contributions.customItems.map((item, index) => (
-                      <div key={index} className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <Label className="font-medium">{item.name}</Label>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeCustomContributionItem(index)}
-                            className="text-red-500 hover:text-red-700 p-1 h-6 w-6"
-                            data-testid={`remove-contribution-${index}`}
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </div>
-                        <div className="flex">
-                          <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
-                            <span className="text-sm font-medium">RM</span>
-                          </div>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            value={item.amount}
-                            onChange={(e) => updateCustomContributionItem(index, parseFloat(e.target.value) || 0)}
-                            className="rounded-l-none"
-                            data-testid={`custom-contribution-${index}`}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Add Contribution Item Button */}
-                <Button
-                  variant="outline"
-                  onClick={() => setShowAddContributionItemDialog(true)}
-                  className="w-full flex items-center gap-2 mt-4 border-2 border-dashed border-gray-300 hover:border-gray-400 py-6"
-                  data-testid="add-contribution-item"
-                >
-                  <Plus className="h-4 w-4" />
-                  Add Contribution Item
-                </Button>
-              </div>
+                </CardContent>
+              </Card>
             </div>
-
-            {/* Summary Section */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg mt-8">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Summary</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <h4 className="font-medium text-gray-700 mb-2">Gross Salary</h4>
-                  <div className="text-2xl font-bold text-green-600">
-                    RM {(salaryData.basicSalary + (salaryData.additionalItems?.reduce((sum, item) => sum + item.amount, 0) || 0)).toFixed(2)}
-                  </div>
-                </div>
-                
-                <div>
-                  <h4 className="font-medium text-gray-700 mb-2">Total Deductions</h4>
-                  <div className="text-2xl font-bold text-red-600">
-                    RM {Object.values(salaryData.deductions).reduce((sum, value) => sum + (typeof value === 'number' ? value : 0), 0).toFixed(2)}
-                  </div>
-                </div>
-                
-                <div>
-                  <h4 className="font-medium text-gray-700 mb-2">Net Salary</h4>
-                  <div className="text-2xl font-bold text-blue-600">
-                    RM {calculateNetSalary().toFixed(2)}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 mt-8">
-              <Button 
-                onClick={handleSave}
-                className="bg-green-600 hover:bg-green-700 text-white"
-                data-testid="btn-save-salary"
-              >
-                Save
-              </Button>
-              <Button 
-                onClick={handleCalculatePayroll}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-                data-testid="btn-calculate-payroll"
-              >
-                Calculate Payroll
-              </Button>
-            </div>
-
-            {/* Add Contribution Item Dialog */}
-            <Dialog open={showAddContributionItemDialog} onOpenChange={setShowAddContributionItemDialog}>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add Contribution Item</DialogTitle>
-                  <DialogDescription>
-                    Add a new custom contribution item to the employee's salary
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="contributionItemName">Item Name</Label>
-                    <Input
-                      id="contributionItemName"
-                      value={newContributionItemName}
-                      onChange={(e) => setNewContributionItemName(e.target.value)}
-                      placeholder="Enter contribution item name"
-                      data-testid="input-contribution-name"
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => {
-                      setShowAddContributionItemDialog(false);
-                      setNewContributionItemName("");
-                    }}
-                    data-testid="btn-cancel-contribution"
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    onClick={addCustomContributionItem}
-                    disabled={!newContributionItemName.trim()}
-                    data-testid="btn-add-contribution"
-                  >
-                    Add Item
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
           </CardContent>
         </Card>
       )}
