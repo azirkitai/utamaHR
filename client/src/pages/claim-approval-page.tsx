@@ -429,7 +429,7 @@ export default function ClaimApprovalPage() {
                       <TableCell>{getStatusBadge(item.status)}</TableCell>
                       <TableCell>{item.financialPolicyName || item.reason}</TableCell>
                       <TableCell className="font-medium">{item.amount ? `RM ${item.amount}` : 'N/A'}</TableCell>
-                      <TableCell>{item.claimDate.toLocaleDateString()}</TableCell>
+                      <TableCell>{new Date(item.claimDate).toLocaleDateString()}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
                           <Button size="sm" variant="outline" data-testid={`button-view-${item.id}`}>
@@ -488,7 +488,7 @@ export default function ClaimApprovalPage() {
                       <TableCell>{item.reason}</TableCell>
                       <TableCell>{item.startTime} - {item.endTime}</TableCell>
                       <TableCell className="font-medium">{item.amount ? `RM ${item.amount}` : 'N/A'}</TableCell>
-                      <TableCell>{item.claimDate.toLocaleDateString()}</TableCell>
+                      <TableCell>{new Date(item.claimDate).toLocaleDateString()}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
                           <Button size="sm" variant="outline" data-testid={`button-view-${item.id}`}>
