@@ -40,6 +40,14 @@ interface TaxExemptionItem {
   code: string;
   label: string;
   amount: number;
+  flags: {
+    epf: boolean;
+    socso: boolean;
+    eis: boolean;
+    hrdf: boolean;
+    pcb39: boolean;
+    fixed: boolean;
+  };
 }
 
 interface DeductionItem {
@@ -300,14 +308,54 @@ export default function EmployeeSalaryDetailsPage() {
       hrdfEmployerRate: 1.0
     },
     taxExemptions: [
-      { code: "TRAVEL", label: "Travelling Allowance", amount: 0 },
-      { code: "CHILDCARE", label: "Child Care Allowance", amount: 0 },
-      { code: "GIFT", label: "Gift", amount: 0 },
-      { code: "PHONE", label: "Phone Allowance", amount: 0 },
-      { code: "REWARD", label: "Reward", amount: 0 },
-      { code: "PARKING", label: "Parking Allowance", amount: 0 },
-      { code: "MEAL", label: "Meal Allowance", amount: 0 },
-      { code: "SUBSIDIES", label: "Subsidies", amount: 0 }
+      { 
+        code: "TRAVEL", 
+        label: "Travelling Allowance", 
+        amount: 0,
+        flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: true, fixed: false }
+      },
+      { 
+        code: "CHILDCARE", 
+        label: "Child Care Allowance", 
+        amount: 0,
+        flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: true, fixed: false }
+      },
+      { 
+        code: "GIFT", 
+        label: "Gift", 
+        amount: 0,
+        flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: true, fixed: false }
+      },
+      { 
+        code: "PHONE", 
+        label: "Phone Allowance", 
+        amount: 0,
+        flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: true, fixed: false }
+      },
+      { 
+        code: "REWARD", 
+        label: "Reward", 
+        amount: 0,
+        flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: true, fixed: false }
+      },
+      { 
+        code: "PARKING", 
+        label: "Parking Allowance", 
+        amount: 0,
+        flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: true, fixed: false }
+      },
+      { 
+        code: "MEAL", 
+        label: "Meal Allowance", 
+        amount: 0,
+        flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: true, fixed: false }
+      },
+      { 
+        code: "SUBSIDIES", 
+        label: "Subsidies", 
+        amount: 0,
+        flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: true, fixed: false }
+      }
     ],
     remarks: ""
   });
@@ -327,6 +375,7 @@ export default function EmployeeSalaryDetailsPage() {
 
   // Dialog state for tax exemption modal
   const [isTaxExemptionDialogOpen, setIsTaxExemptionDialogOpen] = useState(false);
+  const [expandedTaxFlags, setExpandedTaxFlags] = useState<Set<string>>(new Set());
 
   // Get all employees for dropdown
   const { data: employees = [] } = useQuery<any[]>({
@@ -348,18 +397,64 @@ export default function EmployeeSalaryDetailsPage() {
   // Update local state when data is loaded
   useEffect(() => {
     if (existingSalaryData) {
-      // Ensure taxExemptions field exists with default values
+      // Ensure taxExemptions field exists with default values and flags
+      const ensureFlags = (item: any) => ({
+        ...item,
+        flags: item.flags || { epf: false, socso: false, eis: false, hrdf: false, pcb39: true, fixed: false }
+      });
+      
       const updatedData = {
         ...existingSalaryData,
-        taxExemptions: existingSalaryData.taxExemptions || [
-          { code: "TRAVEL", label: "Travelling Allowance", amount: 0 },
-          { code: "CHILDCARE", label: "Child Care Allowance", amount: 0 },
-          { code: "GIFT", label: "Gift", amount: 0 },
-          { code: "PHONE", label: "Phone Allowance", amount: 0 },
-          { code: "REWARD", label: "Reward", amount: 0 },
-          { code: "PARKING", label: "Parking Allowance", amount: 0 },
-          { code: "MEAL", label: "Meal Allowance", amount: 0 },
-          { code: "SUBSIDIES", label: "Subsidies", amount: 0 }
+        taxExemptions: existingSalaryData.taxExemptions ? 
+          existingSalaryData.taxExemptions.map(ensureFlags) : [
+          { 
+            code: "TRAVEL", 
+            label: "Travelling Allowance", 
+            amount: 0,
+            flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: true, fixed: false }
+          },
+          { 
+            code: "CHILDCARE", 
+            label: "Child Care Allowance", 
+            amount: 0,
+            flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: true, fixed: false }
+          },
+          { 
+            code: "GIFT", 
+            label: "Gift", 
+            amount: 0,
+            flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: true, fixed: false }
+          },
+          { 
+            code: "PHONE", 
+            label: "Phone Allowance", 
+            amount: 0,
+            flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: true, fixed: false }
+          },
+          { 
+            code: "REWARD", 
+            label: "Reward", 
+            amount: 0,
+            flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: true, fixed: false }
+          },
+          { 
+            code: "PARKING", 
+            label: "Parking Allowance", 
+            amount: 0,
+            flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: true, fixed: false }
+          },
+          { 
+            code: "MEAL", 
+            label: "Meal Allowance", 
+            amount: 0,
+            flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: true, fixed: false }
+          },
+          { 
+            code: "SUBSIDIES", 
+            label: "Subsidies", 
+            amount: 0,
+            flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: true, fixed: false }
+          }
         ]
       };
       setSalaryData(updatedData);
@@ -648,6 +743,27 @@ export default function EmployeeSalaryDetailsPage() {
         item.code === code ? { ...item, amount } : item
       )
     });
+  };
+
+  const updateTaxExemptionFlag = (code: string, flag: keyof TaxExemptionItem['flags'], value: boolean) => {
+    updateSalaryData({
+      taxExemptions: (salaryData.taxExemptions || []).map(item =>
+        item.code === code ? { 
+          ...item, 
+          flags: { ...item.flags, [flag]: value }
+        } : item
+      )
+    });
+  };
+
+  const toggleTaxFlags = (code: string) => {
+    const newSet = new Set(expandedTaxFlags);
+    if (newSet.has(code)) {
+      newSet.delete(code);
+    } else {
+      newSet.add(code);
+    }
+    setExpandedTaxFlags(newSet);
   };
 
   if (isLoading) {
@@ -1301,23 +1417,97 @@ export default function EmployeeSalaryDetailsPage() {
                   </DialogHeader>
                   <div className="grid gap-4 py-4">
                     {(salaryData.taxExemptions || []).map((item) => (
-                      <div key={item.code} className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor={item.code} className="text-right">
-                          {item.label}
-                        </Label>
-                        <Input
-                          id={item.code}
-                          type="number"
-                          step="0.01"
-                          value={item.amount}
-                          onChange={(e) => updateTaxExemption(item.code, parseFloat(e.target.value) || 0)}
-                          className="col-span-2"
-                          placeholder="0.00"
-                          data-testid={`taxExemption-${item.code}`}
-                        />
-                        <div className="text-xs text-gray-500">
-                          ⚙️
+                      <div key={item.code} className="space-y-2">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor={item.code} className="text-right">
+                            {item.label}
+                          </Label>
+                          <Input
+                            id={item.code}
+                            type="number"
+                            step="0.01"
+                            value={item.amount}
+                            onChange={(e) => updateTaxExemption(item.code, parseFloat(e.target.value) || 0)}
+                            className="col-span-2"
+                            placeholder="0.00"
+                            data-testid={`taxExemption-${item.code}`}
+                          />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleTaxFlags(item.code)}
+                            className="text-xs text-gray-500 hover:bg-gray-100"
+                            data-testid={`toggleTaxFlags-${item.code}`}
+                          >
+                            <Settings className="w-3 h-3 mr-1" />
+                            {expandedTaxFlags.has(item.code) ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                          </Button>
                         </div>
+                        
+                        {expandedTaxFlags.has(item.code) && (
+                          <div className="ml-8 p-3 bg-gray-50 rounded-lg border">
+                            <div className="text-xs font-medium text-gray-700 mb-2">Statutory & Tax Settings</div>
+                            <div className="grid grid-cols-2 gap-3 text-xs">
+                              <div className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`${item.code}-epf`}
+                                  checked={item.flags?.epf || false}
+                                  onCheckedChange={(checked) => updateTaxExemptionFlag(item.code, 'epf', !!checked)}
+                                  data-testid={`checkbox-${item.code}-epf`}
+                                />
+                                <Label htmlFor={`${item.code}-epf`} className="text-xs">EPF</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`${item.code}-socso`}
+                                  checked={item.flags?.socso || false}
+                                  onCheckedChange={(checked) => updateTaxExemptionFlag(item.code, 'socso', !!checked)}
+                                  data-testid={`checkbox-${item.code}-socso`}
+                                />
+                                <Label htmlFor={`${item.code}-socso`} className="text-xs">SOCSO</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`${item.code}-eis`}
+                                  checked={item.flags?.eis || false}
+                                  onCheckedChange={(checked) => updateTaxExemptionFlag(item.code, 'eis', !!checked)}
+                                  data-testid={`checkbox-${item.code}-eis`}
+                                />
+                                <Label htmlFor={`${item.code}-eis`} className="text-xs">EIS</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`${item.code}-hrdf`}
+                                  checked={item.flags?.hrdf || false}
+                                  onCheckedChange={(checked) => updateTaxExemptionFlag(item.code, 'hrdf', !!checked)}
+                                  data-testid={`checkbox-${item.code}-hrdf`}
+                                />
+                                <Label htmlFor={`${item.code}-hrdf`} className="text-xs">HRDF</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`${item.code}-pcb39`}
+                                  checked={item.flags?.pcb39 || false}
+                                  onCheckedChange={(checked) => updateTaxExemptionFlag(item.code, 'pcb39', !!checked)}
+                                  data-testid={`checkbox-${item.code}-pcb39`}
+                                />
+                                <Label htmlFor={`${item.code}-pcb39`} className="text-xs font-medium text-blue-600">PCB39</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`${item.code}-fixed`}
+                                  checked={item.flags?.fixed || false}
+                                  onCheckedChange={(checked) => updateTaxExemptionFlag(item.code, 'fixed', !!checked)}
+                                  data-testid={`checkbox-${item.code}-fixed`}
+                                />
+                                <Label htmlFor={`${item.code}-fixed`} className="text-xs font-medium text-green-600">Fixed</Label>
+                              </div>
+                            </div>
+                            <div className="mt-2 text-[10px] text-gray-500">
+                              💡 PCB39: Include dalam taxable income | Fixed: Auto-kekalkan setiap bulan
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
