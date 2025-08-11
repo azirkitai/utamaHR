@@ -325,6 +325,7 @@ export default function EmployeeSalaryDetailsPage() {
   const [isDirty, setIsDirty] = useState(false);
   const [showStatutoryFlags, setShowStatutoryFlags] = useState<Record<string, boolean>>({});
   const [showPCB39Modal, setShowPCB39Modal] = useState(false);
+  const [showUnpaidLeaveModal, setShowUnpaidLeaveModal] = useState(false);
   const [pcb39Mode, setPCB39Mode] = useState<"custom" | "calculate">("custom");
   const [reliefCode, setReliefCode] = useState("");
   const [reliefAmount, setReliefAmount] = useState("");
@@ -2141,7 +2142,17 @@ export default function EmployeeSalaryDetailsPage() {
 
                 {/* Unpaid Leave (auto calculated) */}
                 <div className="space-y-2">
-                  <Label className="font-medium">Unpaid Leave</Label>
+                  <div className="flex items-center justify-between">
+                    <Label className="font-medium">Unpaid Leave</Label>
+                    <button
+                      type="button"
+                      onClick={() => setShowUnpaidLeaveModal(true)}
+                      className="hover:bg-gray-100 p-1 rounded"
+                      data-testid="unpaid-leave-settings-btn"
+                    >
+                      <Settings className="h-4 w-4 text-gray-400" />
+                    </button>
+                  </div>
                   <div className="flex">
                     <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
                       <span className="text-sm font-medium">RM</span>
@@ -3533,6 +3544,95 @@ export default function EmployeeSalaryDetailsPage() {
               onClick={() => setIsTaxExemptionDialogOpen(false)}
               data-testid="btn-close-tax-exemption"
             >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Unpaid Leave Modal */}
+      <Dialog open={showUnpaidLeaveModal} onOpenChange={setShowUnpaidLeaveModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold">Unpaid Leave</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Amount Display */}
+            <div className="space-y-2">
+              <div className="flex">
+                <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                  <span className="text-sm font-medium">RM</span>
+                </div>
+                <Input
+                  type="text"
+                  value={salaryData.deductions.unpaidLeave.toFixed(2)}
+                  className="rounded-l-none bg-gray-100"
+                  readOnly
+                  data-testid="unpaid-leave-modal-amount"
+                />
+              </div>
+            </div>
+
+            {/* Statutory Checkboxes */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  checked={salaryData.deductions.flags?.unpaidLeave?.epf || false}
+                  onCheckedChange={(checked) => updateDeductionFlag('unpaidLeave', 'epf', !!checked)}
+                  data-testid="unpaid-leave-modal-epf"
+                />
+                <Label className="text-sm">EPF</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  checked={salaryData.deductions.flags?.unpaidLeave?.socso || false}
+                  onCheckedChange={(checked) => updateDeductionFlag('unpaidLeave', 'socso', !!checked)}
+                  data-testid="unpaid-leave-modal-socso"
+                />
+                <Label className="text-sm">SOCSO</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  checked={salaryData.deductions.flags?.unpaidLeave?.eis || false}
+                  onCheckedChange={(checked) => updateDeductionFlag('unpaidLeave', 'eis', !!checked)}
+                  data-testid="unpaid-leave-modal-eis"
+                />
+                <Label className="text-sm">EIS</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  checked={salaryData.deductions.flags?.unpaidLeave?.hrdf || false}
+                  onCheckedChange={(checked) => updateDeductionFlag('unpaidLeave', 'hrdf', !!checked)}
+                  data-testid="unpaid-leave-modal-hrdf"
+                />
+                <Label className="text-sm">HRDF</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  checked={salaryData.deductions.flags?.unpaidLeave?.pcb39 || false}
+                  onCheckedChange={(checked) => updateDeductionFlag('unpaidLeave', 'pcb39', !!checked)}
+                  data-testid="unpaid-leave-modal-pcb39"
+                />
+                <Label className="text-sm">PCB39</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  checked={salaryData.deductions.flags?.unpaidLeave?.fixed || false}
+                  onCheckedChange={(checked) => updateDeductionFlag('unpaidLeave', 'fixed', !!checked)}
+                  data-testid="unpaid-leave-modal-fixed"
+                />
+                <Label className="text-sm">Fixed</Label>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="destructive"
+              onClick={() => setShowUnpaidLeaveModal(false)}
+              className="w-full"
+              data-testid="btn-close-unpaid-leave-modal"
+            >
+              <X className="w-4 h-4 mr-2" />
               Close
             </Button>
           </DialogFooter>
