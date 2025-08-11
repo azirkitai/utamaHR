@@ -844,19 +844,22 @@ export default function SalaryPayrollPage() {
                       </div>
                       
                       {/* Overtime Rate in Basic Earning */}
-                      <div className="flex justify-between items-center relative">
+                      <div className="flex justify-between items-center relative bg-yellow-50 p-2 rounded">
                         <div className="flex items-center space-x-2">
-                          <span>Overtime Rate</span>
+                          <span className="font-medium text-orange-800">Overtime Rate</span>
                           <button
-                            onClick={() => setShowOvertimeDropdown(!showOvertimeDropdown)}
-                            className="p-1 text-gray-500 hover:text-blue-600"
+                            onClick={() => {
+                              console.log('Overtime settings clicked!', !showOvertimeDropdown);
+                              setShowOvertimeDropdown(!showOvertimeDropdown);
+                            }}
+                            className="p-1 text-orange-600 hover:text-orange-800 bg-orange-100 rounded"
                             data-testid="button-overtime-settings"
                           >
                             <Settings className="w-4 h-4" />
                           </button>
                         </div>
                         <div className="flex items-center space-x-1">
-                          <span className="text-sm">RM</span>
+                          <span className="text-sm font-medium">RM</span>
                           <Input
                             value={overtimeRateType === 'fixed' 
                               ? calculateOvertimeRate(parseFloat(employeeSalaryData?.basicSalary || 0)).toFixed(2)
@@ -864,7 +867,7 @@ export default function SalaryPayrollPage() {
                             }
                             readOnly={overtimeRateType === 'fixed'}
                             onChange={(e) => setCustomOvertimeRate(parseFloat(e.target.value) || 0)}
-                            className="w-16 text-right text-sm h-6 px-1"
+                            className="w-20 text-right text-sm h-7 px-2 font-semibold border-2"
                             data-testid="input-overtime-rate"
                           />
                         </div>
