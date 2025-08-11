@@ -302,10 +302,44 @@ const calcSocsoLegacy = (basicSalary: number): { employee: number; employer: num
   return { employee: result.employee, employer: result.employer };
 };
 
+// Jadual EIS rasmi mengikut PERKESO - Employment Insurance System
+const EIS_TABLE = [
+  { min: 30.01, max: 50.00, employee: 0.10, employer: 0.10 },
+  { min: 50.01, max: 70.00, employee: 0.14, employer: 0.14 },
+  { min: 70.01, max: 100.00, employee: 0.20, employer: 0.20 },
+  { min: 100.01, max: 140.00, employee: 0.28, employer: 0.28 },
+  { min: 140.01, max: 200.00, employee: 0.40, employer: 0.40 },
+  { min: 200.01, max: 300.00, employee: 0.60, employer: 0.60 },
+  { min: 300.01, max: 400.00, employee: 0.80, employer: 0.80 },
+  { min: 400.01, max: 500.00, employee: 1.00, employer: 1.00 },
+  { min: 500.01, max: 600.00, employee: 1.20, employer: 1.20 },
+  { min: 600.01, max: 700.00, employee: 1.40, employer: 1.40 },
+  { min: 700.01, max: 800.00, employee: 1.60, employer: 1.60 },
+  { min: 800.01, max: 900.00, employee: 1.80, employer: 1.80 },
+  { min: 900.01, max: 1000.00, employee: 2.00, employer: 2.00 },
+  { min: 1000.01, max: 1100.00, employee: 2.20, employer: 2.20 },
+  { min: 1100.01, max: 1200.00, employee: 2.40, employer: 2.40 },
+  { min: 1200.01, max: 1300.00, employee: 2.60, employer: 2.60 },
+  { min: 1300.01, max: 1400.00, employee: 2.80, employer: 2.80 },
+  { min: 1400.01, max: 1500.00, employee: 3.00, employer: 3.00 },
+  { min: 1500.01, max: 1600.00, employee: 3.20, employer: 3.20 },
+  { min: 1600.01, max: 1700.00, employee: 3.40, employer: 3.40 },
+  { min: 1700.01, max: 1800.00, employee: 3.60, employer: 3.60 },
+  { min: 1800.01, max: 1900.00, employee: 3.80, employer: 3.80 },
+  { min: 1900.01, max: 2000.00, employee: 4.00, employer: 4.00 },
+  { min: 2000.01, max: 2100.00, employee: 4.20, employer: 4.20 },
+  { min: 2100.01, max: 2200.00, employee: 4.40, employer: 4.40 },
+  { min: 2200.01, max: 2300.00, employee: 4.60, employer: 4.60 },
+  { min: 2300.01, max: 2400.00, employee: 4.80, employer: 4.80 },
+  { min: 2400.01, max: 4000.00, employee: 4.80, employer: 4.80 } // Cap at RM 4.80
+];
+
 // EIS calculation mengikut spesifikasi terkini
 type EisInput = {
   reportedWage: number;
   age?: number;
+  isMalaysianPR?: boolean;
+  eisEligible?: boolean;
   hasEisHistoryBefore57?: boolean;
   enabled?: boolean;
   exempt?: boolean;
@@ -319,22 +353,20 @@ type EisResult = {
 };
 
 const calcEis = (input: EisInput): EisResult => {
-  const CEILING = 5000.00;
-  const EMP_RATE = 0.002; // 0.2%
-  const ER_RATE = 0.002; // 0.2%
-
-  const enabled = input.enabled !== false;
-  const exempt = !!input.exempt;
+  const CEILING = 4000.00; // EIS maximum wage ceiling
+  
+  // Check eligibility first
   const age = typeof input.age === 'number' ? input.age : undefined;
-
-  // Eligibility logic
-  let eligible = enabled && !exempt;
-
+  const isMalaysianPR = input.isMalaysianPR !== false; // Default true
+  const eisEligible = input.eisEligible !== false; // Default true if not specified
+  
+  let eligible = eisEligible && isMalaysianPR;
+  
   if (eligible) {
     // EIS tamat pada 60 tahun
     if (age !== undefined && age >= 60) eligible = false;
-
-    // Jika umur >=57 & tiada sejarah caruman sebelum 57 → dikecualikan
+    
+    // Jika umur >=57 & tiada sejarah caruman sebelum 57 → dikecualikan  
     if (age !== undefined && age >= 57 && !input.hasEisHistoryBefore57) {
       eligible = false;
     }
@@ -345,11 +377,24 @@ const calcEis = (input: EisInput): EisResult => {
   }
 
   const wageBase = Math.min(Number(input.reportedWage || 0), CEILING);
-  const rawEmp = wageBase * EMP_RATE;
-  const rawEr = wageBase * ER_RATE;
+  
+  // If wage is below minimum threshold
+  if (wageBase < 30.01) {
+    return { wageBase, employee: 0, employer: 0, eligible: false };
+  }
 
-  const employee = roundToNearest5Cents(rawEmp);
-  const employer = roundToNearest5Cents(rawEr);
+  // Find from EIS table
+  const tableEntry = EIS_TABLE.find(entry => 
+    wageBase >= entry.min && wageBase <= entry.max
+  );
+  
+  let employee = 0;
+  let employer = 0;
+  
+  if (tableEntry) {
+    employee = tableEntry.employee;
+    employer = tableEntry.employer;
+  }
 
   return { wageBase, employee, employer, eligible: true };
 };
