@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,9 @@ import {
   Printer,
   Eye,
   Edit,
-  Play
+  Play,
+  Settings,
+  ChevronDown
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import type { Employee } from "@shared/schema";
@@ -37,6 +39,24 @@ export default function SalaryPayrollPage() {
   const [showSalarySummaryModal, setShowSalarySummaryModal] = useState(false);
   const [selectedEmployeeForSummary, setSelectedEmployeeForSummary] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("salary-payroll-list");
+  
+  // Overtime Rate Settings
+  const [showOvertimeDropdown, setShowOvertimeDropdown] = useState(false);
+  const [overtimeRateType, setOvertimeRateType] = useState("fixed");
+  const [customOvertimeRate, setCustomOvertimeRate] = useState(0);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowOvertimeDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
   const [payrollFormData, setPayrollFormData] = useState({
     year: "2025",
     month: "August",
@@ -58,6 +78,23 @@ export default function SalaryPayrollPage() {
     queryKey: ["/api/employees", selectedEmployeeForSummary?.id, "salary"],
     enabled: !!selectedEmployeeForSummary?.id,
   });
+
+  // Calculate overtime rate based on basic salary and type
+  const calculateOvertimeRate = (basicSalary: number, dayType: 'normal' | 'rest' | 'holiday' = 'normal') => {
+    const hourlyRate = basicSalary / 26 / 8; // Basic hourly rate
+    
+    if (overtimeRateType === 'custom') {
+      return customOvertimeRate;
+    }
+    
+    // Fixed rate calculation based on Employment Act 1955
+    switch (dayType) {
+      case 'normal': return hourlyRate * 1.5;
+      case 'rest': return hourlyRate * 2.0;
+      case 'holiday': return hourlyRate * 3.0;
+      default: return hourlyRate * 1.5;
+    }
+  };
 
   // Calculate derived values from real salary data
   const calculateSalarySummary = (salaryData: any) => {
@@ -830,6 +867,71 @@ export default function SalaryPayrollPage() {
                       <div className="flex justify-between">
                         <span>Extra Responsibility Allowance</span>
                         <span>RM {getAdditionalItemAmount('RESP').toFixed(2)}</span>
+                      </div>
+                      
+                      {/* Overtime Rate Row */}
+                      <div className="flex justify-between items-center col-span-2 mt-2 p-2 border rounded-lg bg-gray-50">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-medium">Overtime Rate</span>
+                          <button
+                            onClick={() => setShowOvertimeDropdown(!showOvertimeDropdown)}
+                            className="p-1 text-gray-500 hover:text-gray-700"
+                            data-testid="button-overtime-settings"
+                          >
+                            <Settings className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm text-gray-600">RM</span>
+                          <Input
+                            value={overtimeRateType === 'fixed' 
+                              ? calculateOvertimeRate(parseFloat(employeeSalaryData?.basicSalary || 0)).toFixed(2)
+                              : customOvertimeRate.toFixed(2)
+                            }
+                            readOnly={overtimeRateType === 'fixed'}
+                            onChange={(e) => setCustomOvertimeRate(parseFloat(e.target.value) || 0)}
+                            className="w-20 text-right"
+                            data-testid="input-overtime-rate"
+                          />
+                        </div>
+                        
+                        {/* Overtime Settings Dropdown */}
+                        {showOvertimeDropdown && (
+                          <div 
+                            ref={dropdownRef}
+                            className="absolute mt-2 w-48 bg-white border rounded-lg shadow-lg p-2 z-50" 
+                            style={{marginTop: '2rem'}}
+                          >
+                            <div className="space-y-2">
+                              <button
+                                onClick={() => {
+                                  setOvertimeRateType('fixed');
+                                  setShowOvertimeDropdown(false);
+                                }}
+                                className={`w-full text-left p-2 rounded hover:bg-gray-100 ${
+                                  overtimeRateType === 'fixed' ? 'bg-blue-50 text-blue-600' : ''
+                                }`}
+                                data-testid="button-fixed-rate"
+                              >
+                                <div className="font-medium">Fixed</div>
+                                <div className="text-sm text-gray-500">Guna formula standard</div>
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setOvertimeRateType('custom');
+                                  setShowOvertimeDropdown(false);
+                                }}
+                                className={`w-full text-left p-2 rounded hover:bg-gray-100 ${
+                                  overtimeRateType === 'custom' ? 'bg-blue-50 text-blue-600' : ''
+                                }`}
+                                data-testid="button-custom-rate"
+                              >
+                                <div className="font-medium">Custom</div>
+                                <div className="text-sm text-gray-500">Admin masukkan sendiri kadar bayaran</div>
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
