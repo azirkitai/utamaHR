@@ -1,0 +1,66 @@
+Arahan untuk agent + formula EIS
+Gunakan ceiling RM5,000, pembundaran ke 5 sen. Pulangkan { wageBase, employee, employer, eligible }.
+
+javascript
+Copy
+Edit
+// Bundar ke 5 sen terdekat
+function roundToNearest5Cents(n) {
+  return Math.round(n * 20) / 20; // 1/0.05 = 20
+}
+
+/**
+ * Kiraan EIS (SIP)
+ * @param {Object} input
+ * @param {number} input.reportedWage  - gaji dilapor
+ * @param {number} [input.age]         - umur pekerja (untuk auto-eligibility)
+ * @param {boolean} [input.hasEisHistoryBefore57] - pernah carum sebelum umur 57?
+ * @param {boolean} [input.enabled=true] - toggle EIS dalam UI
+ * @param {boolean} [input.exempt=false] - true jika memang dikecualikan (gov/domestic/helper, dll.)
+ * @returns {{wageBase:number, employee:number, employer:number, eligible:boolean}}
+ */
+function calcEis(input) {
+  const CEILING = 5000.00;
+  const EMP_RATE = 0.002; // 0.2%
+  const ER_RATE  = 0.002; // 0.2%
+
+  const enabled = input.enabled !== false;
+  const exempt  = !!input.exempt;
+  const age     = typeof input.age === 'number' ? input.age : undefined;
+
+  // Eligibility logic
+  let eligible = enabled && !exempt;
+
+  if (eligible) {
+    // EIS tamat pada 60 tahun
+    if (age !== undefined && age >= 60) eligible = false;
+
+    // Jika umur >=57 & tiada sejarah caruman sebelum 57 → dikecualikan
+    if (age !== undefined && age >= 57 && !input.hasEisHistoryBefore57) {
+      eligible = false;
+    }
+  }
+
+  if (!eligible) {
+    return { wageBase: 0, employee: 0, employer: 0, eligible: false };
+  }
+
+  const wageBase = Math.min(Number(input.reportedWage || 0), CEILING);
+  const rawEmp = wageBase * EMP_RATE;
+  const rawEr  = wageBase * ER_RATE;
+
+  const employee = roundToNearest5Cents(rawEmp);
+  const employer = roundToNearest5Cents(rawEr);
+
+  return { wageBase, employee, employer, eligible: true };
+}
+
+// Contoh:
+// 1) Gaji 10,000 tapi layak → wageBase 5,000 → emp=10.00, er=10.00
+// console.log(calcEis({ reportedWage: 10000, age: 35, hasEisHistoryBefore57: true }));
+
+// 2) Umur 60 → 0.00
+// console.log(calcEis({ reportedWage: 10000, age: 60 }));
+
+// 3) Umur 58, first job (tiada sejarah sebelum 57) → 0.00
+// console.log(calcEis({ reportedWage: 4000, age: 58, hasEisHistoryBefore57: false }));

@@ -128,12 +128,81 @@ const calcSocsoLegacy = (basicSalary: number): { employee: number; employer: num
   return { employee: result.employee, employer: result.employer };
 };
 
-const calcEis = (basicSalary: number): { employee: number; employer: number } => {
-  // EIS: 0.2% employee, 0.2% employer, max RM7.40 each
-  const rate = 0.002;
-  const employee = Math.min(roundToCent(basicSalary * rate), 7.40);
-  const employer = Math.min(roundToCent(basicSalary * rate), 7.40);
-  return { employee, employer };
+// EIS calculation mengikut spesifikasi terkini
+type EisInput = {
+  reportedWage: number;
+  age?: number;
+  hasEisHistoryBefore57?: boolean;
+  enabled?: boolean;
+  exempt?: boolean;
+};
+
+type EisResult = {
+  wageBase: number;
+  employee: number;
+  employer: number;
+  eligible: boolean;
+};
+
+const calcEis = (input: EisInput): EisResult => {
+  const CEILING = 5000.00;
+  const EMP_RATE = 0.002; // 0.2%
+  const ER_RATE = 0.002; // 0.2%
+
+  const enabled = input.enabled !== false;
+  const exempt = !!input.exempt;
+  const age = typeof input.age === 'number' ? input.age : undefined;
+
+  // Eligibility logic
+  let eligible = enabled && !exempt;
+
+  if (eligible) {
+    // EIS tamat pada 60 tahun
+    if (age !== undefined && age >= 60) eligible = false;
+
+    // Jika umur >=57 & tiada sejarah caruman sebelum 57 → dikecualikan
+    if (age !== undefined && age >= 57 && !input.hasEisHistoryBefore57) {
+      eligible = false;
+    }
+  }
+
+  if (!eligible) {
+    return { wageBase: 0, employee: 0, employer: 0, eligible: false };
+  }
+
+  const wageBase = Math.min(Number(input.reportedWage || 0), CEILING);
+  const rawEmp = wageBase * EMP_RATE;
+  const rawEr = wageBase * ER_RATE;
+
+  const employee = roundToNearest5Cents(rawEmp);
+  const employer = roundToNearest5Cents(rawEr);
+
+  return { wageBase, employee, employer, eligible: true };
+};
+
+// Debug function untuk mengetahui mengapa EIS jadi 0.00
+const whyEisZero = ({ reportedWage, age, nationality = 'MY', isEisEnabled = true, exempt = false, hasEisHistoryBefore57 = true }: {
+  reportedWage: number;
+  age?: number;
+  nationality?: string;
+  isEisEnabled?: boolean;
+  exempt?: boolean;
+  hasEisHistoryBefore57?: boolean;
+}): string[] => {
+  const reasons = [];
+  if (!isEisEnabled) reasons.push('EIS toggle OFF');
+  if (exempt) reasons.push('Profile marked as exempt');
+  if (nationality !== 'MY' && nationality !== 'PR') reasons.push('Non-citizen/non-PR excluded');
+  if (typeof age === 'number' && age >= 60) reasons.push('Age ≥ 60 (EIS ends)');
+  if (typeof age === 'number' && age >= 57 && !hasEisHistoryBefore57) reasons.push('Age ≥57 with no prior EIS history');
+  if (reasons.length === 0 && Math.min(reportedWage, 5000) > 0) reasons.push('Should NOT be zero if eligible');
+  return reasons;
+};
+
+// Legacy function for backward compatibility
+const calcEisLegacy = (basicSalary: number): { employee: number; employer: number } => {
+  const result = calcEis({ reportedWage: basicSalary, enabled: true });
+  return { employee: result.employee, employer: result.employer };
 };
 
 export default function EmployeeSalaryDetailsPage() {
@@ -252,8 +321,10 @@ export default function EmployeeSalaryDetailsPage() {
         ? calcSocso({ reportedWage: salaryData.basicSalary, category: 1 })
         : { employee: 0, employer: 0, wageBase: 0, category: 1 as const };
       
-      // Calculate EIS
-      const eis = salaryData.settings.isEisEnabled ? calcEis(salaryData.basicSalary) : { employee: 0, employer: 0 };
+      // Calculate EIS using new implementation with proper eligibility checks
+      const eis = salaryData.settings.isEisEnabled 
+        ? calcEis({ reportedWage: salaryData.basicSalary, enabled: true })
+        : { employee: 0, employer: 0, wageBase: 0, eligible: false };
 
       // Calculate HRDF
       const hrdf = roundToCent(salaryData.basicSalary * salaryData.settings.hrdfEmployerRate / 100);
@@ -729,7 +800,19 @@ export default function EmployeeSalaryDetailsPage() {
                   data-testid="eisEmployee"
                 />
                 <div className="text-xs text-gray-500 mt-1">
-                  How did we calculate this? {isCalculating ? "Calculating..." : "0.2% of basic salary"}
+                  {(() => {
+                    if (isCalculating) return "Calculating...";
+                    if (!salaryData.settings.isEisEnabled) return "EIS disabled in settings";
+                    if (salaryData.deductions.eisEmployee === 0) {
+                      const debugReasons = whyEisZero({
+                        reportedWage: salaryData.basicSalary,
+                        isEisEnabled: salaryData.settings.isEisEnabled,
+                        exempt: false
+                      });
+                      return debugReasons.length > 0 ? `Why 0.00? ${debugReasons.join(', ')}` : "0.2% of basic salary (RM5,000 ceiling)";
+                    }
+                    return "0.2% of basic salary (RM5,000 ceiling)";
+                  })()}
                 </div>
               </div>
 
@@ -850,7 +933,19 @@ export default function EmployeeSalaryDetailsPage() {
                   data-testid="eisEmployer"
                 />
                 <div className="text-xs text-gray-500 mt-1">
-                  How did we calculate this? {isCalculating ? "Calculating..." : "0.2% of basic salary"}
+                  {(() => {
+                    if (isCalculating) return "Calculating...";
+                    if (!salaryData.settings.isEisEnabled) return "EIS disabled in settings";
+                    if (salaryData.contributions.eisEmployer === 0) {
+                      const debugReasons = whyEisZero({
+                        reportedWage: salaryData.basicSalary,
+                        isEisEnabled: salaryData.settings.isEisEnabled,
+                        exempt: false
+                      });
+                      return debugReasons.length > 0 ? `Why 0.00? ${debugReasons.join(', ')}` : "0.2% of basic salary (RM5,000 ceiling)";
+                    }
+                    return "0.2% of basic salary (RM5,000 ceiling)";
+                  })()}
                 </div>
               </div>
 
