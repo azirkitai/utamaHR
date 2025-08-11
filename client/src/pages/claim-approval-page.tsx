@@ -72,7 +72,7 @@ export default function ClaimApprovalPage() {
   // Approve claim mutation
   const approveMutation = useMutation({
     mutationFn: async ({ claimId, approverId }: { claimId: string; approverId: string }) => {
-      const token = localStorage.getItem('auth_token');
+      const token = localStorage.getItem('utamahr_token');
       const response = await fetch(`/api/claim-applications/${claimId}/approve`, {
         method: 'POST',
         headers: { 
@@ -93,7 +93,7 @@ export default function ClaimApprovalPage() {
   // Reject claim mutation
   const rejectMutation = useMutation({
     mutationFn: async ({ claimId, rejectorId, reason }: { claimId: string; rejectorId: string; reason: string }) => {
-      const token = localStorage.getItem('auth_token');
+      const token = localStorage.getItem('utamahr_token');
       const response = await fetch(`/api/claim-applications/${claimId}/reject`, {
         method: 'POST',
         headers: { 
