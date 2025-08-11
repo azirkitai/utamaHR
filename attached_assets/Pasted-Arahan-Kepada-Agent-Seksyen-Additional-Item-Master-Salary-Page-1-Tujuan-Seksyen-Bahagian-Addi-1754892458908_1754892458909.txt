@@ -1,0 +1,96 @@
+Arahan Kepada Agent – Seksyen “Additional Item” (Master Salary Page)
+1. Tujuan Seksyen
+Bahagian Additional Item digunakan untuk menambah bayaran tambahan selain Basic Salary yang akan mempengaruhi gaji kasar (Gross Salary) dan caruman statutory seperti EPF, SOCSO, EIS, HRDF, dan PCB39.
+
+2. Layout & Komponen (Setiap Item)
+Untuk setiap baris tambahan (contoh: Advance Salary, Subsistence Allowance, Extra Responsibility Allowance, BIK/VOLA), paparkan:
+
+Label Nama Item (contoh: "Advance Salary")
+
+Input Amount
+
+Format: RM 0.00
+
+Hanya terima nombor ≥ 0, max 2 decimal places.
+
+Checkbox Statutory Flags (align secara mendatar):
+
+EPF – jika ditanda, amount item masuk dalam pengiraan wage base EPF.
+
+SOCSO – jika ditanda, amount item masuk dalam pengiraan wage base SOCSO.
+
+EIS – jika ditanda, amount item masuk dalam pengiraan wage base EIS.
+
+HRDF – jika ditanda, amount item masuk dalam pengiraan wage base HRDF.
+
+Checkbox PCB39 – jika ditanda, amount item dianggap taxable untuk PCB39.
+
+Checkbox Fixed – jika ditanda, amount kekal sama setiap bulan (tak perlu masukkan semula).
+
+3. Fungsi Flags
+EPF/SOCSO/EIS/HRDF → masukkan amount ke wage base statutory yang berkenaan.
+
+PCB39 → masukkan amount ke pendapatan bercukai PCB39.
+
+Fixed → sistem auto bawa nilai ini setiap bulan payroll tanpa perlu kemas kini.
+
+4. Item Khas – BIK/VOLA
+Ada nota kecil: “Item will not be displayed on payslip”
+
+Automatik unchecked untuk semua statutory flags, melainkan HR tukar manual.
+
+Tidak akan muncul dalam payslip tetapi tetap mempengaruhi pengiraan jika flags ditanda.
+
+5. Butang Tambahan di Bawah
+Tambah butang berikut di bawah senarai Additional Item:
+
+Butang Hijau “+ Add Additional Item”
+
+Bila klik, buka form baris baru kosong:
+
+Input nama item (editable text)
+
+Input amount (RM)
+
+Checkbox flags EPF/SOCSO/EIS/HRDF/PCB39/Fixed
+
+Item dinamik ini disimpan dalam array additionalItems[] dalam data model.
+
+Butang Merah “Remove” (pada setiap item dinamik)
+
+Untuk padam item yang ditambah.
+
+6. ID & Data Binding
+Setiap amount → additionalItems[i].amount
+
+Setiap flag → additionalItems[i].flags.epf dsb.
+
+Untuk item default (Advance Salary, Subsistence Allowance, Extra Responsibility Allowance, BIK/VOLA) gunakan ID tetap:
+
+advSalaryAmount, advSalaryEPF, advSalarySOCSO, ...
+
+subsAllowanceAmount, ...
+
+extraRespAllowanceAmount, ...
+
+bikVolaAmount, ...
+
+Untuk item dinamik, ID dijana secara auto: additionalItem_{index}_{field}
+
+7. Kesan Ke Pengiraan
+Gross Salary = Basic Salary + SUM(all additionalItems.amount)
+
+Untuk statutory:
+
+EPF wage base = Basic Salary + SUM(amount dengan EPF=checked)
+
+SOCSO wage base = Basic Salary + SUM(amount dengan SOCSO=checked)
+
+EIS wage base = Basic Salary + SUM(amount dengan EIS=checked)
+
+HRDF wage base = Basic Salary + SUM(amount dengan HRDF=checked)
+
+Untuk PCB39:
+
+PCB taxable income = Basic Salary + SUM(amount dengan PCB39=checked)
+

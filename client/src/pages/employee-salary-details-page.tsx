@@ -19,6 +19,14 @@ interface AdditionalItem {
   label: string;
   amount: number;
   hideOnPayslip?: boolean;
+  flags: {
+    epf: boolean;
+    socso: boolean;
+    eis: boolean;
+    hrdf: boolean;
+    pcb39: boolean;
+    fixed: boolean;
+  };
 }
 
 interface DeductionItem {
@@ -219,10 +227,31 @@ export default function EmployeeSalaryDetailsPage() {
     salaryType: "Monthly",
     basicSalary: 0,
     additionalItems: [
-      { code: "ADV", label: "Advance Salary", amount: 0 },
-      { code: "SUBS", label: "Subsistence Allowance", amount: 0 },
-      { code: "RESP", label: "Extra Responsibility Allowance", amount: 0 },
-      { code: "BIK", label: "BIK/VOLA", amount: 0, hideOnPayslip: false }
+      { 
+        code: "ADV", 
+        label: "Advance Salary", 
+        amount: 0,
+        flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }
+      },
+      { 
+        code: "SUBS", 
+        label: "Subsistence Allowance", 
+        amount: 0,
+        flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }
+      },
+      { 
+        code: "RESP", 
+        label: "Extra Responsibility Allowance", 
+        amount: 0,
+        flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }
+      },
+      { 
+        code: "BIK", 
+        label: "BIK/VOLA", 
+        amount: 0, 
+        hideOnPayslip: true,
+        flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }
+      }
     ],
     deductions: {
       epfEmployee: 0,
@@ -303,31 +332,47 @@ export default function EmployeeSalaryDetailsPage() {
     setIsCalculating(true);
     
     try {
+      // Calculate wage bases based on additional items flags
+      const epfWageBase = salaryData.basicSalary + salaryData.additionalItems
+        .filter(item => item.flags.epf)
+        .reduce((sum, item) => sum + item.amount, 0);
+      
+      const socsoWageBase = salaryData.basicSalary + salaryData.additionalItems
+        .filter(item => item.flags.socso)
+        .reduce((sum, item) => sum + item.amount, 0);
+      
+      const eisWageBase = salaryData.basicSalary + salaryData.additionalItems
+        .filter(item => item.flags.eis)
+        .reduce((sum, item) => sum + item.amount, 0);
+      
+      const hrdfWageBase = salaryData.basicSalary + salaryData.additionalItems
+        .filter(item => item.flags.hrdf)
+        .reduce((sum, item) => sum + item.amount, 0);
+
       // Calculate EPF
       let epfEmployee = 0;
       let epfEmployer = 0;
       
       if (salaryData.settings.epfCalcMethod === "PERCENT") {
-        epfEmployee = roundToCent(salaryData.basicSalary * salaryData.settings.epfEmployeeRate / 100);
-        epfEmployer = roundToCent(salaryData.basicSalary * salaryData.settings.epfEmployerRate / 100);
+        epfEmployee = roundToCent(epfWageBase * salaryData.settings.epfEmployeeRate / 100);
+        epfEmployer = roundToCent(epfWageBase * salaryData.settings.epfEmployerRate / 100);
       } else {
         epfEmployee = salaryData.deductions.epfEmployee;
         epfEmployer = salaryData.contributions.epfEmployer;
       }
 
-      // Calculate SOCSO
       // Calculate SOCSO using new implementation with proper PERKESO rates
       const socso = salaryData.settings.isSocsoEnabled 
-        ? calcSocso({ reportedWage: salaryData.basicSalary, category: 1 })
+        ? calcSocso({ reportedWage: socsoWageBase, category: 1 })
         : { employee: 0, employer: 0, wageBase: 0, category: 1 as const };
       
       // Calculate EIS using new implementation with proper eligibility checks
       const eis = salaryData.settings.isEisEnabled 
-        ? calcEis({ reportedWage: salaryData.basicSalary, enabled: true })
+        ? calcEis({ reportedWage: eisWageBase, enabled: true })
         : { employee: 0, employer: 0, wageBase: 0, eligible: false };
 
       // Calculate HRDF
-      const hrdf = roundToCent(salaryData.basicSalary * salaryData.settings.hrdfEmployerRate / 100);
+      const hrdf = roundToCent(hrdfWageBase * salaryData.settings.hrdfEmployerRate / 100);
 
       // Update deductions and contributions
       const updatedDeductions = {
@@ -438,6 +483,15 @@ export default function EmployeeSalaryDetailsPage() {
   const updateAdditionalItem = (index: number, field: keyof AdditionalItem, value: any) => {
     const updatedItems = [...salaryData.additionalItems];
     updatedItems[index] = { ...updatedItems[index], [field]: value };
+    updateSalaryData({ additionalItems: updatedItems });
+  };
+
+  const updateAdditionalItemFlag = (index: number, flag: keyof AdditionalItem['flags'], value: boolean) => {
+    const updatedItems = [...salaryData.additionalItems];
+    updatedItems[index] = { 
+      ...updatedItems[index], 
+      flags: { ...updatedItems[index].flags, [flag]: value }
+    };
     updateSalaryData({ additionalItems: updatedItems });
   };
 
@@ -718,30 +772,94 @@ export default function EmployeeSalaryDetailsPage() {
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Additional Item</h3>
               {salaryData.additionalItems.map((item, index) => (
-                <div key={item.code} className="space-y-2">
-                  <Label>{item.label}</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={item.amount}
-                    onChange={(e) => updateAdditionalItem(index, 'amount', parseFloat(e.target.value) || 0)}
-                    data-testid={item.code === "ADV" ? "advanceSalary" : item.code === "SUBS" ? "subsistenceAllowance" : item.code === "RESP" ? "extraResponsibilityAllowance" : "bikVola"}
-                  />
-                  {item.code === "BIK" && (
+                <div key={item.code} className="space-y-3 p-3 border rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <Label className="font-medium">{item.label}</Label>
+                    {item.code === "BIK" && (
+                      <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">Special</span>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-medium">RM</span>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={item.amount}
+                      onChange={(e) => updateAdditionalItem(index, 'amount', parseFloat(e.target.value) || 0)}
+                      className="flex-1"
+                      data-testid={item.code === "ADV" ? "advanceSalary" : item.code === "SUBS" ? "subsistenceAllowance" : item.code === "RESP" ? "extraResponsibilityAllowance" : "bikVola"}
+                    />
+                  </div>
+
+                  {/* Statutory Flags */}
+                  <div className="grid grid-cols-2 gap-2">
                     <div className="flex items-center space-x-2">
                       <Checkbox
-                        checked={item.hideOnPayslip}
-                        onCheckedChange={(checked) => updateAdditionalItem(index, 'hideOnPayslip', checked)}
-                        data-testid="hideBikOnPayslip"
+                        checked={item.flags.epf}
+                        onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'epf', checked)}
+                        data-testid={`${item.code}-epf`}
                       />
-                      <Label className="text-sm">Item will not be displayed on payslip</Label>
+                      <Label className="text-xs">EPF</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        checked={item.flags.socso}
+                        onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'socso', checked)}
+                        data-testid={`${item.code}-socso`}
+                      />
+                      <Label className="text-xs">SOCSO</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        checked={item.flags.eis}
+                        onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'eis', checked)}
+                        data-testid={`${item.code}-eis`}
+                      />
+                      <Label className="text-xs">EIS</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        checked={item.flags.hrdf}
+                        onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'hrdf', checked)}
+                        data-testid={`${item.code}-hrdf`}
+                      />
+                      <Label className="text-xs">HRDF</Label>
+                    </div>
+                  </div>
+
+                  {/* PCB39 and Fixed flags */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        checked={item.flags.pcb39}
+                        onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'pcb39', checked)}
+                        data-testid={`${item.code}-pcb39`}
+                      />
+                      <Label className="text-xs">PCB39</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        checked={item.flags.fixed}
+                        onCheckedChange={(checked) => updateAdditionalItemFlag(index, 'fixed', checked)}
+                        data-testid={`${item.code}-fixed`}
+                      />
+                      <Label className="text-xs text-blue-600">Fixed</Label>
+                    </div>
+                  </div>
+
+                  {/* Special notes */}
+                  {item.code === "BIK" && (
+                    <div className="text-xs text-gray-500 italic">
+                      💡 Item will not be displayed on payslip
                     </div>
                   )}
                 </div>
               ))}
               
               <div className="text-sm text-blue-600 underline cursor-pointer">
-                View Item/Tax Exemption
+                💡 View Item/Tax Exemption
               </div>
               
               <Button
