@@ -49,6 +49,13 @@ UtamaHR - A comprehensive HR Management System built from scratch with React, Ty
   - Employee exclusion API endpoint for policy-level access control
   - When toggle is off, employee loses access to that specific benefit policy
   - Complete integration between System Settings policies and Employee Details view
+- Phase 9: Master Salary Configuration Settings Standardization (✅ Completed)
+  - Standardized toggle functionality across all Tax Exemption items (8 items)
+  - Added Settings buttons with statutory checkbox toggles for all Deduction items
+  - Consistent behavior: Settings buttons show/hide EPF/SOCSO/EIS/HRDF/PCB39/Fixed checkboxes
+  - Uniform interface between Tax Exemption and Deduction sections
+  - Items affected: Advance, PCB38, Zakat, Other Deduction for Deduction section
+  - Complete functionality parity achieved across both major sections
 
 # User Preferences
 
