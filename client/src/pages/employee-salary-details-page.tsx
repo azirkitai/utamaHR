@@ -659,12 +659,22 @@ export default function EmployeeSalaryDetailsPage() {
       // Calculate HRDF
       const hrdf = roundToCent(hrdfWageBase * salaryData.settings.hrdfEmployerRate / 100);
 
+      // Calculate PCB39 based on mode
+      let pcb39Amount = salaryData.deductions.pcb39; // Default to current value
+      
+      if (pcb39Mode === "calculate" && salaryData.deductions.pcb39Settings?.reliefs) {
+        // Calculate mode: Sum relief amounts
+        pcb39Amount = salaryData.deductions.pcb39Settings.reliefs.reduce((sum, relief) => sum + relief.amount, 0);
+      }
+      // For custom mode, we keep the manually entered value (pcb39Amount remains unchanged)
+
       // Update deductions and contributions
       const updatedDeductions = {
         ...salaryData.deductions,
         epfEmployee,
         socsoEmployee: socso.employee,
         eisEmployee: eis.employee,
+        pcb39: pcb39Amount,
       };
 
       const updatedContributions = {
@@ -2331,10 +2341,64 @@ export default function EmployeeSalaryDetailsPage() {
                     {/* Relief Tab */}
                     {pcb39Tab === "relief" && (
                       <div className="space-y-4">
-                        <div className="grid grid-cols-12 gap-3 items-end">
+                        {/* Mode Info Display */}
+                        {pcb39Mode === "custom" && (
+                          <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                            <div className="flex items-center gap-2 text-orange-700">
+                              <Info className="h-4 w-4" />
+                              <span className="text-sm font-medium">Custom Mode Active</span>
+                            </div>
+                            <p className="text-xs text-orange-600 mt-1">
+                              Relief selection is disabled. Enter PCB39 amount manually below.
+                            </p>
+                            <div className="mt-3 grid grid-cols-4 gap-3 items-end">
+                              <div className="col-span-2">
+                                <Label className="text-sm text-orange-700">Custom PCB39 Amount</Label>
+                                <Input
+                                  type="number"
+                                  placeholder="0.00"
+                                  value={salaryData.deductions.pcb39}
+                                  onChange={(e) => {
+                                    const value = parseFloat(e.target.value) || 0;
+                                    setSalaryData(prev => ({
+                                      ...prev,
+                                      deductions: {
+                                        ...prev.deductions,
+                                        pcb39: value
+                                      }
+                                    }));
+                                    setIsDirty(true);
+                                  }}
+                                  className="w-full bg-white"
+                                />
+                              </div>
+                              <div className="col-span-2 text-xs text-orange-600">
+                                Manual entry mode - direct PCB39 deduction amount
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {pcb39Mode === "calculate" && (
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                            <div className="flex items-center gap-2 text-blue-700">
+                              <Calculator className="h-4 w-4" />
+                              <span className="text-sm font-medium">Calculate Mode Active</span>
+                            </div>
+                            <p className="text-xs text-blue-600 mt-1">
+                              Select relief options to automatically calculate PCB39 amount.
+                            </p>
+                          </div>
+                        )}
+
+                        <div className={`grid grid-cols-12 gap-3 items-end ${pcb39Mode === "custom" ? "opacity-50 pointer-events-none" : ""}`}>
                           <div className="col-span-6">
                             <Label className="text-sm">Select Relief</Label>
-                            <Select value={reliefCode} onValueChange={setReliefCode}>
+                            <Select 
+                              value={reliefCode} 
+                              onValueChange={setReliefCode}
+                              disabled={pcb39Mode === "custom"}
+                            >
                               <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select Relief" />
                               </SelectTrigger>
@@ -2363,6 +2427,7 @@ export default function EmployeeSalaryDetailsPage() {
                               value={reliefAmount}
                               onChange={(e) => setReliefAmount(e.target.value)}
                               className="w-full"
+                              disabled={pcb39Mode === "custom"}
                             />
                           </div>
                           
@@ -2375,6 +2440,7 @@ export default function EmployeeSalaryDetailsPage() {
                               size="sm"
                               className="bg-red-600 hover:bg-red-700 text-white px-2"
                               data-testid="btn-clear-relief"
+                              disabled={pcb39Mode === "custom"}
                             >
                               <span className="text-lg">×</span>
                             </Button>
@@ -2383,9 +2449,9 @@ export default function EmployeeSalaryDetailsPage() {
                           <div className="col-span-2">
                             <Button 
                               onClick={addPCB39Relief}
-                              disabled={!reliefCode || !reliefAmount}
+                              disabled={!reliefCode || !reliefAmount || pcb39Mode === "custom"}
                               size="sm"
-                              className="bg-gray-600 hover:bg-gray-700 text-white w-full"
+                              className="bg-gray-600 hover:bg-gray-700 text-white w-full disabled:opacity-50"
                               data-testid="btn-add-pcb39-relief"
                             >
                               + Add Relief
@@ -2446,10 +2512,39 @@ export default function EmployeeSalaryDetailsPage() {
                     {/* Rebate Tab */}
                     {pcb39Tab === "rebate" && (
                       <div className="space-y-4">
-                        <div className="grid grid-cols-12 gap-3 items-end">
+                        {/* Mode Info Display */}
+                        {pcb39Mode === "custom" && (
+                          <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                            <div className="flex items-center gap-2 text-orange-700">
+                              <Info className="h-4 w-4" />
+                              <span className="text-sm font-medium">Custom Mode Active</span>
+                            </div>
+                            <p className="text-xs text-orange-600 mt-1">
+                              Rebate selection is disabled. PCB39 amount will be entered manually.
+                            </p>
+                          </div>
+                        )}
+                        
+                        {pcb39Mode === "calculate" && (
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                            <div className="flex items-center gap-2 text-blue-700">
+                              <Calculator className="h-4 w-4" />
+                              <span className="text-sm font-medium">Calculate Mode Active</span>
+                            </div>
+                            <p className="text-xs text-blue-600 mt-1">
+                              Select rebate options to automatically calculate PCB39 amount.
+                            </p>
+                          </div>
+                        )}
+
+                        <div className={`grid grid-cols-12 gap-3 items-end ${pcb39Mode === "custom" ? "opacity-50 pointer-events-none" : ""}`}>
                           <div className="col-span-6">
                             <Label className="text-sm">Select Relief</Label>
-                            <Select value={rebateCode} onValueChange={setRebateCode}>
+                            <Select 
+                              value={rebateCode} 
+                              onValueChange={setRebateCode}
+                              disabled={pcb39Mode === "custom"}
+                            >
                               <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select Relief" />
                               </SelectTrigger>
@@ -2471,6 +2566,7 @@ export default function EmployeeSalaryDetailsPage() {
                               value={rebateAmount}
                               onChange={(e) => setRebateAmount(e.target.value)}
                               className="w-full"
+                              disabled={pcb39Mode === "custom"}
                             />
                           </div>
                           
@@ -2483,6 +2579,7 @@ export default function EmployeeSalaryDetailsPage() {
                               size="sm"
                               className="bg-red-600 hover:bg-red-700 text-white px-2"
                               data-testid="btn-clear-rebate"
+                              disabled={pcb39Mode === "custom"}
                             >
                               <span className="text-lg">×</span>
                             </Button>
@@ -2491,9 +2588,9 @@ export default function EmployeeSalaryDetailsPage() {
                           <div className="col-span-2">
                             <Button 
                               onClick={addPCB39Rebate}
-                              disabled={!rebateCode || !rebateAmount}
+                              disabled={!rebateCode || !rebateAmount || pcb39Mode === "custom"}
                               size="sm"
-                              className="bg-gray-600 hover:bg-gray-700 text-white w-full"
+                              className="bg-gray-600 hover:bg-gray-700 text-white w-full disabled:opacity-50"
                               data-testid="btn-add-pcb39-rebate"
                             >
                               + Add Rebate
