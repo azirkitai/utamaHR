@@ -75,7 +75,7 @@ export default function ApplyClaimPage() {
     onSuccess: () => {
       toast({
         title: "Berjaya!",
-        description: "Permohonan tuntutan telah berjaya dihantar",
+        description: "Permohonan tuntutan telah berjaya dihantar dan akan diproses oleh financial approver",
         variant: "default",
       });
       

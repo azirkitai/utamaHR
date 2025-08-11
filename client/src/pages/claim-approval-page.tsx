@@ -28,20 +28,138 @@ import {
   X,
   Search,
   Filter,
-  Calendar
+  Calendar,
+  Shield,
+  AlertCircle
 } from "lucide-react";
 import { useLocation } from "wouter";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import type { ClaimApplication } from "@shared/schema";
 
 export default function ClaimApprovalPage() {
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("approval");
   const [selectedCategory, setSelectedCategory] = useState<"financial" | "overtime" | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedItems, setSelectedItems] = useState<number[]>([]);
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [bulkAction, setBulkAction] = useState("");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  // Sample data untuk Financial Claims
-  const financialClaimsData = [
+  // Get current user info
+  const { data: currentUser } = useQuery({
+    queryKey: ["/api/user"],
+  });
+
+  // Fetch financial claim applications from database
+  const { data: financialClaimsData = [], isLoading: isLoadingFinancial } = useQuery<ClaimApplication[]>({
+    queryKey: ["/api/claim-applications/type/financial"],
+    enabled: selectedCategory === "financial" || selectedCategory === null,
+  });
+
+  // Fetch overtime claim applications from database  
+  const { data: overtimeClaimsFromDB = [], isLoading: isLoadingOvertime } = useQuery<ClaimApplication[]>({
+    queryKey: ["/api/claim-applications/type/overtime"],
+    enabled: selectedCategory === "overtime" || selectedCategory === null,
+  });
+
+  // Check if current user has approval rights for financial claims
+  const { data: approvalSettings } = useQuery({
+    queryKey: ["/api/approval-settings/financial"],
+  });
+
+  // Approve claim mutation
+  const approveMutation = useMutation({
+    mutationFn: async ({ claimId, approverId }: { claimId: string; approverId: string }) => {
+      const response = await fetch(`/api/claim-applications/${claimId}/approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ approverId }),
+      });
+      if (!response.ok) throw new Error('Failed to approve claim');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Berjaya!", description: "Permohonan telah diluluskan" });
+      queryClient.invalidateQueries({ queryKey: ["/api/claim-applications"] });
+    },
+  });
+
+  // Reject claim mutation
+  const rejectMutation = useMutation({
+    mutationFn: async ({ claimId, rejectorId, reason }: { claimId: string; rejectorId: string; reason: string }) => {
+      const response = await fetch(`/api/claim-applications/${claimId}/reject`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rejectorId, reason }),
+      });
+      if (!response.ok) throw new Error('Failed to reject claim');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Berjaya!", description: "Permohonan telah ditolak" });
+      queryClient.invalidateQueries({ queryKey: ["/api/claim-applications"] });
+    },
+  });
+
+  // Check if user has approval rights
+  const hasApprovalRights = () => {
+    if (!currentUser || !approvalSettings) return false;
+    
+    const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+    if (adminRoles.includes((currentUser as any).role)) return true;
+    
+    // Check if user is assigned as financial approver
+    return (approvalSettings as any).firstLevelApproverId === (currentUser as any).id || 
+           (approvalSettings as any).secondLevelApproverId === (currentUser as any).id;
+  };
+
+  // Handle approve action
+  const handleApprove = (claimId: string) => {
+    if (!(currentUser as any)?.id) {
+      toast({ title: "Error", description: "User information not found", variant: "destructive" });
+      return;
+    }
+    approveMutation.mutate({ claimId, approverId: (currentUser as any).id });
+  };
+
+  // Handle reject action
+  const handleReject = (claimId: string) => {
+    if (!(currentUser as any)?.id) {
+      toast({ title: "Error", description: "User information not found", variant: "destructive" });
+      return;
+    }
+    const reason = prompt("Sila nyatakan sebab penolakan:");
+    if (reason) {
+      rejectMutation.mutate({ claimId, rejectorId: (currentUser as any).id, reason });
+    }
+  };
+
+  // Show access denied message if user doesn't have approval rights
+  if (!hasApprovalRights()) {
+    return (
+      <DashboardLayout>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <Card className="w-full max-w-md">
+            <CardContent className="flex flex-col items-center p-8 text-center">
+              <Shield className="w-16 h-16 text-gray-400 mb-4" />
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">Akses Ditolak</h2>
+              <p className="text-gray-600 mb-4">
+                Anda tidak mempunyai kebenaran untuk mengakses halaman kelulusan tuntutan.
+              </p>
+              <p className="text-sm text-gray-500">
+                Hanya financial approver yang ditetapkan sahaja yang boleh mengakses halaman ini.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Legacy sample data - will be replaced by real data above
+  const legacyFinancialClaimsData = [
     {
       id: 1,
       requestor: "Ahmad Ali",
@@ -62,8 +180,8 @@ export default function ClaimApprovalPage() {
     }
   ];
 
-  // Sample data untuk Overtime Claims
-  const overtimeClaimsData = [
+  // Sample data untuk Overtime Claims (legacy)
+  const legacyOvertimeClaimsData = [
     {
       id: 1,
       applicant: "Muhammad Hafiz",
@@ -298,21 +416,35 @@ export default function ClaimApprovalPage() {
                         />
                       </TableCell>
                       <TableCell>{index + 1}</TableCell>
-                      <TableCell className="font-medium">{item.requestor}</TableCell>
+                      <TableCell className="font-medium">{item.employeeId}</TableCell>
                       <TableCell>{item.claimType}</TableCell>
                       <TableCell>{getStatusBadge(item.status)}</TableCell>
-                      <TableCell>{item.claimFor}</TableCell>
-                      <TableCell className="font-medium">{item.amount}</TableCell>
-                      <TableCell>{item.date}</TableCell>
+                      <TableCell>{item.financialPolicyName || item.reason}</TableCell>
+                      <TableCell className="font-medium">{item.amount ? `RM ${item.amount}` : 'N/A'}</TableCell>
+                      <TableCell>{item.claimDate.toLocaleDateString()}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
                           <Button size="sm" variant="outline" data-testid={`button-view-${item.id}`}>
                             <Eye className="w-4 h-4" />
                           </Button>
-                          <Button size="sm" variant="outline" className="text-green-600 hover:bg-green-50" data-testid={`button-approve-${item.id}`}>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="text-green-600 hover:bg-green-50" 
+                            data-testid={`button-approve-${item.id}`}
+                            onClick={() => handleApprove(item.id)}
+                            disabled={approveMutation.isPending}
+                          >
                             <Check className="w-4 h-4" />
                           </Button>
-                          <Button size="sm" variant="outline" className="text-red-600 hover:bg-red-50" data-testid={`button-reject-${item.id}`}>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="text-red-600 hover:bg-red-50" 
+                            data-testid={`button-reject-${item.id}`}
+                            onClick={() => handleReject(item.id)}
+                            disabled={rejectMutation.isPending}
+                          >
                             <X className="w-4 h-4" />
                           </Button>
                         </div>
@@ -321,14 +453,14 @@ export default function ClaimApprovalPage() {
                   ))
                 )
               ) : (
-                overtimeClaimsData.length === 0 ? (
+                overtimeClaimsFromDB.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-8 text-gray-500">
                       No data available in table
                     </TableCell>
                   </TableRow>
                 ) : (
-                  overtimeClaimsData.map((item, index) => (
+                  overtimeClaimsFromDB.map((item, index) => (
                     <TableRow key={item.id}>
                       <TableCell>
                         <Checkbox 
@@ -343,21 +475,35 @@ export default function ClaimApprovalPage() {
                         />
                       </TableCell>
                       <TableCell>{index + 1}</TableCell>
-                      <TableCell className="font-medium">{item.applicant}</TableCell>
+                      <TableCell className="font-medium">{item.employeeId}</TableCell>
                       <TableCell>{getStatusBadge(item.status)}</TableCell>
                       <TableCell>{item.reason}</TableCell>
-                      <TableCell>{item.totalHour}</TableCell>
-                      <TableCell className="font-medium">{item.amount}</TableCell>
-                      <TableCell>{item.date}</TableCell>
+                      <TableCell>{item.startTime} - {item.endTime}</TableCell>
+                      <TableCell className="font-medium">{item.amount ? `RM ${item.amount}` : 'N/A'}</TableCell>
+                      <TableCell>{item.claimDate.toLocaleDateString()}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
                           <Button size="sm" variant="outline" data-testid={`button-view-${item.id}`}>
                             <Eye className="w-4 h-4" />
                           </Button>
-                          <Button size="sm" variant="outline" className="text-green-600 hover:bg-green-50" data-testid={`button-approve-${item.id}`}>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="text-green-600 hover:bg-green-50" 
+                            data-testid={`button-approve-${item.id}`}
+                            onClick={() => handleApprove(item.id)}
+                            disabled={approveMutation.isPending}
+                          >
                             <Check className="w-4 h-4" />
                           </Button>
-                          <Button size="sm" variant="outline" className="text-red-600 hover:bg-red-50" data-testid={`button-reject-${item.id}`}>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="text-red-600 hover:bg-red-50" 
+                            data-testid={`button-reject-${item.id}`}
+                            onClick={() => handleReject(item.id)}
+                            disabled={rejectMutation.isPending}
+                          >
                             <X className="w-4 h-4" />
                           </Button>
                         </div>
