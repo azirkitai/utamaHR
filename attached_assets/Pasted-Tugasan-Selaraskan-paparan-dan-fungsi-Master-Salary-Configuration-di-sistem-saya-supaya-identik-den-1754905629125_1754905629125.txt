@@ -1,0 +1,148 @@
+Tugasan:
+Selaraskan paparan dan fungsi Master Salary Configuration di sistem saya supaya identik dengan rujukan MySyarikat, termasuk susunan, butang, dropdown, label, warna, fungsi, dan logik pengiraan. Pastikan semua elemen UI/UX dan fungsi kiraan beroperasi mengikut standard rasmi Malaysia (EPF, SOCSO, EIS, HRDF, PCB, zakat, dll).
+
+1. Struktur 4 Kolum Utama (Layout & Warna)
+
+Kolum 1: Basic Earning (Hijau)
+
+Field:
+
+Salary Type → dropdown (Monthly, Daily, Hourly)
+
+Basic Salary (RM/Month) → input nombor
+
+Computed Salary (RM) / Salary → auto-calculate ikut Salary Type
+
+Settings → toggle: Calculated in Payment, SOCSO Enabled, EIS Enabled
+
+EPF Setting →
+
+EPF Calculation Method (By Percentage / Fixed Amount)
+
+EPF Employee Rate (%)
+
+EPF Employer Rate (%)
+
+HRDF Setting → Employer Rate (%)
+
+Setiap item Additional dalam kolum ini jika boleh dicampur EPF/SOCSO/EIS/HRDF/PCB39 perlu ada checkbox seperti rujukan.
+
+Kolum 2: Additional Item (Biru)
+
+Field Default:
+
+Advance Salary
+
+Subsistence Allowance
+
+Extra Responsibility Allowance
+
+BIK/VOLA (Pilihan Special + checkbox “Item will not be displayed on payslip”)
+
+Semua field ada pilihan checkbox: EPF / SOCSO / EIS / HRDF / PCB39 / Fixed
+
+Butang Add Additional Item di bawah senarai → boleh tambah custom allowance.
+
+Kolum 3: Deduction Item (Merah)
+
+Field Default:
+
+EPF Employee (auto-calculate ikut % dari basic salary)
+
+SOCSO Employee (auto-calculate ikut jadual rasmi)
+
+EIS Employee (auto-calculate ikut kadar rasmi 0.2% capped RM5000)
+
+Advance Deduction
+
+Unpaid Leave (auto-calculate: (Basic Salary ÷ Working Days) × Leave Days)
+
+PCB39 (auto-calculate ikut formula LHDN)
+
+PCB38
+
+Zakat
+
+Other Deduction
+
+Semua item boleh pilih checkbox: EPF / SOCSO / EIS / HRDF / PCB39 / Fixed
+
+Butang Add Deduction Item di bawah senarai.
+
+Kolum 4: Company Contribution (Ungu)
+
+Field Default:
+
+EPF Employer (auto-calculate ikut % dari basic salary)
+
+SOCSO Employer (auto-calculate ikut jadual rasmi)
+
+EIS Employer (auto-calculate ikut kadar rasmi)
+
+HRDF Employer (auto-calculate ikut % dari basic salary)
+
+Medical Card
+
+Group Term Life
+
+Medical Company
+
+Butang Add Contribution Item di bawah senarai.
+
+2. Logik & Formula Kiraan
+
+Gross Salary = Basic Salary + jumlah semua Additional Item yang bertanda "Calculated in Payment".
+
+Total Deduction = Semua Deduction Item termasuk auto-calculated statutory deduction + manual deduction.
+
+Company Contribution Total = Jumlah semua sumbangan majikan.
+
+Net Salary = Gross Salary – Total Deduction.
+
+EPF Employee = Basic Salary × EPF Employee Rate (%).
+
+EPF Employer = Basic Salary × EPF Employer Rate (%).
+
+SOCSO Employee & Employer = ikut jadual rasmi PERKESO (Borang Jadual Caruman 2025).
+
+EIS Employee & Employer = Basic Salary × 0.2% (capped RM5000).
+
+HRDF Employer = Basic Salary × HRDF Rate (%).
+
+Unpaid Leave = (Basic Salary ÷ jumlah hari bekerja) × bilangan cuti tanpa gaji.
+
+PCB39 & PCB38 = ikut formula PCB LHDN dengan mengambil kira relief, potongan, dan taxable income.
+
+Zakat = nilai input user (manual).
+
+Semua nilai “auto” perlu ada tooltip info (ℹ️ How did we calculate this?) untuk terangkan formula.
+
+3. UI/UX & Fungsi
+
+Header kolum berwarna sama seperti rujukan:
+
+Hijau (Basic Earning)
+
+Biru (Additional Item)
+
+Merah (Deduction Item)
+
+Ungu (Company Contribution)
+
+Format mata wang RM dengan 2 titik perpuluhan.
+
+Semua checkbox & toggle fungsi penuh dan sync ke kiraan auto.
+
+Dropdown ikut senarai rujukan MySyarikat.
+
+Butang “Add Item” berfungsi untuk tambah field baru dengan label, nilai, dan pilihan contribution/deduction yang sesuai.
+
+Layout responsive & konsisten 4 kolum walaupun item bertambah.
+
+4. Validasi & Backend
+
+Semua auto-kiraan perlu update real-time bila nilai diubah.
+
+Pastikan kiraan statutory ikut kadar rasmi Malaysia terkini.
+
+Simpan semua nilai tambahan/deduction/contribution custom dalam database supaya boleh dipaparkan semula bila buka rekod.

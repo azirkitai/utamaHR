@@ -331,8 +331,6 @@ export default function EmployeeSalaryDetailsPage() {
   const [rebateCode, setRebateCode] = useState("");
   const [rebateAmount, setRebateAmount] = useState("");
   const [pcb39Tab, setPCB39Tab] = useState("relief");
-  const [showAddContributionItemDialog, setShowAddContributionItemDialog] = useState(false);
-  const [newContributionItemName, setNewContributionItemName] = useState("");
 
   
   // PCB39 Relief options from official 2025 config
@@ -491,6 +489,10 @@ export default function EmployeeSalaryDetailsPage() {
   const [showAddAdditionalItemDialog, setShowAddAdditionalItemDialog] = useState(false);
   const [newAdditionalItemLabel, setNewAdditionalItemLabel] = useState("");
   const [newAdditionalItemAmount, setNewAdditionalItemAmount] = useState(0);
+
+  // Dialog state for adding contribution items
+  const [showAddContributionItemDialog, setShowAddContributionItemDialog] = useState(false);
+  const [newContributionItemName, setNewContributionItemName] = useState("");
 
   // Dialog state for tax exemption modal
   const [isTaxExemptionDialogOpen, setIsTaxExemptionDialogOpen] = useState(false);
@@ -858,49 +860,7 @@ export default function EmployeeSalaryDetailsPage() {
     });
   };
 
-  const addCustomContributionItem = () => {
-    if (!newContributionItemName.trim()) return;
-    
-    const newItem: CustomContributionItem = {
-      id: `custom_${Date.now()}`,
-      name: newContributionItemName.trim(),
-      amount: 0
-    };
-    
-    updateSalaryData({
-      contributions: {
-        ...salaryData.contributions,
-        customItems: [...(salaryData.contributions.customItems || []), newItem]
-      }
-    });
-    
-    setNewContributionItemName("");
-    setShowAddContributionItemDialog(false);
-  };
 
-  const removeCustomContributionItem = (index: number) => {
-    const updatedItems = [...(salaryData.contributions.customItems || [])];
-    updatedItems.splice(index, 1);
-    
-    updateSalaryData({
-      contributions: {
-        ...salaryData.contributions,
-        customItems: updatedItems
-      }
-    });
-  };
-
-  const updateCustomContributionItem = (index: number, amount: number) => {
-    const updatedItems = [...(salaryData.contributions.customItems || [])];
-    updatedItems[index] = { ...updatedItems[index], amount };
-    
-    updateSalaryData({
-      contributions: {
-        ...salaryData.contributions,
-        customItems: updatedItems
-      }
-    });
-  };
 
   const updateSettings = (field: keyof SalarySettings, value: any) => {
     updateSalaryData({ 
@@ -961,6 +921,55 @@ export default function EmployeeSalaryDetailsPage() {
         additionalItems: salaryData.additionalItems.filter(item => item.code !== code)
       });
     }
+  };
+
+  // Function to add custom contribution item
+  const addCustomContributionItem = () => {
+    if (!newContributionItemName.trim()) return;
+    
+    const newItem = {
+      id: `CUSTOM_${Date.now()}`,
+      name: newContributionItemName.trim(),
+      amount: 0
+    };
+    
+    const currentCustomItems = salaryData.contributions.customItems || [];
+    updateSalaryData({
+      contributions: {
+        ...salaryData.contributions,
+        customItems: [...currentCustomItems, newItem]
+      }
+    });
+    
+    // Reset dialog state
+    setNewContributionItemName("");
+    setShowAddContributionItemDialog(false);
+  };
+
+  const updateCustomContributionItem = (index: number, amount: number) => {
+    const currentCustomItems = salaryData.contributions.customItems || [];
+    const updatedItems = currentCustomItems.map((item, i) => 
+      i === index ? { ...item, amount } : item
+    );
+    
+    updateSalaryData({
+      contributions: {
+        ...salaryData.contributions,
+        customItems: updatedItems
+      }
+    });
+  };
+
+  const removeCustomContributionItem = (index: number) => {
+    const currentCustomItems = salaryData.contributions.customItems || [];
+    const updatedItems = currentCustomItems.filter((_, i) => i !== index);
+    
+    updateSalaryData({
+      contributions: {
+        ...salaryData.contributions,
+        customItems: updatedItems
+      }
+    });
   };
 
   // Custom deduction management functions
