@@ -784,6 +784,19 @@ export default function EmployeeSalaryDetailsPage() {
     toast({ title: "Recalculated", description: "All values have been recalculated" });
   };
 
+  // Calculate net salary
+  const calculateNetSalary = () => {
+    const grossSalary = salaryData.basicSalary + (salaryData.additionalItems?.reduce((sum, item) => sum + item.amount, 0) || 0);
+    const totalDeductions = Object.values(salaryData.deductions).reduce((sum, value) => sum + (typeof value === 'number' ? value : 0), 0);
+    return grossSalary - totalDeductions;
+  };
+
+  // Handle calculate payroll
+  const handleCalculatePayroll = () => {
+    recompute();
+    toast({ title: "Payroll Calculated", description: "Payroll has been calculated successfully" });
+  };
+
   const updateSalaryData = (updates: Partial<MasterSalaryData>) => {
     setSalaryData(prev => ({ ...prev, ...updates }));
     setIsDirty(true);
@@ -2539,7 +2552,7 @@ export default function EmployeeSalaryDetailsPage() {
                 <div>
                   <h4 className="font-medium text-gray-700 mb-2">Gross Salary</h4>
                   <div className="text-2xl font-bold text-green-600">
-                    RM {(salaryData.basicSalary + salaryData.allowances.total).toFixed(2)}
+                    RM {(salaryData.basicSalary + (salaryData.additionalItems?.reduce((sum, item) => sum + item.amount, 0) || 0)).toFixed(2)}
                   </div>
                 </div>
                 
