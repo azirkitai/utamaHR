@@ -172,7 +172,7 @@ export default function DashboardHome() {
                 <h1 className="text-3xl font-bold mb-2" data-testid="text-welcome">
                   Hey,
                 </h1>
-                <h2 className="text-4xl font-bold text-cyan-100 mb-2">
+                <h2 className="text-4xl font-bold text-cyan-100 mt-[9px] mb-[9px]">
                   {getGreeting()}
                 </h2>
                 <h3 className="font-semibold text-[32px] mt-[-11px] mb-[-11px]">
