@@ -266,6 +266,16 @@ export default function ApplyClaimPage() {
   };
 
   const handleSubmit = async () => {
+    console.log('handleSubmit called, category:', selectedCategory);
+    console.log('Form values:', { 
+      claimType, 
+      claimAmount, 
+      claimDate, 
+      selectedRequestor, 
+      startTime, 
+      endTime, 
+      reason 
+    });
     setValidationError("");
 
     if (selectedCategory === 'financial') {
@@ -647,7 +657,12 @@ export default function ApplyClaimPage() {
 
                   {/* Submit Button */}
                   <Button 
-                    onClick={handleSubmit}
+                    onClick={() => {
+                      console.log('Submit button clicked for financial claim');
+                      console.log('Button disabled state:', !claimType || !claimAmount || !claimDate || !selectedRequestor || isValidating || createClaimMutation.isPending);
+                      console.log('Form values:', { claimType, claimAmount, claimDate, selectedRequestor, isValidating, isPending: createClaimMutation.isPending });
+                      handleSubmit();
+                    }}
                     className="w-full bg-slate-600 hover:bg-slate-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
                     disabled={!claimType || !claimAmount || !claimDate || !selectedRequestor || isValidating || createClaimMutation.isPending}
                     data-testid="button-submit-claim"
@@ -877,7 +892,12 @@ export default function ApplyClaimPage() {
 
                   {/* Submit Button */}
                   <Button 
-                    onClick={handleSubmit}
+                    onClick={() => {
+                      console.log('Submit button clicked for overtime claim');
+                      console.log('Button disabled state:', !startTime || !endTime || !claimDate || !reason || !selectedRequestor || isValidating || createClaimMutation.isPending);
+                      console.log('Form values:', { startTime, endTime, claimDate, reason, selectedRequestor, isValidating, isPending: createClaimMutation.isPending });
+                      handleSubmit();
+                    }}
                     className="w-full bg-slate-600 hover:bg-slate-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
                     disabled={!startTime || !endTime || !claimDate || !reason || !selectedRequestor || isValidating || createClaimMutation.isPending}
                     data-testid="button-submit-overtime"
