@@ -70,6 +70,13 @@ UtamaHR - A comprehensive HR Management System built from scratch with React, Ty
   - Updated pending approval statistics to show real database counts
   - Complete workflow: Submit → Database → Approval page → Dashboard statistics
   - Claims now appear immediately in /approval/claim with proper employee identification
+- Phase 12: Multi-Level Approval Workflow Implementation (✅ Completed)
+  - Implemented dynamic approval logic based on approval settings configuration
+  - Single approver setup: Direct approval/rejection to final status
+  - Dual approver setup: First approval becomes "awaitingSecondApproval" status
+  - Enhanced status badges to display "Awaiting Second Approval" for multi-level workflows
+  - Proper rejection handling: Any level rejection results in immediate "rejected" status
+  - Added "Overtime" section to employee salary details with statutory checkbox controls
 
 # User Preferences
 

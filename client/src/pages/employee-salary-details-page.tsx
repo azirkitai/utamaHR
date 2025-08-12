@@ -2182,6 +2182,89 @@ export default function EmployeeSalaryDetailsPage() {
                   </div>
                 </div>
 
+                {/* Overtime */}
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Label className="font-medium">Overtime</Label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleStatutoryFlags("OVERTIME")}
+                      className="h-6 w-6 p-0 text-blue-500 hover:text-blue-700"
+                      data-testid="overtime-settings-toggle"
+                    >
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="flex">
+                    <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                      <span className="text-sm font-medium">RM</span>
+                    </div>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={salaryData.additionalItems.find(item => item.code === "OVERTIME")?.amount || 0}
+                      onChange={(e) => updateAdditionalItemAmount("OVERTIME", parseFloat(e.target.value) || 0)}
+                      className="rounded-l-none"
+                      data-testid="overtime"
+                    />
+                  </div>
+                  
+                  {/* Show statutory flags when toggled */}
+                  {showStatutoryFlags["OVERTIME"] && (
+                    <div className="grid grid-cols-3 gap-2 mt-2 p-3 bg-gray-50 rounded border">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.additionalItems.find(item => item.code === "OVERTIME")?.flags?.epf || false}
+                          onCheckedChange={(checked) => updateAdditionalItemFlag("OVERTIME", "epf", !!checked)}
+                          data-testid="overtime-epf"
+                        />
+                        <Label className="text-sm">EPF</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.additionalItems.find(item => item.code === "OVERTIME")?.flags?.socso || false}
+                          onCheckedChange={(checked) => updateAdditionalItemFlag("OVERTIME", "socso", !!checked)}
+                          data-testid="overtime-socso"
+                        />
+                        <Label className="text-sm">SOCSO</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.additionalItems.find(item => item.code === "OVERTIME")?.flags?.eis || false}
+                          onCheckedChange={(checked) => updateAdditionalItemFlag("OVERTIME", "eis", !!checked)}
+                          data-testid="overtime-eis"
+                        />
+                        <Label className="text-sm">EIS</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.additionalItems.find(item => item.code === "OVERTIME")?.flags?.hrdf || false}
+                          onCheckedChange={(checked) => updateAdditionalItemFlag("OVERTIME", "hrdf", !!checked)}
+                          data-testid="overtime-hrdf"
+                        />
+                        <Label className="text-sm">HRDF</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.additionalItems.find(item => item.code === "OVERTIME")?.flags?.pcb39 || false}
+                          onCheckedChange={(checked) => updateAdditionalItemFlag("OVERTIME", "pcb39", !!checked)}
+                          data-testid="overtime-pcb39"
+                        />
+                        <Label className="text-sm">PCB39</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          checked={salaryData.additionalItems.find(item => item.code === "OVERTIME")?.flags?.fixed || false}
+                          onCheckedChange={(checked) => updateAdditionalItemFlag("OVERTIME", "fixed", !!checked)}
+                          data-testid="overtime-fixed"
+                        />
+                        <Label className="text-sm">Fixed</Label>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {/* Custom Additional Items */}
                 {salaryData.additionalItems.filter(item => item.code.startsWith('CUSTOM_')).map((item) => (
                   <div key={item.code} className="space-y-2">
