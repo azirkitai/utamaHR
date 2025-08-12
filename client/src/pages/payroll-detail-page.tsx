@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Download, Eye } from "lucide-react";
 import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import jsPDF from "jspdf";
 
 export default function PayrollDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -47,15 +48,107 @@ export default function PayrollDetailPage() {
         throw new Error('Failed to generate PDF payslip');
       }
 
-      const data = await response.json();
+      const result = await response.json();
+      const payslipData = result.data;
       
-      // For now, show the payslip data (in future would generate actual PDF)
-      alert(`PDF Payslip Generated for ${employeeName}\n\nData structure prepared for PDF generation:\n${JSON.stringify(data.data, null, 2)}`);
+      // Generate actual PDF using jsPDF
+      const pdf = new jsPDF();
       
-      console.log('Payslip data ready for PDF:', data);
+      // Set font
+      pdf.setFont("helvetica");
+      
+      // Company Header
+      pdf.setFontSize(16);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(payslipData.company.name, 20, 20);
+      
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(`Registration No: ${payslipData.company.registrationNumber}`, 20, 30);
+      pdf.text(payslipData.company.address, 20, 37);
+      pdf.text(`${payslipData.company.city}`, 20, 44);
+      pdf.text(payslipData.company.state, 20, 51);
+      
+      // Payslip Title
+      pdf.setFontSize(14);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("PAYSLIP", 90, 70);
+      
+      // Period
+      pdf.setFontSize(10);
+      pdf.text(`For the period of ${payslipData.period.month} ${payslipData.period.year}`, 70, 80);
+      
+      // Employee Details
+      pdf.setFontSize(12);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("EMPLOYEE DETAILS", 20, 95);
+      
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "normal");
+      pdf.text(`Name: ${payslipData.employee.name}`, 20, 105);
+      pdf.text(`IC No: ${payslipData.employee.icNo || 'N/A'}`, 20, 112);
+      pdf.text(`Position: ${payslipData.employee.position}`, 20, 119);
+      
+      // Income Section
+      pdf.setFontSize(12);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("INCOME", 20, 135);
+      
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "normal");
+      pdf.text("Basic Salary:", 20, 145);
+      pdf.text(`RM ${payslipData.income.basicSalary}`, 150, 145);
+      pdf.text("Fixed Allowance:", 20, 152);
+      pdf.text(`RM ${payslipData.income.fixedAllowance}`, 150, 152);
+      
+      pdf.setFont("helvetica", "bold");
+      pdf.text("Total Gross:", 20, 162);
+      pdf.text(`RM ${payslipData.income.totalGross}`, 150, 162);
+      
+      // Deductions Section
+      pdf.setFontSize(12);
+      pdf.text("DEDUCTIONS", 20, 178);
+      
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "normal");
+      pdf.text("EPF (Employee):", 20, 188);
+      pdf.text(`RM ${payslipData.deductions.epf}`, 150, 188);
+      pdf.text("SOCSO (Employee):", 20, 195);
+      pdf.text(`RM ${payslipData.deductions.socso}`, 150, 195);
+      pdf.text("EIS (Employee):", 20, 202);
+      pdf.text(`RM ${payslipData.deductions.eis}`, 150, 202);
+      
+      pdf.setFont("helvetica", "bold");
+      pdf.text("Total Deductions:", 20, 212);
+      pdf.text(`RM ${payslipData.deductions.totalDeductions}`, 150, 212);
+      
+      // Net Income
+      pdf.setFontSize(14);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("NET INCOME:", 20, 228);
+      pdf.text(`RM ${payslipData.netIncome}`, 150, 228);
+      
+      // Employer Contributions
+      pdf.setFontSize(12);
+      pdf.text("EMPLOYER CONTRIBUTIONS", 20, 245);
+      
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "normal");
+      pdf.text("EPF (Employer):", 20, 255);
+      pdf.text(`RM ${payslipData.currentEmployer.epf}`, 150, 255);
+      pdf.text("SOCSO (Employer):", 20, 262);
+      pdf.text(`RM ${payslipData.currentEmployer.socso}`, 150, 262);
+      pdf.text("EIS (Employer):", 20, 269);
+      pdf.text(`RM ${payslipData.currentEmployer.eis}`, 150, 269);
+      
+      // Save and download the PDF
+      const fileName = `Payslip_${payslipData.employee.name.replace(/\s+/g, '_')}_${payslipData.period.month}_${payslipData.period.year}.pdf`;
+      pdf.save(fileName);
+      
+      console.log('PDF payslip generated and downloaded successfully');
     } catch (error) {
       console.error('Error generating PDF:', error);
-      alert('Failed to generate PDF payslip. Please try again.');
+      alert('Gagal menghasilkan slip gaji PDF. Sila cuba lagi.');
     }
   };
 
