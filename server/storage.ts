@@ -2540,9 +2540,35 @@ export class DatabaseStorage implements IStorage {
       // Get employee's salary information
       const salary = await this.getEmployeeSalaryByEmployeeId(employee.id);
       const basicSalary = parseFloat(salary?.basicSalary || '0');
-      const additionalItems = salary?.additionalItems ? JSON.parse(salary.additionalItems) : [];
-      const deductionItems = salary?.deductions ? JSON.parse(salary.deductions) : {};
-      const contributions = salary?.contributions ? JSON.parse(salary.contributions) : {};
+      
+      // Safely parse JSON fields with fallbacks
+      let additionalItems = [];
+      let deductionItems = {};
+      let contributions = {};
+      
+      try {
+        additionalItems = salary?.additionalItems && salary.additionalItems.trim() 
+          ? JSON.parse(salary.additionalItems) : [];
+      } catch (e) {
+        console.warn('Failed to parse additionalItems for employee', employee.id, e);
+        additionalItems = [];
+      }
+      
+      try {
+        deductionItems = salary?.deductions && salary.deductions.trim() 
+          ? JSON.parse(salary.deductions) : {};
+      } catch (e) {
+        console.warn('Failed to parse deductions for employee', employee.id, e);
+        deductionItems = {};
+      }
+      
+      try {
+        contributions = salary?.contributions && salary.contributions.trim() 
+          ? JSON.parse(salary.contributions) : {};
+      } catch (e) {
+        console.warn('Failed to parse contributions for employee', employee.id, e);
+        contributions = {};
+      }
 
       // Calculate overtime for this month
       const overtimeAmount = await this.calculateEmployeeOvertime(employee.id, document.year, document.month);
