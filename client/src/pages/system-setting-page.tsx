@@ -1014,16 +1014,15 @@ export default function SystemSettingPage() {
         return;
       }
 
-      const response = await fetch("/api/approval-settings", {
+      const response = await fetch("/api/overtime/approval-settings", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify({
-          type: "overtime",
-          firstLevelApprovalId: overtimeApproval.firstLevel,
-          secondLevelApprovalId: overtimeApproval.secondLevel === "none" ? null : overtimeApproval.secondLevel,
+          firstLevel: overtimeApproval.firstLevel,
+          secondLevel: overtimeApproval.secondLevel === "none" ? null : overtimeApproval.secondLevel,
         }),
       });
       
