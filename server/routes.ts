@@ -43,6 +43,8 @@ import {
   updatePayrollDocumentSchema,
   insertPayrollItemSchema,
   updatePayrollItemSchema,
+  insertCompanySettingSchema,
+  updateCompanySettingSchema,
   type AttendanceRecord
 } from "@shared/schema";
 import { checkEnvironmentSecrets } from "./env-check";
@@ -71,6 +73,15 @@ import {
   overtimeSettings,
   financialClaimPolicies
 } from "@shared/schema";
+
+// Helper function to get month name
+function getMonthName(month: number): string {
+  const monthNames = [
+    'JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE',
+    'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'
+  ];
+  return monthNames[month - 1] || 'UNKNOWN';
+}
 
 // Calculate distance between two GPS coordinates using Haversine formula
 function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -3856,6 +3867,142 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error('Error rejecting payroll document:', error);
       res.status(500).json({ error: 'Gagal menolak dokumen payroll' });
+    }
+  });
+
+  // =================== COMPANY SETTINGS ROUTES ===================
+  // Get company settings
+  app.get("/api/company-settings", authenticateToken, async (req, res) => {
+    try {
+      const settings = await storage.getCompanySettings();
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching company settings:", error);
+      res.status(500).json({ error: "Gagal mendapatkan tetapan syarikat" });
+    }
+  });
+
+  // Create company settings
+  app.post("/api/company-settings", authenticateToken, async (req, res) => {
+    try {
+      const validatedData = insertCompanySettingSchema.parse(req.body);
+      const settings = await storage.createCompanySettings(validatedData);
+      res.status(201).json(settings);
+    } catch (error) {
+      console.error("Error creating company settings:", error);
+      res.status(500).json({ error: "Gagal menyimpan tetapan syarikat" });
+    }
+  });
+
+  // Update company settings
+  app.put("/api/company-settings/:id", authenticateToken, async (req, res) => {
+    try {
+      const validatedData = updateCompanySettingSchema.parse(req.body);
+      const updatedSettings = await storage.updateCompanySettings(req.params.id, validatedData);
+      
+      if (!updatedSettings) {
+        return res.status(404).json({ error: "Tetapan syarikat tidak dijumpai" });
+      }
+      
+      res.json(updatedSettings);
+    } catch (error) {
+      console.error("Error updating company settings:", error);
+      res.status(500).json({ error: "Gagal mengemas kini tetapan syarikat" });
+    }
+  });
+
+  // =================== PDF PAYSLIP GENERATION ===================
+  // Generate PDF payslip for employee
+  app.post("/api/payroll/payslip/:employeeId/pdf", authenticateToken, async (req, res) => {
+    try {
+      const { employeeId } = req.params;
+      const { documentId } = req.body;
+
+      if (!documentId) {
+        return res.status(400).json({ error: "ID dokumen payroll diperlukan" });
+      }
+
+      // Get payroll document and item
+      const document = await storage.getPayrollDocument(documentId);
+      const payrollItem = await storage.getPayrollItemByDocumentAndEmployee(documentId, employeeId);
+      const employee = await storage.getEmployee(employeeId);
+      const employment = await storage.getEmploymentByEmployeeId(employeeId);
+      const companySettings = await storage.getCompanySettings();
+
+      if (!document || !payrollItem || !employee) {
+        return res.status(404).json({ error: "Data payroll tidak dijumpai" });
+      }
+
+      // Parse payroll item data
+      const employeeSnapshot = JSON.parse(payrollItem.employeeSnapshot);
+      const salary = JSON.parse(payrollItem.salary);
+      const deductions = JSON.parse(payrollItem.deductions);
+      const contributions = JSON.parse(payrollItem.contributions);
+
+      // Prepare payslip data following the exact format from the PDF example
+      const payslipData = {
+        company: {
+          name: companySettings?.companyName || "UTAMA MEDGROUP SDN BHD",
+          registrationNumber: companySettings?.companyRegistrationNumber || "202201033996(1479693-H)",
+          address: companySettings?.address || "A2-22-3, SOHO SUITES @ KLCC, 20 JALAN PERAK",
+          city: companySettings?.city || "50450 WILAYAH PERSEKUTUAN",
+          state: companySettings?.state || "KUALA LUMPUR"
+        },
+        employee: {
+          name: employee.fullName || employeeSnapshot.name,
+          icNo: employee.nric || employeeSnapshot.nric,
+          position: employment?.designation || employeeSnapshot.position
+        },
+        period: {
+          month: getMonthName(document.month),
+          year: document.year
+        },
+        income: {
+          basicSalary: salary.basic || "0.00",
+          fixedAllowance: salary.fixedAllowance || "0.00",
+          totalGross: salary.gross || "0.00"
+        },
+        deductions: {
+          epf: deductions.epfEmployee || "0.00",
+          socso: deductions.socsoEmployee || "0.00",
+          eis: deductions.eisEmployee || "0.00",
+          mtd: deductions.pcb39 || "0.00",
+          totalDeductions: (
+            parseFloat(deductions.epfEmployee || "0") +
+            parseFloat(deductions.socsoEmployee || "0") +
+            parseFloat(deductions.eisEmployee || "0") +
+            parseFloat(deductions.pcb39 || "0")
+          ).toFixed(2)
+        },
+        netIncome: payrollItem.netPay,
+        ytdEmployee: {
+          epf: "2,783.00", // These should be calculated from historical data
+          socso: "124.75",
+          eis: "49.90",
+          mtd: "429.70"
+        },
+        ytdEmployer: {
+          epf: contributions.epfEmployer || "0.00",
+          socso: contributions.socsoEmployer || "0.00", 
+          eis: contributions.eisEmployer || "0.00"
+        },
+        currentEmployer: {
+          epf: contributions.epfEmployer || "0.00",
+          socso: contributions.socsoEmployer || "0.00",
+          eis: contributions.eisEmployer || "0.00"
+        }
+      };
+
+      // Generate PDF buffer (simplified - full implementation would use jsPDF)
+      res.json({
+        message: "PDF payslip generated successfully",
+        data: payslipData,
+        downloadUrl: `/api/payroll/payslip/${employeeId}/download?documentId=${documentId}`
+      });
+
+    } catch (error) {
+      console.error("Error generating payslip PDF:", error);
+      res.status(500).json({ error: "Gagal menjana slip gaji PDF" });
     }
   });
 

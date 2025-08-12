@@ -42,6 +42,10 @@ import {
   type Disciplinary,
   type InsertDisciplinary,
   type UpdateDisciplinary,
+  // Company Settings types
+  type CompanySetting,
+  type InsertCompanySetting,
+  type UpdateCompanySetting,
   // App Setting types
   type AppSetting,
   type InsertAppSetting,
@@ -80,6 +84,7 @@ import {
   leavePolicy,
   claimPolicy,
   disciplinary,
+  companySettings,
   appSetting,
   workExperiences,
   qrTokens,
@@ -370,6 +375,11 @@ export interface IStorage {
   updatePayrollItem(id: string, item: UpdatePayrollItem): Promise<PayrollItem | undefined>;
   deletePayrollItem(id: string): Promise<boolean>;
   generatePayrollItems(documentId: string): Promise<PayrollItem[]>;
+  
+  // =================== COMPANY SETTINGS METHODS ===================
+  getCompanySettings(): Promise<CompanySetting | undefined>;
+  createCompanySettings(settings: InsertCompanySetting): Promise<CompanySetting>;
+  updateCompanySettings(id: string, settings: UpdateCompanySetting): Promise<CompanySetting | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2715,7 +2725,7 @@ export class DatabaseStorage implements IStorage {
     return totalAmount;
   }
 
-  private async getApprovedClaimsForMonth(employeeId: string, year: number, month: number): Promise<any[]> {
+  private async getApprovedOvertimeClaimsForMonth(employeeId: string, year: number, month: number): Promise<{ hours: number; amount: number }> {
     const claims = await db
       .select()
       .from(claimApplications)
@@ -2735,7 +2745,7 @@ export class DatabaseStorage implements IStorage {
     return { hours: totalHours, amount: totalAmount };
   }
 
-  private async getApprovedClaimsForMonth(employeeId: string, year: number, month: number): Promise<any[]> {
+  private async getApprovedFinancialClaimsForMonth(employeeId: string, year: number, month: number): Promise<any[]> {
     const claims = await db
       .select()
       .from(claimApplications)
@@ -2751,9 +2761,9 @@ export class DatabaseStorage implements IStorage {
 
     return claims.map(claim => ({
       id: claim.id,
-      type: claim.expenseType,
-      amount: claim.expenseAmount,
-      description: claim.description
+      type: claim.claimCategory,
+      amount: claim.amount,
+      description: claim.particulars
     }));
   }
 
@@ -2814,6 +2824,44 @@ export class DatabaseStorage implements IStorage {
       .returning();
 
     return !!updatedDocument;
+  }
+
+  // =================== COMPANY SETTINGS METHODS ===================
+  async getCompanySettings(): Promise<CompanySetting | undefined> {
+    try {
+      const [settings] = await db.select().from(companySettings).limit(1);
+      return settings || undefined;
+    } catch (error) {
+      console.error('Error fetching company settings:', error);
+      return undefined;
+    }
+  }
+
+  async createCompanySettings(settings: InsertCompanySetting): Promise<CompanySetting> {
+    try {
+      const [newSettings] = await db
+        .insert(companySettings)
+        .values(settings)
+        .returning();
+      return newSettings;
+    } catch (error) {
+      console.error('Error creating company settings:', error);
+      throw error;
+    }
+  }
+
+  async updateCompanySettings(id: string, settings: UpdateCompanySetting): Promise<CompanySetting | undefined> {
+    try {
+      const [updatedSettings] = await db
+        .update(companySettings)
+        .set({ ...settings, updatedAt: new Date() })
+        .where(eq(companySettings.id, id))
+        .returning();
+      return updatedSettings || undefined;
+    } catch (error) {
+      console.error('Error updating company settings:', error);
+      throw error;
+    }
   }
 }
 

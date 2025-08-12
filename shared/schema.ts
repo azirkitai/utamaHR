@@ -271,6 +271,25 @@ export const disciplinary = pgTable("disciplinary", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Company Settings Table (for system-wide company configuration)
+export const companySettings = pgTable("company_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  companyName: text("company_name").notNull(),
+  companyRegistrationNumber: text("company_registration_number"),
+  address: text("address"),
+  city: text("city"),
+  postcode: text("postcode"),
+  state: text("state"),
+  country: text("country"),
+  phoneNumber: text("phone_number"),
+  email: text("email"),
+  website: text("website"),
+  logoUrl: text("logo_url"),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // 12. App Setting Table (App Setting tab)
 export const appSetting = pgTable("app_setting", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -790,6 +809,14 @@ export const insertDisciplinarySchema = createInsertSchema(disciplinary).omit({
 });
 export const updateDisciplinarySchema = insertDisciplinarySchema.partial();
 
+// Company Settings schemas
+export const insertCompanySettingSchema = createInsertSchema(companySettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const updateCompanySettingSchema = insertCompanySettingSchema.partial();
+
 // App Setting schemas
 export const insertAppSettingSchema = createInsertSchema(appSetting).omit({
   id: true,
@@ -1032,6 +1059,11 @@ export type UpdateClaimPolicy = z.infer<typeof updateClaimPolicySchema>;
 export type Disciplinary = typeof disciplinary.$inferSelect;
 export type InsertDisciplinary = z.infer<typeof insertDisciplinarySchema>;
 export type UpdateDisciplinary = z.infer<typeof updateDisciplinarySchema>;
+
+// Company Settings types
+export type CompanySetting = typeof companySettings.$inferSelect;
+export type InsertCompanySetting = z.infer<typeof insertCompanySettingSchema>;
+export type UpdateCompanySetting = z.infer<typeof updateCompanySettingSchema>;
 
 // App Setting types
 export type AppSetting = typeof appSetting.$inferSelect;

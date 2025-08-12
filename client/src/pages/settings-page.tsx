@@ -8,9 +8,84 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Settings, User, Bell, Shield, Palette, Globe } from "lucide-react";
+import { Settings, User, Bell, Shield, Palette, Globe, Building2 } from "lucide-react";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function SettingsPage() {
+  const [companySettings, setCompanySettings] = useState({
+    companyName: '',
+    companyRegistrationNumber: '',
+    address: '',
+    city: '',
+    state: '',
+    country: 'Malaysia',
+    phoneNumber: '',
+    email: '',
+    website: '',
+    logo: ''
+  });
+
+  const queryClient = useQueryClient();
+
+  // Fetch company settings
+  const { data: existingSettings, isLoading } = useQuery({
+    queryKey: ['/api/company-settings'],
+  });
+
+  // Update company settings mutation
+  const updateCompanyMutation = useMutation({
+    mutationFn: async (data: any) => {
+      if ((existingSettings as any)?.id) {
+        return apiRequest(`/api/company-settings/${(existingSettings as any).id}`, {
+          method: 'PUT',
+          body: JSON.stringify(data)
+        });
+      } else {
+        return apiRequest('/api/company-settings', {
+          method: 'POST',  
+          body: JSON.stringify(data)
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/company-settings'] });
+      alert('Company settings saved successfully!');
+    },
+    onError: (error) => {
+      console.error('Error saving company settings:', error);
+      alert('Failed to save company settings. Please try again.');
+    }
+  });
+
+  const handleCompanySettingsChange = (field: string, value: string) => {
+    setCompanySettings(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSaveCompanySettings = () => {
+    updateCompanyMutation.mutate(companySettings);
+  };
+
+  // Update local state when settings are loaded
+  React.useEffect(() => {
+    if (existingSettings) {
+      const settings = existingSettings as any;
+      setCompanySettings({
+        companyName: settings.companyName || '',
+        companyRegistrationNumber: settings.companyRegistrationNumber || '',
+        address: settings.address || '',
+        city: settings.city || '',
+        state: settings.state || '',
+        country: settings.country || 'Malaysia',
+        phoneNumber: settings.phoneNumber || '',
+        email: settings.email || '',
+        website: settings.website || '',
+        logo: settings.logo || ''
+      });
+    }
+  }, [existingSettings]);
+
   return (
     <DashboardLayout>
       <div className="p-6 space-y-6 max-w-4xl">
@@ -24,9 +99,10 @@ export default function SettingsPage() {
         </div>
 
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="account">Account</TabsTrigger>
+            <TabsTrigger value="company">Company</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>
             <TabsTrigger value="appearance">Appearance</TabsTrigger>
@@ -118,6 +194,145 @@ export default function SettingsPage() {
                 </div>
                 <Button className="bg-cyan-600 hover:bg-cyan-700" data-testid="button-save-account">
                   Save Changes
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Company Settings */}
+          <TabsContent value="company" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center space-x-2">
+                  <Building2 className="w-5 h-5 text-cyan-600" />
+                  <CardTitle>Company Information</CardTitle>
+                </div>
+                <CardDescription>
+                  Configure your company details for payroll documents and official correspondence
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="company-name">Company Name</Label>
+                    <Input 
+                      id="company-name" 
+                      placeholder="Enter company name" 
+                      value={companySettings.companyName}
+                      onChange={(e) => handleCompanySettingsChange('companyName', e.target.value)}
+                      data-testid="input-company-name" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="registration-number">Registration Number</Label>
+                    <Input 
+                      id="registration-number" 
+                      placeholder="e.g., 202201033996(1479693-H)" 
+                      value={companySettings.companyRegistrationNumber}
+                      onChange={(e) => handleCompanySettingsChange('companyRegistrationNumber', e.target.value)}
+                      data-testid="input-registration-number" 
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="address">Address</Label>
+                  <Input 
+                    id="address" 
+                    placeholder="Enter company address" 
+                    value={companySettings.address}
+                    onChange={(e) => handleCompanySettingsChange('address', e.target.value)}
+                    data-testid="input-address" 
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="city">City</Label>
+                    <Input 
+                      id="city" 
+                      placeholder="Enter city" 
+                      value={companySettings.city}
+                      onChange={(e) => handleCompanySettingsChange('city', e.target.value)}
+                      data-testid="input-city" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="state">State</Label>
+                    <Input 
+                      id="state" 
+                      placeholder="Enter state" 
+                      value={companySettings.state}
+                      onChange={(e) => handleCompanySettingsChange('state', e.target.value)}
+                      data-testid="input-state" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="country">Country</Label>
+                    <Select 
+                      value={companySettings.country} 
+                      onValueChange={(value) => handleCompanySettingsChange('country', value)}
+                    >
+                      <SelectTrigger data-testid="select-country">
+                        <SelectValue placeholder="Select country" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Malaysia">Malaysia</SelectItem>
+                        <SelectItem value="Singapore">Singapore</SelectItem>
+                        <SelectItem value="Indonesia">Indonesia</SelectItem>
+                        <SelectItem value="Thailand">Thailand</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input 
+                      id="phone" 
+                      placeholder="Enter phone number" 
+                      value={companySettings.phoneNumber}
+                      onChange={(e) => handleCompanySettingsChange('phoneNumber', e.target.value)}
+                      data-testid="input-phone-company" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="company-email">Email Address</Label>
+                    <Input 
+                      id="company-email" 
+                      type="email" 
+                      placeholder="Enter company email" 
+                      value={companySettings.email}
+                      onChange={(e) => handleCompanySettingsChange('email', e.target.value)}
+                      data-testid="input-company-email" 
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="website">Website</Label>
+                  <Input 
+                    id="website" 
+                    placeholder="Enter website URL" 
+                    value={companySettings.website}
+                    onChange={(e) => handleCompanySettingsChange('website', e.target.value)}
+                    data-testid="input-website" 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="logo">Company Logo URL</Label>
+                  <Input 
+                    id="logo" 
+                    placeholder="Enter logo image URL" 
+                    value={companySettings.logo}
+                    onChange={(e) => handleCompanySettingsChange('logo', e.target.value)}
+                    data-testid="input-logo" 
+                  />
+                </div>
+                <Button 
+                  className="bg-cyan-600 hover:bg-cyan-700" 
+                  onClick={handleSaveCompanySettings}
+                  disabled={updateCompanyMutation.isPending}
+                  data-testid="button-save-company"
+                >
+                  {updateCompanyMutation.isPending ? 'Saving...' : 'Save Company Settings'}
                 </Button>
               </CardContent>
             </Card>

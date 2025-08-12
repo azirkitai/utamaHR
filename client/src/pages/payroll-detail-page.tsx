@@ -32,6 +32,33 @@ export default function PayrollDetailPage() {
     console.log("View payslip for employee:", employeeId);
   };
 
+  const handleGeneratePDF = async (employeeId: string, employeeName: string) => {
+    try {
+      const response = await fetch(`/api/payroll/payslip/${employeeId}/pdf`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('utamahr_token')}`
+        },
+        body: JSON.stringify({ documentId: id })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate PDF payslip');
+      }
+
+      const data = await response.json();
+      
+      // For now, show the payslip data (in future would generate actual PDF)
+      alert(`PDF Payslip Generated for ${employeeName}\n\nData structure prepared for PDF generation:\n${JSON.stringify(data.data, null, 2)}`);
+      
+      console.log('Payslip data ready for PDF:', data);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF payslip. Please try again.');
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       pending: { className: "bg-yellow-100 text-yellow-800", text: "Pending" },
@@ -260,6 +287,7 @@ export default function PayrollDetailPage() {
                                   variant="outline"
                                   size="sm"
                                   className="p-1 h-7 w-7 border-gray-300"
+                                  onClick={() => handleGeneratePDF(item.employeeId, employeeSnapshot.name || 'N/A')}
                                   data-testid={`button-download-payslip-${item.employeeId}`}
                                 >
                                   <Download className="w-3 h-3" />
