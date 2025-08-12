@@ -223,22 +223,21 @@ export default function ClaimApprovalPage() {
   const userCanApproveOvertime = hasOvertimeApprovalRights();
   
   // Filter claims based on user approval rights AND status 
-  // Approval tab: only pending claims
-  // Report tab: only processed claims (approved/rejected)
-  const filteredFinancialClaims = userCanApproveFinancial ? 
-    (financialClaimsData || []).filter((claim: any) => {
-      console.log('Financial claim filtering:', { claimId: claim.id, status: claim.status, activeTab });
-      return activeTab === 'approval' ? claim.status === 'pending' : 
-             activeTab === 'report' ? ['approved', 'rejected'].includes(claim.status) : 
-             true;
-    }) : [];
-  const filteredOvertimeClaims = userCanApproveOvertime ? 
-    (overtimeClaimsFromDB || []).filter((claim: any) => {
-      console.log('Overtime claim filtering:', { claimId: claim.id, status: claim.status, activeTab });
-      return activeTab === 'approval' ? claim.status === 'pending' : 
-             activeTab === 'report' ? ['approved', 'rejected'].includes(claim.status) : 
-             true;
-    }) : [];
+  // Approval tab: only pending claims (requires approval rights)
+  // Report tab: processed claims (accessible to all users for transparency)
+  const filteredFinancialClaims = activeTab === 'approval' 
+    ? (userCanApproveFinancial ? (financialClaimsData || []).filter((claim: any) => claim.status === 'pending') : [])
+    : (financialClaimsData || []).filter((claim: any) => {
+        console.log('Financial claim filtering:', { claimId: claim.id, status: claim.status, activeTab });
+        return ['firstLevelApproved', 'secondLevelApproved', 'approved', 'rejected'].includes(claim.status);
+      });
+      
+  const filteredOvertimeClaims = activeTab === 'approval'
+    ? (userCanApproveOvertime ? (overtimeClaimsFromDB || []).filter((claim: any) => claim.status === 'pending') : [])
+    : (overtimeClaimsFromDB || []).filter((claim: any) => {
+        console.log('Overtime claim filtering:', { claimId: claim.id, status: claim.status, activeTab });
+        return ['firstLevelApproved', 'secondLevelApproved', 'approved', 'rejected'].includes(claim.status);
+      });
 
   console.log('Filtered results:', { 
     activeTab, 
@@ -486,9 +485,12 @@ export default function ClaimApprovalPage() {
                 filteredFinancialClaims.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={9} className="text-center py-8 text-gray-500">
-                      {userCanApproveFinancial ? 
-                        "No data available in table" : 
-                        "You don't have permission to view financial claims. Only designated financial approvers can see and approve claims."
+                      {activeTab === 'approval' ? 
+                        (userCanApproveFinancial ? 
+                          "No pending claims available" : 
+                          "You don't have permission to approve financial claims"
+                        ) :
+                        "No processed financial claims available"
                       }
                     </TableCell>
                   </TableRow>
@@ -548,9 +550,12 @@ export default function ClaimApprovalPage() {
                 filteredOvertimeClaims.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-8 text-gray-500">
-                      {userCanApproveOvertime ? 
-                        "No data available in table" : 
-                        "You don't have permission to view overtime claims. Only designated overtime approvers can see and approve claims."
+                      {activeTab === 'approval' ? 
+                        (userCanApproveOvertime ? 
+                          "No pending claims available" : 
+                          "You don't have permission to approve overtime claims"
+                        ) :
+                        "No processed overtime claims available"
                       }
                     </TableCell>
                   </TableRow>
@@ -738,7 +743,7 @@ export default function ClaimApprovalPage() {
               filteredFinancialClaims.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                    No processed claims available
+                    No processed financial claims available
                   </TableCell>
                 </TableRow>
               ) : (
