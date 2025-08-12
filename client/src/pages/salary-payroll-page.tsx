@@ -269,17 +269,36 @@ export default function SalaryPayrollPage() {
   });
 
   const handleApprovePayroll = (documentId: string) => {
-    // For now, use hardcoded user ID. In real app, get from auth context
-    const currentUserId = "auth-user-id";
-    approvePayrollMutation.mutate({ documentId, approverId: currentUserId });
+    console.log("Approve button clicked for document:", documentId);
+    console.log("Current user data:", userData);
+    
+    if (!userData?.id) {
+      toast({
+        title: "Error",
+        description: "User ID tidak dijumpai. Sila login semula.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    approvePayrollMutation.mutate({ documentId, approverId: userData.id });
   };
 
   const handleRejectPayroll = (documentId: string) => {
+    console.log("Reject button clicked for document:", documentId);
+    
+    if (!userData?.id) {
+      toast({
+        title: "Error",
+        description: "User ID tidak dijumpai. Sila login semula.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     const reason = prompt("Sila masukkan sebab penolakan:");
     if (reason) {
-      // For now, use hardcoded user ID. In real app, get from auth context
-      const currentUserId = "auth-user-id";
-      rejectPayrollMutation.mutate({ documentId, rejectorId: currentUserId, reason });
+      rejectPayrollMutation.mutate({ documentId, rejectorId: userData.id, reason });
     }
   };
 
@@ -418,6 +437,7 @@ export default function SalaryPayrollPage() {
                         variant="outline"
                         size="sm"
                         className="p-1 h-7 w-7 border-gray-300"
+                        onClick={() => handleViewPayrollDocument(document.id, document.status)}
                         data-testid={`button-edit-payroll-${document.id}`}
                       >
                         <Edit className="w-3 h-3" />
