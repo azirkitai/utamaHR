@@ -91,6 +91,14 @@ UtamaHR - A comprehensive HR Management System built from scratch with React, Ty
   - Improved payroll document viewing logic to allow approval workflow (view before approve)
   - Fixed server startup issues and environment configuration validation
   - Enhanced error handling and connection stability for production reliability
+- Phase 15: Comprehensive Payroll Detail Table Enhancement (✅ Completed)
+  - Enhanced payroll detail page with complete table structure showing both summary and detailed breakdown
+  - Added original columns: Name, Salary, Additional, Gross, Deduction, Contribution
+  - Implemented detailed breakdown columns: EPF, SOCSO, EIS, PCB (employee contributions), EPF, SOCSO, EIS, HRDF (employer contributions)
+  - Color-coded employee contributions (cyan background) and employer contributions (yellow background)
+  - Added Net Salary column as final data column before Status and Action
+  - Enabled horizontal scrolling with proper minimum width constraints for optimal viewing
+  - Successfully displays real employee payroll data from database for month 7 (kamal ludin, SYED MUHYAZIR HASSIM, maryam maisarah)
 
 # User Preferences
 
