@@ -1,6 +1,11 @@
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Field coordinates map (origin bottom-left) - based on the reference template
 const FIELDS = {
