@@ -226,17 +226,26 @@ export default function ClaimApprovalPage() {
   // Approval tab: only pending claims
   // Report tab: only processed claims (approved/rejected)
   const filteredFinancialClaims = userCanApproveFinancial ? 
-    (financialClaimsData || []).filter((claim: any) => 
-      activeTab === 'approval' ? claim.status === 'pending' : 
-      activeTab === 'report' ? ['approved', 'rejected'].includes(claim.status) : 
-      true
-    ) : [];
+    (financialClaimsData || []).filter((claim: any) => {
+      console.log('Financial claim filtering:', { claimId: claim.id, status: claim.status, activeTab });
+      return activeTab === 'approval' ? claim.status === 'pending' : 
+             activeTab === 'report' ? ['approved', 'rejected'].includes(claim.status) : 
+             true;
+    }) : [];
   const filteredOvertimeClaims = userCanApproveOvertime ? 
-    (overtimeClaimsFromDB || []).filter((claim: any) => 
-      activeTab === 'approval' ? claim.status === 'pending' : 
-      activeTab === 'report' ? ['approved', 'rejected'].includes(claim.status) : 
-      true
-    ) : [];
+    (overtimeClaimsFromDB || []).filter((claim: any) => {
+      console.log('Overtime claim filtering:', { claimId: claim.id, status: claim.status, activeTab });
+      return activeTab === 'approval' ? claim.status === 'pending' : 
+             activeTab === 'report' ? ['approved', 'rejected'].includes(claim.status) : 
+             true;
+    }) : [];
+
+  console.log('Filtered results:', { 
+    activeTab, 
+    financialCount: filteredFinancialClaims.length, 
+    overtimeCount: filteredOvertimeClaims.length,
+    rawOvertimeData: overtimeClaimsFromDB?.length || 0
+  });
 
   // Legacy sample data - will be replaced by real data above
   const legacyFinancialClaimsData = [
