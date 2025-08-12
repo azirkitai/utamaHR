@@ -77,6 +77,14 @@ UtamaHR - A comprehensive HR Management System built from scratch with React, Ty
   - Enhanced status badges to display "Awaiting Second Approval" for multi-level workflows
   - Proper rejection handling: Any level rejection results in immediate "rejected" status
   - Added "Overtime" section to employee salary details with statutory checkbox controls
+- Phase 13: Comprehensive Payroll System Implementation (✅ Completed)
+  - Complete payroll database schema with PayrollDocument and PayrollItem tables
+  - Full backend API for payroll document and item management with role-based access control
+  - Automated payroll generation calculating overtime, claims, statutory deductions (EPF/SOCSO/EIS)
+  - Malaysia-compliant calculations following official rates and ceilings
+  - Frontend Payroll Management page with gradient theme and intuitive document/item management
+  - Integration with existing overtime claims and financial claims for accurate payroll processing
+  - Navigation integration in sidebar under Payment section
 
 # User Preferences
 
