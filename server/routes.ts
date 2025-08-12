@@ -4033,6 +4033,12 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Helper function for Excel generation
+  function formatMoney(amount: number | string): string {
+    const num = typeof amount === 'string' ? parseFloat(amount) : amount;
+    return num.toFixed(2);
+  }
+
   // Generate Excel payslip for specific employee
   app.post("/api/payroll/payslip/:itemId/excel", authenticateToken, async (req, res) => {
     try {

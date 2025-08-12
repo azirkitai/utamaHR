@@ -107,6 +107,14 @@ UtamaHR - A comprehensive HR Management System built from scratch with React, Ty
   - Integrated with existing Puppeteer configuration for consistent PDF generation
   - Successfully generates production-ready payslips matching reference template format exactly
   - Verified successful PDF generation with 39KB output size for SYED MUHYAZIR HASSIM payslip
+- Phase 17: Excel Template-Based Payslip Generation System (🔄 In Progress)
+  - Implemented ExcelJS library for Excel-based payslip generation using HQ template layout
+  - Created dual-format payslip system supporting both PDF (HTML-to-PDF) and Excel downloads
+  - Added Excel download button with FileSpreadsheet icon alongside existing PDF button
+  - Developed professional HQ Excel layout with company details, employee information, and payroll calculations
+  - Implemented Malaysian currency formatting (RM format) for consistent presentation
+  - Added /api/payroll/payslip/:itemId/excel endpoint for server-side Excel generation
+  - Frontend integration includes handleGenerateExcel function with proper file download handling
 
 # User Preferences
 
