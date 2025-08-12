@@ -4065,18 +4065,30 @@ export function registerRoutes(app: Express): Server {
       });
       
       console.log('PDF buffer size:', pdfBuffer.length);
-      console.log('PDF buffer is valid PDF:', pdfBuffer.slice(0, 4).toString() === '%PDF');
+      console.log('PDF buffer is valid PDF:', pdfBuffer.slice(0, 4).toString('ascii') === '%PDF');
       console.log('PDF buffer first 20 bytes:', Array.from(pdfBuffer.slice(0, 20)).map(b => b.toString(16).padStart(2, '0')).join(' '));
       
       await browser.close();
 
-      // Set headers for PDF download
+      // Validate PDF buffer
+      if (!pdfBuffer || pdfBuffer.length === 0) {
+        return res.status(500).json({ error: 'PDF generation failed - empty buffer' });
+      }
+
+      if (!pdfBuffer.slice(0, 4).toString('ascii').startsWith('%PDF')) {
+        return res.status(500).json({ error: 'PDF generation failed - invalid PDF format' });
+      }
+
+      // Set headers for PDF download  
       const fileName = `Payslip_${employee.fullName?.replace(/\s+/g, '_')}_${getMonthName(document.month)}_${document.year}.pdf`;
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
       res.setHeader('Content-Length', pdfBuffer.length);
+      res.setHeader('Cache-Control', 'no-cache');
       
-      res.send(pdfBuffer);
+      // Write buffer directly to response
+      res.write(pdfBuffer);
+      res.end();
 
     } catch (error) {
       console.error("Error generating payslip PDF:", error);
