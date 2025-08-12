@@ -140,7 +140,7 @@ export default function ClaimApprovalPage() {
 
   // Check if user has overtime approval rights
   const hasOvertimeApprovalRights = () => {
-    if (!currentUser || !overtimeApprovalSettings) return false;
+    if (!currentUser || !overtimeApprovalSettings || !employeesData) return false;
     
     console.log('=== DEBUGGING OVERTIME APPROVAL ACCESS ===');
     console.log('Current user:', currentUser);
@@ -149,10 +149,21 @@ export default function ClaimApprovalPage() {
     console.log('First level approver ID:', (overtimeApprovalSettings as any)?.firstLevel);
     console.log('Second level approver ID:', (overtimeApprovalSettings as any)?.secondLevel);
     
-    // Check if user is assigned as overtime approver
-    const isFirstLevel = (overtimeApprovalSettings as any).firstLevel === (currentUser as any).id;
-    const isSecondLevel = (overtimeApprovalSettings as any).secondLevel === (currentUser as any).id;
+    // Find current user's employee record
+    const currentEmployee = employeesData.find((emp: any) => emp.userId === (currentUser as any).id);
+    console.log('Current employee record:', currentEmployee);
     
+    if (!currentEmployee) {
+      console.log('No employee record found for current user');
+      console.log('=== END OVERTIME DEBUG ===');
+      return false;
+    }
+    
+    // Check if user's employee ID is assigned as overtime approver
+    const isFirstLevel = (overtimeApprovalSettings as any).firstLevel === currentEmployee.id;
+    const isSecondLevel = (overtimeApprovalSettings as any).secondLevel === currentEmployee.id;
+    
+    console.log('Current employee ID:', currentEmployee.id);
     console.log('Is first level approver:', isFirstLevel);
     console.log('Is second level approver:', isSecondLevel);
     console.log('=== END OVERTIME DEBUG ===');
