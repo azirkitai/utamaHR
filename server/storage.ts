@@ -2068,6 +2068,79 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
+  // Calculate overtime amount for an employee for a given month
+  async calculateEmployeeOvertimeAmount(employeeId: string, year: number, month: number): Promise<number> {
+    try {
+      // Get employee salary details (modern format with JSON)
+      const [salary] = await db.select().from(employeeSalaries).where(eq(employeeSalaries.employeeId, employeeId));
+      if (!salary) return 0;
+
+      // Parse the salary data
+      let basicSalary = 0;
+      if (salary.additionalItems) {
+        const additionalItems = JSON.parse(salary.additionalItems);
+        // Find basic salary from additional items or use basicSalary field
+        basicSalary = parseFloat(salary.basicSalary || '0');
+      } else {
+        basicSalary = parseFloat(salary.basicSalary || '0');
+      }
+
+      if (basicSalary <= 0) return 0;
+
+      // Get overtime settings
+      const [overtimeSettingsData] = await db.select().from(overtimeSettings).limit(1);
+      if (!overtimeSettingsData) return 0;
+
+      // Get overtime policies
+      const policies = await db.select().from(overtimePolicies).where(eq(overtimePolicies.enabled, true));
+      if (!policies.length) return 0;
+
+      // Get approved overtime claims for the month
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 0);
+
+      const approvedOvertimeClaims = await db.select()
+        .from(claimApplications)
+        .where(
+          and(
+            eq(claimApplications.employeeId, employeeId),
+            eq(claimApplications.claimType, 'overtime'),
+            eq(claimApplications.status, 'approved'),
+            gte(claimApplications.claimDate, startDate),
+            lte(claimApplications.claimDate, endDate)
+          )
+        );
+
+      if (!approvedOvertimeClaims.length) return 0;
+
+      // Calculate base hourly rate
+      const workingDaysPerMonth = overtimeSettingsData.workingDaysPerMonth || 26;
+      const workingHoursPerDay = overtimeSettingsData.workingHoursPerDay || 8;
+      const hourlyRate = basicSalary / workingDaysPerMonth / workingHoursPerDay;
+
+      // Calculate total overtime amount
+      let totalOvertimeAmount = 0;
+
+      for (const claim of approvedOvertimeClaims) {
+        const totalHours = parseFloat(claim.totalHours || '0');
+        const policyType = claim.overtimePolicyType || 'normal';
+        
+        // Find the policy multiplier
+        const policy = policies.find(p => p.policyType === policyType);
+        const multiplier = policy ? parseFloat(policy.multiplier || '1.5') : 1.5;
+        
+        // Calculate overtime amount for this claim
+        const overtimeAmount = hourlyRate * totalHours * multiplier;
+        totalOvertimeAmount += overtimeAmount;
+      }
+
+      return Math.round(totalOvertimeAmount * 100) / 100; // Round to 2 decimal places
+    } catch (error) {
+      console.error('Error calculating overtime amount:', error);
+      return 0;
+    }
+  }
+
   async createEmployeeSalary(data: InsertEmployeeSalary): Promise<EmployeeSalary> {
     const [salary] = await db
       .insert(employeeSalaries)

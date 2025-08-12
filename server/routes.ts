@@ -3499,6 +3499,29 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Calculate overtime amount for employee
+  app.get('/api/employees/:employeeId/overtime-amount', authenticateToken, async (req, res) => {
+    try {
+      const { employeeId } = req.params;
+      const { year, month } = req.query;
+      
+      if (!year || !month) {
+        return res.status(400).json({ error: 'Year and month are required' });
+      }
+      
+      const overtimeAmount = await storage.calculateEmployeeOvertimeAmount(
+        employeeId, 
+        parseInt(year as string), 
+        parseInt(month as string)
+      );
+      
+      res.json({ overtimeAmount });
+    } catch (error) {
+      console.error('Error calculating overtime amount:', error);
+      res.status(500).json({ error: 'Failed to calculate overtime amount' });
+    }
+  });
+
   // Update employee salary (Master Salary format)
   app.put('/api/employees/:employeeId/salary', authenticateToken, async (req, res) => {
     try {

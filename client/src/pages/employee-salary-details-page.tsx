@@ -797,6 +797,39 @@ export default function EmployeeSalaryDetailsPage() {
     }
   }, [existingSalaryData]);
 
+  // Fetch overtime amount for current month
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth() + 1;
+
+  const { data: overtimeData, isLoading: isLoadingOvertime } = useQuery({
+    queryKey: ["/api/employees", employeeId, "overtime-amount", currentYear, currentMonth],
+    queryFn: async () => {
+      const response = await fetch(`/api/employees/${employeeId}/overtime-amount?year=${currentYear}&month=${currentMonth}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('utamahr_token')}`
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch overtime amount');
+      return response.json();
+    },
+    enabled: !!employeeId
+  });
+
+  // Update overtime amount when data is fetched
+  useEffect(() => {
+    if (overtimeData?.overtimeAmount !== undefined) {
+      updateAdditionalItemAmount("OVERTIME", overtimeData.overtimeAmount);
+    }
+  }, [overtimeData]);
+
+  // Refresh overtime calculation when any overtime claim is approved
+  const refreshOvertimeCalculation = () => {
+    queryClient.invalidateQueries({
+      queryKey: ["/api/employees", employeeId, "overtime-amount"]
+    });
+  };
+
   // Auto recalculate when basic data changes
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -2195,20 +2228,25 @@ export default function EmployeeSalaryDetailsPage() {
                     >
                       <Settings className="h-4 w-4" />
                     </Button>
+                    {isLoadingOvertime && (
+                      <span className="text-xs text-gray-500">Calculating...</span>
+                    )}
                   </div>
                   <div className="flex">
                     <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
                       <span className="text-sm font-medium">RM</span>
                     </div>
                     <Input
-                      type="number"
-                      step="0.01"
-                      value={salaryData.additionalItems.find(item => item.code === "OVERTIME")?.amount || 0}
-                      onChange={(e) => updateAdditionalItemAmount("OVERTIME", parseFloat(e.target.value) || 0)}
-                      className="rounded-l-none"
+                      type="text"
+                      value={(salaryData.additionalItems.find(item => item.code === "OVERTIME")?.amount || 0).toFixed(2)}
+                      className="rounded-l-none bg-gray-100"
+                      readOnly
                       data-testid="overtime"
                     />
                   </div>
+                  <p className="text-xs text-gray-500">
+                    Auto-calculated based on approved overtime hours × hourly rate × overtime multiplier for {new Date().toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
+                  </p>
                   
                   {/* Show statutory flags when toggled */}
                   {showStatutoryFlags["OVERTIME"] && (
