@@ -3,7 +3,7 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Download, Eye } from "lucide-react";
+import { ArrowLeft, Download, Eye, FileSpreadsheet } from "lucide-react";
 import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 // Removed jsPDF - now using server-side Puppeteer for PDF generation
@@ -66,6 +66,47 @@ export default function PayrollDetailPage() {
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert('Gagal menghasilkan slip gaji PDF. Sila cuba lagi.');
+    }
+  };
+
+  const handleGenerateExcel = async (itemId: string, employeeName: string) => {
+    try {
+      const response = await fetch(`/api/payroll/payslip/${itemId}/excel`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('utamahr_token')}`
+        },
+        body: JSON.stringify({ documentId: id })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate Excel payslip');
+      }
+
+      // Server returns the Excel buffer directly
+      const blob = await response.blob();
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Get current date for filename
+      const currentDate = new Date();
+      const month = currentDate.toLocaleString('default', { month: 'long' }).toUpperCase();
+      const year = currentDate.getFullYear();
+      
+      link.download = `Payslip_${employeeName.replace(/\s+/g, '_')}_${month}_${year}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      console.log('Excel payslip generated and downloaded successfully');
+    } catch (error) {
+      console.error('Error generating Excel payslip:', error);
+      alert('Failed to generate Excel payslip. Please try again.');
     }
   };
 
@@ -298,9 +339,20 @@ export default function PayrollDetailPage() {
                                   size="sm"
                                   className="p-1 h-7 w-7 border-gray-300"
                                   onClick={() => handleGeneratePDF(item.employeeId, employeeSnapshot.name || 'N/A')}
-                                  data-testid={`button-download-payslip-${item.employeeId}`}
+                                  data-testid={`button-download-pdf-${item.employeeId}`}
+                                  title="Download PDF"
                                 >
                                   <Download className="w-3 h-3" />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="p-1 h-7 w-7 border-gray-300"
+                                  onClick={() => handleGenerateExcel(item.id, employeeSnapshot.name || 'N/A')}
+                                  data-testid={`button-download-excel-${item.employeeId}`}
+                                  title="Download Excel"
+                                >
+                                  <FileSpreadsheet className="w-3 h-3" />
                                 </Button>
                               </div>
                             </td>

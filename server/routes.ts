@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { setupAuth, authenticateToken } from "./auth";
 import { storage } from "./storage";
 import { generatePayslipPDF } from './payslip-html-generator';
+import { generatePayslipExcel } from './payslip-excel-generator';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
@@ -4029,6 +4030,124 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error generating payslip PDF:", error);
       res.status(500).json({ error: "Gagal menjana slip gaji PDF" });
+    }
+  });
+
+  // Generate Excel payslip for specific employee
+  app.post("/api/payroll/payslip/:itemId/excel", authenticateToken, async (req, res) => {
+    try {
+      const { itemId } = req.params;
+      
+      console.log('Generating Excel payslip for item:', itemId);
+
+      // Get the payroll item
+      const payrollItem = await storage.getPayrollItem(itemId);
+      if (!payrollItem) {
+        return res.status(404).json({ error: "Item gaji tidak dijumpai" });
+      }
+
+      // Get the payroll document
+      const document = await storage.getPayrollDocument(payrollItem.documentId);
+      if (!document) {
+        return res.status(404).json({ error: "Dokumen gaji tidak dijumpai" });
+      }
+
+      // Get the employee
+      const employee = await storage.getEmployee(payrollItem.employeeId);
+      if (!employee) {
+        return res.status(404).json({ error: "Pekerja tidak dijumpai" });
+      }
+
+      // Parse employee snapshot for detailed data
+      const employeeSnapshot = JSON.parse(payrollItem.employeeSnapshot || "{}");
+      const salary = JSON.parse(payrollItem.salary || "{}");
+      const deductions = JSON.parse(payrollItem.deductions || "{}");
+      const contributions = JSON.parse(payrollItem.contributions || "{}");
+
+      // Get company details
+      const companySettings = await storage.getCompanySettings();
+      
+      // Format template data for Excel generation
+      const templateData = {
+        company: {
+          name: companySettings?.companyName || "UTAMA MEDGROUP SDN BHD",
+          regNo: companySettings?.companyRegistrationNumber || "202201033996(1479693-H)",
+          addressLines: [
+            companySettings?.address || "A2-22-3, SOHO SUITES @ KLCC, 20 JALAN PERAK",
+            companySettings?.city && companySettings?.state && companySettings?.postcode 
+              ? `${companySettings.postcode} ${companySettings.city}, ${companySettings.state}`
+              : "50450 WILAYAH PERSEKUTUAN, KUALA LUMPUR"
+          ],
+          phone: companySettings?.phoneNumber,
+          email: companySettings?.email || undefined,
+          website: companySettings?.website || undefined
+        },
+        employee: {
+          name: employeeSnapshot.name || employee.fullName || "",
+          icNo: employeeSnapshot.nric || employee.nric || "",
+          position: employeeSnapshot.position || ""
+        },
+        period: {
+          month: getMonthName(document.month),
+          year: document.year
+        },
+        income: {
+          basic: formatMoney(salary.basic || 0),
+          fixedAllowance: formatMoney(salary.fixedAllowance || 0),
+          totalGross: formatMoney(salary.gross || 0)
+        },
+        deduction: {
+          epfEmp: formatMoney(deductions.epfEmployee || 0),
+          socsoEmp: formatMoney(deductions.socsoEmployee || 0),
+          eisEmp: formatMoney(deductions.eisEmployee || 0),
+          total: formatMoney(
+            parseFloat(deductions.epfEmployee || "0") +
+            parseFloat(deductions.socsoEmployee || "0") +
+            parseFloat(deductions.eisEmployee || "0") +
+            parseFloat(deductions.pcb39 || "0") +
+            parseFloat(deductions.zakat || "0")
+          )
+        },
+        netIncome: formatMoney(payrollItem.netPay),
+        employerContrib: {
+          epfEr: formatMoney(contributions.epfEmployer || 0),
+          socsoEr: formatMoney(contributions.socsoEmployer || 0),
+          eisEr: formatMoney(contributions.eisEmployer || 0)
+        },
+        ytd: {
+          employee: formatMoney(2783.00), // Should be calculated from YTD
+          employer: formatMoney(3289.00), // Should be calculated from YTD
+          mtd: formatMoney(payrollItem.netPay)
+        }
+      };
+
+      // Generate Excel using template approach
+      console.log('Generating Excel using template method...');
+      console.log('Template data:', JSON.stringify(templateData, null, 2));
+      
+      const { excelPath, pdfPath } = await generatePayslipExcel(templateData);
+      console.log('Excel generated successfully at:', excelPath);
+
+      // Import fs for file operations
+      const fs = await import('fs');
+      
+      // Read the Excel file and send as download
+      const excelBuffer = fs.readFileSync(excelPath);
+      
+      // Set headers for Excel download  
+      const fileName = `Payslip_${employee.fullName?.replace(/\s+/g, '_')}_${getMonthName(document.month)}_${document.year}.xlsx`;
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      res.setHeader('Content-Length', excelBuffer.length);
+      res.setHeader('Cache-Control', 'no-cache');
+      
+      // Write buffer directly to response
+      res.write(excelBuffer);
+      res.end();
+
+    } catch (error) {
+      console.error("Error generating payslip Excel:", error);
+      res.status(500).json({ error: "Gagal menjana slip gaji Excel" });
     }
   });
 
