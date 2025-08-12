@@ -2608,7 +2608,7 @@ export class DatabaseStorage implements IStorage {
             amount: amount?.toString() || '0'
           }))
         }),
-        netPay: this.calculateNetPay({ amount: basicSalary.toString() }, additionalItems, deductionItems, { amount: overtimeAmount }),
+        netPay: this.calculateNetPay({ amount: basicSalary.toString() }, additionalItems, [], { amount: overtimeAmount }),
         audit: JSON.stringify({
           generatedAt: new Date().toISOString(),
           generatedBy: 'system',

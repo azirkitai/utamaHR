@@ -180,44 +180,62 @@ export default function PayrollDetailPage() {
                         </td>
                       </tr>
                     ) : (payrollItems as any[]).length > 0 ? (
-                      (payrollItems as any[]).map((item: any) => (
-                        <tr key={item.id} className="border-b hover:bg-gray-50">
-                          <td className="p-3 text-gray-900">{item.employeeName}</td>
-                          <td className="p-3 text-gray-600">RM {parseFloat(item.basicSalary || 0).toFixed(2)}</td>
-                          <td className="p-3 text-gray-600">RM {parseFloat(item.additionalAmount || 0).toFixed(2)}</td>
-                          <td className="p-3 text-gray-600">RM {parseFloat(item.grossSalary || 0).toFixed(2)}</td>
-                          <td className="p-3 text-gray-600">RM {parseFloat(item.totalDeduction || 0).toFixed(2)}</td>
-                          <td className="p-3 text-gray-600">RM {parseFloat(item.companyContribution || 0).toFixed(2)}</td>
-                          <td className="p-3">
-                            {getStatusBadge(item.status || 'pending')}
-                          </td>
-                          <td className="p-3 text-center">
-                            <div className="flex items-center justify-center space-x-1">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="p-1 h-7 w-7 border-gray-300"
-                                onClick={() => handleViewPayslip(item.employeeId)}
-                                data-testid={`button-view-payslip-${item.employeeId}`}
-                              >
-                                <Eye className="w-3 h-3" />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="p-1 h-7 w-7 border-gray-300"
-                                data-testid={`button-download-payslip-${item.employeeId}`}
-                              >
-                                <Download className="w-3 h-3" />
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
+                      (payrollItems as any[]).map((item: any) => {
+                        // Parse employee snapshot and salary data
+                        const employeeSnapshot = JSON.parse(item.employeeSnapshot || '{}');
+                        const salaryData = JSON.parse(item.salary || '{}');
+                        const deductionsData = JSON.parse(item.deductions || '{}');
+                        const contributionsData = JSON.parse(item.contributions || '{}');
+                        
+                        // Calculate totals
+                        const basicSalary = parseFloat(salaryData.basic || '0');
+                        const grossSalary = parseFloat(salaryData.gross || '0');
+                        const totalDeductions = parseFloat(deductionsData.epfEmployee || '0') + 
+                                              parseFloat(deductionsData.socsoEmployee || '0') + 
+                                              parseFloat(deductionsData.eisEmployee || '0');
+                        const totalContributions = parseFloat(contributionsData.epfEmployer || '0') + 
+                                                  parseFloat(contributionsData.socsoEmployer || '0') + 
+                                                  parseFloat(contributionsData.eisEmployer || '0');
+                        
+                        return (
+                          <tr key={item.id} className="border-b hover:bg-gray-50">
+                            <td className="p-3 text-gray-900">{employeeSnapshot.name || 'N/A'}</td>
+                            <td className="p-3 text-gray-600">RM {basicSalary.toFixed(2)}</td>
+                            <td className="p-3 text-gray-600">RM {parseFloat(salaryData.fixedAllowance || '0').toFixed(2)}</td>
+                            <td className="p-3 text-gray-600">RM {grossSalary.toFixed(2)}</td>
+                            <td className="p-3 text-gray-600">RM {totalDeductions.toFixed(2)}</td>
+                            <td className="p-3 text-gray-600">RM {totalContributions.toFixed(2)}</td>
+                            <td className="p-3">
+                              {getStatusBadge(item.status || 'pending')}
+                            </td>
+                            <td className="p-3 text-center">
+                              <div className="flex items-center justify-center space-x-1">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="p-1 h-7 w-7 border-gray-300"
+                                  onClick={() => handleViewPayslip(item.employeeId)}
+                                  data-testid={`button-view-payslip-${item.employeeId}`}
+                                >
+                                  <Eye className="w-3 h-3" />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="p-1 h-7 w-7 border-gray-300"
+                                  data-testid={`button-download-payslip-${item.employeeId}`}
+                                >
+                                  <Download className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
                     ) : (
                       <tr>
                         <td colSpan={8} className="p-8 text-center text-gray-500">
-                          Showing 1 to 3 of 3 entries
+                          No payroll items found. Click "Generate Items" to create payroll for all employees.
                         </td>
                       </tr>
                     )}
