@@ -29,10 +29,13 @@ import {
   Settings,
   ChevronDown
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import type { Employee } from "@shared/schema";
 
 export default function SalaryPayrollPage() {
+  const { toast } = useToast();
   const [dateRange, setDateRange] = useState("01/2025 - 12/2025");
   const [selectedEmployee, setSelectedEmployee] = useState("All employee");
   const [showNewPayrollModal, setShowNewPayrollModal] = useState(false);
@@ -192,9 +195,152 @@ export default function SalaryPayrollPage() {
     enabled: !!selectedEmployeeForSummary?.id,
   });
 
+  // Fetch payroll documents
+  const { data: payrollDocuments = [], isLoading: isLoadingPayrollDocuments } = useQuery({
+    queryKey: ["/api/payroll/documents"],
+  });
+
+  // Create payroll document mutation
+  const createPayrollDocumentMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest('/api/payroll/documents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Payroll Document Created",
+        description: `Payroll untuk ${payrollFormData.month} ${payrollFormData.year} telah dicipta dan perlu approval`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/payroll/documents"] });
+      setShowNewPayrollModal(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Gagal mencipta payroll document",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Approve payroll document mutation
+  const approvePayrollMutation = useMutation({
+    mutationFn: async ({ documentId, approverId }: { documentId: string; approverId: string }) => {
+      return apiRequest(`/api/payroll/documents/${documentId}/approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ approverId }),
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Dokumen Diluluskan",
+        description: "Dokumen payroll telah berjaya diluluskan",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/payroll/documents"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Gagal meluluskan dokumen",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Reject payroll document mutation
+  const rejectPayrollMutation = useMutation({
+    mutationFn: async ({ documentId, rejectorId, reason }: { documentId: string; rejectorId: string; reason: string }) => {
+      return apiRequest(`/api/payroll/documents/${documentId}/reject`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rejectorId, reason }),
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Dokumen Ditolak",
+        description: "Dokumen payroll telah ditolak",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/payroll/documents"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Gagal menolak dokumen",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleApprovePayroll = (documentId: string) => {
+    // For now, use hardcoded user ID. In real app, get from auth context
+    const currentUserId = "auth-user-id";
+    approvePayrollMutation.mutate({ documentId, approverId: currentUserId });
+  };
+
+  const handleRejectPayroll = (documentId: string) => {
+    const reason = prompt("Sila masukkan sebab penolakan:");
+    if (reason) {
+      // For now, use hardcoded user ID. In real app, get from auth context
+      const currentUserId = "auth-user-id";
+      rejectPayrollMutation.mutate({ documentId, rejectorId: currentUserId, reason });
+    }
+  };
+
   const handleGeneratePayroll = () => {
     console.log("Generating payroll with data:", payrollFormData);
-    setShowNewPayrollModal(false);
+    
+    // Create payroll document with status "PendingApproval"
+    const payrollDocument = {
+      year: parseInt(payrollFormData.year),
+      month: payrollFormData.month,
+      paymentDate: payrollFormData.paymentDate,
+      remarks: payrollFormData.remarks,
+      status: "PendingApproval",
+      includeFinancialClaim: payrollFormData.claimFinancial,
+      includeOvertimeClaim: payrollFormData.claimOvertime,
+      includeUnpaidLeave: payrollFormData.unpaidLeave,
+      includeLateness: payrollFormData.lateness || false,
+    };
+
+    createPayrollDocumentMutation.mutate(payrollDocument);
+  };
+
+  const handleViewPayrollDocument = (documentId: string, status: string) => {
+    if (status === 'approved' || status === 'Approved') {
+      // Navigate to payroll details page showing individual payslips
+      window.location.href = `/payment/salary-payroll/view/${documentId}`;
+    } else {
+      toast({
+        title: "Document Belum Diluluskan",
+        description: "Dokumen payroll perlu diluluskan terlebih dahulu sebelum boleh melihat slip gaji pekerja",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      pending: { className: "bg-yellow-100 text-yellow-800", text: "Pending" },
+      approved: { className: "bg-green-100 text-green-800", text: "Approved" },
+      rejected: { className: "bg-red-100 text-red-800", text: "Rejected" },
+      Preparing: { className: "bg-blue-100 text-blue-800", text: "Preparing" },
+      PendingApproval: { className: "bg-yellow-100 text-yellow-800", text: "Pending Approval" },
+      Approved: { className: "bg-green-100 text-green-800", text: "Approved" },
+      Closed: { className: "bg-gray-100 text-gray-800", text: "Closed" }
+    };
+    
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.Preparing;
+    
+    return (
+      <Badge className={`${config.className} text-xs`}>
+        {config.text}
+      </Badge>
+    );
   };
 
   const renderPayrollListTable = () => (
@@ -213,11 +359,79 @@ export default function SalaryPayrollPage() {
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td colSpan={7} className="p-8 text-center text-gray-500">
-                No data available in table
-              </td>
-            </tr>
+            {isLoadingPayrollDocuments ? (
+              <tr>
+                <td colSpan={7} className="p-8 text-center text-gray-500">
+                  Loading payroll documents...
+                </td>
+              </tr>
+            ) : payrollDocuments.length > 0 ? (
+              payrollDocuments.map((document: any, index: number) => (
+                <tr key={document.id} className="border-b hover:bg-gray-50">
+                  <td className="p-3 text-gray-600">{index + 1}</td>
+                  <td className="p-3 text-gray-900">{document.year}</td>
+                  <td className="p-3 text-gray-900">{document.month}</td>
+                  <td className="p-3 text-gray-600">
+                    {new Date(document.paymentDate).toLocaleDateString()}
+                  </td>
+                  <td className="p-3">
+                    {getStatusBadge(document.status)}
+                  </td>
+                  <td className="p-3 text-gray-600">{document.remarks}</td>
+                  <td className="p-3 text-center">
+                    <div className="flex items-center justify-center space-x-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="p-1 h-7 w-7 border-gray-300"
+                        onClick={() => handleViewPayrollDocument(document.id, document.status)}
+                        data-testid={`button-view-payroll-${document.id}`}
+                      >
+                        <Eye className="w-3 h-3" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="p-1 h-7 w-7 border-gray-300"
+                        data-testid={`button-edit-payroll-${document.id}`}
+                      >
+                        <Edit className="w-3 h-3" />
+                      </Button>
+                      {(document.status === 'pending' || document.status === 'PendingApproval') && (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="p-1 h-7 text-xs px-2 border-green-300 text-green-700 hover:bg-green-50"
+                            onClick={() => handleApprovePayroll(document.id)}
+                            disabled={approvePayrollMutation.isPending}
+                            data-testid={`button-approve-payroll-${document.id}`}
+                          >
+                            ✓
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="p-1 h-7 text-xs px-2 border-red-300 text-red-700 hover:bg-red-50"
+                            onClick={() => handleRejectPayroll(document.id)}
+                            disabled={rejectPayrollMutation.isPending}
+                            data-testid={`button-reject-payroll-${document.id}`}
+                          >
+                            ✕
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={7} className="p-8 text-center text-gray-500">
+                  No data available in table
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

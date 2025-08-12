@@ -3808,6 +3808,50 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Approve payroll document
+  app.post('/api/payroll/documents/:id/approve', authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { approverId } = req.body;
+      
+      if (!approverId) {
+        return res.status(400).json({ error: 'ID pelulus diperlukan' });
+      }
+
+      const success = await storage.approvePayrollDocument(id, approverId);
+      if (!success) {
+        return res.status(404).json({ error: 'Dokumen payroll tidak dijumpai' });
+      }
+      
+      res.json({ message: 'Dokumen payroll berjaya diluluskan' });
+    } catch (error) {
+      console.error('Error approving payroll document:', error);
+      res.status(500).json({ error: 'Gagal meluluskan dokumen payroll' });
+    }
+  });
+
+  // Reject payroll document
+  app.post('/api/payroll/documents/:id/reject', authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { rejectorId, reason } = req.body;
+      
+      if (!rejectorId || !reason) {
+        return res.status(400).json({ error: 'ID penolak dan sebab penolakan diperlukan' });
+      }
+
+      const success = await storage.rejectPayrollDocument(id, rejectorId, reason);
+      if (!success) {
+        return res.status(404).json({ error: 'Dokumen payroll tidak dijumpai' });
+      }
+      
+      res.json({ message: 'Dokumen payroll berjaya ditolak' });
+    } catch (error) {
+      console.error('Error rejecting payroll document:', error);
+      res.status(500).json({ error: 'Gagal menolak dokumen payroll' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

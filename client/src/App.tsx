@@ -27,6 +27,7 @@ import SalaryPayrollPage from "@/pages/salary-payroll-page";
 import PaymentVoucherPage from "@/pages/payment-voucher-page";
 import EmployeeSalaryDetailsPage from "@/pages/employee-salary-details-page";
 import PayrollPage from "@/pages/payroll-page";
+import PayrollDetailPage from "@/pages/payroll-detail-page";
 import QRClockInPage from "@/pages/qr-clockin-page";
 import MobileClockInPage from "@/pages/mobile-clockin-page";
 import MobileClockOutPage from "@/pages/mobile-clockout-page";
@@ -56,6 +57,7 @@ function Router() {
       <ProtectedRoute path="/attendance/overtime" component={OvertimePage} />
       <ProtectedRoute path="/attendance/lateness" component={LatenessPage} />
       <ProtectedRoute path="/payment/salary-payroll" component={SalaryPayrollPage} />
+      <ProtectedRoute path="/payment/salary-payroll/view/:id" component={PayrollDetailPage} />
       <ProtectedRoute path="/employee-salary/:employeeId" component={EmployeeSalaryDetailsPage} />
       <ProtectedRoute path="/payroll" component={PayrollPage} />
       <ProtectedRoute path="/payment/voucher" component={PaymentVoucherPage} />

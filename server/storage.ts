@@ -2741,6 +2741,39 @@ export class DatabaseStorage implements IStorage {
 
     return { days: totalDays, amount: deductionAmount };
   }
+
+  // Approve payroll document
+  async approvePayrollDocument(documentId: string, approverId: string): Promise<boolean> {
+    const [updatedDocument] = await db
+      .update(payrollDocuments)
+      .set({
+        status: 'Approved',
+        approvedBy: approverId,
+        approvedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(payrollDocuments.id, documentId))
+      .returning();
+
+    return !!updatedDocument;
+  }
+
+  // Reject payroll document
+  async rejectPayrollDocument(documentId: string, rejectorId: string, reason: string): Promise<boolean> {
+    const [updatedDocument] = await db
+      .update(payrollDocuments)
+      .set({
+        status: 'Rejected',
+        rejectedBy: rejectorId,
+        rejectedAt: new Date(),
+        rejectionReason: reason,
+        updatedAt: new Date()
+      })
+      .where(eq(payrollDocuments.id, documentId))
+      .returning();
+
+    return !!updatedDocument;
+  }
 }
 
 export const storage = new DatabaseStorage();

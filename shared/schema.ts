@@ -542,6 +542,9 @@ export const payrollDocuments = pgTable('payroll_documents', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   approvedBy: text('approved_by'), // JSON array of approver IDs
   approvedAt: timestamp('approved_at'),
+  rejectedBy: varchar('rejected_by'),
+  rejectedAt: timestamp('rejected_at'),
+  rejectionReason: text('rejection_reason'),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
   // Unique constraint: one document per (year, month)
