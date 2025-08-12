@@ -203,7 +203,8 @@ export default function SalaryPayrollPage() {
   // Create payroll document mutation
   const createPayrollDocumentMutation = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest('/api/payroll/documents', 'POST', data);
+      const response = await apiRequest('POST', '/api/payroll/documents', data);
+      return response.json();
     },
     onSuccess: (data) => {
       toast({
@@ -226,7 +227,8 @@ export default function SalaryPayrollPage() {
   // Approve payroll document mutation
   const approvePayrollMutation = useMutation({
     mutationFn: async ({ documentId, approverId }: { documentId: string; approverId: string }) => {
-      return apiRequest(`/api/payroll/documents/${documentId}/approve`, 'POST', { approverId });
+      const response = await apiRequest('POST', `/api/payroll/documents/${documentId}/approve`, { approverId });
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -247,7 +249,8 @@ export default function SalaryPayrollPage() {
   // Reject payroll document mutation
   const rejectPayrollMutation = useMutation({
     mutationFn: async ({ documentId, rejectorId, reason }: { documentId: string; rejectorId: string; reason: string }) => {
-      return apiRequest(`/api/payroll/documents/${documentId}/reject`, 'POST', { rejectorId, reason });
+      const response = await apiRequest('POST', `/api/payroll/documents/${documentId}/reject`, { rejectorId, reason });
+      return response.json();
     },
     onSuccess: () => {
       toast({
