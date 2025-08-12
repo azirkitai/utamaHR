@@ -294,17 +294,26 @@ export default function SalaryPayrollPage() {
   const handleGeneratePayroll = () => {
     console.log("Generating payroll with data:", payrollFormData);
     
+    // Convert month name to number
+    const monthMap = {
+      'January': 1, 'February': 2, 'March': 3, 'April': 4,
+      'May': 5, 'June': 6, 'July': 7, 'August': 8,
+      'September': 9, 'October': 10, 'November': 11, 'December': 12
+    };
+    
     // Create payroll document with status "PendingApproval"
     const payrollDocument = {
       year: parseInt(payrollFormData.year),
-      month: payrollFormData.month,
-      paymentDate: payrollFormData.paymentDate,
+      month: monthMap[payrollFormData.month as keyof typeof monthMap] || new Date().getMonth() + 1,
+      payrollDate: payrollFormData.paymentDate,
       remarks: payrollFormData.remarks,
       status: "PendingApproval",
-      includeFinancialClaim: payrollFormData.claimFinancial,
-      includeOvertimeClaim: payrollFormData.claimOvertime,
-      includeUnpaidLeave: payrollFormData.unpaidLeave,
-      includeLateness: payrollFormData.lateness || false,
+      includeFlags: JSON.stringify({
+        includeClaims: payrollFormData.claimFinancial,
+        includeOvertime: payrollFormData.claimOvertime,
+        includeUnpaidLeave: payrollFormData.unpaidLeave,
+        includeLateness: payrollFormData.lateness || false,
+      }),
     };
 
     createPayrollDocumentMutation.mutate(payrollDocument);
