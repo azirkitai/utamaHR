@@ -158,24 +158,44 @@ export default function PayrollDetailPage() {
               </div>
 
               {/* Employee Payroll Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+              <div className="overflow-x-auto max-w-full">
+                <table className="w-full text-sm min-w-[1200px]">
                   <thead>
                     <tr className="bg-gray-50 border-b">
-                      <th className="text-left p-3 font-medium text-gray-900">Name</th>
-                      <th className="text-left p-3 font-medium text-gray-900">Salary</th>
-                      <th className="text-left p-3 font-medium text-gray-900">Additional</th>
-                      <th className="text-left p-3 font-medium text-gray-900">Gross</th>
-                      <th className="text-left p-3 font-medium text-gray-900">Deduction</th>
-                      <th className="text-left p-3 font-medium text-gray-900">Contribution</th>
-                      <th className="text-left p-3 font-medium text-gray-900">Status</th>
-                      <th className="text-center p-3 font-medium text-gray-900">Action</th>
+                      <th className="text-left p-2 font-medium text-gray-900 min-w-[120px]">Name</th>
+                      <th className="text-center p-2 font-medium text-gray-900 min-w-[80px]">Basic Salary</th>
+                      <th className="text-center p-2 font-medium text-gray-900 bg-cyan-100 min-w-[70px]">EPF</th>
+                      <th className="text-center p-2 font-medium text-gray-900 bg-cyan-100 min-w-[70px]">SOCSO</th>
+                      <th className="text-center p-2 font-medium text-gray-900 bg-cyan-100 min-w-[70px]">EIS</th>
+                      <th className="text-center p-2 font-medium text-gray-900 bg-cyan-100 min-w-[70px]">PCB</th>
+                      <th className="text-center p-2 font-medium text-gray-900 bg-yellow-100 min-w-[70px]">EPF</th>
+                      <th className="text-center p-2 font-medium text-gray-900 bg-yellow-100 min-w-[70px]">SOCSO</th>
+                      <th className="text-center p-2 font-medium text-gray-900 bg-yellow-100 min-w-[70px]">EIS</th>
+                      <th className="text-center p-2 font-medium text-gray-900 bg-yellow-100 min-w-[70px]">HRDF</th>
+                      <th className="text-center p-2 font-medium text-gray-900 min-w-[90px]">Net Salary</th>
+                      <th className="text-center p-2 font-medium text-gray-900 min-w-[80px]">Status</th>
+                      <th className="text-center p-2 font-medium text-gray-900 min-w-[80px]">Action</th>
+                    </tr>
+                    <tr className="bg-gray-50 border-b text-xs">
+                      <th className="p-1"></th>
+                      <th className="text-center p-1 text-gray-600"></th>
+                      <th className="text-center p-1 text-gray-600 bg-cyan-50">Employee Contribution</th>
+                      <th className="text-center p-1 text-gray-600 bg-cyan-50"></th>
+                      <th className="text-center p-1 text-gray-600 bg-cyan-50"></th>
+                      <th className="text-center p-1 text-gray-600 bg-cyan-50"></th>
+                      <th className="text-center p-1 text-gray-600 bg-yellow-50">Employer Contribution</th>
+                      <th className="text-center p-1 text-gray-600 bg-yellow-50"></th>
+                      <th className="text-center p-1 text-gray-600 bg-yellow-50"></th>
+                      <th className="text-center p-1 text-gray-600 bg-yellow-50"></th>
+                      <th className="text-center p-1 text-gray-600"></th>
+                      <th className="text-center p-1 text-gray-600"></th>
+                      <th className="text-center p-1 text-gray-600"></th>
                     </tr>
                   </thead>
                   <tbody>
                     {isLoadingItems ? (
                       <tr>
-                        <td colSpan={8} className="p-8 text-center text-gray-500">
+                        <td colSpan={13} className="p-8 text-center text-gray-500">
                           Loading payroll items...
                         </td>
                       </tr>
@@ -199,33 +219,38 @@ export default function PayrollDetailPage() {
                         
                         return (
                           <tr key={item.id} className="border-b hover:bg-gray-50">
-                            <td className="p-3 text-gray-900">{employeeSnapshot.name || 'N/A'}</td>
-                            <td className="p-3 text-gray-600">RM {basicSalary.toFixed(2)}</td>
-                            <td className="p-3 text-gray-600">RM {parseFloat(salaryData.fixedAllowance || '0').toFixed(2)}</td>
-                            <td className="p-3 text-gray-600">RM {grossSalary.toFixed(2)}</td>
-                            <td className="p-3 text-gray-600">RM {totalDeductions.toFixed(2)}</td>
-                            <td className="p-3 text-gray-600">RM {totalContributions.toFixed(2)}</td>
-                            <td className="p-3">
+                            <td className="p-2 text-gray-900 font-medium">{employeeSnapshot.name || 'N/A'}</td>
+                            <td className="p-2 text-center text-gray-600">RM {basicSalary.toFixed(2)}</td>
+                            <td className="p-2 text-center text-gray-600 bg-cyan-50">RM {parseFloat(deductionsData.epfEmployee || '0').toFixed(2)}</td>
+                            <td className="p-2 text-center text-gray-600 bg-cyan-50">RM {parseFloat(deductionsData.socsoEmployee || '0').toFixed(2)}</td>
+                            <td className="p-2 text-center text-gray-600 bg-cyan-50">RM {parseFloat(deductionsData.eisEmployee || '0').toFixed(2)}</td>
+                            <td className="p-2 text-center text-gray-600 bg-cyan-50">RM {parseFloat(deductionsData.pcb38 || deductionsData.pcb39 || '0').toFixed(2)}</td>
+                            <td className="p-2 text-center text-gray-600 bg-yellow-50">RM {parseFloat(contributionsData.epfEmployer || '0').toFixed(2)}</td>
+                            <td className="p-2 text-center text-gray-600 bg-yellow-50">RM {parseFloat(contributionsData.socsoEmployer || '0').toFixed(2)}</td>
+                            <td className="p-2 text-center text-gray-600 bg-yellow-50">RM {parseFloat(contributionsData.eisEmployer || '0').toFixed(2)}</td>
+                            <td className="p-2 text-center text-gray-600 bg-yellow-50">RM {parseFloat(contributionsData.hrdf || '0').toFixed(2)}</td>
+                            <td className="p-2 text-center text-gray-600 font-medium">RM {parseFloat(item.netPay || '0').toFixed(2)}</td>
+                            <td className="p-2 text-center">
                               {getStatusBadge(item.status || 'pending')}
                             </td>
-                            <td className="p-3 text-center">
+                            <td className="p-2 text-center">
                               <div className="flex items-center justify-center space-x-1">
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="p-1 h-7 w-7 border-gray-300"
+                                  className="p-1 h-6 w-6 border-gray-300"
                                   onClick={() => handleViewPayslip(item.employeeId)}
                                   data-testid={`button-view-payslip-${item.employeeId}`}
                                 >
-                                  <Eye className="w-3 h-3" />
+                                  <Eye className="w-2 h-2" />
                                 </Button>
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="p-1 h-7 w-7 border-gray-300"
+                                  className="p-1 h-6 w-6 border-gray-300"
                                   data-testid={`button-download-payslip-${item.employeeId}`}
                                 >
-                                  <Download className="w-3 h-3" />
+                                  <Download className="w-2 h-2" />
                                 </Button>
                               </div>
                             </td>
@@ -234,7 +259,7 @@ export default function PayrollDetailPage() {
                       })
                     ) : (
                       <tr>
-                        <td colSpan={8} className="p-8 text-center text-gray-500">
+                        <td colSpan={13} className="p-8 text-center text-gray-500">
                           No payroll items found. Click "Generate Items" to create payroll for all employees.
                         </td>
                       </tr>
