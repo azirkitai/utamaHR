@@ -311,10 +311,34 @@ export default function SalaryPayrollPage() {
     createPayrollDocumentMutation.mutate(payrollDocument);
   };
 
+  // Generate payroll items mutation  
+  const generatePayrollItemsMutation = useMutation({
+    mutationFn: async (documentId: string) => {
+      const response = await apiRequest('POST', `/api/payroll/documents/${documentId}/generate`, {});
+      return response.json();
+    },
+    onSuccess: (data, documentId) => {
+      toast({
+        title: "Payroll Items Generated",
+        description: "Slip gaji untuk semua pekerja telah dijana",
+      });
+      // Navigate to payroll details page
+      window.location.href = `/payment/salary-payroll/view/${documentId}`;
+    },
+    onError: (error: any) => {
+      console.error("Generate payroll items error:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Gagal menjana slip gaji pekerja",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleViewPayrollDocument = (documentId: string, status: string) => {
     if (status === 'approved' || status === 'Approved') {
-      // Navigate to payroll details page showing individual payslips
-      window.location.href = `/payment/salary-payroll/view/${documentId}`;
+      // First generate payroll items, then navigate
+      generatePayrollItemsMutation.mutate(documentId);
     } else {
       toast({
         title: "Document Belum Diluluskan",
