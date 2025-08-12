@@ -357,16 +357,9 @@ export default function SalaryPayrollPage() {
   });
 
   const handleViewPayrollDocument = (documentId: string, status: string) => {
-    if (status === 'approved' || status === 'Approved') {
-      // First generate payroll items, then navigate
-      generatePayrollItemsMutation.mutate(documentId);
-    } else {
-      toast({
-        title: "Document Belum Diluluskan",
-        description: "Dokumen payroll perlu diluluskan terlebih dahulu sebelum boleh melihat slip gaji pekerja",
-        variant: "destructive",
-      });
-    }
+    // Allow viewing documents in any status for approval purposes
+    // Generate payroll items first to ensure data is available, then navigate
+    generatePayrollItemsMutation.mutate(documentId);
   };
 
   const getStatusBadge = (status: string) => {
