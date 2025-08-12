@@ -126,31 +126,12 @@ export default function ClaimApprovalPage() {
   const hasApprovalRights = () => {
     if (!currentUser || !approvalSettings) return false;
     
-    console.log('=== DEBUGGING FINANCIAL CLAIM APPROVAL ACCESS ===');
-    console.log('Current user:', currentUser);
-    console.log('Approval settings:', approvalSettings);
-    console.log('Current user role:', (currentUser as any)?.role);
-    console.log('First level approver ID:', (approvalSettings as any)?.firstLevelApprovalId);
-    console.log('Second level approver ID:', (approvalSettings as any)?.secondLevelApprovalId);
-    console.log('Current user ID:', (currentUser as any)?.id);
-    
-    // Strict access control: Only designated financial approvers can access
-    // Comment out admin role bypass if you want strict approver-only access
-    /*
-    const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
-    if (adminRoles.includes((currentUser as any).role)) {
-      console.log('User has admin role - allowing access');
-      return true;
-    }
-    */
+    // Remove console logs to clean up output
     
     // Check if user is assigned as financial approver
     const isFirstLevel = (approvalSettings as any).firstLevelApprovalId === (currentUser as any).id;
     const isSecondLevel = (approvalSettings as any).secondLevelApprovalId === (currentUser as any).id;
-    
-    console.log('Is first level approver:', isFirstLevel);
-    console.log('Is second level approver:', isSecondLevel);
-    console.log('=== END DEBUG ===');
+
     
     return isFirstLevel || isSecondLevel;
   };
@@ -176,27 +157,12 @@ export default function ClaimApprovalPage() {
     }
   };
 
-  // Show access denied message if user doesn't have approval rights
-  if (!hasApprovalRights()) {
-    return (
-      <DashboardLayout>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <Card className="w-full max-w-md">
-            <CardContent className="flex flex-col items-center p-8 text-center">
-              <Shield className="w-16 h-16 text-gray-400 mb-4" />
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Akses Ditolak</h2>
-              <p className="text-gray-600 mb-4">
-                Anda tidak mempunyai kebenaran untuk mengakses halaman kelulusan tuntutan.
-              </p>
-              <p className="text-sm text-gray-500">
-                Hanya financial approver yang ditetapkan sahaja yang boleh mengakses halaman ini.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </DashboardLayout>
-    );
-  }
+  // Check if user can see financial claims
+  const userCanApproveFinancial = hasApprovalRights();
+  
+  // Filter claims based on user approval rights
+  const filteredFinancialClaims = userCanApproveFinancial ? (financialClaimsData || []) : [];
+  const filteredOvertimeClaims = (overtimeClaimsFromDB || []); // For now, all users can see overtime claims
 
   // Legacy sample data - will be replaced by real data above
   const legacyFinancialClaimsData = [
@@ -434,14 +400,17 @@ export default function ClaimApprovalPage() {
             </TableHeader>
             <TableBody>
               {selectedCategory === "financial" ? (
-                financialClaimsData.length === 0 ? (
+                filteredFinancialClaims.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={9} className="text-center py-8 text-gray-500">
-                      No data available in table
+                      {userCanApproveFinancial ? 
+                        "No data available in table" : 
+                        "You don't have permission to view financial claims. Only designated financial approvers can see and approve claims."
+                      }
                     </TableCell>
                   </TableRow>
                 ) : (
-                  financialClaimsData.map((item, index) => (
+                  filteredFinancialClaims.map((item, index) => (
                     <TableRow key={item.id}>
                       <TableCell>
                         <Checkbox 
