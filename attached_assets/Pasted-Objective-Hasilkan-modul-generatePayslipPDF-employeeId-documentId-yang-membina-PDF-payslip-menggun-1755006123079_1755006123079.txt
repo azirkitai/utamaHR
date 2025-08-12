@@ -1,0 +1,86 @@
+Objective
+Hasilkan modul generatePayslipPDF(employeeId, documentId) yang membina PDF payslip menggunakan layout & teks yang sama seperti fail rujukan “05. 0725 - SYED MUHYAZIR HQ.pdf”. Jangan guna template “Payslip_SYED_MUHYAZIR_HASSIM_JULY_2025.pdf” — itu salah format.
+
+Rujukan UI (wajib tiru susun atur & wording):
+
+Header syarikat (nama, no. pendaftaran & alamat). 
+
+Label “STRICTLY PRIVATE & CONFIDENTIAL”. 
+
+Blok NAME / I/C NO. / POSITION / MONTH / YEAR. 
+
+Jadual dua kolum INCOME (BASIC SALARY, FIXED ALLOWANCE, TOTAL GROSS INCOME) dan DEDUCTIONS (EPF, SOCSO, EIS, TOTAL DEDUCTIONS), dengan NET INCOME besar di bawah. 
+
+Seksyen CURRENT MONTH EMPLOYER CONTRIBUTION (EPF, SOCSO, EIS). 
+
+Baris YTD EMPLOYEE CONTRIBUTION & YTD EMPLOYER CONTRIBUTION + MTD di sebelahnya. 
+
+Contoh nilai pada fail rujukan untuk pengesahan:
+BASIC SALARY 3,500.00 + FIXED ALLOWANCE 500.00 → TOTAL GROSS 4,000.00;
+Deductions: EPF 440.00, SOCSO 19.75, EIS 7.90 → TOTAL DEDUCTIONS 886.35 (termasuk PCB jika ada), NET INCOME 3,113.65;
+Employer contributions contoh: EPF 520.00, SOCSO 49.90, EIS 7.90. 
+
+Sumber Data (jangan hardcode):
+Ambil snapshot dari PayrollItem (anak kepada PayrollDocument) yang sudah dijana untuk (year, month) dipilih:
+
+Employee: name, icNo, position.
+
+Period: monthName, year.
+
+Income: basic, fixedAllowance, additional[] (jika nak papar, boleh baris tambahan kecil), gross.
+
+Deductions (employee): epfEmp, socsoEmp, eisEmp, pcb38/pcb39, zakat, others[], totalEmployeeDeduction.
+
+Employer contributions: epfEr, socsoEr, eisEr, hrdf, others[].
+
+netPay.
+
+ytdEmployeeContribution, ytdEmployerContribution, mtd (jika kita simpan—atau kira ringkas untuk bulan semasa doc).
+
+Engine PDF (cadangan):
+Guna HTML+CSS + Puppeteer atau PDFKit. Pilih satu, tapi hasil akhir mesti sama layout. Pastikan:
+
+Margin set: 18–24 mm.
+
+Font sans-serif kemas (contoh: Inter/Roboto).
+
+Grid dua kolum untuk blok INCOME vs DEDUCTIONS.
+
+“NET INCOME” saiz lebih besar & tebal.
+
+Format mata wang RM 3,113.65 (2 noktah perpuluhan, tanpa tanda negatif; potongan sebagai nilai positif di seksyen DEDUCTIONS).
+
+Teks & label ikut perkataan di PDF asal (huruf besar/kecil & susunan sama). 
+
+Peraturan Perniagaan (ikut dokumen payroll yang dipilih):
+
+Tarik data ikut bulan payroll dari PayrollItem snapshot (bukan live master).
+
+Jika icNo tiada, biarkan kosong (jangan tulis “N/A”). (Dalam template asal, IC dipaparkan jika ada.) 
+
+Company header ambil dari CompanyProfile dan paparkan seperti rujukan (nama → No. pendaftaran → alamat dalam beberapa baris).
+
+Letak label “STRICTLY PRIVATE & CONFIDENTIAL” di bahagian bawah kanan/atas kanan seperti rujukan. 
+
+Fail Output:
+
+Nama fail: Payslip_{EMPLOYEE_NAME}_{MONTH}_{YEAR}.pdf
+
+Simpan ke storan (contoh /exports/payslips/…) dan kembalikan URL.
+
+Acceptance Criteria (wajib lulus):
+
+Susun atur & wording sama seperti “05. 0725 - SYED MUHYAZIR HQ.pdf”. Tiada label “EMPLOYEE DETAILS / For the period …” dsb. (itu format salah). 
+
+“NET INCOME”, “TOTAL GROSS INCOME”, “TOTAL DEDUCTIONS”, “CURRENT MONTH EMPLOYER CONTRIBUTION” & baris “YTD/MTD” mesti wujud di posisi yang setara. 
+
+Nilai contoh ujian (employee “SYED MUHYAZIR BIN HASSIM”, JULY 2025) hendaklah memaparkan BASIC 3,500 + FIXED 500 = GROSS 4,000 dan amaun statutory seperti di rujukan—bukan basic 1,500. (Buktikan mapping dari PayrollItem snapshot betul.)
+
+Jika tiada claim/OT, baris berkenaan boleh dihilangkan atau dikecilkan, tetapi jumlah gross/net mesti tepat.
+
+PDF rendering pixel-perfect (margin, align kanan untuk angka RM, 2 titik perpuluhan, lajur sejajar).
+
+Ujian Dalaman (automate ringkas):
+
+Buat test yang load PayrollItem untuk JULY 2025 (user: Syed) dan bandingkan string “TOTAL GROSS INCOME 4,000.00RM” & “NET INCOME 3,113.65RM” wujud dalam PDF text extract. 
+
