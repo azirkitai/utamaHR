@@ -1,0 +1,112 @@
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  @page { size: A4; margin: 18mm; }
+  body { font-family: Inter, Roboto, Arial, sans-serif; color:#111; font-size:12px; line-height: 1.4; }
+  .row { display:flex; gap:16px; }
+  .col { flex:1; }
+  .muted { color:#6B7280; }
+  .h-company { font-weight:700; font-size:18px; text-align: center; margin-bottom: 4px; }
+  .h-conf { font-size:10px; text-transform:uppercase; position: absolute; top: 0; right: 0; }
+  .company-info { text-align: center; margin-bottom: 20px; }
+  .kv { display:flex; gap:8px; margin:3px 0; }
+  .kv .k { width:90px; color:#6B7280; font-weight: 600; }
+  .kv .v { flex:1; font-weight:600; }
+  .panel { border:1px solid #E5E7EB; border-radius:8px; padding:12px; margin: 12px 0; }
+  .table { display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin: 12px 0; }
+  .tbl { border:1px solid #E5E7EB; border-radius:8px; }
+  .tbl .hd { background:#F9FAFB; padding:10px 12px; font-weight:700; border-bottom:1px solid #E5E7EB; text-align: center; }
+  .tbl .rowi { display:flex; justify-content:space-between; padding:8px 12px; border-bottom: 1px solid #F3F4F6; }
+  .tbl .rowi:last-child { border-bottom: none; }
+  .tbl .sep { border-top:2px solid #E5E7EB; margin-top:4px; padding-top:8px; font-weight:700; background: #F9FAFB; }
+  .money { text-align:right; min-width:120px; font-weight: 600; }
+  .net { margin-top:16px; padding:12px; border:2px solid #E5E7EB; border-radius:8px; font-weight:800; font-size:16px; display:flex; justify-content:space-between; background: #F9FAFB; }
+  .grid3 { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; margin: 12px 0; }
+  .section-title { color:#6B7280; font-weight:700; margin:16px 0 8px; font-size: 11px; }
+  .hr { border-top:1px solid #E5E7EB; margin:16px 0; }
+  .ytd-section { font-size: 11px; line-height: 1.6; }
+  .employer-contrib-item { text-align: center; padding: 8px; border: 1px solid #E5E7EB; border-radius: 6px; }
+  .employer-contrib-item .label { font-size: 11px; color: #6B7280; margin-bottom: 4px; }
+  .employer-contrib-item .amount { font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="h-conf">STRICTLY PRIVATE &amp; CONFIDENTIAL</div>
+
+<div class="company-info">
+  <div class="h-company">{{company.name}}</div>
+  <div>{{company.regNo}}</div>
+  {{#each company.addressLines}}
+  <div>{{this}}</div>
+  {{/each}}
+</div>
+
+<div class="panel">
+  <div class="row">
+    <div class="col">
+      <div class="kv"><div class="k">NAME</div><div class="v">{{employee.name}}</div></div>
+      <div class="kv"><div class="k">I/C NO.</div><div class="v">{{employee.icNo}}</div></div>
+      <div class="kv"><div class="k">POSITION</div><div class="v">{{employee.position}}</div></div>
+    </div>
+    <div class="col">
+      <div class="kv"><div class="k">MONTH</div><div class="v">{{period.month}}</div></div>
+      <div class="kv"><div class="k">YEAR</div><div class="v">{{period.year}}</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="table">
+  <div class="tbl">
+    <div class="hd">INCOME</div>
+    <div class="rowi"><div>BASIC SALARY</div><div class="money">RM {{income.basic}}</div></div>
+    <div class="rowi"><div>FIXED ALLOWANCE</div><div class="money">RM {{income.fixedAllowance}}</div></div>
+    {{#each income.items}}
+      {{#if this.show}}
+      <div class="rowi"><div>{{this.label}}</div><div class="money">RM {{this.amount}}</div></div>
+      {{/if}}
+    {{/each}}
+    <div class="rowi sep"><div>TOTAL GROSS INCOME</div><div class="money">RM {{income.totalGross}}</div></div>
+  </div>
+
+  <div class="tbl">
+    <div class="hd">DEDUCTIONS</div>
+    <div class="rowi"><div>EPF</div><div class="money">RM {{deduction.epfEmp}}</div></div>
+    <div class="rowi"><div>SOCSO</div><div class="money">RM {{deduction.socsoEmp}}</div></div>
+    <div class="rowi"><div>EIS</div><div class="money">RM {{deduction.eisEmp}}</div></div>
+    {{#each deduction.items}}
+      {{#if this.show}}
+      <div class="rowi"><div>{{this.label}}</div><div class="money">RM {{this.amount}}</div></div>
+      {{/if}}
+    {{/each}}
+    <div class="rowi sep"><div>TOTAL DEDUCTIONS</div><div class="money">RM {{deduction.total}}</div></div>
+  </div>
+</div>
+
+<div class="net"><div>NET INCOME</div><div class="money">RM {{netIncome}}</div></div>
+
+<div class="section-title">CURRENT MONTH EMPLOYER CONTRIBUTION</div>
+<div class="grid3">
+  <div class="employer-contrib-item">
+    <div class="label">EPF</div>
+    <div class="amount money">RM {{employerContrib.epfEr}}</div>
+  </div>
+  <div class="employer-contrib-item">
+    <div class="label">SOCSO</div>
+    <div class="amount money">RM {{employerContrib.socsoEr}}</div>
+  </div>
+  <div class="employer-contrib-item">
+    <div class="label">EIS</div>
+    <div class="amount money">RM {{employerContrib.eisEr}}</div>
+  </div>
+</div>
+
+<div class="hr"></div>
+<div class="ytd-section">
+  <div>YTD EMPLOYEE CONTRIBUTION: <b>RM {{ytd.employee}}</b> &nbsp;&nbsp;|&nbsp;&nbsp; YTD EMPLOYER CONTRIBUTION: <b>RM {{ytd.employer}}</b></div>
+  <div style="margin-top: 6px;">YTD MTD: <b>RM {{ytd.mtd}}</b></div>
+</div>
+
+</body>
+</html>

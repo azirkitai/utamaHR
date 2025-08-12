@@ -1,0 +1,248 @@
+Objective (STRICT): Render A4 portrait PDF payslip dengan susun atur, wording, dan hierarki sama seperti rujukan “SYED MUHYAZIR HQ”. Jangan tambah heading lain. Ikut teks label di bawah huruf besar/kecil sama.
+
+1) Spesifikasi Halaman
+Saiz: A4 portrait (210×297 mm).
+
+Margin: @page margin: 18mm (atas/bawah/kiri/kanan).
+
+Font: Inter, Roboto, Arial, sans-serif.
+
+Warna utama teks: #111; garisan #E5E7EB; label kelabu #6B7280.
+
+Penjajaran angka wang: right-align; 2 titik perpuluhan; awalan “RM ” (contoh: RM 3,113.65).
+
+2) Susun Atur (Grid Tetap)
+(A) Header Syarikat (tinggi ~38 mm)
+Baris 1 (nama syarikat – bold, 16–18px).
+
+Baris 2 nombor pendaftaran (regular, 12px).
+
+Baris 3–4 alamat (regular, 12px).
+
+Label kanan atas: STRICTLY PRIVATE & CONFIDENTIAL (uppercase, 10px).
+
+(B) Blok Butiran Pekerja & Tempoh (tinggi ~30 mm)
+Grid 2 kolum (kolum kiri 60%, kanan 40%).
+
+Kiri (label di kiri, nilai di kanan):
+
+NAME:
+
+I/C NO.:
+
+POSITION:
+
+Kanan (label di kiri, nilai di kanan):
+
+MONTH:
+
+YEAR:
+
+(C) Jadual 2 Kolum – INCOME vs DEDUCTIONS (tinggi ~125 mm)
+Judul lajur:
+
+Kiri: INCOME
+
+Kanan: DEDUCTIONS
+
+Isi kiri (urutan & label Wajib):
+
+BASIC SALARY
+
+FIXED ALLOWANCE
+
+(baris tambahan optional: OVERTIME, CLAIMS, BIK/VOLA, dll jika ada > 0)
+
+TOTAL GROSS INCOME (bold, ada border-top)
+
+Isi kanan (urutan & label Wajib):
+
+EPF
+
+SOCSO
+
+EIS
+
+(optional: PCB38/PCB39, ZAKAT, OTHER DEDUCTION jika > 0)
+
+TOTAL DEDUCTIONS (bold, ada border-top)
+
+Baris “NET INCOME” (di bawah jadual, penuh lebar, bold, 16px, nilai kanan besar).
+
+(D) Seksyen Employer Contribution (tinggi ~40 mm)
+Tajuk kecil: CURRENT MONTH EMPLOYER CONTRIBUTION
+
+1 baris 3 kolum: EPF, SOCSO, EIS (dan HRDF jika ada). Nilai right-align.
+
+(E) Seksyen YTD / MTD (tinggi ~22 mm)
+Dua baris:
+
+YTD EMPLOYEE CONTRIBUTION: RM ……… | YTD EMPLOYER CONTRIBUTION: RM ………
+
+MTD: RM ………
+
+Garis pemisah halus di atas seksyen ini.
+
+Nota: Jangan render apa-apa footer selain di atas. Tiada “For the period …”, tiada “Employee Details:” dsb.
+
+3) Kontrak Data (JSON → template)
+Agent mesti ambil data dari snapshot PayrollItem & CompanyProfile. Struktur input ke template:
+
+json
+Copy
+Edit
+{
+  "company": {
+    "name": "UTAMA MEDGROUP",
+    "regNo": "LLP0000000-LGN",
+    "addressLines": ["Alamat baris 1", "Alamat baris 2"]
+  },
+  "employee": {
+    "name": "SYED MUHYAZIR BIN HASSIM",
+    "icNo": "820101-10-1234",
+    "position": "SENIOR MANAGER"
+  },
+  "period": { "month": "JULY", "year": 2025 },
+  "income": {
+    "basic": 3500.00,
+    "fixedAllowance": 500.00,
+    "items": [
+      { "label": "OVERTIME", "amount": 0.00 },
+      { "label": "CLAIMS", "amount": 0.00 }
+    ],
+    "totalGross": 4000.00
+  },
+  "deduction": {
+    "epfEmp": 440.00,
+    "socsoEmp": 19.75,
+    "eisEmp": 7.90,
+    "items": [
+      { "label": "PCB39", "amount": 418.70 },
+      { "label": "ZAKAT", "amount": 0.00 }
+    ],
+    "total": 886.35
+  },
+  "netIncome": 3113.65,
+  "employerContrib": {
+    "epfEr": 520.00,
+    "socsoEr": 49.90,
+    "eisEr": 7.90,
+    "hrdf": 0.00
+  },
+  "ytd": { "employee": 0.00, "employer": 0.00, "mtd": 3113.65 }
+}
+Peraturan papar: item bernilai 0 boleh disembunyikan kecuali baris wajib (BASIC SALARY, FIXED ALLOWANCE, TOTAL GROSS INCOME, EPF, SOCSO, EIS, TOTAL DEDUCTIONS, NET INCOME). Jumlah mesti tetap tepat.
+
+4) Template HTML (WAJIB GUNA CLASS NAME NI)
+html
+Copy
+Edit
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  @page { size: A4; margin: 18mm; }
+  body { font-family: Inter, Roboto, Arial, sans-serif; color:#111; font-size:12px; }
+  .row { display:flex; gap:16px; }
+  .col { flex:1; }
+  .muted { color:#6B7280; }
+  .h-company { font-weight:700; font-size:18px; }
+  .h-conf { font-size:10px; text-transform:uppercase; float:right; }
+  .kv { display:flex; gap:8px; margin:2px 0; }
+  .kv .k { width:90px; color:#6B7280; }
+  .kv .v { flex:1; font-weight:600; }
+  .panel { border:1px solid #E5E7EB; border-radius:8px; padding:12px; }
+  .table { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+  .tbl { border:1px solid #E5E7EB; border-radius:8px; }
+  .tbl .hd { background:#F9FAFB; padding:10px 12px; font-weight:700; border-bottom:1px solid #E5E7EB; }
+  .tbl .rowi { display:flex; justify-content:space-between; padding:8px 12px; }
+  .tbl .sep { border-top:1px solid #E5E7EB; margin-top:4px; padding-top:8px; font-weight:700; }
+  .money { text-align:right; min-width:120px; }
+  .net { margin-top:12px; padding:12px; border:1px solid #E5E7EB; border-radius:8px; font-weight:800; font-size:16px; display:flex; justify-content:space-between; }
+  .grid3 { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; }
+  .section-title { color:#6B7280; font-weight:700; margin:14px 0 6px; }
+  .hr { border-top:1px solid #E5E7EB; margin:12px 0; }
+</style>
+</head>
+<body>
+
+<div class="h-conf">STRICTLY PRIVATE &amp; CONFIDENTIAL</div>
+<div class="h-company">{{company.name}}</div>
+<div>{{company.regNo}}</div>
+<div>{{company.addressLines[0]}}<br/>{{company.addressLines[1]}}</div>
+
+<div class="panel" style="margin-top:12px">
+  <div class="row">
+    <div class="col">
+      <div class="kv"><div class="k">NAME:</div><div class="v">{{employee.name}}</div></div>
+      <div class="kv"><div class="k">I/C NO.:</div><div class="v">{{employee.icNo}}</div></div>
+      <div class="kv"><div class="k">POSITION:</div><div class="v">{{employee.position}}</div></div>
+    </div>
+    <div class="col">
+      <div class="kv"><div class="k">MONTH:</div><div class="v">{{period.month}}</div></div>
+      <div class="kv"><div class="k">YEAR:</div><div class="v">{{period.year}}</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="table" style="margin-top:12px">
+  <div class="tbl">
+    <div class="hd">INCOME</div>
+    <div class="rowi"><div>BASIC SALARY</div><div class="money">RM {{income.basic}}</div></div>
+    <div class="rowi"><div>FIXED ALLOWANCE</div><div class="money">RM {{income.fixedAllowance}}</div></div>
+    {{#each income.items}}
+      {{#if amountGtZero}}
+      <div class="rowi"><div>{{label}}</div><div class="money">RM {{amount}}</div></div>
+      {{/if}}
+    {{/each}}
+    <div class="rowi sep"><div>TOTAL GROSS INCOME</div><div class="money">RM {{income.totalGross}}</div></div>
+  </div>
+
+  <div class="tbl">
+    <div class="hd">DEDUCTIONS</div>
+    <div class="rowi"><div>EPF</div><div class="money">RM {{deduction.epfEmp}}</div></div>
+    <div class="rowi"><div>SOCSO</div><div class="money">RM {{deduction.socsoEmp}}</div></div>
+    <div class="rowi"><div>EIS</div><div class="money">RM {{deduction.eisEmp}}</div></div>
+    {{#each deduction.items}}
+      {{#if amountGtZero}}
+      <div class="rowi"><div>{{label}}</div><div class="money">RM {{amount}}</div></div>
+      {{/if}}
+    {{/each}}
+    <div class="rowi sep"><div>TOTAL DEDUCTIONS</div><div class="money">RM {{deduction.total}}</div></div>
+  </div>
+</div>
+
+<div class="net"><div>NET INCOME</div><div class="money">RM {{netIncome}}</div></div>
+
+<div class="section-title">CURRENT MONTH EMPLOYER CONTRIBUTION</div>
+<div class="grid3">
+  <div class="panel"><div>EPF</div><div class="money">RM {{employerContrib.epfEr}}</div></div>
+  <div class="panel"><div>SOCSO</div><div class="money">RM {{employerContrib.socsoEr}}</div></div>
+  <div class="panel"><div>EIS</div><div class="money">RM {{employerContrib.eisEr}}</div></div>
+</div>
+
+<div class="hr"></div>
+<div>YTD EMPLOYEE CONTRIBUTION: <b>RM {{ytd.employee}}</b> &nbsp;&nbsp;|&nbsp;&nbsp; YTD EMPLOYER CONTRIBUTION: <b>RM {{ytd.employer}}</b></div>
+<div>MTD: <b>RM {{ytd.mtd}}</b></div>
+
+</body>
+</html>
+Nota untuk Agent: Boleh guna Handlebars/EJS atau ganti {{placeholder}} dengan nilai runtime. Untuk {{#if amountGtZero}}, anggap helper mudah: render jika amount > 0.
+
+5) Rendering (Puppeteer)
+Render HTML di atas dengan Puppeteer:
+
+await page.pdf({ format: 'A4', printBackground: true, margin: { top: '18mm', right: '18mm', bottom: '18mm', left: '18mm' } })
+
+Fail keluar: Payslip_{EMPLOYEE_NAME}_{MONTH}_{YEAR}.pdf.
+
+6) Acceptance Criteria (ketat)
+Header, blok butiran, dua kolum INCOME/DEDUCTIONS, NET INCOME, CURRENT MONTH EMPLOYER CONTRIBUTION, dan YTD/MTD mesti muncul dalam urutan dan label seperti di template.
+
+Angka wang right-align, “RM ”, 2 perpuluhan.
+
+Jika saya masukkan data contoh (basic 3500, fixed 500, epfEmp 440, socsoEmp 19.75, eisEmp 7.90, pcb 418.70) → TOTAL GROSS RM 4,000.00, TOTAL DEDUCTIONS RM 886.35, NET INCOME RM 3,113.65.
+
+Tiada heading lain (cth “Employee Details”, “For the period of…”, dll).
+
+Label STRICTLY PRIVATE & CONFIDENTIAL wajib ada.

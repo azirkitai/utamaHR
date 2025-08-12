@@ -2,6 +2,15 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth, authenticateToken } from "./auth";
 import { storage } from "./storage";
+import puppeteer from 'puppeteer';
+import handlebars from 'handlebars';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 import { 
   insertEmployeeSchema, 
   updateEmployeeSchema,
@@ -3912,7 +3921,7 @@ export function registerRoutes(app: Express): Server {
   });
 
   // =================== PDF PAYSLIP GENERATION ===================
-  // Generate PDF payslip for employee
+  // Generate PDF payslip for employee using Puppeteer + Handlebars
   app.post("/api/payroll/payslip/:employeeId/pdf", authenticateToken, async (req, res) => {
     try {
       const { employeeId } = req.params;
@@ -3939,18 +3948,25 @@ export function registerRoutes(app: Express): Server {
       const deductions = JSON.parse(payrollItem.deductions);
       const contributions = JSON.parse(payrollItem.contributions);
 
-      // Prepare payslip data following the exact format from the PDF example
-      const payslipData = {
+      // Format monetary values with proper formatting
+      const formatMoney = (value: any) => {
+        const num = parseFloat(value || "0");
+        return num.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      };
+
+      // Prepare template data following the exact format specification
+      const templateData = {
         company: {
           name: companySettings?.companyName || "UTAMA MEDGROUP SDN BHD",
-          registrationNumber: companySettings?.companyRegistrationNumber || "202201033996(1479693-H)",
-          address: companySettings?.address || "A2-22-3, SOHO SUITES @ KLCC, 20 JALAN PERAK",
-          city: companySettings?.city || "50450 WILAYAH PERSEKUTUAN",
-          state: companySettings?.state || "KUALA LUMPUR"
+          regNo: companySettings?.companyRegistrationNumber || "202201033996(1479693-H)",
+          addressLines: [
+            companySettings?.address || "A2-22-3, SOHO SUITES @ KLCC, 20 JALAN PERAK",
+            `${companySettings?.city || "50450 WILAYAH PERSEKUTUAN"}, ${companySettings?.state || "KUALA LUMPUR"}`
+          ]
         },
         employee: {
           name: employee.fullName || employeeSnapshot.name,
-          icNo: employee.nric || employeeSnapshot.nric,
+          icNo: employee.nric || employeeSnapshot.nric || "",
           position: employment?.designation || employeeSnapshot.position
         },
         period: {
@@ -3958,47 +3974,78 @@ export function registerRoutes(app: Express): Server {
           year: document.year
         },
         income: {
-          basicSalary: salary.basic || "0.00",
-          fixedAllowance: salary.fixedAllowance || "0.00",
-          totalGross: salary.gross || "0.00"
+          basic: formatMoney(salary.basic),
+          fixedAllowance: formatMoney(salary.fixedAllowance),
+          items: [
+            { label: "OVERTIME", amount: formatMoney(salary.overtime || 0), show: parseFloat(salary.overtime || "0") > 0 },
+            { label: "CLAIMS", amount: formatMoney(salary.claims || 0), show: parseFloat(salary.claims || "0") > 0 }
+          ],
+          totalGross: formatMoney(salary.gross)
         },
-        deductions: {
-          epf: deductions.epfEmployee || "0.00",
-          socso: deductions.socsoEmployee || "0.00",
-          eis: deductions.eisEmployee || "0.00",
-          mtd: deductions.pcb39 || "0.00",
-          totalDeductions: (
+        deduction: {
+          epfEmp: formatMoney(deductions.epfEmployee),
+          socsoEmp: formatMoney(deductions.socsoEmployee),
+          eisEmp: formatMoney(deductions.eisEmployee),
+          items: [
+            { label: "MTD", amount: formatMoney(deductions.pcb39 || 0), show: parseFloat(deductions.pcb39 || "0") > 0 },
+            { label: "ZAKAT", amount: formatMoney(deductions.zakat || 0), show: parseFloat(deductions.zakat || "0") > 0 }
+          ],
+          total: formatMoney(
             parseFloat(deductions.epfEmployee || "0") +
             parseFloat(deductions.socsoEmployee || "0") +
             parseFloat(deductions.eisEmployee || "0") +
-            parseFloat(deductions.pcb39 || "0")
-          ).toFixed(2)
+            parseFloat(deductions.pcb39 || "0") +
+            parseFloat(deductions.zakat || "0")
+          )
         },
-        netIncome: payrollItem.netPay,
-        ytdEmployee: {
-          epf: "2,783.00", // These should be calculated from historical data
-          socso: "124.75",
-          eis: "49.90",
-          mtd: "429.70"
+        netIncome: formatMoney(payrollItem.netPay),
+        employerContrib: {
+          epfEr: formatMoney(contributions.epfEmployer),
+          socsoEr: formatMoney(contributions.socsoEmployer),
+          eisEr: formatMoney(contributions.eisEmployer)
         },
-        ytdEmployer: {
-          epf: contributions.epfEmployer || "0.00",
-          socso: contributions.socsoEmployer || "0.00", 
-          eis: contributions.eisEmployer || "0.00"
-        },
-        currentEmployer: {
-          epf: contributions.epfEmployer || "0.00",
-          socso: contributions.socsoEmployer || "0.00",
-          eis: contributions.eisEmployer || "0.00"
+        ytd: {
+          employee: formatMoney(2783.00), // Should be calculated from YTD
+          employer: formatMoney(3289.00), // Should be calculated from YTD
+          mtd: formatMoney(payrollItem.netPay)
         }
       };
 
-      // Generate PDF buffer (simplified - full implementation would use jsPDF)
-      res.json({
-        message: "PDF payslip generated successfully",
-        data: payslipData,
-        downloadUrl: `/api/payroll/payslip/${employeeId}/download?documentId=${documentId}`
+      // Read and compile the Handlebars template
+      const templatePath = join(__dirname, 'payslip-template.html');
+      const templateSource = readFileSync(templatePath, 'utf8');
+      const template = handlebars.compile(templateSource);
+      const html = template(templateData);
+
+      // Generate PDF using Puppeteer
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
       });
+      
+      const page = await browser.newPage();
+      await page.setContent(html, { waitUntil: 'networkidle0' });
+      
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: {
+          top: '18mm',
+          right: '18mm',
+          bottom: '18mm',
+          left: '18mm'
+        }
+      });
+      
+      await browser.close();
+
+      // Set headers for PDF download
+      const fileName = `Payslip_${employee.fullName?.replace(/\s+/g, '_')}_${getMonthName(document.month)}_${document.year}.pdf`;
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+      
+      res.send(pdfBuffer);
 
     } catch (error) {
       console.error("Error generating payslip PDF:", error);

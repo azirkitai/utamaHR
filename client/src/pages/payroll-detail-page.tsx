@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Download, Eye } from "lucide-react";
 import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import jsPDF from "jspdf";
+// Removed jsPDF - now using server-side Puppeteer for PDF generation
 
 export default function PayrollDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -48,163 +48,19 @@ export default function PayrollDetailPage() {
         throw new Error('Failed to generate PDF payslip');
       }
 
-      const result = await response.json();
-      const payslipData = result.data;
+      // Server now returns the PDF buffer directly
+      const blob = await response.blob();
       
-      // Generate actual PDF using jsPDF following exact format from reference document
-      const pdf = new jsPDF();
-      
-      // Set font to match reference document
-      pdf.setFont("helvetica");
-      
-      // Company Header (centered, exactly like reference)
-      pdf.setFontSize(14);
-      pdf.setFont("helvetica", "bold");
-      const companyName = payslipData.company.name;
-      const companyRegNo = payslipData.company.registrationNumber;
-      const companyAddress = payslipData.company.address;
-      const companyCityState = `${payslipData.company.city}`;
-      const companyState = payslipData.company.state;
-      
-      // Center-align company header
-      pdf.text(companyName, 105, 20, { align: 'center' });
-      pdf.setFontSize(10);
-      pdf.setFont("helvetica", "normal");
-      pdf.text(companyRegNo, 105, 28, { align: 'center' });
-      pdf.text(companyAddress, 105, 36, { align: 'center' });
-      pdf.text(companyCityState, 105, 44, { align: 'center' });
-      pdf.text(companyState, 105, 52, { align: 'center' });
-      
-      // Employee Info Block (left side) and Period (right side) - exactly like reference
-      pdf.setFontSize(10);
-      pdf.setFont("helvetica", "bold");
-      
-      // Left side - Employee details
-      pdf.text("NAME", 20, 75);
-      pdf.text("I/C NO.", 20, 83);
-      pdf.text("POSITION", 20, 91);
-      
-      // Right side - Period  
-      pdf.text("MONTH", 150, 75);
-      pdf.text("YEAR", 150, 83);
-      
-      // Values
-      pdf.setFont("helvetica", "normal");
-      pdf.text(payslipData.employee.name, 50, 75);
-      pdf.text(payslipData.employee.icNo || "", 50, 83);
-      pdf.text(payslipData.employee.position, 50, 91);
-      pdf.text(payslipData.period.month, 170, 75);
-      pdf.text(payslipData.period.year.toString(), 170, 83);
-      
-      // Two-column layout for INCOME and DEDUCTIONS (exactly like reference)
-      pdf.setFont("helvetica", "bold");
-      pdf.text("INCOME", 20, 110);
-      pdf.text("DEDUCTIONS", 120, 110);
-      
-      // Income section (left column)
-      pdf.setFont("helvetica", "normal");
-      pdf.text("BASIC SALARY", 20, 120);
-      pdf.text(`RM`, 70, 120);
-      pdf.text(parseFloat(payslipData.income.basicSalary).toFixed(2), 85, 120, { align: 'right' });
-      
-      pdf.text("FIXED ALLOWANCE", 20, 128);
-      pdf.text(`RM`, 70, 128);
-      pdf.text(parseFloat(payslipData.income.fixedAllowance).toFixed(2), 85, 128, { align: 'right' });
-      
-      // Deductions section (right column)
-      pdf.text("EPF", 120, 120);
-      pdf.text(`RM`, 170, 120);
-      pdf.text(parseFloat(payslipData.deductions.epf).toFixed(2), 185, 120, { align: 'right' });
-      
-      pdf.text("SOCSO", 120, 128);
-      pdf.text(`RM`, 170, 128);
-      pdf.text(parseFloat(payslipData.deductions.socso).toFixed(2), 185, 128, { align: 'right' });
-      
-      pdf.text("EIS", 120, 136);
-      pdf.text(`RM`, 170, 136);
-      pdf.text(parseFloat(payslipData.deductions.eis).toFixed(2), 185, 136, { align: 'right' });
-      
-      pdf.text("MTD", 120, 144);
-      pdf.text(`RM`, 170, 144);
-      pdf.text(payslipData.deductions.mtd || "0", 185, 144, { align: 'right' });
-      
-      // Total lines (bold)
-      pdf.setFont("helvetica", "bold");
-      pdf.text("TOTAL GROSS INCOME", 20, 155);
-      pdf.text("RM", 70, 155);
-      pdf.text(parseFloat(payslipData.income.totalGross).toFixed(2), 85, 155, { align: 'right' });
-      
-      pdf.text("TOTAL DEDUCTIONS", 120, 155);
-      pdf.text("RM", 170, 155);
-      pdf.text(parseFloat(payslipData.deductions.totalDeductions).toFixed(2), 185, 155, { align: 'right' });
-      
-      // NET INCOME (large, centered)
-      pdf.setFontSize(12);
-      pdf.text("NET INCOME", 105, 175, { align: 'center' });
-      pdf.text(`RM ${parseFloat(payslipData.netIncome).toFixed(2)}`, 105, 185, { align: 'center' });
-      
-      // YTD sections (exactly like reference format)
-      pdf.setFontSize(10);
-      pdf.setFont("helvetica", "bold");
-      pdf.text("YTD EMPLOYEE CONTRIBUTION:", 20, 205);
-      pdf.text("YTD EMPLOYER CONTRIBUTION:", 120, 205);
-      
-      pdf.setFont("helvetica", "normal");
-      // YTD Employee (left)
-      pdf.text("EPF", 20, 215);
-      pdf.text(`RM`, 50, 215);
-      pdf.text(parseFloat(payslipData.ytdEmployee.epf.toString().replace(',', '')).toFixed(2), 70, 215, { align: 'right' });
-      
-      pdf.text("SOCSO", 20, 223);
-      pdf.text(`RM`, 50, 223);
-      pdf.text(parseFloat(payslipData.ytdEmployee.socso).toFixed(2), 70, 223, { align: 'right' });
-      
-      pdf.text("EIS", 20, 231);
-      pdf.text(`RM`, 50, 231);
-      pdf.text(parseFloat(payslipData.ytdEmployee.eis).toFixed(2), 70, 231, { align: 'right' });
-      
-      pdf.text("YTD MTD:", 20, 239);
-      pdf.text(`RM`, 50, 239);
-      pdf.text(parseFloat(payslipData.ytdEmployee.mtd).toFixed(2), 70, 239, { align: 'right' });
-      
-      // YTD Employer (right)
-      pdf.text("EPF", 120, 215);
-      pdf.text(`RM`, 150, 215);
-      pdf.text(parseFloat(payslipData.ytdEmployer.epf.toString().replace(',', '')).toFixed(2), 170, 215, { align: 'right' });
-      
-      pdf.text("SOCSO", 120, 223);
-      pdf.text(`RM`, 150, 223);
-      pdf.text(parseFloat(payslipData.ytdEmployer.socso).toFixed(2), 170, 223, { align: 'right' });
-      
-      pdf.text("EIS", 120, 231);
-      pdf.text(`RM`, 150, 231);
-      pdf.text(parseFloat(payslipData.ytdEmployer.eis).toFixed(2), 170, 231, { align: 'right' });
-      
-      // Current Month Employer Contribution
-      pdf.setFont("helvetica", "bold");
-      pdf.text("CURRENT MONTH EMPLOYER CONTRIBUTION:", 120, 245);
-      
-      pdf.setFont("helvetica", "normal");
-      pdf.text("EPF", 120, 255);
-      pdf.text(`RM`, 150, 255);
-      pdf.text(parseFloat(payslipData.currentEmployer.epf).toFixed(2), 170, 255, { align: 'right' });
-      
-      pdf.text("SOCSO", 120, 263);
-      pdf.text(`RM`, 150, 263);
-      pdf.text(parseFloat(payslipData.currentEmployer.socso).toFixed(2), 170, 263, { align: 'right' });
-      
-      pdf.text("EIS", 120, 271);
-      pdf.text(`RM`, 150, 271);
-      pdf.text(parseFloat(payslipData.currentEmployer.eis).toFixed(2), 170, 271, { align: 'right' });
-      
-      // Footer - Strictly Private & Confidential
-      pdf.setFontSize(8);
-      pdf.setFont("helvetica", "bold");
-      pdf.text("STRICTLY PRIVATE & CONFIDENTIAL", 105, 285, { align: 'center' });
-      
-      // Save and download the PDF
-      const fileName = `Payslip_${payslipData.employee.name.replace(/\s+/g, '_')}_${payslipData.period.month}_${payslipData.period.year}.pdf`;
-      pdf.save(fileName);
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `Payslip_${employeeName.replace(/\s+/g, '_')}_${payrollDocument?.month}_${payrollDocument?.year}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
       
       console.log('PDF payslip generated and downloaded successfully');
     } catch (error) {
