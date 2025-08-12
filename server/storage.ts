@@ -2538,11 +2538,11 @@ export class DatabaseStorage implements IStorage {
       }
 
       // Get employee's salary information
-      const salary = await this.getEmployeeSalary(employee.id);
-      const basicEarning = await this.getSalaryBasicEarning(employee.id);
-      const additionalItems = await this.getSalaryAdditionalItems(employee.id);
-      const deductionItems = await this.getSalaryDeductionItems(employee.id);
-      const contributions = await this.getSalaryCompanyContributions(employee.id);
+      const salary = await this.getEmployeeSalaryByEmployeeId(employee.id);
+      const basicSalary = parseFloat(salary?.basicSalary || '0');
+      const additionalItems = salary?.additionalItems ? JSON.parse(salary.additionalItems) : [];
+      const deductionItems = salary?.deductions ? JSON.parse(salary.deductions) : {};
+      const contributions = salary?.contributions ? JSON.parse(salary.contributions) : {};
 
       // Calculate overtime for this month
       const overtimeAmount = await this.calculateEmployeeOvertime(employee.id, document.year, document.month);
@@ -2564,47 +2564,43 @@ export class DatabaseStorage implements IStorage {
           position: 'Employee' // Could be enhanced with actual position
         }),
         salary: JSON.stringify({
-          basic: basicEarning?.amount || '0',
-          computed: basicEarning?.amount || '0',
+          basic: basicSalary.toString(),
+          computed: basicSalary.toString(),
           fixedAllowance: '0',
-          additional: additionalItems.map(item => ({
-            name: item.name,
-            amount: item.amount,
-            type: item.type
-          })),
-          gross: this.calculateGrossSalary(basicEarning, additionalItems)
+          additional: additionalItems || [],
+          gross: this.calculateGrossSalary(basicSalary, additionalItems)
         }),
         overtime: JSON.stringify({
-          hours: overtimeAmount.hours || 0,
-          amount: overtimeAmount.amount || 0,
+          hours: overtimeAmount || 0,
+          amount: overtimeAmount || 0,
           calcNote: 'Calculated from approved overtime claims'
         }),
         claims: JSON.stringify(claimsData),
         unpaidLeave: JSON.stringify(unpaidLeaveData),
         lateness: JSON.stringify({ minutes: 0, amount: 0 }), // To be implemented
         deductions: JSON.stringify({
-          epfEmployee: this.calculateEPFEmployee(basicEarning?.amount || '0'),
-          socsoEmployee: this.calculateSOCSO(basicEarning?.amount || '0', 'employee'),
-          eisEmployee: this.calculateEIS(basicEarning?.amount || '0', 'employee'),
+          epfEmployee: this.calculateEPFEmployee(basicSalary.toString()),
+          socsoEmployee: this.calculateSOCSO(basicSalary.toString(), 'employee'),
+          eisEmployee: this.calculateEIS(basicSalary.toString(), 'employee'),
           pcb38: '0',
           pcb39: '0',
           zakat: '0',
-          other: deductionItems.map(item => ({
-            name: item.name,
-            amount: item.amount
+          other: Object.entries(deductionItems || {}).map(([name, amount]) => ({
+            name,
+            amount: amount?.toString() || '0'
           }))
         }),
         contributions: JSON.stringify({
-          epfEmployer: this.calculateEPFEmployer(basicEarning?.amount || '0'),
-          socsoEmployer: this.calculateSOCSO(basicEarning?.amount || '0', 'employer'),
-          eisEmployer: this.calculateEIS(basicEarning?.amount || '0', 'employer'),
+          epfEmployer: this.calculateEPFEmployer(basicSalary.toString()),
+          socsoEmployer: this.calculateSOCSO(basicSalary.toString(), 'employer'),
+          eisEmployer: this.calculateEIS(basicSalary.toString(), 'employer'),
           hrdf: '0',
-          other: contributions.map(item => ({
-            name: item.name,
-            amount: item.amount
+          other: Object.entries(contributions || {}).map(([name, amount]) => ({
+            name,
+            amount: amount?.toString() || '0'
           }))
         }),
-        netPay: this.calculateNetPay(basicEarning, additionalItems, deductionItems, overtimeAmount),
+        netPay: this.calculateNetPay({ amount: basicSalary.toString() }, additionalItems, deductionItems, { amount: overtimeAmount }),
         audit: JSON.stringify({
           generatedAt: new Date().toISOString(),
           generatedBy: 'system',
@@ -2619,12 +2615,15 @@ export class DatabaseStorage implements IStorage {
     return generatedItems;
   }
 
-  // Helper methods for payroll calculations
-  private calculateGrossSalary(basicEarning: any, additionalItems: any[]): string {
-    const basic = parseFloat(basicEarning?.amount || '0');
-    const additional = additionalItems.reduce((sum, item) => sum + parseFloat(item.amount || '0'), 0);
-    return (basic + additional).toFixed(2);
+  private calculateGrossSalary(basicSalary: number, additionalItems: any[]): string {
+    const totalAdditional = additionalItems.reduce((sum, item) => {
+      return sum + parseFloat(item.amount || '0');
+    }, 0);
+    
+    return (basicSalary + totalAdditional).toFixed(2);
   }
+
+  // Helper methods for payroll calculations
 
   private calculateEPFEmployee(basicSalary: string): string {
     const basic = parseFloat(basicSalary);
@@ -2674,8 +2673,29 @@ export class DatabaseStorage implements IStorage {
     return (grossPay - totalDeductions).toFixed(2);
   }
 
-  private async calculateEmployeeOvertime(employeeId: string, year: number, month: number): Promise<{ hours: number; amount: number }> {
+  private async calculateEmployeeOvertime(employeeId: string, year: number, month: number): Promise<number> {
     // Get approved overtime claims for the month
+    const claims = await db
+      .select()
+      .from(overtimeClaims)
+      .where(
+        and(
+          eq(overtimeClaims.employeeId, employeeId),
+          eq(overtimeClaims.status, 'approved'),
+          sql`EXTRACT(YEAR FROM ${overtimeClaims.overtimeDate}) = ${year}`,
+          sql`EXTRACT(MONTH FROM ${overtimeClaims.overtimeDate}) = ${month}`
+        )
+      );
+
+    // Calculate total overtime amount
+    const totalAmount = claims.reduce((sum, claim) => {
+      return sum + parseFloat(claim.totalAmount || '0');
+    }, 0);
+
+    return totalAmount;
+  }
+
+  private async getApprovedClaimsForMonth(employeeId: string, year: number, month: number): Promise<any[]> {
     const claims = await db
       .select()
       .from(claimApplications)
@@ -2734,9 +2754,10 @@ export class DatabaseStorage implements IStorage {
 
     const totalDays = leaves.reduce((sum, leave) => sum + parseFloat(leave.totalDays || '0'), 0);
     
-    // Get basic salary to calculate deduction
-    const basicEarning = await this.getSalaryBasicEarning(employeeId);
-    const dailyRate = parseFloat(basicEarning?.amount || '0') / 26; // Assuming 26 working days
+    // Get basic salary to calculate deduction  
+    const salary = await this.getEmployeeSalaryByEmployeeId(employeeId);
+    const basicSalary = parseFloat(salary?.basicSalary || '0');
+    const dailyRate = basicSalary / 26; // Assuming 26 working days
     const deductionAmount = totalDays * dailyRate;
 
     return { days: totalDays, amount: deductionAmount };
