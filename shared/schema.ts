@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, decimal, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, decimal, boolean, unique } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -522,6 +522,79 @@ export const overtimeSettings = pgTable('overtime_settings', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+// Payroll Document Table (dokumen bulanan - level syarikat)
+export const payrollDocuments = pgTable('payroll_documents', {
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  year: integer('year').notNull(),
+  month: integer('month').notNull(), // 1-12
+  payrollDate: timestamp('payroll_date').notNull(),
+  remarks: text('remarks'),
+  status: text('status').notNull().default('Preparing'), // 'Preparing', 'PendingApproval', 'Approved', 'Closed'
+  
+  // Step tracking
+  steps: text('steps').notNull().default('{"step1":"Update&Review","step2":"Approval","step3":"Payment&Close"}'), // JSON
+  
+  // Include flags for what to calculate
+  includeFlags: text('include_flags').notNull().default('{"includeClaims":true,"includeOvertime":true,"includeUnpaidLeave":true,"includeLateness":true}'), // JSON
+  
+  // Audit fields
+  createdBy: varchar('created_by').notNull().references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  approvedBy: text('approved_by'), // JSON array of approver IDs
+  approvedAt: timestamp('approved_at'),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  // Unique constraint: one document per (year, month)
+  uniqueYearMonth: unique('payroll_documents_year_month_unique').on(table.year, table.month),
+}));
+
+// Payroll Item Table (payslip individu - anak kepada PayrollDocument)
+export const payrollItems = pgTable('payroll_items', {
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  documentId: varchar('document_id').notNull().references(() => payrollDocuments.id, { onDelete: 'cascade' }),
+  employeeId: varchar('employee_id').notNull().references(() => employees.id),
+  
+  // Snapshot profil pekerja (tidak berubah walaupun master data berubah)
+  employeeSnapshot: text('employee_snapshot').notNull(), // JSON: {name, position, nric, etc}
+  
+  // Salary components (snapshot from MasterSalary)
+  salary: text('salary').notNull(), // JSON: {basic, computed, fixedAllowance, additional[], gross}
+  
+  // Overtime calculation for this month
+  overtime: text('overtime').notNull().default('{"hours":0,"amount":0,"calcNote":""}'), // JSON: {hours, amount, calcNote}
+  
+  // Claims for this month (if included)
+  claims: text('claims').notNull().default('[]'), // JSON array of claims
+  
+  // Unpaid leave calculation
+  unpaidLeave: text('unpaid_leave').notNull().default('{"days":0,"amount":0}'), // JSON: {days, amount}
+  
+  // Lateness calculation
+  lateness: text('lateness').notNull().default('{"minutes":0,"amount":0}'), // JSON: {minutes, amount}
+  
+  // Deductions
+  deductions: text('deductions').notNull(), // JSON: {epfEmployee, socsoEmployee, eisEmployee, pcb38, pcb39, zakat, other[]}
+  
+  // Company contributions
+  contributions: text('contributions').notNull(), // JSON: {epfEmployer, socsoEmployer, eisEmployer, hrdf, other[]}
+  
+  // Final calculations
+  netPay: decimal('net_pay', { precision: 12, scale: 2 }).notNull(),
+  
+  // Status and lock
+  status: text('status').notNull().default('Preparing'), // Inherits from document
+  locked: boolean('locked').notNull().default(false), // true after Submit Payment
+  
+  // Audit trail
+  audit: text('audit').notNull(), // JSON: {generatedAt, generatedBy, recalcAt[]}
+  
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  // Unique constraint: one payroll item per employee per document
+  uniqueDocumentEmployee: unique('payroll_items_document_employee_unique').on(table.documentId, table.employeeId),
+}));
+
 // Claim Applications Table (for Financial and Overtime claims)
 export const claimApplications = pgTable('claim_applications', {
   id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
@@ -857,6 +930,29 @@ export const insertOvertimeSettingSchema = createInsertSchema(overtimeSettings).
 });
 export const updateOvertimeSettingSchema = insertOvertimeSettingSchema.partial();
 
+// Payroll Document schemas
+export const insertPayrollDocumentSchema = createInsertSchema(payrollDocuments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  approvedAt: true,
+}).extend({
+  // Handle date fields to accept strings and convert to Date objects
+  payrollDate: z.preprocess(
+    (val) => val ? new Date(val as string | Date) : new Date(),
+    z.date()
+  ),
+});
+export const updatePayrollDocumentSchema = insertPayrollDocumentSchema.partial();
+
+// Payroll Item schemas
+export const insertPayrollItemSchema = createInsertSchema(payrollItems).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const updatePayrollItemSchema = insertPayrollItemSchema.partial();
+
 // Claim Application schemas
 export const insertClaimApplicationSchema = createInsertSchema(claimApplications).omit({
   id: true,
@@ -969,6 +1065,16 @@ export type UpdateOvertimePolicy = z.infer<typeof updateOvertimePolicySchema>;
 export type OvertimeSetting = typeof overtimeSettings.$inferSelect;
 export type InsertOvertimeSetting = z.infer<typeof insertOvertimeSettingSchema>;
 export type UpdateOvertimeSetting = z.infer<typeof updateOvertimeSettingSchema>;
+
+// Payroll Document types
+export type PayrollDocument = typeof payrollDocuments.$inferSelect;
+export type InsertPayrollDocument = z.infer<typeof insertPayrollDocumentSchema>;
+export type UpdatePayrollDocument = z.infer<typeof updatePayrollDocumentSchema>;
+
+// Payroll Item types
+export type PayrollItem = typeof payrollItems.$inferSelect;
+export type InsertPayrollItem = z.infer<typeof insertPayrollItemSchema>;
+export type UpdatePayrollItem = z.infer<typeof updatePayrollItemSchema>;
 
 // Claim Application types
 export type ClaimApplication = typeof claimApplications.$inferSelect;

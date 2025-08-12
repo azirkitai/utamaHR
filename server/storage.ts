@@ -149,6 +149,15 @@ import {
   overtimeSettings,
   overtimePolicies,
   overtimeApprovalSettings,
+  // Payroll types
+  payrollDocuments,
+  payrollItems,
+  type PayrollDocument,
+  type InsertPayrollDocument,
+  type UpdatePayrollDocument,
+  type PayrollItem,
+  type InsertPayrollItem,
+  type UpdatePayrollItem,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, sql, asc, ilike, or, gte, lte, inArray, not } from "drizzle-orm";
@@ -345,6 +354,22 @@ export interface IStorage {
   updateClaimApplication(id: string, application: UpdateClaimApplication): Promise<ClaimApplication | undefined>;
   approveClaimApplication(id: string, approverId: string): Promise<boolean>;
   rejectClaimApplication(id: string, rejectorId: string, reason: string): Promise<boolean>;
+  
+  // =================== PAYROLL METHODS ===================
+  getAllPayrollDocuments(): Promise<PayrollDocument[]>;
+  getPayrollDocument(id: string): Promise<PayrollDocument | undefined>;
+  getPayrollDocumentByYearMonth(year: number, month: number): Promise<PayrollDocument | undefined>;
+  createPayrollDocument(document: InsertPayrollDocument): Promise<PayrollDocument>;
+  updatePayrollDocument(id: string, document: UpdatePayrollDocument): Promise<PayrollDocument | undefined>;
+  deletePayrollDocument(id: string): Promise<boolean>;
+  
+  getPayrollItemsByDocumentId(documentId: string): Promise<PayrollItem[]>;
+  getPayrollItem(id: string): Promise<PayrollItem | undefined>;
+  getPayrollItemByDocumentAndEmployee(documentId: string, employeeId: string): Promise<PayrollItem | undefined>;
+  createPayrollItem(item: InsertPayrollItem): Promise<PayrollItem>;
+  updatePayrollItem(id: string, item: UpdatePayrollItem): Promise<PayrollItem | undefined>;
+  deletePayrollItem(id: string): Promise<boolean>;
+  generatePayrollItems(documentId: string): Promise<PayrollItem[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2399,6 +2424,322 @@ export class DatabaseStorage implements IStorage {
       .delete(salaryCompanyContributions)
       .where(eq(salaryCompanyContributions.id, id));
     return (result.rowCount ?? 0) > 0;
+  }
+
+  // =================== PAYROLL METHODS ===================
+  async getAllPayrollDocuments(): Promise<PayrollDocument[]> {
+    return await db.select().from(payrollDocuments).orderBy(desc(payrollDocuments.year), desc(payrollDocuments.month));
+  }
+
+  async getPayrollDocument(id: string): Promise<PayrollDocument | undefined> {
+    const [document] = await db.select().from(payrollDocuments).where(eq(payrollDocuments.id, id));
+    return document || undefined;
+  }
+
+  async getPayrollDocumentByYearMonth(year: number, month: number): Promise<PayrollDocument | undefined> {
+    const [document] = await db
+      .select()
+      .from(payrollDocuments)
+      .where(and(eq(payrollDocuments.year, year), eq(payrollDocuments.month, month)));
+    return document || undefined;
+  }
+
+  async createPayrollDocument(insertDocument: InsertPayrollDocument): Promise<PayrollDocument> {
+    const [document] = await db
+      .insert(payrollDocuments)
+      .values(insertDocument)
+      .returning();
+    return document;
+  }
+
+  async updatePayrollDocument(id: string, updateDocument: UpdatePayrollDocument): Promise<PayrollDocument | undefined> {
+    const [document] = await db
+      .update(payrollDocuments)
+      .set({
+        ...updateDocument,
+        updatedAt: new Date()
+      })
+      .where(eq(payrollDocuments.id, id))
+      .returning();
+    return document || undefined;
+  }
+
+  async deletePayrollDocument(id: string): Promise<boolean> {
+    const result = await db.delete(payrollDocuments).where(eq(payrollDocuments.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async getPayrollItemsByDocumentId(documentId: string): Promise<PayrollItem[]> {
+    return await db
+      .select()
+      .from(payrollItems)
+      .where(eq(payrollItems.documentId, documentId))
+      .orderBy(asc(payrollItems.employeeId));
+  }
+
+  async getPayrollItem(id: string): Promise<PayrollItem | undefined> {
+    const [item] = await db.select().from(payrollItems).where(eq(payrollItems.id, id));
+    return item || undefined;
+  }
+
+  async getPayrollItemByDocumentAndEmployee(documentId: string, employeeId: string): Promise<PayrollItem | undefined> {
+    const [item] = await db
+      .select()
+      .from(payrollItems)
+      .where(and(eq(payrollItems.documentId, documentId), eq(payrollItems.employeeId, employeeId)));
+    return item || undefined;
+  }
+
+  async createPayrollItem(insertItem: InsertPayrollItem): Promise<PayrollItem> {
+    const [item] = await db
+      .insert(payrollItems)
+      .values(insertItem)
+      .returning();
+    return item;
+  }
+
+  async updatePayrollItem(id: string, updateItem: UpdatePayrollItem): Promise<PayrollItem | undefined> {
+    const [item] = await db
+      .update(payrollItems)
+      .set({
+        ...updateItem,
+        updatedAt: new Date()
+      })
+      .where(eq(payrollItems.id, id))
+      .returning();
+    return item || undefined;
+  }
+
+  async deletePayrollItem(id: string): Promise<boolean> {
+    const result = await db.delete(payrollItems).where(eq(payrollItems.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async generatePayrollItems(documentId: string): Promise<PayrollItem[]> {
+    // Get document to check year and month
+    const document = await this.getPayrollDocument(documentId);
+    if (!document) {
+      throw new Error('Payroll document not found');
+    }
+
+    // Get all active employees
+    const allEmployees = await db
+      .select()
+      .from(employees)
+      .where(eq(employees.status, 'employed'));
+
+    const generatedItems: PayrollItem[] = [];
+
+    for (const employee of allEmployees) {
+      // Check if payroll item already exists for this employee
+      const existingItem = await this.getPayrollItemByDocumentAndEmployee(documentId, employee.id);
+      if (existingItem) {
+        continue; // Skip if already exists
+      }
+
+      // Get employee's salary information
+      const salary = await this.getEmployeeSalary(employee.id);
+      const basicEarning = await this.getSalaryBasicEarning(employee.id);
+      const additionalItems = await this.getSalaryAdditionalItems(employee.id);
+      const deductionItems = await this.getSalaryDeductionItems(employee.id);
+      const contributions = await this.getSalaryCompanyContributions(employee.id);
+
+      // Calculate overtime for this month
+      const overtimeAmount = await this.calculateEmployeeOvertime(employee.id, document.year, document.month);
+
+      // Calculate claims for this month
+      const claimsData = await this.getApprovedClaimsForMonth(employee.id, document.year, document.month);
+
+      // Calculate unpaid leave for this month
+      const unpaidLeaveData = await this.calculateUnpaidLeave(employee.id, document.year, document.month);
+
+      // Create payroll item
+      const payrollItemData: InsertPayrollItem = {
+        documentId,
+        employeeId: employee.id,
+        employeeSnapshot: JSON.stringify({
+          name: employee.fullName,
+          nric: employee.nric,
+          staffId: employee.staffId,
+          position: 'Employee' // Could be enhanced with actual position
+        }),
+        salary: JSON.stringify({
+          basic: basicEarning?.amount || '0',
+          computed: basicEarning?.amount || '0',
+          fixedAllowance: '0',
+          additional: additionalItems.map(item => ({
+            name: item.name,
+            amount: item.amount,
+            type: item.type
+          })),
+          gross: this.calculateGrossSalary(basicEarning, additionalItems)
+        }),
+        overtime: JSON.stringify({
+          hours: overtimeAmount.hours || 0,
+          amount: overtimeAmount.amount || 0,
+          calcNote: 'Calculated from approved overtime claims'
+        }),
+        claims: JSON.stringify(claimsData),
+        unpaidLeave: JSON.stringify(unpaidLeaveData),
+        lateness: JSON.stringify({ minutes: 0, amount: 0 }), // To be implemented
+        deductions: JSON.stringify({
+          epfEmployee: this.calculateEPFEmployee(basicEarning?.amount || '0'),
+          socsoEmployee: this.calculateSOCSO(basicEarning?.amount || '0', 'employee'),
+          eisEmployee: this.calculateEIS(basicEarning?.amount || '0', 'employee'),
+          pcb38: '0',
+          pcb39: '0',
+          zakat: '0',
+          other: deductionItems.map(item => ({
+            name: item.name,
+            amount: item.amount
+          }))
+        }),
+        contributions: JSON.stringify({
+          epfEmployer: this.calculateEPFEmployer(basicEarning?.amount || '0'),
+          socsoEmployer: this.calculateSOCSO(basicEarning?.amount || '0', 'employer'),
+          eisEmployer: this.calculateEIS(basicEarning?.amount || '0', 'employer'),
+          hrdf: '0',
+          other: contributions.map(item => ({
+            name: item.name,
+            amount: item.amount
+          }))
+        }),
+        netPay: this.calculateNetPay(basicEarning, additionalItems, deductionItems, overtimeAmount),
+        audit: JSON.stringify({
+          generatedAt: new Date().toISOString(),
+          generatedBy: 'system',
+          recalcAt: []
+        })
+      };
+
+      const createdItem = await this.createPayrollItem(payrollItemData);
+      generatedItems.push(createdItem);
+    }
+
+    return generatedItems;
+  }
+
+  // Helper methods for payroll calculations
+  private calculateGrossSalary(basicEarning: any, additionalItems: any[]): string {
+    const basic = parseFloat(basicEarning?.amount || '0');
+    const additional = additionalItems.reduce((sum, item) => sum + parseFloat(item.amount || '0'), 0);
+    return (basic + additional).toFixed(2);
+  }
+
+  private calculateEPFEmployee(basicSalary: string): string {
+    const basic = parseFloat(basicSalary);
+    if (basic <= 20) return '0.00';
+    const epf = Math.min(basic * 0.11, 660); // 11% employee contribution, max RM660
+    return epf.toFixed(2);
+  }
+
+  private calculateEPFEmployer(basicSalary: string): string {
+    const basic = parseFloat(basicSalary);
+    if (basic <= 20) return '0.00';
+    const epf = Math.min(basic * 0.12, 720); // 12% employer contribution, max RM720
+    return epf.toFixed(2);
+  }
+
+  private calculateSOCSO(basicSalary: string, type: 'employee' | 'employer'): string {
+    const basic = parseFloat(basicSalary);
+    if (basic > 4000) return '0.00'; // SOCSO ceiling
+    
+    // Simplified SOCSO calculation
+    const rate = type === 'employee' ? 0.005 : 0.0175; // 0.5% employee, 1.75% employer
+    return (basic * rate).toFixed(2);
+  }
+
+  private calculateEIS(basicSalary: string, type: 'employee' | 'employer'): string {
+    const basic = parseFloat(basicSalary);
+    if (basic > 5000) return '0.00'; // EIS ceiling
+    
+    const rate = 0.002; // 0.2% each for employee and employer
+    return (basic * rate).toFixed(2);
+  }
+
+  private calculateNetPay(basicEarning: any, additionalItems: any[], deductionItems: any[], overtime: any): string {
+    const basic = parseFloat(basicEarning?.amount || '0');
+    const additional = additionalItems.reduce((sum, item) => sum + parseFloat(item.amount || '0'), 0);
+    const deductions = deductionItems.reduce((sum, item) => sum + parseFloat(item.amount || '0'), 0);
+    const overtimeAmount = parseFloat(overtime?.amount || '0');
+    
+    // Statutory deductions
+    const epf = parseFloat(this.calculateEPFEmployee(basicEarning?.amount || '0'));
+    const socso = parseFloat(this.calculateSOCSO(basicEarning?.amount || '0', 'employee'));
+    const eis = parseFloat(this.calculateEIS(basicEarning?.amount || '0', 'employee'));
+    
+    const grossPay = basic + additional + overtimeAmount;
+    const totalDeductions = deductions + epf + socso + eis;
+    
+    return (grossPay - totalDeductions).toFixed(2);
+  }
+
+  private async calculateEmployeeOvertime(employeeId: string, year: number, month: number): Promise<{ hours: number; amount: number }> {
+    // Get approved overtime claims for the month
+    const claims = await db
+      .select()
+      .from(claimApplications)
+      .where(
+        and(
+          eq(claimApplications.employeeId, employeeId),
+          eq(claimApplications.status, 'Approved'),
+          eq(claimApplications.claimType, 'overtime'),
+          sql`EXTRACT(YEAR FROM ${claimApplications.claimDate}) = ${year}`,
+          sql`EXTRACT(MONTH FROM ${claimApplications.claimDate}) = ${month}`
+        )
+      );
+
+    const totalHours = claims.reduce((sum, claim) => sum + parseFloat(claim.totalHours || '0'), 0);
+    const totalAmount = claims.reduce((sum, claim) => sum + parseFloat(claim.calculatedAmount || '0'), 0);
+
+    return { hours: totalHours, amount: totalAmount };
+  }
+
+  private async getApprovedClaimsForMonth(employeeId: string, year: number, month: number): Promise<any[]> {
+    const claims = await db
+      .select()
+      .from(claimApplications)
+      .where(
+        and(
+          eq(claimApplications.employeeId, employeeId),
+          eq(claimApplications.status, 'Approved'),
+          eq(claimApplications.claimType, 'financial'),
+          sql`EXTRACT(YEAR FROM ${claimApplications.claimDate}) = ${year}`,
+          sql`EXTRACT(MONTH FROM ${claimApplications.claimDate}) = ${month}`
+        )
+      );
+
+    return claims.map(claim => ({
+      id: claim.id,
+      type: claim.expenseType,
+      amount: claim.expenseAmount,
+      description: claim.description
+    }));
+  }
+
+  private async calculateUnpaidLeave(employeeId: string, year: number, month: number): Promise<{ days: number; amount: number }> {
+    // Get unpaid leave applications for the month
+    const leaves = await db
+      .select()
+      .from(leaveApplications)
+      .where(
+        and(
+          eq(leaveApplications.employeeId, employeeId),
+          eq(leaveApplications.status, 'Approved'),
+          eq(leaveApplications.leaveType, 'Unpaid Leave'),
+          sql`EXTRACT(YEAR FROM ${leaveApplications.startDate}) = ${year}`,
+          sql`EXTRACT(MONTH FROM ${leaveApplications.startDate}) = ${month}`
+        )
+      );
+
+    const totalDays = leaves.reduce((sum, leave) => sum + parseFloat(leave.totalDays || '0'), 0);
+    
+    // Get basic salary to calculate deduction
+    const basicEarning = await this.getSalaryBasicEarning(employeeId);
+    const dailyRate = parseFloat(basicEarning?.amount || '0') / 26; // Assuming 26 working days
+    const deductionAmount = totalDays * dailyRate;
+
+    return { days: totalDays, amount: deductionAmount };
   }
 }
 

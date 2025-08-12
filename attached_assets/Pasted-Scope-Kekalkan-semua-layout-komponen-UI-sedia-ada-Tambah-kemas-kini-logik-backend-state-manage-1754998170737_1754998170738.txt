@@ -1,0 +1,272 @@
+Scope:
+
+Kekalkan semua layout/komponen UI sedia ada.
+
+Tambah/kemas kini logik backend + state management + hooks pada butang yang sedia ada.
+
+Pastikan OT, claim, cuti tanpa gaji & lateness dikira ikut bulan payroll yang dipilih, bukan ikut bulan semasa.
+
+1) Struktur Data (DB & model)
+Collections / Tables baru atau semak sedia ada:
+
+MasterSalary (sedia ada)
+
+employeeId, basicSalary, salaryType, flags/statutory (EPF/SOCSO/EIS/PCB38/PCB39, HRDF, Zakat), additionalItems[], deductionItems[], companyContribItems[], overtimeSetting (hourlyRate/ formula / multiplier), effectiveFrom, effectiveTo (opsyenal).
+
+OvertimeRequest (sedia ada)
+
+employeeId, date, hours, status (Approved/Rejected), approvedAt, otType (weekday/weekend/publicHoliday), multiplier (jika disimpan).
+
+Claims (sedia ada)
+
+employeeId, date, amount, category, status (Approved/Rejected).
+
+LeaveRequests (sedia ada)
+
+employeeId, dateFrom, dateTo, type (Unpaid/Annual/etc), status.
+
+BARU PayrollDocument (dokumen bulanan – level syarikat)
+
+id, year, month, payrollDate, remarks, status (Preparing → PendingApproval → Approved → Closed)
+
+steps { step1:Update&Review, step2:Approval, step3:Payment&Close }
+
+includeFlags { includeClaims, includeOvertime, includeUnpaidLeave, includeLateness }
+
+createdBy, createdAt, approvedBy[], approvedAt
+
+Unik constraint: (year, month, companyId) Approved hanya satu pada satu masa.
+
+BARU PayrollItem (payslip individu – anak kpd PayrollDocument)
+
+documentId, employeeId, snapshot profil (nama, jawatan, no.IC),
+
+salary { basic, computed, fixedAllowance, additional[], gross },
+
+overtime { hours, amount, calcNote },
+
+claims[] (jika include),
+
+unpaidLeave { days, amount },
+
+lateness { minutes, amount },
+
+deductions { EPF emp, SOCSO emp, EIS emp, PCB38/PCB39, zakat, other[] },
+
+contributions { EPF er, SOCSO er, EIS er, HRDF, other[] },
+
+netPay, status (Preparing menumpang status doc), locked (true selepas submit for approval),
+
+audit { generatedAt, generatedBy, recalcAt[] }.
+
+Nota: semua amaun di PayrollItem ialah snapshot dari formula semasa “Generate Payment”, supaya slip tak berubah bila master diubah kemudian.
+
+2) Aliran Halaman & Tindakan
+(A) Salary Payroll List (Gambar 1)
+Butang Edit (ikon pensel) di setiap staff kekalkan → pergi ke Master Salary (Gambar 2–4).
+
+(B) Master Salary (Gambar 2–4)
+Simpan semua konfigurasi (basic, additional, deduction, company contribution, flags statutory).
+
+Medan Overtime di sini hanya papar kadar & tetapan (hourlyRate / multiplier), bukan jumlah akhir bulan. Jumlah akhir ditentukan masa “Generate Payment” ikut bulan payroll.
+
+(C) Run Payment (Gambar 5–7)
+Popup Run New Payroll ada: Year, Month, PaymentDate, Remarks, toggles: Claim Financial, Claim Overtime, Unpaid Leave, Lateness.
+
+On Generate Payment:
+
+Validasi:
+
+Jika wujud PayrollDocument untuk (year, month) dengan status Approved/PendingApproval, halang dan papar ralat “Payroll untuk bulan ini telah dijana/menunggu kelulusan.”
+
+Cipta PayrollDocument dengan status='Preparing' dan simpan includeFlags.
+
+Jana PayrollItem untuk semua pekerja aktif ketika bulan pilih:
+
+Tarik MasterSalary berkuat kuasa pada bulan (year, month) (ambil rekod effectiveFrom/effectiveTo paling sesuai; jika tiada versi, guna terkini).
+
+Kira komponen berikut mengikut bulan payroll:
+
+OT (jika toggle on)
+
+periodStart = firstDayOfMonth(year, month)
+
+periodEnd = lastDayOfMonth(year, month)
+
+Ambil OvertimeRequest di mana:
+
+employeeId sama, status='Approved',
+
+date di antara periodStart..periodEnd (bukan ikut bulan semasa).
+
+approvedHours = sum(hours)
+
+hourlyRate = (ikut tetapan):
+
+jika salaryType='Monthly': basicSalary / totalWorkingHoursInMonth(year, month)
+
+totalWorkingHoursInMonth = workingDaysInMonth * dailyWorkHours (rujuk config sistem).
+
+atau guna overtimeSetting.hourlyRate jika ditetapkan manual.
+
+amount = Σ (hours_i * hourlyRate * multiplier_i)
+
+multiplier_i ikut otType atau OvertimeRequest.multiplier jika disimpan.
+
+Claims (jika toggle on)
+
+Ambil Claims.status='Approved' dan date dalam periodStart..periodEnd.
+
+Kumpul mengikut kategori (paparan di payslip).
+
+Unpaid Leave (jika toggle on)
+
+Ambil LeaveRequests.type='Unpaid' dan status='Approved' yang jatuh dalam bulan payroll.
+
+days = overlapDays(period)
+
+amount = days * (basicSalary / workingDaysInMonth).
+
+Lateness (jika toggle on)
+
+Ambil rekod lewat (sumber koleksi hadir/attendance).
+
+amount = rule lateness (sedia ada, cuma tapis ikut bulan payroll).
+
+Statutory
+
+Guna flags dari MasterSalary/items (EPF/SOCSO/EIS/PCB38/PCB39/HRDF/Zakat).
+
+Kira employee & employer contribution ikut formula/rujukan sedia ada (kod anda sudah paparkan contoh kadar di UI – kekalkan).
+
+Gross/Net
+
+gross = basic + fixedAllowance + sum(additional) + claims + overtime - unpaidLeave - lateness
+
+totalEmployeeDeduction = EPF(emp) + SOCSO(emp) + EIS(emp) + PCB + zakat + sum(otherDeduction)
+
+netPay = gross - totalEmployeeDeduction.
+
+Simpan snapshot amaun ke PayrollItem.
+
+Selepas jana, kembali ke Salary Payroll List dan papar satu baris dokumen payroll (seperti Gambar 8) dengan status='Preparing'.
+
+(D) Dokumen Payroll (Gambar 8 → 9)
+Klik baris dokumen → Page Payroll Document View (ada tab Payroll Details & Payslip).
+
+Step 1 – Update & Review:
+
+Papar senarai PayrollItem (nama, salary, additional, gross, deduction, contribution, status=Preparing).
+
+Tindakan pada setiap pekerja: View Payslip, Recalc (jika perlu) selagi document.locked=false.
+
+Butang Submit Payment → set document.status='PendingApproval' dan document.locked=true → kunci semua PayrollItem (tiada perubahan).
+
+Step 2 – Approval:
+
+Menggunakan senarai approver dari System Setting.
+
+Semua approver perlu Approve → document.status='Approved'.
+
+Jika ada Reject, kembali ke Preparing & locked=false (benarkan baiki & regenerate item individu).
+
+Step 3 – Payment & Close:
+
+Opsyen “Close Payroll” selepas Approved (tidak wajib untuk logik slip, tapi sediakan status Closed).
+
+(E) Payslip Individu
+Dari tab Payslip atau ikon tindakan pada baris pekerja (seperti Gambar 9), papar slip individu (gunakan layout sedia ada).
+
+Data yang dipaparkan datang 100% dari PayrollItem snapshot.
+
+Visibility:
+
+HR/Admin/Super Admin: boleh lihat semua.
+
+Employee: hanya boleh lihat payslip sendiri selepas document.status='Approved'.
+
+3) Peraturan Kiraan Penting (Acceptance Criteria)
+OT ikut bulan payroll dipilih
+
+Jika payroll July 2025 dipilih walaupun sekarang August 2025, ambil OT yang date jatuh pada July 2025.
+
+Ujian: buat 2 OT (30 Jul, 2 Aug). Jalankan payroll Jul → hanya OT 30 Jul dikira.
+
+Claims / Unpaid Leave / Lateness juga disaring mengikut bulan payroll.
+
+Snapshot & Lock
+
+Semua amaun disalin ke PayrollItem semasa generate.
+
+Bila Submit Payment (status PendingApproval), item terkunci & tidak berubah walaupun MasterSalary diedit.
+
+Idempotent Generate
+
+Jika dokumen (year, month) status Preparing, benarkan “Regenerate” untuk rebuild semua PayrollItem (contohnya selepas betulkan master/rekod OT).
+
+Jika PendingApproval/Approved, tidak benarkan regenerate. Perlu Reopen (kembali Preparing) dengan log audit.
+
+Satu dokumen Approved per bulan
+
+Tidak boleh wujud dua dokumen Approved untuk (year, month).
+
+Kiraan Statutory ikut konfigurasi semasa generate dan disimpan sebagai snapshot di PayrollItem.
+
+4) Hook/Endpoint yang perlu
+POST /payroll/generate
+
+Body: { year, month, payrollDate, remarks, includeFlags }
+
+Return: { documentId }
+
+GET /payroll/:documentId → detail + items
+
+POST /payroll/:documentId/submit → set PendingApproval + lock
+
+POST /payroll/:documentId/approve (role-based; support multi-approver)
+
+POST /payroll/:documentId/reopen (kembali Preparing, unlock) – admin only
+
+GET /payroll/:documentId/item/:employeeId → payslip individu (snapshot)
+
+5) Pseudokod Kiraan OT (ringkas)
+ts
+Copy
+Edit
+function calcOvertime(employeeId, year, month, settings) {
+  const periodStart = startOfMonth(year, month);
+  const periodEnd   = endOfMonth(year, month);
+
+  const approvedOT = db.OvertimeRequest.find({
+    employeeId, status: 'Approved',
+    date: { $gte: periodStart, $lte: periodEnd }
+  });
+
+  const hourlyRate = settings.hourlyRate 
+    ?? (settings.basicSalary / (workingDaysInMonth(year, month) * settings.dailyHours));
+
+  let hours = 0, amount = 0;
+  for (const ot of approvedOT) {
+    const mult = ot.multiplier ?? multiplierByType(ot.otType); // weekday/weekend/ph
+    hours  += ot.hours;
+    amount += ot.hours * hourlyRate * mult;
+  }
+
+  return { hours, amount, note: `rate=${hourlyRate}` };
+}
+6) Keselamatan & Akses
+Run Payment / Reopen / Approve: hanya Super Admin, Admin, HR Manager.
+
+View Payslip oleh staff: hanya selepas dokumen Approved, dan hanya milik sendiri.
+
+7) Ujian Fungsional (ringkas)
+OT silang bulan: masukkan OT 30/07 & 02/08. Generate payroll July → hanya OT Jul masuk.
+
+Lock selepas Submit: edit MasterSalary selepas Submit → payslip tak berubah.
+
+Approval flow: PendingApproval → semua approver approve → status jadi Approved; payslip boleh dilihat oleh employee.
+
+Duplicate bulan: cuba generate Jul sekali lagi selepas Approved → sistem halang.
+
+Regenerate semasa Preparing: ubah claim/OT, regenerate → item dikemaskini.
+

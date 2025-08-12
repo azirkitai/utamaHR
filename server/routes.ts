@@ -39,6 +39,10 @@ import {
   updateOvertimePolicySchema,
   insertOvertimeSettingSchema,
   updateOvertimeSettingSchema,
+  insertPayrollDocumentSchema,
+  updatePayrollDocumentSchema,
+  insertPayrollItemSchema,
+  updatePayrollItemSchema,
   type AttendanceRecord
 } from "@shared/schema";
 import { checkEnvironmentSecrets } from "./env-check";
@@ -3554,6 +3558,253 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error('Error updating employee salary:', error);
       res.status(500).json({ error: 'Gagal mengemas kini maklumat gaji pekerja' });
+    }
+  });
+
+  // =================== PAYROLL ENDPOINTS ===================
+  
+  // Get all payroll documents
+  app.get('/api/payroll/documents', authenticateToken, async (req, res) => {
+    try {
+      const documents = await storage.getAllPayrollDocuments();
+      res.json(documents);
+    } catch (error) {
+      console.error('Error getting payroll documents:', error);
+      res.status(500).json({ error: 'Gagal mengambil senarai dokumen payroll' });
+    }
+  });
+
+  // Get specific payroll document
+  app.get('/api/payroll/documents/:id', authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const document = await storage.getPayrollDocument(id);
+      
+      if (!document) {
+        return res.status(404).json({ error: 'Dokumen payroll tidak dijumpai' });
+      }
+      
+      res.json(document);
+    } catch (error) {
+      console.error('Error getting payroll document:', error);
+      res.status(500).json({ error: 'Gagal mengambil dokumen payroll' });
+    }
+  });
+
+  // Create new payroll document
+  app.post('/api/payroll/documents', authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      
+      // Role-based access control
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (!adminRoles.includes(currentUser.role)) {
+        return res.status(403).json({ error: 'Tidak dibenarkan untuk membuat dokumen payroll' });
+      }
+
+      const documentData = insertPayrollDocumentSchema.parse({
+        ...req.body,
+        createdBy: currentUser.id
+      });
+      
+      // Check if document already exists for this year/month
+      const existing = await storage.getPayrollDocumentByYearMonth(documentData.year, documentData.month);
+      if (existing) {
+        return res.status(400).json({ error: `Dokumen payroll untuk ${documentData.month}/${documentData.year} sudah wujud` });
+      }
+      
+      const document = await storage.createPayrollDocument(documentData);
+      res.status(201).json(document);
+    } catch (error) {
+      console.error('Error creating payroll document:', error);
+      res.status(500).json({ error: 'Gagal membuat dokumen payroll' });
+    }
+  });
+
+  // Update payroll document
+  app.put('/api/payroll/documents/:id', authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      const { id } = req.params;
+      
+      // Role-based access control
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (!adminRoles.includes(currentUser.role)) {
+        return res.status(403).json({ error: 'Tidak dibenarkan untuk mengemas kini dokumen payroll' });
+      }
+
+      const updateData = updatePayrollDocumentSchema.parse(req.body);
+      const document = await storage.updatePayrollDocument(id, updateData);
+      
+      if (!document) {
+        return res.status(404).json({ error: 'Dokumen payroll tidak dijumpai' });
+      }
+      
+      res.json(document);
+    } catch (error) {
+      console.error('Error updating payroll document:', error);
+      res.status(500).json({ error: 'Gagal mengemas kini dokumen payroll' });
+    }
+  });
+
+  // Generate payroll items for a document
+  app.post('/api/payroll/documents/:id/generate', authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      const { id } = req.params;
+      
+      // Role-based access control
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (!adminRoles.includes(currentUser.role)) {
+        return res.status(403).json({ error: 'Tidak dibenarkan untuk menjana slip gaji' });
+      }
+
+      const items = await storage.generatePayrollItems(id);
+      res.json({ 
+        message: `${items.length} slip gaji berjaya dijana`,
+        items: items.length 
+      });
+    } catch (error) {
+      console.error('Error generating payroll items:', error);
+      res.status(500).json({ error: 'Gagal menjana slip gaji pekerja' });
+    }
+  });
+
+  // Get payroll items for a document
+  app.get('/api/payroll/documents/:id/items', authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const items = await storage.getPayrollItemsByDocumentId(id);
+      
+      // Enrich items with employee details
+      const enrichedItems = await Promise.all(
+        items.map(async (item) => {
+          const employee = await storage.getEmployee(item.employeeId);
+          return {
+            ...item,
+            employee: employee ? {
+              fullName: employee.fullName,
+              staffId: employee.staffId,
+              nric: employee.nric
+            } : null
+          };
+        })
+      );
+      
+      res.json(enrichedItems);
+    } catch (error) {
+      console.error('Error getting payroll items:', error);
+      res.status(500).json({ error: 'Gagal mengambil senarai slip gaji' });
+    }
+  });
+
+  // Get specific payroll item
+  app.get('/api/payroll/items/:id', authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const item = await storage.getPayrollItem(id);
+      
+      if (!item) {
+        return res.status(404).json({ error: 'Slip gaji tidak dijumpai' });
+      }
+
+      // Enrich with employee details
+      const employee = await storage.getEmployee(item.employeeId);
+      const enrichedItem = {
+        ...item,
+        employee: employee ? {
+          fullName: employee.fullName,
+          staffId: employee.staffId,
+          nric: employee.nric
+        } : null
+      };
+      
+      res.json(enrichedItem);
+    } catch (error) {
+      console.error('Error getting payroll item:', error);
+      res.status(500).json({ error: 'Gagal mengambil slip gaji' });
+    }
+  });
+
+  // Update specific payroll item
+  app.put('/api/payroll/items/:id', authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      const { id } = req.params;
+      
+      // Role-based access control
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (!adminRoles.includes(currentUser.role)) {
+        return res.status(403).json({ error: 'Tidak dibenarkan untuk mengemas kini slip gaji' });
+      }
+
+      const updateData = updatePayrollItemSchema.parse(req.body);
+      const item = await storage.updatePayrollItem(id, updateData);
+      
+      if (!item) {
+        return res.status(404).json({ error: 'Slip gaji tidak dijumpai' });
+      }
+      
+      res.json(item);
+    } catch (error) {
+      console.error('Error updating payroll item:', error);
+      res.status(500).json({ error: 'Gagal mengemas kini slip gaji' });
+    }
+  });
+
+  // Get employee's payroll history
+  app.get('/api/employees/:employeeId/payroll-history', authenticateToken, async (req, res) => {
+    try {
+      const { employeeId } = req.params;
+      const currentUser = req.user!;
+      
+      // Check if user can access this employee's payroll
+      const employee = await storage.getEmployee(employeeId);
+      if (!employee) {
+        return res.status(404).json({ error: 'Pekerja tidak dijumpai' });
+      }
+
+      // Role-based access: admins can see all, employees can only see their own
+      const isAdmin = ['Super Admin', 'Admin', 'HR Manager', 'PIC'].includes(currentUser.role);
+      const isOwnRecord = employee.userId === currentUser.id;
+      
+      if (!isAdmin && !isOwnRecord) {
+        return res.status(403).json({ error: 'Tidak dibenarkan untuk melihat rekod gaji pekerja lain' });
+      }
+
+      // Get all documents first
+      const documents = await storage.getAllPayrollDocuments();
+      
+      // Get payroll items for this employee from all documents
+      const history = [];
+      for (const doc of documents) {
+        const item = await storage.getPayrollItemByDocumentAndEmployee(doc.id, employeeId);
+        if (item) {
+          history.push({
+            document: {
+              id: doc.id,
+              year: doc.year,
+              month: doc.month,
+              payrollDate: doc.payrollDate,
+              status: doc.status
+            },
+            payrollItem: item
+          });
+        }
+      }
+      
+      // Sort by year and month desc
+      history.sort((a, b) => {
+        if (a.document.year !== b.document.year) {
+          return b.document.year - a.document.year;
+        }
+        return b.document.month - a.document.month;
+      });
+      
+      res.json(history);
+    } catch (error) {
+      console.error('Error getting payroll history:', error);
+      res.status(500).json({ error: 'Gagal mengambil sejarah gaji pekerja' });
     }
   });
 
