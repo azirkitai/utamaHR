@@ -126,12 +126,29 @@ export default function ClaimApprovalPage() {
   const hasApprovalRights = () => {
     if (!currentUser || !approvalSettings) return false;
     
+    console.log('=== DEBUGGING FINANCIAL CLAIM APPROVAL ACCESS ===');
+    console.log('Current user:', currentUser);
+    console.log('Approval settings:', approvalSettings);
+    console.log('Current user role:', (currentUser as any)?.role);
+    console.log('First level approver ID:', (approvalSettings as any)?.firstLevelApproverId);
+    console.log('Second level approver ID:', (approvalSettings as any)?.secondLevelApproverId);
+    console.log('Current user ID:', (currentUser as any)?.id);
+    
     const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
-    if (adminRoles.includes((currentUser as any).role)) return true;
+    if (adminRoles.includes((currentUser as any).role)) {
+      console.log('User has admin role - allowing access');
+      return true;
+    }
     
     // Check if user is assigned as financial approver
-    return (approvalSettings as any).firstLevelApproverId === (currentUser as any).id || 
-           (approvalSettings as any).secondLevelApproverId === (currentUser as any).id;
+    const isFirstLevel = (approvalSettings as any).firstLevelApproverId === (currentUser as any).id;
+    const isSecondLevel = (approvalSettings as any).secondLevelApproverId === (currentUser as any).id;
+    
+    console.log('Is first level approver:', isFirstLevel);
+    console.log('Is second level approver:', isSecondLevel);
+    console.log('=== END DEBUG ===');
+    
+    return isFirstLevel || isSecondLevel;
   };
 
   // Handle approve action
