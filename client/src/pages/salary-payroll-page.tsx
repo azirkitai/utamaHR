@@ -33,9 +33,11 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Employee } from "@shared/schema";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function SalaryPayrollPage() {
   const { toast } = useToast();
+  const { user: userData } = useAuth();
   const [dateRange, setDateRange] = useState("01/2025 - 12/2025");
   const [selectedEmployee, setSelectedEmployee] = useState("All employee");
   const [showNewPayrollModal, setShowNewPayrollModal] = useState(false);
