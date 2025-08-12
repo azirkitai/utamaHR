@@ -1981,15 +1981,37 @@ export class DatabaseStorage implements IStorage {
     const [currentApp] = await db.select().from(claimApplications).where(eq(claimApplications.id, id));
     if (!currentApp) return false;
 
-    // Determine next status based on current status and approval level
-    let newStatus: 'firstLevelApproved' | 'approved' = 'firstLevelApproved';
+    // Get approval settings to check if second level is required
+    let approvalSettings = null;
+    if (currentApp.claimType === 'overtime') {
+      const [overtimeSettings] = await db.select().from(overtimeSettings).limit(1);
+      approvalSettings = overtimeSettings;
+    } else if (currentApp.claimType === 'financial') {
+      const [financialSettings] = await db.select().from(financialApprovalSettings).limit(1);
+      approvalSettings = financialSettings;
+    }
+
+    // Determine status based on approval workflow
+    let newStatus: 'firstLevelApproved' | 'approved' | 'awaitingSecondApproval' = 'firstLevelApproved';
     let firstLevelApproverId = currentApp.firstLevelApproverId;
     let secondLevelApproverId = currentApp.secondLevelApproverId;
 
     if (currentApp.status === 'pending') {
-      newStatus = 'firstLevelApproved';
+      // First level approval
       firstLevelApproverId = approverId;
-    } else if (currentApp.status === 'firstLevelApproved') {
+      
+      // Check if second level approver is set
+      const hasSecondLevel = approvalSettings?.secondLevel && approvalSettings.secondLevel.trim() !== '';
+      
+      if (hasSecondLevel) {
+        // Two-level approval: set to awaiting second approval
+        newStatus = 'awaitingSecondApproval';
+      } else {
+        // Single-level approval: directly approve
+        newStatus = 'approved';
+      }
+    } else if (currentApp.status === 'firstLevelApproved' || currentApp.status === 'awaitingSecondApproval') {
+      // Second level approval - final approval
       newStatus = 'approved';
       secondLevelApproverId = approverId;
     }

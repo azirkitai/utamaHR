@@ -229,14 +229,14 @@ export default function ClaimApprovalPage() {
     ? (userCanApproveFinancial ? (financialClaimsData || []).filter((claim: any) => claim.status === 'pending') : [])
     : (financialClaimsData || []).filter((claim: any) => {
         console.log('Financial claim filtering:', { claimId: claim.id, status: claim.status, activeTab });
-        return ['firstLevelApproved', 'secondLevelApproved', 'approved', 'rejected'].includes(claim.status);
+        return ['firstLevelApproved', 'secondLevelApproved', 'approved', 'rejected', 'awaitingSecondApproval'].includes(claim.status);
       });
       
   const filteredOvertimeClaims = activeTab === 'approval'
     ? (userCanApproveOvertime ? (overtimeClaimsFromDB || []).filter((claim: any) => claim.status === 'pending') : [])
     : (overtimeClaimsFromDB || []).filter((claim: any) => {
         console.log('Overtime claim filtering:', { claimId: claim.id, status: claim.status, activeTab });
-        return ['firstLevelApproved', 'secondLevelApproved', 'approved', 'rejected'].includes(claim.status);
+        return ['firstLevelApproved', 'secondLevelApproved', 'approved', 'rejected', 'awaitingSecondApproval'].includes(claim.status);
       });
 
   console.log('Filtered results:', { 
@@ -322,8 +322,12 @@ export default function ClaimApprovalPage() {
       case "pending":
         return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Pending</Badge>;
       case "approved":
+      case "firstlevelapproved":
         return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Approved</Badge>;
+      case "awaitingsecondapproval":
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Awaiting Second Approval</Badge>;
       case "rejected":
+      case "firstlevelrejected":
         return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Rejected</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
