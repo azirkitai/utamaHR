@@ -4011,13 +4011,22 @@ export function registerRoutes(app: Express): Server {
         }
       };
 
+      // Debug: Log template data
+      console.log('Template data:', JSON.stringify(templateData, null, 2));
+
       // Read and compile the Handlebars template
       const templatePath = join(__dirname, 'payslip-template.html');
+      console.log('Template path:', templatePath);
+      
       const templateSource = readFileSync(templatePath, 'utf8');
+      console.log('Template source length:', templateSource.length);
+      
       const template = handlebars.compile(templateSource);
       const html = template(templateData);
+      console.log('Generated HTML length:', html.length);
 
       // Generate PDF using Puppeteer with Replit-compatible configuration
+      console.log('Launching browser...');
       const browser = await puppeteer.launch({
         headless: true,
         executablePath: '/nix/store/zi4f80l169xlmivz8vja8wlphq74qqk0-chromium-125.0.6422.141/bin/chromium',
@@ -4035,9 +4044,13 @@ export function registerRoutes(app: Express): Server {
         ]
       });
       
+      console.log('Creating new page...');
       const page = await browser.newPage();
+      
+      console.log('Setting content...');
       await page.setContent(html, { waitUntil: 'networkidle0' });
       
+      console.log('Generating PDF...');
       const pdfBuffer = await page.pdf({
         format: 'A4',
         printBackground: true,
@@ -4049,6 +4062,7 @@ export function registerRoutes(app: Express): Server {
         }
       });
       
+      console.log('PDF buffer size:', pdfBuffer.length);
       await browser.close();
 
       // Set headers for PDF download
