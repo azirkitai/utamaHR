@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth, authenticateToken } from "./auth";
 import { storage } from "./storage";
-import { generatePayslipFromTemplate } from './payslip-generator';
+import { generatePayslipPDF } from './payslip-html-generator';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
@@ -4008,11 +4008,11 @@ export function registerRoutes(app: Express): Server {
         }
       };
 
-      // Generate PDF using template-based approach with pdf-lib
-      console.log('Generating PDF using template overlay method...');
+      // Generate PDF using HTML template approach with Puppeteer
+      console.log('Generating PDF using HTML template method...');
       console.log('Template data:', JSON.stringify(templateData, null, 2));
       
-      const pdfBuffer = await generatePayslipFromTemplate(templateData);
+      const pdfBuffer = await generatePayslipPDF(templateData);
       console.log('PDF generated successfully, buffer size:', pdfBuffer.length);
 
       // Set headers for PDF download  
