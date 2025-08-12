@@ -69,6 +69,11 @@ export default function ClaimApprovalPage() {
     queryKey: ["/api/approval-settings/financial"],
   });
 
+  // Check if current user has approval rights for overtime claims
+  const { data: overtimeApprovalSettings } = useQuery({
+    queryKey: ["/api/overtime/approval-settings"],
+  });
+
   // Fetch employees data for name lookup
   const { data: employeesData = [] } = useQuery({
     queryKey: ["/api/employees"],
@@ -122,16 +127,24 @@ export default function ClaimApprovalPage() {
     },
   });
 
-  // Check if user has approval rights
-  const hasApprovalRights = () => {
+  // Check if user has financial approval rights
+  const hasFinancialApprovalRights = () => {
     if (!currentUser || !approvalSettings) return false;
-    
-    // Remove console logs to clean up output
     
     // Check if user is assigned as financial approver
     const isFirstLevel = (approvalSettings as any).firstLevelApprovalId === (currentUser as any).id;
     const isSecondLevel = (approvalSettings as any).secondLevelApprovalId === (currentUser as any).id;
+    
+    return isFirstLevel || isSecondLevel;
+  };
 
+  // Check if user has overtime approval rights
+  const hasOvertimeApprovalRights = () => {
+    if (!currentUser || !overtimeApprovalSettings) return false;
+    
+    // Check if user is assigned as overtime approver
+    const isFirstLevel = (overtimeApprovalSettings as any).firstLevel === (currentUser as any).id;
+    const isSecondLevel = (overtimeApprovalSettings as any).secondLevel === (currentUser as any).id;
     
     return isFirstLevel || isSecondLevel;
   };
@@ -157,12 +170,13 @@ export default function ClaimApprovalPage() {
     }
   };
 
-  // Check if user can see financial claims
-  const userCanApproveFinancial = hasApprovalRights();
+  // Check if user can see different types of claims
+  const userCanApproveFinancial = hasFinancialApprovalRights();
+  const userCanApproveOvertime = hasOvertimeApprovalRights();
   
   // Filter claims based on user approval rights
   const filteredFinancialClaims = userCanApproveFinancial ? (financialClaimsData || []) : [];
-  const filteredOvertimeClaims = (overtimeClaimsFromDB || []); // For now, all users can see overtime claims
+  const filteredOvertimeClaims = userCanApproveOvertime ? (overtimeClaimsFromDB || []) : [];
 
   // Legacy sample data - will be replaced by real data above
   const legacyFinancialClaimsData = [
@@ -462,14 +476,17 @@ export default function ClaimApprovalPage() {
                   ))
                 )
               ) : (
-                overtimeClaimsFromDB.length === 0 ? (
+                filteredOvertimeClaims.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-8 text-gray-500">
-                      No data available in table
+                      {userCanApproveOvertime ? 
+                        "No data available in table" : 
+                        "You don't have permission to view overtime claims. Only designated overtime approvers can see and approve claims."
+                      }
                     </TableCell>
                   </TableRow>
                 ) : (
-                  overtimeClaimsFromDB.map((item, index) => (
+                  filteredOvertimeClaims.map((item, index) => (
                     <TableRow key={item.id}>
                       <TableCell>
                         <Checkbox 
