@@ -4048,9 +4048,14 @@ export function registerRoutes(app: Express): Server {
       await page.setContent(html, { waitUntil: 'networkidle0' });
       
       console.log('Generating PDF...');
+      
+      // Add a small delay to ensure content is rendered
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       const pdfBuffer = await page.pdf({
         format: 'A4',
         printBackground: true,
+        preferCSSPageSize: false,
         margin: {
           top: '18mm',
           right: '18mm',
@@ -4060,6 +4065,9 @@ export function registerRoutes(app: Express): Server {
       });
       
       console.log('PDF buffer size:', pdfBuffer.length);
+      console.log('PDF buffer is valid PDF:', pdfBuffer.slice(0, 4).toString() === '%PDF');
+      console.log('PDF buffer first 20 bytes:', Array.from(pdfBuffer.slice(0, 20)).map(b => b.toString(16).padStart(2, '0')).join(' '));
+      
       await browser.close();
 
       // Set headers for PDF download
