@@ -218,6 +218,7 @@ export default function SalaryPayrollPage() {
       setShowNewPayrollModal(false);
     },
     onError: (error: any) => {
+      console.error("Create payroll error:", error);
       toast({
         title: "Error",
         description: error.message || "Gagal mencipta payroll document",

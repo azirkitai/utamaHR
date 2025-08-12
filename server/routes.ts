@@ -3595,6 +3595,8 @@ export function registerRoutes(app: Express): Server {
   app.post('/api/payroll/documents', authenticateToken, async (req, res) => {
     try {
       const currentUser = req.user!;
+      console.log('Creating payroll document for user:', currentUser.role);
+      console.log('Request body:', req.body);
       
       // Role-based access control
       const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
@@ -3606,6 +3608,7 @@ export function registerRoutes(app: Express): Server {
         ...req.body,
         createdBy: currentUser.id
       });
+      console.log('Parsed document data:', documentData);
       
       // Check if document already exists for this year/month
       const existing = await storage.getPayrollDocumentByYearMonth(documentData.year, documentData.month);
@@ -3617,7 +3620,11 @@ export function registerRoutes(app: Express): Server {
       res.status(201).json(document);
     } catch (error) {
       console.error('Error creating payroll document:', error);
-      res.status(500).json({ error: 'Gagal membuat dokumen payroll' });
+      if (error instanceof Error) {
+        res.status(400).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: 'Gagal membuat dokumen payroll' });
+      }
     }
   });
 
