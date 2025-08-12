@@ -4017,10 +4017,22 @@ export function registerRoutes(app: Express): Server {
       const template = handlebars.compile(templateSource);
       const html = template(templateData);
 
-      // Generate PDF using Puppeteer
+      // Generate PDF using Puppeteer with Replit-compatible configuration
       const browser = await puppeteer.launch({
         headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        executablePath: '/nix/store/zi4f80l169xlmivz8vja8wlphq74qqk0-chromium-125.0.6422.141/bin/chromium',
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--no-first-run',
+          '--no-zygote',
+          '--single-process',
+          '--disable-gpu',
+          '--disable-web-security',
+          '--disable-extensions'
+        ]
       });
       
       const page = await browser.newPage();
