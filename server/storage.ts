@@ -145,6 +145,10 @@ import {
   type SalaryCompanyContribution,
   type InsertSalaryCompanyContribution,
   type UpdateSalaryCompanyContribution,
+  // Overtime tables
+  overtimeSettings,
+  overtimePolicies,
+  overtimeApprovalSettings,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, sql, asc, ilike, or, gte, lte, inArray, not } from "drizzle-orm";
@@ -1984,11 +1988,14 @@ export class DatabaseStorage implements IStorage {
     // Get approval settings to check if second level is required
     let approvalSettings = null;
     if (currentApp.claimType === 'overtime') {
-      const [overtimeSettings] = await db.select().from(overtimeSettings).limit(1);
-      approvalSettings = overtimeSettings;
+      const [overtimeApprovalData] = await db.select().from(overtimeApprovalSettings).limit(1);
+      approvalSettings = overtimeApprovalData;
     } else if (currentApp.claimType === 'financial') {
-      const [financialSettings] = await db.select().from(financialApprovalSettings).limit(1);
-      approvalSettings = financialSettings;
+      const [financialSettings] = await db.select()
+        .from(groupPolicySettings)
+        .where(eq(groupPolicySettings.settingType, 'financial_claim_approval'))
+        .limit(1);
+      approvalSettings = financialSettings?.[0];
     }
 
     // Determine status based on approval workflow
