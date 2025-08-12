@@ -2,10 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth, authenticateToken } from "./auth";
 import { storage } from "./storage";
-import puppeteer from 'puppeteer';
-import handlebars from 'handlebars';
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import { generatePayslipFromTemplate } from './payslip-generator';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
@@ -4011,72 +4008,12 @@ export function registerRoutes(app: Express): Server {
         }
       };
 
-      // Debug: Log template data
+      // Generate PDF using template-based approach with pdf-lib
+      console.log('Generating PDF using template overlay method...');
       console.log('Template data:', JSON.stringify(templateData, null, 2));
-
-      // Use simple test template first to debug PDF generation
-      const testTemplatePath = join(__dirname, 'test-payslip.html');
-      console.log('Using test template path:', testTemplatePath);
       
-      const html = readFileSync(testTemplatePath, 'utf8');
-      console.log('Test HTML length:', html.length);
-      console.log('Test HTML preview:', html.substring(0, 500));
-
-      // Generate PDF using Puppeteer with Replit-compatible configuration
-      console.log('Launching browser...');
-      const browser = await puppeteer.launch({
-        headless: true,
-        executablePath: '/nix/store/zi4f80l169xlmivz8vja8wlphq74qqk0-chromium-125.0.6422.141/bin/chromium',
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--no-first-run',
-          '--no-zygote',
-          '--single-process',
-          '--disable-gpu',
-          '--disable-web-security',
-          '--disable-extensions'
-        ]
-      });
-      
-      console.log('Creating new page...');
-      const page = await browser.newPage();
-      
-      console.log('Setting content...');
-      await page.setContent(html, { waitUntil: 'networkidle0' });
-      
-      console.log('Generating PDF...');
-      
-      // Add a small delay to ensure content is rendered
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const pdfBuffer = await page.pdf({
-        format: 'A4',
-        printBackground: true,
-        preferCSSPageSize: false,
-        margin: {
-          top: '18mm',
-          right: '18mm',
-          bottom: '18mm',
-          left: '18mm'
-        }
-      });
-      
-      console.log('PDF buffer size:', pdfBuffer.length);
-      const pdfHeader = String.fromCharCode(...pdfBuffer.slice(0, 4));
-      console.log('PDF header as string:', pdfHeader);
-      console.log('PDF buffer first 20 bytes:', Array.from(pdfBuffer.slice(0, 20)).map(b => b.toString(16).padStart(2, '0')).join(' '));
-      
-      await browser.close();
-
-      // Basic validation - just check buffer exists and has content
-      if (!pdfBuffer || pdfBuffer.length === 0) {
-        return res.status(500).json({ error: 'PDF generation failed - empty buffer' });
-      }
-
-      console.log('PDF validation passed - proceeding with download');
+      const pdfBuffer = await generatePayslipFromTemplate(templateData);
+      console.log('PDF generated successfully, buffer size:', pdfBuffer.length);
 
       // Set headers for PDF download  
       const fileName = `Payslip_${employee.fullName?.replace(/\s+/g, '_')}_${getMonthName(document.month)}_${document.year}.pdf`;

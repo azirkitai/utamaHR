@@ -1,0 +1,76 @@
+“Locked Template” (disyorkan)
+Idea: Guna fail asal 05. 0725 - SYED MUHYAZIR HQ.pdf sebagai background page. Guna pdf-lib untuk:
+
+buka PDF templat (page 1),
+
+lukis semua nilai (nama, IC, bulan, angka) pada koordinat mutlak (x,y),
+
+simpan sebagai PDF baru.
+Layout confirm sama.
+
+Prompt ringkas untuk Replit Agent
+Do this exactly. Do not use HTML.
+
+Install pdf-lib and pdfjs-dist, and pixelmatch + pngjs for visual check.
+
+Load template from /mnt/data/05. 0725 - SYED MUHYAZIR HQ.pdf.
+
+Create renderPayslipFromTemplate(data) that:
+
+Opens page 1, gets width/height.
+
+Draws text with embedFont(StandardFonts.Helvetica) and drawText() on top.
+
+Uses a coordinate map object FIELDS with pixel positions (origin bottom-left):
+
+js
+Copy
+Edit
+const FIELDS = {
+  NAME:        { x: 95,  y: 645 },
+  IC:          { x: 95,  y: 625 },
+  POSITION:    { x: 95,  y: 605 },
+  MONTH:       { x: 415, y: 645 },
+  YEAR:        { x: 415, y: 625 },
+  IN_BASIC:    { x: 95,  y: 520 },
+  IN_FIXED:    { x: 95,  y: 500 },
+  IN_GROSS:    { x: 95,  y: 440 },   // TOTAL GROSS INCOME
+  DED_EPF:     { x: 360, y: 520 },
+  DED_SOCSO:   { x: 360, y: 500 },
+  DED_EIS:     { x: 360, y: 480 },
+  DED_TOTAL:   { x: 360, y: 440 },   // TOTAL DEDUCTIONS
+  NET_INCOME:  { x: 420, y: 395 },   // baris besar “NET INCOME”
+  EMP_EPFER:   { x: 140, y: 340 },
+  EMP_SOCSOER: { x: 305, y: 340 },
+  EMP_EISER:   { x: 470, y: 340 },
+  YTD_EMP:     { x: 210, y: 300 },
+  YTD_ER:      { x: 510, y: 300 },
+  MTD:         { x: 120, y: 280 }
+}
+(Jika perlu, buat satu utiliti calibrate() untuk tweak +/- 2–6 px setiap posisi.)
+
+Format angka RM 1,234.56, right-align manual dengan textWidth():
+
+Hitung w = font.widthOfTextAtSize(str, size),
+
+lukis di xRight - w supaya angka rata kanan dalam kolum.
+
+Font size: 12px umum, 16px untuk “NET INCOME” dan heading company.
+
+Data source: ambil snapshot dari PayrollItem & CompanyProfile (jangan hardcode).
+
+Output: Payslip_{NAME}_{MONTH}_{YEAR}.pdf.
+
+Visual regression check (wajib):
+
+Rasterize output dan template (tanpa teks) → overlay difference dengan pixelmatch.
+
+Fail build gagal jika lebih 1% piksel beza pada kawasan bingkai/jadual (maksudnya layout lari).
+
+Acceptance:
+
+Layout, line, label identik dengan template; hanya nilai berubah.
+
+Nilai ujian: BASIC 3500, FIXED 500 → GROSS 4000; potongan EPF/SOCSO/EIS/PCB → NET 3113.65.
+
+Important: Never generate your own boxes/labels. Always use the template page as the visual. Only overlay numbers/text.
