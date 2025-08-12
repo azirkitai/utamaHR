@@ -4065,7 +4065,8 @@ export function registerRoutes(app: Express): Server {
       });
       
       console.log('PDF buffer size:', pdfBuffer.length);
-      console.log('PDF buffer is valid PDF:', pdfBuffer.slice(0, 4).toString('ascii') === '%PDF');
+      const pdfHeader = pdfBuffer.slice(0, 4).toString('ascii');
+      console.log('PDF header:', pdfHeader);
       console.log('PDF buffer first 20 bytes:', Array.from(pdfBuffer.slice(0, 20)).map(b => b.toString(16).padStart(2, '0')).join(' '));
       
       await browser.close();
@@ -4075,7 +4076,9 @@ export function registerRoutes(app: Express): Server {
         return res.status(500).json({ error: 'PDF generation failed - empty buffer' });
       }
 
-      if (!pdfBuffer.slice(0, 4).toString('ascii').startsWith('%PDF')) {
+      // The PDF header should start with %PDF
+      if (pdfHeader !== '%PDF') {
+        console.log('Invalid PDF header detected:', pdfHeader);
         return res.status(500).json({ error: 'PDF generation failed - invalid PDF format' });
       }
 
