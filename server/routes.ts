@@ -4014,16 +4014,13 @@ export function registerRoutes(app: Express): Server {
       // Debug: Log template data
       console.log('Template data:', JSON.stringify(templateData, null, 2));
 
-      // Read and compile the Handlebars template
-      const templatePath = join(__dirname, 'payslip-template.html');
-      console.log('Template path:', templatePath);
+      // Use simple test template first to debug PDF generation
+      const testTemplatePath = join(__dirname, 'test-payslip.html');
+      console.log('Using test template path:', testTemplatePath);
       
-      const templateSource = readFileSync(templatePath, 'utf8');
-      console.log('Template source length:', templateSource.length);
-      
-      const template = handlebars.compile(templateSource);
-      const html = template(templateData);
-      console.log('Generated HTML length:', html.length);
+      const html = readFileSync(testTemplatePath, 'utf8');
+      console.log('Test HTML length:', html.length);
+      console.log('Test HTML preview:', html.substring(0, 500));
 
       // Generate PDF using Puppeteer with Replit-compatible configuration
       console.log('Launching browser...');

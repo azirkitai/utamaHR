@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Test Payslip</title>
+<style>
+  @page { size: A4; margin: 18mm; }
+  body { font-family: Arial, sans-serif; color:#111; font-size:12px; margin: 0; padding: 20px; }
+  .header { text-align: center; margin-bottom: 30px; }
+  .company-name { font-weight: bold; font-size: 18px; }
+  .employee-info { margin: 20px 0; }
+  .two-columns { display: flex; justify-content: space-between; }
+  .column { width: 45%; }
+  .table { border: 1px solid #ccc; border-collapse: collapse; width: 100%; margin: 20px 0; }
+  .table th, .table td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+  .table th { background-color: #f5f5f5; font-weight: bold; }
+  .amount { text-align: right; }
+  .net-income { font-size: 16px; font-weight: bold; text-align: center; padding: 15px; border: 2px solid #333; margin: 20px 0; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="position: absolute; top: 0; right: 0; font-size: 10px;">STRICTLY PRIVATE & CONFIDENTIAL</div>
+  <div class="company-name">UTAMA MEDGROUP SDN BHD</div>
+  <div>202201033996(1479693-H)</div>
+  <div>A2-22-3, SOHO SUITES @ KLCC, 20 JALAN PERAK</div>
+  <div>50450 WILAYAH PERSEKUTUAN, KUALA LUMPUR</div>
+</div>
+
+<div class="employee-info">
+  <div class="two-columns">
+    <div class="column">
+      <div><strong>NAME:</strong> SYED MUHYAZIR HASSIM</div>
+      <div><strong>I/C NO.:</strong> 820101-10-1234</div>
+      <div><strong>POSITION:</strong> SENIOR MANAGER</div>
+    </div>
+    <div class="column">
+      <div><strong>MONTH:</strong> JULY</div>
+      <div><strong>YEAR:</strong> 2025</div>
+    </div>
+  </div>
+</div>
+
+<div class="two-columns">
+  <div class="column">
+    <table class="table">
+      <thead>
+        <tr><th colspan="2">INCOME</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>BASIC SALARY</td><td class="amount">RM 1,500.00</td></tr>
+        <tr><td>FIXED ALLOWANCE</td><td class="amount">RM 0.00</td></tr>
+        <tr style="font-weight: bold; background-color: #f5f5f5;"><td>TOTAL GROSS INCOME</td><td class="amount">RM 1,500.00</td></tr>
+      </tbody>
+    </table>
+  </div>
+  
+  <div class="column">
+    <table class="table">
+      <thead>
+        <tr><th colspan="2">DEDUCTIONS</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>EPF</td><td class="amount">RM 165.00</td></tr>
+        <tr><td>SOCSO</td><td class="amount">RM 7.50</td></tr>
+        <tr><td>EIS</td><td class="amount">RM 3.00</td></tr>
+        <tr style="font-weight: bold; background-color: #f5f5f5;"><td>TOTAL DEDUCTIONS</td><td class="amount">RM 175.50</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="net-income">
+  NET INCOME: RM 1,324.50
+</div>
+
+<div style="margin-top: 30px;">
+  <div style="font-weight: bold; margin-bottom: 10px;">CURRENT MONTH EMPLOYER CONTRIBUTION</div>
+  <div class="two-columns">
+    <div>EPF: RM 180.00</div>
+    <div>SOCSO: RM 26.25</div>
+    <div>EIS: RM 3.00</div>
+  </div>
+</div>
+
+<hr style="margin: 20px 0;" />
+
+<div style="font-size: 11px;">
+  <div>YTD EMPLOYEE CONTRIBUTION: <strong>RM 2,783.00</strong> | YTD EMPLOYER CONTRIBUTION: <strong>RM 3,289.00</strong></div>
+  <div>YTD MTD: <strong>RM 1,324.50</strong></div>
+</div>
+
+</body>
+</html>
