@@ -176,6 +176,7 @@ export default function PayrollDetailPage() {
                       <th className="text-center p-3 font-medium text-gray-900 bg-yellow-100 min-w-[60px]">SOCSO</th>
                       <th className="text-center p-3 font-medium text-gray-900 bg-yellow-100 min-w-[60px]">EIS</th>
                       <th className="text-center p-3 font-medium text-gray-900 bg-yellow-100 min-w-[60px]">HRDF</th>
+                      <th className="text-center p-3 font-medium text-gray-900 min-w-[90px]">Net Salary</th>
                       <th className="text-center p-3 font-medium text-gray-900 min-w-[80px]">Status</th>
                       <th className="text-center p-3 font-medium text-gray-900 min-w-[80px]">Action</th>
                     </tr>
@@ -196,12 +197,13 @@ export default function PayrollDetailPage() {
                       <th className="text-center p-1 text-gray-600 bg-yellow-50"></th>
                       <th className="text-center p-1 text-gray-600"></th>
                       <th className="text-center p-1 text-gray-600"></th>
+                      <th className="text-center p-1 text-gray-600"></th>
                     </tr>
                   </thead>
                   <tbody>
                     {isLoadingItems ? (
                       <tr>
-                        <td colSpan={16} className="p-8 text-center text-gray-500">
+                        <td colSpan={17} className="p-8 text-center text-gray-500">
                           Loading payroll items...
                         </td>
                       </tr>
@@ -239,6 +241,7 @@ export default function PayrollDetailPage() {
                             <td className="p-3 text-center text-gray-600 bg-yellow-50">RM {parseFloat(contributionsData.socsoEmployer || '0').toFixed(2)}</td>
                             <td className="p-3 text-center text-gray-600 bg-yellow-50">RM {parseFloat(contributionsData.eisEmployer || '0').toFixed(2)}</td>
                             <td className="p-3 text-center text-gray-600 bg-yellow-50">RM {parseFloat(contributionsData.hrdf || '0').toFixed(2)}</td>
+                            <td className="p-3 text-center text-gray-600 font-medium">RM {parseFloat(item.netPay || '0').toFixed(2)}</td>
                             <td className="p-3 text-center">
                               {getStatusBadge(item.status || 'pending')}
                             </td>
@@ -268,7 +271,7 @@ export default function PayrollDetailPage() {
                       })
                     ) : (
                       <tr>
-                        <td colSpan={16} className="p-8 text-center text-gray-500">
+                        <td colSpan={17} className="p-8 text-center text-gray-500">
                           No payroll items found. Click "Generate Items" to create payroll for all employees.
                         </td>
                       </tr>
