@@ -2077,6 +2077,8 @@ export class DatabaseStorage implements IStorage {
 
   // Calculate overtime amount for an employee for a given month
   async calculateEmployeeOvertimeAmount(employeeId: string, year: number, month: number): Promise<number> {
+    console.log(`=== OVERTIME CALCULATION START ===`);
+    console.log(`Employee ID: ${employeeId}, Year: ${year}, Month: ${month}`);
     try {
       // Get employee salary details (modern format with JSON)
       const [salary] = await db.select().from(employeeSalaries).where(eq(employeeSalaries.employeeId, employeeId));
@@ -2163,9 +2165,12 @@ export class DatabaseStorage implements IStorage {
         });
       }
 
+      console.log(`Total overtime amount calculated: RM ${totalOvertimeAmount.toFixed(2)}`);
+      console.log(`=== OVERTIME CALCULATION END ===`);
       return Math.round(totalOvertimeAmount * 100) / 100; // Round to 2 decimal places
     } catch (error) {
       console.error('Error calculating overtime amount:', error);
+      console.log(`=== OVERTIME CALCULATION ERROR ===`);
       return 0;
     }
   }

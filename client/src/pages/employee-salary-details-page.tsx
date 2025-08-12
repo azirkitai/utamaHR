@@ -802,28 +802,38 @@ export default function EmployeeSalaryDetailsPage() {
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth() + 1;
 
-  const { data: overtimeData, isLoading: isLoadingOvertime } = useQuery({
+  const { data: overtimeData, isLoading: isLoadingOvertime, error: overtimeError } = useQuery({
     queryKey: ["/api/employees", employeeId, "overtime-amount", currentYear, currentMonth],
     queryFn: async () => {
+      console.log(`Fetching overtime for employee: ${employeeId}, year: ${currentYear}, month: ${currentMonth}`);
       const response = await fetch(`/api/employees/${employeeId}/overtime-amount?year=${currentYear}&month=${currentMonth}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('utamahr_token')}`
         }
       });
-      if (!response.ok) throw new Error('Failed to fetch overtime amount');
-      return response.json();
+      if (!response.ok) {
+        console.error(`Overtime API error: ${response.status} ${response.statusText}`);
+        throw new Error('Failed to fetch overtime amount');
+      }
+      const result = await response.json();
+      console.log(`Overtime API response:`, result);
+      return result;
     },
     enabled: !!employeeId,
-    refetchInterval: 30000, // Refetch every 30 seconds for real-time updates
+    refetchInterval: 5000, // More frequent updates for debugging
     staleTime: 0 // Always consider data stale to get fresh calculations
   });
 
   // Update overtime amount when data is fetched
   useEffect(() => {
+    console.log(`Overtime data update:`, { overtimeData, isLoadingOvertime, overtimeError });
     if (overtimeData?.overtimeAmount !== undefined) {
+      console.log(`Setting overtime amount to: ${overtimeData.overtimeAmount}`);
       updateAdditionalItemAmount("OVERTIME", overtimeData.overtimeAmount);
+    } else if (overtimeError) {
+      console.error(`Overtime fetch error:`, overtimeError);
     }
-  }, [overtimeData]);
+  }, [overtimeData, overtimeError]);
 
   // Refresh overtime calculation when any overtime claim is approved
   const refreshOvertimeCalculation = () => {
