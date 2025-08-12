@@ -112,6 +112,8 @@ export default function ClaimApprovalPage() {
     onSuccess: () => {
       toast({ title: "Berjaya!", description: "Permohonan telah diluluskan" });
       queryClient.invalidateQueries({ queryKey: ["/api/claim-applications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/claim-applications/type/overtime"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/claim-applications/type/financial"] });
     },
   });
 
@@ -140,6 +142,8 @@ export default function ClaimApprovalPage() {
     onSuccess: () => {
       toast({ title: "Berjaya!", description: "Permohonan telah ditolak" });
       queryClient.invalidateQueries({ queryKey: ["/api/claim-applications"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/claim-applications/type/overtime"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/claim-applications/type/financial"] });
     },
   });
 
@@ -218,11 +222,21 @@ export default function ClaimApprovalPage() {
   const userCanApproveFinancial = hasFinancialApprovalRights();
   const userCanApproveOvertime = hasOvertimeApprovalRights();
   
-  // Filter claims based on user approval rights AND status (only show pending in approval tab)
+  // Filter claims based on user approval rights AND status 
+  // Approval tab: only pending claims
+  // Report tab: only processed claims (approved/rejected)
   const filteredFinancialClaims = userCanApproveFinancial ? 
-    (financialClaimsData || []).filter((claim: any) => claim.status === 'pending') : [];
+    (financialClaimsData || []).filter((claim: any) => 
+      activeTab === 'approval' ? claim.status === 'pending' : 
+      activeTab === 'report' ? ['approved', 'rejected'].includes(claim.status) : 
+      true
+    ) : [];
   const filteredOvertimeClaims = userCanApproveOvertime ? 
-    (overtimeClaimsFromDB || []).filter((claim: any) => claim.status === 'pending') : [];
+    (overtimeClaimsFromDB || []).filter((claim: any) => 
+      activeTab === 'approval' ? claim.status === 'pending' : 
+      activeTab === 'report' ? ['approved', 'rejected'].includes(claim.status) : 
+      true
+    ) : [];
 
   // Legacy sample data - will be replaced by real data above
   const legacyFinancialClaimsData = [
@@ -711,11 +725,47 @@ export default function ClaimApprovalPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow>
-              <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                No data available in table
-              </TableCell>
-            </TableRow>
+            {selectedCategory === "financial" ? (
+              filteredFinancialClaims.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                    No processed claims available
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredFinancialClaims.map((item, index) => (
+                  <TableRow key={item.id}>
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell className="font-medium">{getEmployeeName(item.employeeId)}</TableCell>
+                    <TableCell>{item.claimType}</TableCell>
+                    <TableCell>{getStatusBadge(item.status)}</TableCell>
+                    <TableCell>{item.financialPolicyName || item.reason}</TableCell>
+                    <TableCell className="font-medium">{item.amount ? `RM ${item.amount}` : 'N/A'}</TableCell>
+                    <TableCell>{new Date(item.claimDate).toLocaleDateString()}</TableCell>
+                  </TableRow>
+                ))
+              )
+            ) : (
+              filteredOvertimeClaims.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                    No processed overtime claims available
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredOvertimeClaims.map((item, index) => (
+                  <TableRow key={item.id}>
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell className="font-medium">{getEmployeeName(item.employeeId)}</TableCell>
+                    <TableCell>{getStatusBadge(item.status)}</TableCell>
+                    <TableCell>{item.reason}</TableCell>
+                    <TableCell>{item.startTime} - {item.endTime}</TableCell>
+                    <TableCell className="font-medium">{item.amount ? `RM ${item.amount}` : 'N/A'}</TableCell>
+                    <TableCell>{new Date(item.claimDate).toLocaleDateString()}</TableCell>
+                  </TableRow>
+                ))
+              )
+            )}
           </TableBody>
         </Table>
       </div>
