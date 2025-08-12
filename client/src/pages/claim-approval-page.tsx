@@ -142,9 +142,20 @@ export default function ClaimApprovalPage() {
   const hasOvertimeApprovalRights = () => {
     if (!currentUser || !overtimeApprovalSettings) return false;
     
+    console.log('=== DEBUGGING OVERTIME APPROVAL ACCESS ===');
+    console.log('Current user:', currentUser);
+    console.log('Overtime approval settings:', overtimeApprovalSettings);
+    console.log('Current user ID:', (currentUser as any)?.id);
+    console.log('First level approver ID:', (overtimeApprovalSettings as any)?.firstLevel);
+    console.log('Second level approver ID:', (overtimeApprovalSettings as any)?.secondLevel);
+    
     // Check if user is assigned as overtime approver
     const isFirstLevel = (overtimeApprovalSettings as any).firstLevel === (currentUser as any).id;
     const isSecondLevel = (overtimeApprovalSettings as any).secondLevel === (currentUser as any).id;
+    
+    console.log('Is first level approver:', isFirstLevel);
+    console.log('Is second level approver:', isSecondLevel);
+    console.log('=== END OVERTIME DEBUG ===');
     
     return isFirstLevel || isSecondLevel;
   };
