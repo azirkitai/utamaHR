@@ -44,6 +44,8 @@ export default function ClaimApprovalPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [bulkAction, setBulkAction] = useState("");
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [selectedClaimForView, setSelectedClaimForView] = useState<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -87,15 +89,22 @@ export default function ClaimApprovalPage() {
 
   // Approve claim mutation
   const approveMutation = useMutation({
-    mutationFn: async ({ claimId, approverId }: { claimId: string; approverId: string }) => {
+    mutationFn: async ({ claimId }: { claimId: string }) => {
       const token = localStorage.getItem('utamahr_token');
+      
+      // Find current user's employee record to get employee ID
+      const currentEmployee = employeesData.find((emp: any) => emp.userId === (currentUser as any).id);
+      if (!currentEmployee) {
+        throw new Error('Employee record not found');
+      }
+
       const response = await fetch(`/api/claim-applications/${claimId}/approve`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ approverId }),
+        body: JSON.stringify({ approverId: currentEmployee.id }),
       });
       if (!response.ok) throw new Error('Failed to approve claim');
       return response.json();
@@ -108,15 +117,22 @@ export default function ClaimApprovalPage() {
 
   // Reject claim mutation
   const rejectMutation = useMutation({
-    mutationFn: async ({ claimId, rejectorId, reason }: { claimId: string; rejectorId: string; reason: string }) => {
+    mutationFn: async ({ claimId, reason }: { claimId: string; reason: string }) => {
       const token = localStorage.getItem('utamahr_token');
+      
+      // Find current user's employee record to get employee ID
+      const currentEmployee = employeesData.find((emp: any) => emp.userId === (currentUser as any).id);
+      if (!currentEmployee) {
+        throw new Error('Employee record not found');
+      }
+
       const response = await fetch(`/api/claim-applications/${claimId}/reject`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ rejectorId, reason }),
+        body: JSON.stringify({ rejectorId: currentEmployee.id, reason }),
       });
       if (!response.ok) throw new Error('Failed to reject claim');
       return response.json();
@@ -177,7 +193,7 @@ export default function ClaimApprovalPage() {
       toast({ title: "Error", description: "User information not found", variant: "destructive" });
       return;
     }
-    approveMutation.mutate({ claimId, approverId: (currentUser as any).id });
+    approveMutation.mutate({ claimId });
   };
 
   // Handle reject action
@@ -188,17 +204,25 @@ export default function ClaimApprovalPage() {
     }
     const reason = prompt("Sila nyatakan sebab penolakan:");
     if (reason) {
-      rejectMutation.mutate({ claimId, rejectorId: (currentUser as any).id, reason });
+      rejectMutation.mutate({ claimId, reason });
     }
+  };
+
+  // Handle view action
+  const handleView = (claim: any) => {
+    setSelectedClaimForView(claim);
+    setViewModalOpen(true);
   };
 
   // Check if user can see different types of claims
   const userCanApproveFinancial = hasFinancialApprovalRights();
   const userCanApproveOvertime = hasOvertimeApprovalRights();
   
-  // Filter claims based on user approval rights
-  const filteredFinancialClaims = userCanApproveFinancial ? (financialClaimsData || []) : [];
-  const filteredOvertimeClaims = userCanApproveOvertime ? (overtimeClaimsFromDB || []) : [];
+  // Filter claims based on user approval rights AND status (only show pending in approval tab)
+  const filteredFinancialClaims = userCanApproveFinancial ? 
+    (financialClaimsData || []).filter((claim: any) => claim.status === 'pending') : [];
+  const filteredOvertimeClaims = userCanApproveOvertime ? 
+    (overtimeClaimsFromDB || []).filter((claim: any) => claim.status === 'pending') : [];
 
   // Legacy sample data - will be replaced by real data above
   const legacyFinancialClaimsData = [
