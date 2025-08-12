@@ -521,6 +521,12 @@ export default function EmployeeSalaryDetailsPage() {
         amount: 0, 
         hideOnPayslip: true,
         flags: { epf: false, socso: false, eis: false, hrdf: false, pcb39: false, fixed: false }
+      },
+      { 
+        code: "OVERTIME", 
+        label: "Overtime", 
+        amount: 0,
+        flags: { epf: true, socso: true, eis: true, hrdf: false, pcb39: true, fixed: false }
       }
     ],
     deductions: {
@@ -1170,9 +1176,18 @@ export default function EmployeeSalaryDetailsPage() {
 
   // New helper functions for standardized layout
   const updateAdditionalItemAmount = (itemCode: string, amount: number) => {
-    const updatedItems = salaryData.additionalItems.map(item => 
-      item.code === itemCode ? { ...item, amount } : item
-    );
+    console.log(`updateAdditionalItemAmount called with code: ${itemCode}, amount: ${amount}`);
+    console.log(`Current additionalItems:`, salaryData.additionalItems);
+    
+    const updatedItems = salaryData.additionalItems.map(item => {
+      if (item.code === itemCode) {
+        console.log(`Found matching item: ${item.code}, updating amount from ${item.amount} to ${amount}`);
+        return { ...item, amount };
+      }
+      return item;
+    });
+    
+    console.log(`Updated additionalItems:`, updatedItems);
     updateSalaryData({ additionalItems: updatedItems });
   };
 
