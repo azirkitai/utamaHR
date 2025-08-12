@@ -2105,7 +2105,11 @@ export class DatabaseStorage implements IStorage {
           and(
             eq(claimApplications.employeeId, employeeId),
             eq(claimApplications.claimType, 'overtime'),
-            eq(claimApplications.status, 'approved'),
+            or(
+              eq(claimApplications.status, 'approved'),
+              eq(claimApplications.status, 'firstLevelApproved'),
+              eq(claimApplications.status, 'Approved')
+            ),
             gte(claimApplications.claimDate, startDate),
             lte(claimApplications.claimDate, endDate)
           )
@@ -2122,7 +2126,17 @@ export class DatabaseStorage implements IStorage {
       let totalOvertimeAmount = 0;
 
       for (const claim of approvedOvertimeClaims) {
-        const totalHours = parseFloat(claim.totalHours || '0');
+        let totalHours = parseFloat(claim.totalHours || '0');
+        
+        // If total_hours is 0 or null, calculate from start_time and end_time
+        if (totalHours === 0 && claim.startTime && claim.endTime) {
+          const startTime = claim.startTime.split(':');
+          const endTime = claim.endTime.split(':');
+          const startHour = parseInt(startTime[0]) + parseInt(startTime[1]) / 60;
+          const endHour = parseInt(endTime[0]) + parseInt(endTime[1]) / 60;
+          totalHours = Math.max(0, endHour - startHour);
+        }
+        
         const policyType = claim.overtimePolicyType || 'normal';
         
         // Find the policy multiplier
@@ -2132,6 +2146,14 @@ export class DatabaseStorage implements IStorage {
         // Calculate overtime amount for this claim
         const overtimeAmount = hourlyRate * totalHours * multiplier;
         totalOvertimeAmount += overtimeAmount;
+        
+        console.log(`Overtime calculation for claim ${claim.id}:`, {
+          totalHours,
+          hourlyRate,
+          multiplier,
+          overtimeAmount,
+          policyType
+        });
       }
 
       return Math.round(totalOvertimeAmount * 100) / 100; // Round to 2 decimal places

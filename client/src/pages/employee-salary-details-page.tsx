@@ -813,7 +813,9 @@ export default function EmployeeSalaryDetailsPage() {
       if (!response.ok) throw new Error('Failed to fetch overtime amount');
       return response.json();
     },
-    enabled: !!employeeId
+    enabled: !!employeeId,
+    refetchInterval: 30000, // Refetch every 30 seconds for real-time updates
+    staleTime: 0 // Always consider data stale to get fresh calculations
   });
 
   // Update overtime amount when data is fetched
