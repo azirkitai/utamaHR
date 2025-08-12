@@ -835,7 +835,31 @@ export default function EmployeeSalaryDetailsPage() {
     console.log(`Overtime data update:`, { overtimeData, isLoadingOvertime, overtimeError });
     if (overtimeData?.overtimeAmount !== undefined) {
       console.log(`Setting overtime amount to: ${overtimeData.overtimeAmount}`);
-      updateAdditionalItemAmount("OVERTIME", overtimeData.overtimeAmount);
+      
+      // Ensure OVERTIME item exists before updating
+      setSalaryData(prevData => {
+        const hasOvertimeItem = prevData.additionalItems.some(item => item.code === "OVERTIME");
+        
+        if (!hasOvertimeItem) {
+          console.log("OVERTIME item not found, adding it to additionalItems");
+          const newAdditionalItems = [
+            ...prevData.additionalItems,
+            { 
+              code: "OVERTIME", 
+              label: "Overtime", 
+              amount: overtimeData.overtimeAmount,
+              flags: { epf: true, socso: true, eis: true, hrdf: false, pcb39: true, fixed: false }
+            }
+          ];
+          return { ...prevData, additionalItems: newAdditionalItems };
+        } else {
+          // Update existing OVERTIME item
+          const updatedItems = prevData.additionalItems.map(item => 
+            item.code === "OVERTIME" ? { ...item, amount: overtimeData.overtimeAmount } : item
+          );
+          return { ...prevData, additionalItems: updatedItems };
+        }
+      });
     } else if (overtimeError) {
       console.error(`Overtime fetch error:`, overtimeError);
     }
