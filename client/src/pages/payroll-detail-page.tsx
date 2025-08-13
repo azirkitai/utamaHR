@@ -3,6 +3,7 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Download, Eye, FileSpreadsheet } from "lucide-react";
 import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
@@ -429,14 +430,48 @@ export default function PayrollDetailPage() {
             <div className="bg-white rounded-lg border p-6">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">Individual Payslips</h3>
-                {selectedEmployeeId && (
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm text-gray-600">Showing payslip for:</span>
+                
+                {/* Employee Selection Dropdown */}
+                <div className="flex items-center space-x-3">
+                  <span className="text-sm text-gray-600">Select Employee:</span>
+                  <Select
+                    value={selectedEmployeeId || ""}
+                    onValueChange={(value) => {
+                      if (value) {
+                        const selectedItem = (payrollItems as any[]).find((item: any) => item.employeeId === value);
+                        if (selectedItem) {
+                          const employeeSnapshot = JSON.parse(selectedItem.employeeSnapshot || '{}');
+                          handleViewPayslip(value, employeeSnapshot.name || 'N/A');
+                        }
+                      } else {
+                        setSelectedEmployeeId(null);
+                        setSelectedEmployeeName("");
+                        setPdfPreviewUrl(null);
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-64" data-testid="select-employee-payslip">
+                      <SelectValue placeholder="Choose an employee to preview payslip" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Select Employee</SelectItem>
+                      {(payrollItems as any[]).map((item: any) => {
+                        const employeeSnapshot = JSON.parse(item.employeeSnapshot || '{}');
+                        return (
+                          <SelectItem key={item.employeeId} value={item.employeeId}>
+                            {employeeSnapshot.name || 'N/A'}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                  
+                  {selectedEmployeeId && (
                     <Badge variant="secondary" className="bg-cyan-100 text-cyan-800">
                       {selectedEmployeeName}
                     </Badge>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
 
               {selectedEmployeeId ? (
@@ -506,7 +541,8 @@ export default function PayrollDetailPage() {
                 </div>
               ) : (
                 <div className="text-gray-500 text-center py-8">
-                  Select an employee from the Payroll Details tab to view their individual payslip
+                  <p className="mb-2">Use the dropdown above to select an employee and preview their payslip</p>
+                  <p className="text-sm">Or select an employee from the Payroll Details tab</p>
                 </div>
               )}
             </div>
