@@ -459,21 +459,41 @@ export default function PayrollDetailPage() {
 
         {/* Progress Steps */}
         <div className="flex items-center justify-center space-x-8 py-6">
+          {/* Step 1: Update & Review - Always completed */}
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-medium">
               ✓
             </div>
             <span className="text-sm text-green-600 font-medium">Update & Review</span>
-            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">In Progress</span>
+            {(payrollDocument as any)?.status !== 'approved' && (
+              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Completed</span>
+            )}
           </div>
           
+          {/* Step 2: Approval - Show based on document status */}
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center text-sm font-medium">
-              2
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+              (payrollDocument as any)?.status === 'approved' 
+                ? 'bg-green-500 text-white' 
+                : 'bg-gray-300 text-gray-600'
+            }`}>
+              {(payrollDocument as any)?.status === 'approved' ? '✓' : '2'}
             </div>
-            <span className="text-sm text-gray-600">Approval</span>
+            <span className={`text-sm font-medium ${
+              (payrollDocument as any)?.status === 'approved' 
+                ? 'text-green-600' 
+                : 'text-gray-600'
+            }`}>
+              Approval
+            </span>
+            {(payrollDocument as any)?.status === 'approved' ? (
+              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Approved</span>
+            ) : (
+              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">In Progress</span>
+            )}
           </div>
           
+          {/* Step 3: Payment & Close */}
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center text-sm font-medium">
               3
@@ -694,10 +714,14 @@ export default function PayrollDetailPage() {
                 </AlertDialog>
                 
                 <Button
-                  className="bg-blue-900 hover:bg-blue-800 text-white"
+                  className={`text-white ${
+                    (payrollDocument as any)?.status === 'approved' 
+                      ? 'bg-green-600 hover:bg-green-700' 
+                      : 'bg-blue-900 hover:bg-blue-800'
+                  }`}
                   data-testid="button-submit-payroll"
                 >
-                  Submit Payment
+                  {(payrollDocument as any)?.status === 'approved' ? 'Payment Complete' : 'Submit Payment'}
                 </Button>
               </div>
 
