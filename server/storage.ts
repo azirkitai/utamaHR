@@ -2691,7 +2691,7 @@ export class DatabaseStorage implements IStorage {
       pcb39: deductions.pcb39?.toString() || '0',
       zakat: deductions.zakat?.toString() || '0',
       other: (deductions.customItems || []).map((item: any) => ({
-        name: item.name || item.label,
+        name: item.name || item.label || 'PCB', // Default to PCB for unnamed items as per business logic
         amount: item.amount?.toString() || '0'
       }))
     };
