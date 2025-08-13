@@ -29,6 +29,91 @@ export default function PayrollDetailPage() {
     enabled: !!id,
   });
 
+  // Fetch current user data for approval section
+  const { data: currentUser } = useQuery({
+    queryKey: ["/api/user"],
+  });
+
+  // Handle approval actions
+  const handleApprovePayroll = async () => {
+    if (!currentUser?.id) {
+      alert('Sila log masuk semula');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/payroll/documents/${id}/approve`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('utamahr_token')}`
+        },
+        body: JSON.stringify({
+          approverId: currentUser.id
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to approve payroll');
+      }
+
+      alert('Payroll telah diluluskan berjaya!');
+      // Refresh the page or update state as needed
+      window.location.reload();
+    } catch (error) {
+      console.error('Error approving payroll:', error);
+      alert('Gagal meluluskan payroll. Sila cuba lagi.');
+    }
+  };
+
+  const handleRejectPayroll = async () => {
+    if (!currentUser?.id) {
+      alert('Sila log masuk semula');
+      return;
+    }
+
+    const reason = prompt('Sila masukkan sebab penolakan:');
+    if (!reason || reason.trim() === '') {
+      alert('Sebab penolakan diperlukan');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/payroll/documents/${id}/reject`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('utamahr_token')}`
+        },
+        body: JSON.stringify({
+          rejectorId: currentUser.id,
+          reason: reason.trim()
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to reject payroll');
+      }
+
+      alert('Payroll telah ditolak!');
+      // Refresh the page or update state as needed
+      window.location.reload();
+    } catch (error) {
+      console.error('Error rejecting payroll:', error);
+      alert('Gagal menolak payroll. Sila cuba lagi.');
+    }
+  };
+
+  // Get user initials for profile image
+  const getUserInitials = (name: string) => {
+    if (!name) return 'U';
+    const parts = name.split(' ');
+    if (parts.length >= 2) {
+      return parts[0][0] + parts[1][0];
+    }
+    return parts[0][0] || 'U';
+  };
+
   const handleBackToList = () => {
     window.location.href = "/payment/salary-payroll";
   };
@@ -411,6 +496,52 @@ export default function PayrollDetailPage() {
                 >
                   Submit Payment
                 </Button>
+              </div>
+
+              {/* Salary Payroll Approval Card */}
+              <div className="mt-8 bg-white rounded-lg border shadow-sm">
+                <div className="border-b bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-t-lg">
+                  <h3 className="text-lg font-semibold">Salary Payroll Approval</h3>
+                </div>
+                <div className="p-6">
+                  <div className="flex items-center justify-between">
+                    {/* Left side - Profile, Name, Designation */}
+                    <div className="flex items-center space-x-4">
+                      {/* Profile Image */}
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-lg">
+                        {currentUser ? getUserInitials(currentUser.username || '') : 'U'}
+                      </div>
+                      {/* Name and Designation */}
+                      <div>
+                        <div className="font-semibold text-gray-900">
+                          {currentUser?.username || 'User'}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          {currentUser?.role || 'Finance Manager'}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Right side - Approval Buttons */}
+                    <div className="flex items-center space-x-3">
+                      <Button
+                        onClick={handleApprovePayroll}
+                        className="bg-green-600 hover:bg-green-700 text-white px-6"
+                        data-testid="button-approve-payroll"
+                      >
+                        Approved
+                      </Button>
+                      <Button
+                        onClick={handleRejectPayroll}
+                        variant="outline"
+                        className="border-red-500 text-red-600 hover:bg-red-50 px-6"
+                        data-testid="button-reject-payroll"
+                      >
+                        Reject
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </TabsContent>
