@@ -3957,7 +3957,9 @@ export function registerRoutes(app: Express): Server {
         company: {
           name: companySettings?.companyName || "UTAMA MEDGROUP SDN BHD",
           regNo: companySettings?.companyRegistrationNumber || "202201033996(1479693-H)",
-          address: companySettings?.address || "A2-22-3, SOHO SUITES @ KLCC, 20 JALAN PERAK, 50450 WILAYAH PERSEKUTUAN, KUALA LUMPUR"
+          address: companySettings ? 
+            `${companySettings.address}${companySettings.postcode ? ', ' + companySettings.postcode : ''}${companySettings.city ? ', ' + companySettings.city : ''}${companySettings.state ? ', ' + companySettings.state : ''}` :
+            "A2-22-3, SOHO SUITES @ KLCC, 20 JALAN PERAK, 50450 KUALA LUMPUR, WILAYAH PERSEKUTUAN"
         },
         employee: {
           name: employee.fullName || employeeSnapshot.name,
@@ -4075,7 +4077,9 @@ export function registerRoutes(app: Express): Server {
         company: {
           name: companySettings?.companyName || "UTAMA MEDGROUP SDN BHD",
           regNo: companySettings?.companyRegistrationNumber || "202201033996(1479693-H)",
-          address: companySettings?.address || "A2-22-3, SOHO SUITES @ KLCC, 20 JALAN PERAK, 50450 WILAYAH PERSEKUTUAN, KUALA LUMPUR",
+          address: companySettings ? 
+            `${companySettings.address}${companySettings.postcode ? ', ' + companySettings.postcode : ''}${companySettings.city ? ', ' + companySettings.city : ''}${companySettings.state ? ', ' + companySettings.state : ''}` :
+            "A2-22-3, SOHO SUITES @ KLCC, 20 JALAN PERAK, 50450 KUALA LUMPUR, WILAYAH PERSEKUTUAN",
           phone: companySettings?.phoneNumber,
           email: companySettings?.email || undefined,
           website: companySettings?.website || undefined
