@@ -354,7 +354,8 @@ type EisResult = {
 };
 
 const calcEis = (input: EisInput): EisResult => {
-  const CEILING = 4000.00; // EIS maximum wage ceiling
+  const CEILING = 5000.00; // EIS maximum wage ceiling RM5,000
+  const EIS_RATE = 0.2; // 0.2% for both employee and employer
   
   // Check eligibility first
   const age = typeof input.age === 'number' ? input.age : undefined;
@@ -379,23 +380,9 @@ const calcEis = (input: EisInput): EisResult => {
 
   const wageBase = Math.min(Number(input.reportedWage || 0), CEILING);
   
-  // If wage is below minimum threshold
-  if (wageBase < 30.01) {
-    return { wageBase, employee: 0, employer: 0, eligible: false };
-  }
-
-  // Find from EIS table
-  const tableEntry = EIS_TABLE.find(entry => 
-    wageBase >= entry.min && wageBase <= entry.max
-  );
-  
-  let employee = 0;
-  let employer = 0;
-  
-  if (tableEntry) {
-    employee = tableEntry.employee;
-    employer = tableEntry.employer;
-  }
+  // Calculate using 0.2% rate for both employee and employer
+  const employee = roundToCent(wageBase * EIS_RATE / 100);
+  const employer = roundToCent(wageBase * EIS_RATE / 100);
 
   return { wageBase, employee, employer, eligible: true };
 };
@@ -452,6 +439,9 @@ export default function EmployeeSalaryDetailsPage() {
   
   // HRDF switch state
   const [isHrdfEnabled, setIsHrdfEnabled] = useState(true);
+  
+  // EIS switch state
+  const [isEisEnabled, setIsEisEnabled] = useState(true);
 
   // Function to add relief item
   const handleAddReliefItem = () => {
@@ -1054,8 +1044,8 @@ export default function EmployeeSalaryDetailsPage() {
         ? calcSocso({ reportedWage: socsoWageBase, category: 1 })
         : { employee: 0, employer: 0, wageBase: 0, category: 1 as const };
       
-      // Calculate EIS using new implementation with proper eligibility checks
-      const eis = salaryData.settings.isEisEnabled 
+      // Calculate EIS using new implementation with proper eligibility checks - only if enabled
+      const eis = (salaryData.settings.isEisEnabled && isEisEnabled) 
         ? calcEis({ reportedWage: eisWageBase, enabled: true })
         : { employee: 0, employer: 0, wageBase: 0, eligible: false };
 
@@ -2718,6 +2708,31 @@ export default function EmployeeSalaryDetailsPage() {
                   </p>
                 </div>
 
+                {/* EIS Setting Header with Switch */}
+                <div className="space-y-3 pt-4 border-t">
+                  <div className="flex items-center justify-between">
+                    <Label className="font-medium text-gray-700">EIS Setting</Label>
+                    <div className="flex items-center space-x-2">
+                      <Label className="text-sm text-gray-500">Disabled</Label>
+                      <Switch
+                        checked={isEisEnabled}
+                        onCheckedChange={(checked) => {
+                          setIsEisEnabled(checked);
+                          if (!checked) {
+                            // Clear EIS Employee and Employer amounts when disabled
+                            updateSalaryData({ 
+                              deductions: { ...salaryData.deductions, eisEmployee: 0 },
+                              contributions: { ...salaryData.contributions, eisEmployer: 0 }
+                            });
+                          }
+                        }}
+                        data-testid="switch-eis-setting"
+                      />
+                      <Label className="text-sm text-gray-700">Enabled</Label>
+                    </div>
+                  </div>
+                </div>
+
                 {/* EIS Employee (auto calculated) */}
                 <div className="space-y-2">
                   <Label className="font-medium">EIS Employee</Label>
@@ -2727,14 +2742,17 @@ export default function EmployeeSalaryDetailsPage() {
                     </div>
                     <Input
                       type="text"
-                      value={salaryData.deductions.eisEmployee.toFixed(2)}
-                      className="rounded-l-none bg-gray-100"
+                      value={isEisEnabled ? salaryData.deductions.eisEmployee.toFixed(2) : "0.00"}
+                      className={`rounded-l-none ${isEisEnabled ? 'bg-gray-100' : 'bg-gray-50 text-gray-400'}`}
                       readOnly
                       data-testid="eis-employee-deduction"
                     />
                   </div>
                   <p className="text-xs text-gray-500">
-                    How did we calculate this? 0.2% × basic salary (capped RM5,000).
+                    {isEisEnabled 
+                      ? "How did we calculate this? 0.2% × basic salary (capped RM5,000)."
+                      : "EIS tidak diaktifkan"
+                    }
                   </p>
                 </div>
 
@@ -3237,14 +3255,17 @@ export default function EmployeeSalaryDetailsPage() {
                     </div>
                     <Input
                       type="text"
-                      value={salaryData.contributions.eisEmployer.toFixed(2)}
-                      className="rounded-l-none bg-gray-100"
+                      value={isEisEnabled ? salaryData.contributions.eisEmployer.toFixed(2) : "0.00"}
+                      className={`rounded-l-none ${isEisEnabled ? 'bg-gray-100' : 'bg-gray-50 text-gray-400'}`}
                       readOnly
                       data-testid="eis-employer-contribution"
                     />
                   </div>
                   <p className="text-xs text-gray-500">
-                    How did we calculate this? 0.2% × basic salary (capped RM5,000).
+                    {isEisEnabled 
+                      ? "How did we calculate this? 0.2% × basic salary (capped RM5,000)."
+                      : "EIS tidak diaktifkan"
+                    }
                   </p>
                 </div>
 
