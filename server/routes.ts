@@ -3718,6 +3718,7 @@ export function registerRoutes(app: Express): Server {
     try {
       const currentUser = req.user!;
       const { id } = req.params;
+      const { force } = req.body; // Add force parameter to allow regeneration
       
       // Role-based access control
       const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
@@ -3725,7 +3726,7 @@ export function registerRoutes(app: Express): Server {
         return res.status(403).json({ error: 'Tidak dibenarkan untuk menjana slip gaji' });
       }
 
-      const items = await storage.generatePayrollItems(id);
+      const items = await storage.generatePayrollItems(id, force);
       res.json({ 
         message: `${items.length} slip gaji berjaya dijana`,
         items: items.length 

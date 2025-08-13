@@ -2525,7 +2525,7 @@ export class DatabaseStorage implements IStorage {
     return (result.rowCount ?? 0) > 0;
   }
 
-  async generatePayrollItems(documentId: string): Promise<PayrollItem[]> {
+  async generatePayrollItems(documentId: string, force: boolean = false): Promise<PayrollItem[]> {
     try {
       console.log('Starting payroll generation for document:', documentId);
       
@@ -2550,16 +2550,31 @@ export class DatabaseStorage implements IStorage {
           
           // Check if payroll item already exists for this employee
           const existingItem = await this.getPayrollItemByDocumentAndEmployee(documentId, employee.id);
-          if (existingItem) {
+          if (existingItem && !force) {
             console.log('Payroll item already exists for employee:', employee.fullName);
-            continue; // Skip if already exists
+            continue; // Skip if already exists and not forcing
+          }
+          
+          // If force is true and item exists, delete the existing item first
+          if (existingItem && force) {
+            console.log('Force regeneration: deleting existing payroll item for employee:', employee.fullName);
+            await this.deletePayrollItem(existingItem.id);
           }
 
-          // Get employee's salary information with simplified approach
+          // Get employee's salary information and Master Salary Configuration
           const salary = await this.getEmployeeSalaryByEmployeeId(employee.id);
           const basicSalary = parseFloat(salary?.basicSalary || '1000'); // Default basic salary
           
           console.log('Employee basic salary:', basicSalary);
+
+          // Get Master Salary Configuration if available
+          let masterSalaryData = null;
+          try {
+            masterSalaryData = await this.getMasterSalaryData(employee.id);
+            console.log('Master Salary Data for', employee.fullName, ':', JSON.stringify(masterSalaryData, null, 2));
+          } catch (error) {
+            console.log('No Master Salary Configuration found for', employee.fullName, 'Error:', error.message);
+          }
 
           // Simplified salary components
           const additionalItems = [];
@@ -2596,18 +2611,7 @@ export class DatabaseStorage implements IStorage {
         claims: JSON.stringify(claimsData),
         unpaidLeave: JSON.stringify(unpaidLeaveData),
         lateness: JSON.stringify({ minutes: 0, amount: 0 }), // To be implemented
-        deductions: JSON.stringify({
-          epfEmployee: this.calculateEPFEmployee(basicSalary.toString()),
-          socsoEmployee: this.calculateSOCSO(basicSalary.toString(), 'employee'),
-          eisEmployee: this.calculateEIS(basicSalary.toString(), 'employee'),
-          pcb38: '0',
-          pcb39: '0',
-          zakat: '0',
-          other: Object.entries(deductionItems || {}).map(([name, amount]) => ({
-            name,
-            amount: amount?.toString() || '0'
-          }))
-        }),
+        deductions: JSON.stringify(this.generateDeductionsFromMasterSalary(basicSalary, masterSalaryData)),
         contributions: JSON.stringify({
           epfEmployer: this.calculateEPFEmployer(basicSalary.toString()),
           socsoEmployer: this.calculateSOCSO(basicSalary.toString(), 'employer'),
@@ -2654,6 +2658,42 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Helper methods for payroll calculations
+
+  private generateDeductionsFromMasterSalary(basicSalary: number, masterSalaryData: any): any {
+    // If no Master Salary data, use default calculations
+    if (!masterSalaryData || !masterSalaryData.deductions) {
+      return {
+        epfEmployee: this.calculateEPFEmployee(basicSalary.toString()),
+        socsoEmployee: this.calculateSOCSO(basicSalary.toString(), 'employee'),
+        eisEmployee: this.calculateEIS(basicSalary.toString(), 'employee'),
+        pcb38: '0',
+        pcb39: '0',
+        zakat: '0',
+        other: []
+      };
+    }
+
+    // Use Master Salary Configuration deductions
+    const deductions = masterSalaryData.deductions;
+    console.log('Using Master Salary deductions for employee:', deductions);
+    
+    // Build deductions object from master salary data
+    const result = {
+      epfEmployee: deductions.epfEmployee?.toString() || this.calculateEPFEmployee(basicSalary.toString()),
+      socsoEmployee: deductions.socsoEmployee?.toString() || this.calculateSOCSO(basicSalary.toString(), 'employee'),
+      eisEmployee: deductions.eisEmployee?.toString() || this.calculateEIS(basicSalary.toString(), 'employee'),
+      pcb38: deductions.pcb38?.toString() || '0',
+      pcb39: deductions.pcb39?.toString() || '0',
+      zakat: deductions.zakat?.toString() || '0',
+      other: (deductions.customItems || []).map((item: any) => ({
+        name: item.name,
+        amount: item.amount?.toString() || '0'
+      }))
+    };
+
+    console.log('Generated deductions from Master Salary:', result);
+    return result;
+  }
 
   private calculateEPFEmployee(basicSalary: string): string {
     const basic = parseFloat(basicSalary);
