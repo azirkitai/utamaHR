@@ -3293,22 +3293,7 @@ export default function EmployeeSalaryDetailsPage() {
                         </div>
                       </div>
 
-                      {/* YTD PCB/MTD Employer */}
-                      <div className="space-y-2">
-                        <Label className="font-medium">YTD PCB/MTD</Label>
-                        <div className="flex">
-                          <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
-                            <span className="text-sm font-medium">RM</span>
-                          </div>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            defaultValue="0.00"
-                            className="rounded-l-none"
-                            data-testid="ytd-pcb-employer"
-                          />
-                        </div>
-                      </div>
+                      
                     </div>
                   </div>
                 </CardContent>
