@@ -3065,9 +3065,18 @@ export default function EmployeeSalaryDetailsPage() {
                       type="number"
                       step="0.01"
                       value={salaryData.deductions.other}
-                      onChange={(e) => updateSalaryData({ 
-                        deductions: { ...salaryData.deductions, other: parseFloat(e.target.value) || 0 }
-                      })}
+                      onChange={(e) => {
+                        const newValue = parseFloat(e.target.value) || 0;
+                        const oldValue = salaryData.deductions.other;
+                        updateSalaryData({ 
+                          deductions: { ...salaryData.deductions, other: newValue }
+                        });
+                        // Auto update YTD PCB/MTD when MTD/PCB changes
+                        // Calculate the difference and add to YTD
+                        const difference = newValue - oldValue;
+                        const newYtdPcb = Math.round((ytdValues.employee.pcb + difference) * 100) / 100;
+                        updateYtdValue('employee', 'pcb', newYtdPcb);
+                      }}
                       className="rounded-l-none"
                       data-testid="other-deduction"
                     />
@@ -3125,6 +3134,9 @@ export default function EmployeeSalaryDetailsPage() {
                       </div>
                     </div>
                   )}
+                  <p className="text-xs text-blue-600 font-medium">
+                    🔗 Dikaitkan dengan YTD PCB/MTD - Perubahan nilai akan mengemas kini YTD secara automatik
+                  </p>
                 </div>
 
                 {/* Custom Deduction Items */}
@@ -3559,6 +3571,9 @@ export default function EmployeeSalaryDetailsPage() {
                         {ytdRemarks.employee.pcb && (
                           <p className="text-xs text-gray-500">{ytdRemarks.employee.pcb}</p>
                         )}
+                        <p className="text-xs text-blue-600 font-medium">
+                          🔗 Dikaitkan dengan MTD/PCB - Nilai akan dikemas kini secara automatik apabila MTD/PCB berubah
+                        </p>
                       </div>
                     </div>
 
