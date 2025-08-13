@@ -69,7 +69,8 @@ export default function PayrollDetailPage() {
       console.log('Generated PDF URL:', url);
       setPdfPreviewUrl(url);
       
-      // PDF URL is ready for iframe display
+      // PDF URL is ready for object display
+      console.log('PDF preview URL created:', url);
     } catch (error) {
       console.error('Error generating PDF preview:', error);
       alert('Gagal menghasilkan preview PDF. Sila cuba lagi.');
@@ -521,14 +522,28 @@ export default function PayrollDetailPage() {
                               <h5 className="font-medium text-gray-800">PDF Preview</h5>
                             </div>
                             <div className="p-4 bg-gray-100" style={{ height: '600px' }}>
-                              <iframe
-                                src={pdfPreviewUrl}
+                              <object
+                                data={pdfPreviewUrl}
+                                type="application/pdf"
                                 width="100%"
                                 height="100%"
-                                style={{ border: 'none', borderRadius: '4px' }}
-                                title="PDF Preview"
+                                style={{ borderRadius: '4px' }}
                                 className="bg-white shadow-sm"
-                              />
+                              >
+                                <div className="flex flex-col items-center justify-center h-full text-center p-8">
+                                  <svg className="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                  </svg>
+                                  <h3 className="text-lg font-medium text-gray-900 mb-2">PDF Preview</h3>
+                                  <p className="text-gray-600 mb-4">PDF telah dijana dengan jayanya</p>
+                                  <button
+                                    onClick={() => window.open(pdfPreviewUrl, '_blank')}
+                                    className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition-colors"
+                                  >
+                                    Buka PDF dalam Tab Baru
+                                  </button>
+                                </div>
+                              </object>
                             </div>
                           </div>
                           

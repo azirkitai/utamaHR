@@ -4020,13 +4020,7 @@ export function registerRoutes(app: Express): Server {
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
       res.setHeader('Content-Length', pdfBuffer.length);
-      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
-      res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-      res.setHeader('Content-Security-Policy', 'frame-ancestors \'self\'');
-      res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
-      res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
+      res.setHeader('Accept-Ranges', 'bytes');
       
       // Write buffer directly to response
       res.write(pdfBuffer);
