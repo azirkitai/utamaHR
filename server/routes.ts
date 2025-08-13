@@ -4041,14 +4041,29 @@ export function registerRoutes(app: Express): Server {
           fixedAllowance: formatMoney(salary.fixedAllowance),
           items: [
             {
-              label: "OVERTIME",
-              amount: formatMoney(salary.overtime || "0"),
-              show: parseFloat(salary.overtime || "0") > 0
+              label: "Advance Salary",
+              amount: formatMoney(salary.advanceSalary || "0"),
+              show: parseFloat(salary.advanceSalary || "0") > 0
             },
             {
-              label: "CLAIMS",
-              amount: formatMoney(salary.claims || "0"), 
-              show: parseFloat(salary.claims || "0") > 0
+              label: "Subsistence Allowance", 
+              amount: formatMoney(salary.subsistenceAllowance || "0"),
+              show: parseFloat(salary.subsistenceAllowance || "0") > 0
+            },
+            {
+              label: "Extra Responsibility Allowance",
+              amount: formatMoney(salary.extraResponsibilityAllowance || "0"),
+              show: parseFloat(salary.extraResponsibilityAllowance || "0") > 0
+            },
+            {
+              label: "BIK/VOLA",
+              amount: formatMoney(salary.bikVola || "0"),
+              show: parseFloat(salary.bikVola || "0") > 0
+            },
+            {
+              label: "Overtime",
+              amount: formatMoney(salary.overtime || "0"),
+              show: parseFloat(salary.overtime || "0") > 0
             }
           ],
           totalGross: formatMoney(salary.gross)
@@ -4192,8 +4207,31 @@ export function registerRoutes(app: Express): Server {
           basic: formatMoney(salary.basic),
           fixedAllowance: formatMoney(salary.fixedAllowance),
           items: [
-            { label: "OVERTIME", amount: formatMoney(salary.overtime || 0), show: parseFloat(salary.overtime || "0") > 0 },
-            { label: "CLAIMS", amount: formatMoney(salary.claims || 0), show: parseFloat(salary.claims || "0") > 0 }
+            {
+              label: "Advance Salary",
+              amount: formatMoney(salary.advanceSalary || "0"),
+              show: parseFloat(salary.advanceSalary || "0") > 0
+            },
+            {
+              label: "Subsistence Allowance", 
+              amount: formatMoney(salary.subsistenceAllowance || "0"),
+              show: parseFloat(salary.subsistenceAllowance || "0") > 0
+            },
+            {
+              label: "Extra Responsibility Allowance",
+              amount: formatMoney(salary.extraResponsibilityAllowance || "0"),
+              show: parseFloat(salary.extraResponsibilityAllowance || "0") > 0
+            },
+            {
+              label: "BIK/VOLA",
+              amount: formatMoney(salary.bikVola || "0"),
+              show: parseFloat(salary.bikVola || "0") > 0
+            },
+            {
+              label: "Overtime",
+              amount: formatMoney(salary.overtime || "0"),
+              show: parseFloat(salary.overtime || "0") > 0
+            }
           ],
           totalGross: formatMoney(salary.gross)
         },
@@ -4315,6 +4353,11 @@ export function registerRoutes(app: Express): Server {
         income: {
           basic: formatMoney(salary.basic || 0),
           fixedAllowance: formatMoney(salary.fixedAllowance || 0),
+          advanceSalary: parseFloat(salary.advanceSalary || "0") > 0 ? formatMoney(salary.advanceSalary || 0) : null,
+          subsistenceAllowance: parseFloat(salary.subsistenceAllowance || "0") > 0 ? formatMoney(salary.subsistenceAllowance || 0) : null,
+          extraResponsibilityAllowance: parseFloat(salary.extraResponsibilityAllowance || "0") > 0 ? formatMoney(salary.extraResponsibilityAllowance || 0) : null,
+          bikVola: parseFloat(salary.bikVola || "0") > 0 ? formatMoney(salary.bikVola || 0) : null,
+          overtime: parseFloat(salary.overtime || "0") > 0 ? formatMoney(salary.overtime || 0) : null,
           totalGross: formatMoney(salary.gross || 0)
         },
         deduction: {

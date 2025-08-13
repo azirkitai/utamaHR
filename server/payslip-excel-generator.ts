@@ -28,6 +28,11 @@ interface PayslipData {
   income: {
     basic: string;
     fixedAllowance: string;
+    advanceSalary?: string | null;
+    subsistenceAllowance?: string | null;
+    extraResponsibilityAllowance?: string | null;
+    bikVola?: string | null;
+    overtime?: string | null;
     totalGross: string;
   };
   deduction: {
@@ -158,44 +163,68 @@ export async function generatePayslipExcel(data: PayslipData): Promise<{ excelPa
 
     currentRow++;
 
-    // Income items
+    // Income items - start with required fields
+    const incomeStartRow = currentRow;
+    let deductionRow = currentRow;
+    
+    // Basic Salary (always shown)
     worksheet.getCell(`A${currentRow}`).value = 'BASIC SALARY';
     worksheet.getCell(`C${currentRow}`).value = formatMoney(data.income.basic);
     worksheet.getCell(`C${currentRow}`).alignment = { horizontal: 'right' };
     worksheet.mergeCells(`A${currentRow}:B${currentRow}`);
     worksheet.mergeCells(`C${currentRow}:D${currentRow}`);
-
-    // Deduction items
-    worksheet.getCell(`E${currentRow}`).value = 'EPF';
-    worksheet.getCell(`G${currentRow}`).value = formatMoney(data.deduction.epfEmp);
-    worksheet.getCell(`G${currentRow}`).alignment = { horizontal: 'right' };
-    worksheet.mergeCells(`E${currentRow}:F${currentRow}`);
-    worksheet.mergeCells(`G${currentRow}:H${currentRow}`);
-
+    
+    // Fixed Allowance (always shown)
     currentRow++;
-
     worksheet.getCell(`A${currentRow}`).value = 'FIXED ALLOWANCE';
     worksheet.getCell(`C${currentRow}`).value = formatMoney(data.income.fixedAllowance);
     worksheet.getCell(`C${currentRow}`).alignment = { horizontal: 'right' };
     worksheet.mergeCells(`A${currentRow}:B${currentRow}`);
     worksheet.mergeCells(`C${currentRow}:D${currentRow}`);
+    
+    // Dynamic income fields - only show if they have values
+    const incomeFields = [
+      { label: 'ADVANCE SALARY', value: data.income.advanceSalary },
+      { label: 'SUBSISTENCE ALLOWANCE', value: data.income.subsistenceAllowance },
+      { label: 'EXTRA RESPONSIBILITY ALLOWANCE', value: data.income.extraResponsibilityAllowance },
+      { label: 'BIK/VOLA', value: data.income.bikVola },
+      { label: 'OVERTIME', value: data.income.overtime }
+    ];
+    
+    for (const field of incomeFields) {
+      if (field.value && parseFloat(field.value) > 0) {
+        currentRow++;
+        worksheet.getCell(`A${currentRow}`).value = field.label;
+        worksheet.getCell(`C${currentRow}`).value = formatMoney(field.value);
+        worksheet.getCell(`C${currentRow}`).alignment = { horizontal: 'right' };
+        worksheet.mergeCells(`A${currentRow}:B${currentRow}`);
+        worksheet.mergeCells(`C${currentRow}:D${currentRow}`);
+      }
+    }
 
-    worksheet.getCell(`E${currentRow}`).value = 'SOCSO';
-    worksheet.getCell(`G${currentRow}`).value = formatMoney(data.deduction.socsoEmp);
-    worksheet.getCell(`G${currentRow}`).alignment = { horizontal: 'right' };
-    worksheet.mergeCells(`E${currentRow}:F${currentRow}`);
-    worksheet.mergeCells(`G${currentRow}:H${currentRow}`);
+    // Deduction items - start from the same row as income
+    worksheet.getCell(`E${deductionRow}`).value = 'EPF';
+    worksheet.getCell(`G${deductionRow}`).value = formatMoney(data.deduction.epfEmp);
+    worksheet.getCell(`G${deductionRow}`).alignment = { horizontal: 'right' };
+    worksheet.mergeCells(`E${deductionRow}:F${deductionRow}`);
+    worksheet.mergeCells(`G${deductionRow}:H${deductionRow}`);
 
-    currentRow++;
+    deductionRow++;
+    worksheet.getCell(`E${deductionRow}`).value = 'SOCSO';
+    worksheet.getCell(`G${deductionRow}`).value = formatMoney(data.deduction.socsoEmp);
+    worksheet.getCell(`G${deductionRow}`).alignment = { horizontal: 'right' };
+    worksheet.mergeCells(`E${deductionRow}:F${deductionRow}`);
+    worksheet.mergeCells(`G${deductionRow}:H${deductionRow}`);
 
-    // Empty row for spacing
-    worksheet.getCell(`E${currentRow}`).value = 'EIS';
-    worksheet.getCell(`G${currentRow}`).value = formatMoney(data.deduction.eisEmp);
-    worksheet.getCell(`G${currentRow}`).alignment = { horizontal: 'right' };
-    worksheet.mergeCells(`E${currentRow}:F${currentRow}`);
-    worksheet.mergeCells(`G${currentRow}:H${currentRow}`);
+    deductionRow++;
+    worksheet.getCell(`E${deductionRow}`).value = 'EIS';
+    worksheet.getCell(`G${deductionRow}`).value = formatMoney(data.deduction.eisEmp);
+    worksheet.getCell(`G${deductionRow}`).alignment = { horizontal: 'right' };
+    worksheet.mergeCells(`E${deductionRow}:F${deductionRow}`);
+    worksheet.mergeCells(`G${deductionRow}:H${deductionRow}`);
 
-    currentRow++;
+    // Set currentRow to the maximum of income and deduction rows
+    currentRow = Math.max(currentRow, deductionRow) + 1;
 
     // Totals
     worksheet.getCell(`A${currentRow}`).value = 'TOTAL GROSS INCOME';
