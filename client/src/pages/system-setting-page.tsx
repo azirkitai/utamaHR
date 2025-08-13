@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -712,6 +712,13 @@ export default function SystemSettingPage() {
     { id: 4, name: "Fatimah Abdullah", position: "Admin Officer" },
     { id: 5, name: "Azmi Rahman", position: "HR Executive" },
   ]);
+
+  // Logo upload states
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [companyData, setCompanyData] = useState({
     companyName: "utama hr",
     companyShortName: "KLINIK UTAMA 24 JAM",
@@ -726,6 +733,7 @@ export default function SystemSettingPage() {
     city: "Bandar Baru Bangi",
     postcode: "43650",
     country: "Malaysia",
+    logoUrl: null,
     bankName: "",
     bankAccountNo: "Bank Account No",
     epfNo: "EPF No",
@@ -909,6 +917,105 @@ export default function SystemSettingPage() {
     }
   }, [expandedPolicyId]);
 
+  // Logo upload functions
+  const handleLogoUpload = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Ralat",
+          description: "Sila pilih fail imej yang sah (JPG, PNG, GIF)",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Ralat", 
+          description: "Saiz fail terlalu besar. Maksimum 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setLogoFile(file);
+      
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setLogoPreviewUrl(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadLogoToServer = async (file: File): Promise<string> => {
+    try {
+      setIsUploadingLogo(true);
+      
+      // Get upload URL from server
+      const token = localStorage.getItem("utamahr_token");
+      if (!token) {
+        throw new Error("Token tidak dijumpai. Sila log masuk semula.");
+      }
+
+      const uploadResponse = await fetch("/api/objects/upload", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error("Gagal mendapatkan URL upload");
+      }
+
+      const { uploadURL } = await uploadResponse.json();
+
+      // Upload file directly to object storage
+      const fileUpload = await fetch(uploadURL, {
+        method: "PUT",
+        body: file,
+        headers: {
+          "Content-Type": file.type,
+        },
+      });
+
+      if (!fileUpload.ok) {
+        throw new Error("Gagal memuat naik fail");
+      }
+
+      // Update logo ACL and get normalized path
+      const updateResponse = await fetch("/api/company-logo", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          logoURL: uploadURL,
+        }),
+      });
+
+      if (!updateResponse.ok) {
+        throw new Error("Gagal menyimpan maklumat logo");
+      }
+
+      const { objectPath } = await updateResponse.json();
+      return objectPath;
+
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
+
   const handleInputChange = (field: string, value: string) => {
     setCompanyData(prev => ({
       ...prev,
@@ -978,6 +1085,7 @@ export default function SystemSettingPage() {
           city: data.city || "",
           postcode: data.postcode || "",
           country: data.country || "",
+          logoUrl: data.logoUrl || null,
           bankName: data.bankName || "",
           bankAccountNo: data.bankAccountNumber || "",
           epfNo: data.epfNumber || "",
@@ -993,36 +1101,72 @@ export default function SystemSettingPage() {
     }
   });
 
-  const handleUpdate = () => {
-    // Map frontend state to backend schema
-    const companySettingsData = {
-      companyName: companyData.companyName,
-      companyShortName: companyData.companyShortName,
-      companyRegistrationNumber: companyData.companyRegNo,
-      companyType: companyData.companyType,
-      industry: companyData.industry,
-      email: companyData.companyEmail,
-      phoneNumber: companyData.companyPhone,
-      faxNumber: companyData.companyFax,
-      address: companyData.streetAddress,
-      city: companyData.city,
-      postcode: companyData.postcode,
-      state: companyData.state,
-      country: companyData.country,
-      bankName: companyData.bankName,
-      bankAccountNumber: companyData.bankAccountNo,
-      epfNumber: companyData.epfNo,
-      socsoNumber: companyData.socsoNo,
-      incomeTaxNumber: companyData.incomeTaxNo,
-      employerNumber: companyData.employerNo,
-      lhdnBranch: companyData.lhdnBranch,
-      originatorId: companyData.originatorId,
-      zakatNumber: companyData.zakatNo,
-      cNumber: companyData.cNumber
-    };
+  const handleUpdate = async () => {
+    try {
+      let logoPath = companyData.logoUrl;
 
-    console.log("Saving company settings:", companySettingsData);
-    updateCompanySettingsMutation.mutate(companySettingsData);
+      // Upload logo first if there's a new file
+      if (logoFile) {
+        toast({
+          title: "Memuat naik logo...",
+          description: "Sila tunggu sementara logo sedang dimuat naik",
+        });
+        
+        logoPath = await uploadLogoToServer(logoFile);
+        
+        // Update companyData with new logo path
+        setCompanyData(prev => ({
+          ...prev,
+          logoUrl: logoPath
+        }));
+      }
+
+      // Map frontend state to backend schema
+      const companySettingsData = {
+        companyName: companyData.companyName,
+        companyShortName: companyData.companyShortName,
+        companyRegistrationNumber: companyData.companyRegNo,
+        companyType: companyData.companyType,
+        industry: companyData.industry,
+        email: companyData.companyEmail,
+        phoneNumber: companyData.companyPhone,
+        faxNumber: companyData.companyFax,
+        address: companyData.streetAddress,
+        city: companyData.city,
+        postcode: companyData.postcode,
+        state: companyData.state,
+        country: companyData.country,
+        logoUrl: logoPath,
+        bankName: companyData.bankName,
+        bankAccountNumber: companyData.bankAccountNo,
+        epfNumber: companyData.epfNo,
+        socsoNumber: companyData.socsoNo,
+        incomeTaxNumber: companyData.incomeTaxNo,
+        employerNumber: companyData.employerNo,
+        lhdnBranch: companyData.lhdnBranch,
+        originatorId: companyData.originatorId,
+        zakatNumber: companyData.zakatNo,
+        cNumber: companyData.cNumber
+      };
+
+      console.log("Saving company settings:", companySettingsData);
+      updateCompanySettingsMutation.mutate(companySettingsData);
+
+      // Clear uploaded file after successful save
+      if (logoFile) {
+        setLogoFile(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      }
+
+    } catch (error) {
+      toast({
+        title: "Ralat",
+        description: error instanceof Error ? error.message : "Gagal memuat naik logo",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSaveLeaveApproval = async () => {
@@ -1601,17 +1745,59 @@ export default function SystemSettingPage() {
 
       <div className="bg-white p-6 rounded-lg border space-y-6">
         {/* Company Logo */}
-        <div className="flex items-center space-x-4">
-          <div>
-            <Label className="text-sm font-medium">Company Logo</Label>
-            <div className="mt-2 w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center">
-              <div className="w-16 h-16 bg-gray-300 rounded-full"></div>
+        <div className="space-y-4">
+          <Label className="text-sm font-medium">Company Logo</Label>
+          <div className="flex items-center space-x-4">
+            <div className="w-20 h-20 bg-gray-200 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
+              {(logoPreviewUrl || (companyData.logoUrl && !logoFile)) ? (
+                <img 
+                  src={logoPreviewUrl || (companyData.logoUrl ? `/objects/${companyData.logoUrl.replace('/objects/', '')}` : '')}
+                  alt="Company Logo"
+                  className="w-full h-full object-cover rounded-lg"
+                />
+              ) : (
+                <Building2 className="w-8 h-8 text-gray-400" />
+              )}
+            </div>
+            <div className="flex flex-col space-y-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleLogoUpload}
+                disabled={isUploadingLogo}
+                data-testid="button-upload-logo"
+              >
+                {isUploadingLogo ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Memuat naik...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4 mr-2" />
+                    {logoFile ? 'Tukar Logo' : 'Muat Naik Logo'}
+                  </>
+                )}
+              </Button>
+              {logoFile && (
+                <p className="text-xs text-green-600">
+                  Logo baru dipilih: {logoFile.name}
+                </p>
+              )}
+              <p className="text-xs text-gray-500">
+                JPG, PNG atau GIF (Max: 5MB)
+              </p>
             </div>
           </div>
-          <Button variant="outline" size="sm" className="mt-6">
-            <Upload className="w-4 h-4 mr-2" />
-            Upload
-          </Button>
+          
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
         </div>
 
         {/* Company Information */}

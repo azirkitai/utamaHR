@@ -1790,6 +1790,23 @@ export function registerRoutes(app: Express): Server {
   });
 
   // =================== OBJECT STORAGE ROUTES ===================
+  
+  // Serve public objects (for company logo, etc.)
+  app.get("/public-objects/:filePath(*)", async (req, res) => {
+    const filePath = req.params.filePath;
+    const objectStorageService = new ObjectStorageService();
+    try {
+      const file = await objectStorageService.searchPublicObject(filePath);
+      if (!file) {
+        return res.status(404).json({ error: "File not found" });
+      }
+      objectStorageService.downloadObject(file, res);
+    } catch (error) {
+      console.error("Error searching for public object:", error);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // The endpoint for serving private objects with authentication and ACL check
   app.get("/objects/:objectPath(*)", authenticateToken, async (req, res) => {
     const userId = req.user?.id;
@@ -1870,6 +1887,42 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error updating profile image:", error);
       res.status(500).json({ error: "Gagal mengemaskini gambar profil" });
+    }
+  });
+
+  // Update company logo
+  app.put("/api/company-logo", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      
+      // Only admin roles can update company logo
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (!adminRoles.includes(currentUser.role)) {
+        return res.status(403).json({ error: "Tidak dibenarkan untuk mengemaskini logo syarikat" });
+      }
+
+      const { logoURL } = req.body;
+      if (!logoURL) {
+        return res.status(400).json({ error: "logoURL diperlukan" });
+      }
+
+      const objectStorageService = new ObjectStorageService();
+      const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
+        logoURL,
+        {
+          owner: currentUser.id,
+          visibility: "public", // Company logo should be public
+        }
+      );
+
+      res.json({ 
+        success: true, 
+        objectPath,
+        message: "Logo syarikat berjaya dikemaskini" 
+      });
+    } catch (error) {
+      console.error("Error updating company logo:", error);
+      res.status(500).json({ error: "Gagal mengemaskini logo syarikat" });
     }
   });
 
