@@ -39,42 +39,7 @@ export default function SalaryPayrollPage() {
   const { toast } = useToast();
   const { user: userData } = useAuth();
 
-  // Fetch current user's employee data
-  const { data: currentUserEmployee } = useQuery({
-    queryKey: ["/api/user/employee"],
-  });
 
-  // Check if user has approval privileges based on database settings
-  const hasApprovalPrivilege = () => {
-    console.log("Current user role:", userData?.role);
-    console.log("Current user ID:", userData?.id);
-    console.log("Current user employee data:", currentUserEmployee);
-    console.log("Payment approval settings:", paymentApprovalSettings);
-    
-    if (!userData?.id || !paymentApprovalSettings) return false;
-    
-    // Check if approval is enabled
-    if (!paymentApprovalSettings.enableApproval) {
-      console.log("Approval is disabled in settings");
-      return false;
-    }
-    
-    // Check if current user is in the approval list (first level or second level)
-    // We need to check both user ID and employee ID since they might be different
-    const userEmployeeId = currentUserEmployee?.id;
-    const isFirstLevelApprover = paymentApprovalSettings.firstLevelApprovalId === userData.id || 
-                                 paymentApprovalSettings.firstLevelApprovalId === userEmployeeId;
-    const isSecondLevelApprover = paymentApprovalSettings.secondLevelApprovalId === userData.id ||
-                                  paymentApprovalSettings.secondLevelApprovalId === userEmployeeId;
-    
-    const hasPrivilege = isFirstLevelApprover || isSecondLevelApprover;
-    console.log("User employee ID:", userEmployeeId);
-    console.log("Is first level approver:", isFirstLevelApprover);
-    console.log("Is second level approver:", isSecondLevelApprover);
-    console.log("Has privileged access:", hasPrivilege);
-    
-    return hasPrivilege;
-  };
   const [dateRange, setDateRange] = useState("01/2025 - 12/2025");
   const [selectedEmployee, setSelectedEmployee] = useState("All employee");
   const [showNewPayrollModal, setShowNewPayrollModal] = useState(false);
@@ -239,10 +204,7 @@ export default function SalaryPayrollPage() {
     queryKey: ["/api/payroll/documents"],
   });
 
-  // Fetch payment approval settings from database
-  const { data: paymentApprovalSettings } = useQuery({
-    queryKey: ["/api/approval-settings/payment"],
-  });
+
 
   // Create payroll document mutation
   const createPayrollDocumentMutation = useMutation({
@@ -268,83 +230,9 @@ export default function SalaryPayrollPage() {
     },
   });
 
-  // Approve payroll document mutation
-  const approvePayrollMutation = useMutation({
-    mutationFn: async ({ documentId, approverId }: { documentId: string; approverId: string }) => {
-      const response = await apiRequest('POST', `/api/payroll/documents/${documentId}/approve`, { approverId });
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Dokumen Diluluskan",
-        description: "Dokumen payroll telah berjaya diluluskan",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/payroll/documents"] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Gagal meluluskan dokumen",
-        variant: "destructive",
-      });
-    },
-  });
 
-  // Reject payroll document mutation
-  const rejectPayrollMutation = useMutation({
-    mutationFn: async ({ documentId, rejectorId, reason }: { documentId: string; rejectorId: string; reason: string }) => {
-      const response = await apiRequest('POST', `/api/payroll/documents/${documentId}/reject`, { rejectorId, reason });
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Dokumen Ditolak",
-        description: "Dokumen payroll telah ditolak",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/payroll/documents"] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Gagal menolak dokumen",
-        variant: "destructive",
-      });
-    },
-  });
 
-  const handleApprovePayroll = (documentId: string) => {
-    console.log("Approve button clicked for document:", documentId);
-    console.log("Current user data:", userData);
-    
-    if (!userData?.id) {
-      toast({
-        title: "Error",
-        description: "User ID tidak dijumpai. Sila login semula.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    approvePayrollMutation.mutate({ documentId, approverId: userData.id });
-  };
 
-  const handleRejectPayroll = (documentId: string) => {
-    console.log("Reject button clicked for document:", documentId);
-    
-    if (!userData?.id) {
-      toast({
-        title: "Error",
-        description: "User ID tidak dijumpai. Sila login semula.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    const reason = prompt("Sila masukkan sebab penolakan:");
-    if (reason) {
-      rejectPayrollMutation.mutate({ documentId, rejectorId: userData.id, reason });
-    }
-  };
 
   const handleGeneratePayroll = () => {
     console.log("Generating payroll with data:", payrollFormData);
@@ -479,30 +367,6 @@ export default function SalaryPayrollPage() {
                       >
                         <Edit className="w-3 h-3" />
                       </Button>
-                      {hasApprovalPrivilege() && (document.status === 'pending' || document.status === 'PendingApproval') && (
-                        <>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="p-1 h-7 text-xs px-2 border-green-300 text-green-700 hover:bg-green-50"
-                            onClick={() => handleApprovePayroll(document.id)}
-                            disabled={approvePayrollMutation.isPending}
-                            data-testid={`button-approve-payroll-${document.id}`}
-                          >
-                            ✓
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="p-1 h-7 text-xs px-2 border-red-300 text-red-700 hover:bg-red-50"
-                            onClick={() => handleRejectPayroll(document.id)}
-                            disabled={rejectPayrollMutation.isPending}
-                            data-testid={`button-reject-payroll-${document.id}`}
-                          >
-                            ✕
-                          </Button>
-                        </>
-                      )}
                     </div>
                   </td>
                 </tr>
