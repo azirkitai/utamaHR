@@ -425,6 +425,8 @@ export const approvalSettings = pgTable("approval_settings", {
   type: text("type").notNull(), // 'leave', 'timeoff', 'financial', 'overtime', 'payment'
   firstLevelApprovalId: varchar("first_level_approval_id").references(() => employees.id),
   secondLevelApprovalId: varchar("second_level_approval_id").references(() => employees.id),
+  enableApproval: boolean("enable_approval").default(true), // For payment approval settings
+  approvalLevel: text("approval_level").default("First Level"), // 'First Level' or 'Second Level'
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

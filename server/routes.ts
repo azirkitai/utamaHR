@@ -2725,7 +2725,7 @@ export function registerRoutes(app: Express): Server {
   // POST /api/approval-settings - Save approval settings
   app.post("/api/approval-settings", authenticateToken, async (req, res) => {
     try {
-      const { type, firstLevelApprovalId, secondLevelApprovalId } = req.body;
+      const { type, firstLevelApprovalId, secondLevelApprovalId, enableApproval, approvalLevel } = req.body;
       
       // Check if approval setting already exists for this type
       const [existingSetting] = await db
@@ -2733,28 +2733,44 @@ export function registerRoutes(app: Express): Server {
         .from(approvalSettings)
         .where(eq(approvalSettings.type, type));
       
+      const updateData: any = {
+        firstLevelApprovalId: (firstLevelApprovalId === "none" || firstLevelApprovalId === "") ? null : firstLevelApprovalId,
+        secondLevelApprovalId: (secondLevelApprovalId === "none" || secondLevelApprovalId === "") ? null : secondLevelApprovalId,
+        updatedAt: sql`now()`,
+      };
+
+      // Add payment-specific fields if type is payment
+      if (type === "payment") {
+        updateData.enableApproval = enableApproval;
+        updateData.approvalLevel = approvalLevel;
+      }
+      
       if (existingSetting) {
         // Update existing setting
         const [updatedSetting] = await db
           .update(approvalSettings)
-          .set({
-            firstLevelApprovalId: (firstLevelApprovalId === "none" || firstLevelApprovalId === "") ? null : firstLevelApprovalId,
-            secondLevelApprovalId: (secondLevelApprovalId === "none" || secondLevelApprovalId === "") ? null : secondLevelApprovalId,
-            updatedAt: sql`now()`,
-          })
+          .set(updateData)
           .where(eq(approvalSettings.id, existingSetting.id))
           .returning();
         
         return res.json(updatedSetting);
       } else {
         // Create new setting
+        const insertData: any = {
+          type,
+          firstLevelApprovalId: (firstLevelApprovalId === "none" || firstLevelApprovalId === "") ? null : firstLevelApprovalId,
+          secondLevelApprovalId: (secondLevelApprovalId === "none" || secondLevelApprovalId === "") ? null : secondLevelApprovalId,
+        };
+
+        // Add payment-specific fields if type is payment
+        if (type === "payment") {
+          insertData.enableApproval = enableApproval;
+          insertData.approvalLevel = approvalLevel;
+        }
+
         const [newSetting] = await db
           .insert(approvalSettings)
-          .values({
-            type,
-            firstLevelApprovalId: (firstLevelApprovalId === "none" || firstLevelApprovalId === "") ? null : firstLevelApprovalId,
-            secondLevelApprovalId: (secondLevelApprovalId === "none" || secondLevelApprovalId === "") ? null : secondLevelApprovalId,
-          })
+          .values(insertData)
           .returning();
         
         return res.json(newSetting);

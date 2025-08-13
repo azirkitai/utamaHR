@@ -858,6 +858,24 @@ export default function SystemSettingPage() {
     }
   }, [currentFinancialSettings]);
 
+  const { data: currentPaymentSettings } = useQuery({
+    queryKey: ["/api/approval-settings/payment"],
+    staleTime: 30000, // Cache for 30 seconds
+  });
+
+  // Sync payment approval state with API data
+  useEffect(() => {
+    if (currentPaymentSettings && typeof currentPaymentSettings === 'object') {
+      const settings = currentPaymentSettings as any;
+      setPaymentApproval({
+        enableApproval: settings.enableApproval !== undefined ? settings.enableApproval : true,
+        approvalLevel: settings.approvalLevel || "First Level",
+        firstLevel: settings.firstLevelApprovalId || "",
+        secondLevel: settings.secondLevelApprovalId || "",
+      });
+    }
+  }, [currentPaymentSettings]);
+
   // Note: No need for useEffect to sync data since we're using live API data directly for leave settings
 
   // Load existing group policy settings when a policy is expanded
@@ -1256,6 +1274,46 @@ export default function SystemSettingPage() {
     } catch (error) {
       console.error("Error saving financial approval:", error);
       alert(`Gagal menyimpan tetapan kelulusan kewangan: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
+  const handleSavePaymentApproval = async () => {
+    try {
+      const token = localStorage.getItem("utamahr_token");
+      
+      if (!token) {
+        alert("Sila log masuk semula.");
+        return;
+      }
+
+      const response = await fetch("/api/approval-settings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          type: "payment",
+          enableApproval: paymentApproval.enableApproval,
+          approvalLevel: paymentApproval.approvalLevel,
+          firstLevelApprovalId: paymentApproval.firstLevel,
+          secondLevelApprovalId: paymentApproval.approvalLevel === "Second Level" && paymentApproval.secondLevel !== "" ? paymentApproval.secondLevel : null,
+        }),
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Payment approval settings saved:", result);
+        alert("Tetapan kelulusan bayaran berjaya disimpan!");
+        queryClient.invalidateQueries({ queryKey: ["/api/approval-settings/payment"] });
+      } else {
+        const errorData = await response.json();
+        console.log("Error response:", errorData);
+        throw new Error(errorData.error || "Failed to save payment approval settings");
+      }
+    } catch (error) {
+      console.error("Error saving payment approval:", error);
+      alert(`Gagal menyimpan tetapan kelulusan bayaran: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -3406,55 +3464,72 @@ export default function SystemSettingPage() {
             />
           </div>
 
-          {/* Choose Approval Level */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Choose Approval Level</Label>
-            <p className="text-xs text-gray-500">Choose approval level (First or Second Level) according to company policy.</p>
-            <Select value={paymentApproval.approvalLevel} onValueChange={(value) => setPaymentApproval(prev => ({...prev, approvalLevel: value}))}>
-              <SelectTrigger data-testid="select-approval-level">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="First Level">First Level</SelectItem>
-                <SelectItem value="Second Level">Second Level</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Choose Approval Level - Only show when approval is enabled */}
+          {paymentApproval.enableApproval && (
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Choose Approval Level</Label>
+              <p className="text-xs text-gray-500">Choose approval level (First or Second Level) according to company policy.</p>
+              <Select value={paymentApproval.approvalLevel} onValueChange={(value) => setPaymentApproval(prev => ({...prev, approvalLevel: value}))}>
+                <SelectTrigger data-testid="select-approval-level">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="First Level">First Level</SelectItem>
+                  <SelectItem value="Second Level">Second Level</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
-          {/* First Level Approval */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">First Level Approval</Label>
-            <Select value={paymentApproval.firstLevel} onValueChange={(value) => setPaymentApproval(prev => ({...prev, firstLevel: value}))}>
-              <SelectTrigger data-testid="select-first-level">
-                <SelectValue placeholder="Select First Payroll Approval" />
-              </SelectTrigger>
-              <SelectContent>
-                {approvalEmployees?.map((employee) => (
-                  <SelectItem key={employee.id} value={employee.id}>
-                    {employee.fullName} ({employee.role})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {/* First Level Approval - Only show when approval is enabled */}
+          {paymentApproval.enableApproval && (
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">First Level Approval</Label>
+              <Select value={paymentApproval.firstLevel} onValueChange={(value) => setPaymentApproval(prev => ({...prev, firstLevel: value}))}>
+                <SelectTrigger data-testid="select-first-level">
+                  <SelectValue placeholder="Select First Payroll Approval" />
+                </SelectTrigger>
+                <SelectContent>
+                  {approvalEmployees?.filter((employee) => 
+                    ['Super Admin', 'Admin', 'HR Manager', 'PIC'].includes(employee.role)
+                  ).map((employee) => (
+                    <SelectItem key={employee.id} value={employee.id}>
+                      {employee.fullName} ({employee.role})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
-          {/* Second Level Approval */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Second Level Approval</Label>
-            <Select value={paymentApproval.secondLevel} onValueChange={(value) => setPaymentApproval(prev => ({...prev, secondLevel: value}))}>
-              <SelectTrigger data-testid="select-second-level">
-                <SelectValue placeholder="Select Second Payroll Approval" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ceo">CEO</SelectItem>
-                <SelectItem value="cfo">CFO</SelectItem>
-                <SelectItem value="director">Director</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Second Level Approval - Only show when approval is enabled AND Second Level is selected */}
+          {paymentApproval.enableApproval && paymentApproval.approvalLevel === "Second Level" && (
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Second Level Approval</Label>
+              <Select value={paymentApproval.secondLevel} onValueChange={(value) => setPaymentApproval(prev => ({...prev, secondLevel: value}))}>
+                <SelectTrigger data-testid="select-second-level">
+                  <SelectValue placeholder="Select Second Payroll Approval" />
+                </SelectTrigger>
+                <SelectContent>
+                  {approvalEmployees?.filter((employee) => 
+                    ['Super Admin', 'Admin', 'HR Manager', 'PIC'].includes(employee.role) &&
+                    employee.id !== paymentApproval.firstLevel
+                  ).map((employee) => (
+                    <SelectItem key={employee.id} value={employee.id}>
+                      {employee.fullName} ({employee.role})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="flex justify-end pt-4">
-            <Button className="bg-blue-900 hover:bg-blue-800" data-testid="button-save-payment-approval">
+            <Button 
+              onClick={handleSavePaymentApproval}
+              className="bg-blue-900 hover:bg-blue-800" 
+              data-testid="button-save-payment-approval"
+            >
               Save Changes
             </Button>
           </div>
