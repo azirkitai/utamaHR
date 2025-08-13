@@ -510,59 +510,29 @@ export default function PayrollDetailPage() {
                           </div>
                         </div>
                       ) : pdfPreviewUrl ? (
-                        <div className="border rounded-lg overflow-hidden bg-gray-100">
-                          <div className="p-4 bg-white border-b">
-                            <div className="flex items-center justify-between">
-                              <h5 className="font-medium text-gray-700">Payslip: {selectedEmployeeName}</h5>
-                              <div className="flex space-x-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => window.open(`https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(window.location.origin + pdfPreviewUrl)}`, '_blank')}
-                                >
-                                  Buka dengan PDF Viewer
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleGeneratePDF(selectedEmployeeId, selectedEmployeeName)}
-                                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                                >
-                                  <Download className="w-4 h-4 mr-2" />
-                                  Download
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="bg-white p-8 text-center">
-                            <div className="mb-6">
-                              <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-                                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                </svg>
-                              </div>
-                              <h3 className="text-lg font-medium text-gray-900 mb-2">PDF Ready for Download</h3>
-                              <p className="text-gray-600 mb-6">Your payslip has been generated successfully. Click below to download or view the PDF.</p>
-                            </div>
-                            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                        <div className="border rounded-lg overflow-hidden bg-white">
+                          <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b flex items-center justify-between">
+                            <h5 className="font-medium text-gray-800">Payslip Preview: {selectedEmployeeName}</h5>
+                            <div className="flex space-x-2">
                               <Button
+                                size="sm"
                                 onClick={() => handleGeneratePDF(selectedEmployeeId, selectedEmployeeName)}
                                 className="bg-blue-600 hover:bg-blue-700 text-white"
-                                size="lg"
                               >
-                                <Download className="w-5 h-5 mr-2" />
-                                Download PDF
-                              </Button>
-                              <Button
-                                variant="outline"
-                                onClick={() => window.open(pdfPreviewUrl, '_blank')}
-                                size="lg"
-                              >
-                                View in New Tab
+                                <Download className="w-4 h-4 mr-2" />
+                                Download
                               </Button>
                             </div>
-                            <div className="mt-4 text-sm text-gray-500">
-                              PDF Size: {(39898 / 1024).toFixed(1)} KB
-                            </div>
+                          </div>
+                          <div className="relative" style={{ height: '700px' }}>
+                            <iframe
+                              src={`https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(pdfPreviewUrl)}`}
+                              width="100%"
+                              height="100%"
+                              style={{ border: 'none' }}
+                              title="PDF Preview"
+                              sandbox="allow-scripts allow-same-origin allow-downloads"
+                            />
                           </div>
                         </div>
                       ) : (
