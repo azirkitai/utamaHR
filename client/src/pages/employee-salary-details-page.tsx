@@ -2154,7 +2154,18 @@ export default function EmployeeSalaryDetailsPage() {
               {/* Column 2 - Additional Item */}
               <div className="space-y-4">
                 <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-lg">
-                  <h3 className="text-lg font-semibold">Additional Item</h3>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold">Additional Item</h3>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsTaxExemptionDialogOpen(true)}
+                      className="h-6 w-6 p-0 text-white hover:text-gray-200 hover:bg-white/10"
+                      data-testid="additional-item-settings-toggle"
+                    >
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
                 
                 {/* Advance Salary */}
