@@ -493,109 +493,23 @@ export default function PayrollDetailPage() {
                           </div>
                         </div>
                       ) : pdfPreviewUrl ? (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                          {/* PDF Preview Panel */}
-                          <div className="bg-white rounded-lg border shadow-sm">
-                            <div className="p-4 border-b bg-gray-50">
-                              <h5 className="font-medium text-gray-800">PDF Preview</h5>
-                            </div>
-                            <div className="p-0 bg-white" style={{ height: '600px' }}>
-                              {pdfPreviewUrl ? (
-                                <iframe
-                                  src={pdfPreviewUrl}
-                                  width="100%"
-                                  height="100%"
-                                  style={{ border: 'none' }}
-                                  title="PDF Preview"
-                                  allow="fullscreen"
-                                  sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                                />
-                              ) : (
-                                <div className="flex items-center justify-center h-full text-gray-500 bg-gray-50">
-                                  <div className="text-center">
-                                    <svg className="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                    </svg>
-                                    <div className="text-lg font-medium mb-2">PDF Preview</div>
-                                    <div className="text-sm">Sila pilih pekerja untuk lihat preview payslip</div>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
+                        <div className="bg-white rounded-lg border shadow-sm">
+                          <div className="p-4 border-b bg-gray-50">
+                            <h5 className="font-medium text-gray-800">Payslip Preview</h5>
                           </div>
-                          
-                          {/* Payslip Details Panel */}
-                          <div className="bg-white rounded-lg border shadow-sm">
-                            <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
-                              <h5 className="font-medium text-gray-800">SALARY SLIP - JULY 2025</h5>
-                              <Button
-                                size="sm"
-                                onClick={() => handleGeneratePDF(selectedEmployeeId, selectedEmployeeName)}
-                                className="bg-blue-600 hover:bg-blue-700 text-white"
-                              >
-                                <Download className="w-4 h-4 mr-2" />
-                                Download PDF
-                              </Button>
-                            </div>
-                            <div className="p-6 space-y-6">
-                              {/* Employee Info */}
-                              <div className="grid grid-cols-2 gap-4 text-sm">
-                                <div>
-                                  <p><span className="font-medium">Employee No.:</span> TEMP-7845</p>
-                                  <p><span className="font-medium">Name:</span> {selectedEmployeeName.toUpperCase()}</p>
-                                  <p><span className="font-medium">IC No.:</span> (Not Stated)</p>
-                                  <p><span className="font-medium">Bank Account No.:</span> (Not Stated)</p>
-                                </div>
-                                <div>
-                                  <p><span className="font-medium">Payroll Date:</span> 2025-08-11</p>
-                                  <p><span className="font-medium">EPF No.:</span> -</p>
-                                  <p><span className="font-medium">SOCSO No.:</span> -</p>
-                                  <p><span className="font-medium">Income Tax No.:</span> -</p>
-                                </div>
-                              </div>
-                              
-                              {/* Payment Details */}
-                              <div>
-                                <h6 className="font-semibold mb-3 pb-2 border-b">Payment Details</h6>
-                                <div className="grid grid-cols-3 gap-4 text-sm">
-                                  <div className="font-medium">Payment</div>
-                                  <div className="font-medium">Amount (RM)</div>
-                                  <div className="font-medium">Deduction</div>
-                                </div>
-                                <div className="grid grid-cols-3 gap-4 text-sm mt-2">
-                                  <div>Basic Salary</div>
-                                  <div>1,000.00</div>
-                                  <div></div>
-                                </div>
-                                <div className="grid grid-cols-3 gap-4 text-sm border-t pt-2 mt-2">
-                                  <div>Total Gross Salary</div>
-                                  <div>1,000.00</div>
-                                  <div>Total Deduction</div>
-                                </div>
-                                <div className="grid grid-cols-3 gap-4 text-sm font-semibold">
-                                  <div>NET PAY : Malaysia Ringgit</div>
-                                  <div></div>
-                                  <div>883.00</div>
-                                </div>
-                              </div>
-                              
-                              {/* Company Contribution */}
-                              <div>
-                                <h6 className="font-semibold mb-3 pb-2 border-b">Company Contribution</h6>
-                                <div className="grid grid-cols-2 gap-4 text-sm">
-                                  <div>
-                                    <p>KWSP / EPF (Employer): RM 120.00</p>
-                                    <p>SIP (Employer): RM 0.00</p>
-                                  </div>
-                                  <div>
-                                    <p>SOCSO (Employer): RM 17.50</p>
-                                    <p>HRDF: RM 0.00</p>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
+                          <div className="p-0 bg-white" style={{ height: '800px' }}>
+                            <iframe
+                              src={pdfPreviewUrl}
+                              width="100%"
+                              height="100%"
+                              style={{ border: 'none' }}
+                              title="Payslip Preview"
+                              allow="fullscreen"
+                              sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                            />
                           </div>
                         </div>
+
                       ) : (
                         <div className="flex justify-center items-center h-96 bg-gray-50 rounded-lg">
                           <div className="text-center">
