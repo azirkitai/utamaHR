@@ -39,15 +39,29 @@ export default function SalaryPayrollPage() {
   const { toast } = useToast();
   const { user: userData } = useAuth();
 
-  // Check if user has approval privileges
+  // Check if user has approval privileges based on database settings
   const hasApprovalPrivilege = () => {
     console.log("Current user role:", userData?.role);
-    if (!userData?.role) return false;
-    // For now, restrict to only specific roles that should have approval access
-    // Change this list according to your organizational structure
-    const approvalRoles = ['Super Admin', 'Finance Manager', 'CEO', 'Managing Director'];
-    const hasPrivilege = approvalRoles.includes(userData.role);
+    console.log("Current user ID:", userData?.id);
+    console.log("Payment approval settings:", paymentApprovalSettings);
+    
+    if (!userData?.id || !paymentApprovalSettings) return false;
+    
+    // Check if approval is enabled
+    if (!paymentApprovalSettings.enableApproval) {
+      console.log("Approval is disabled in settings");
+      return false;
+    }
+    
+    // Check if current user is in the approval list (first level or second level)
+    const isFirstLevelApprover = paymentApprovalSettings.firstLevelApprovalId === userData.id;
+    const isSecondLevelApprover = paymentApprovalSettings.secondLevelApprovalId === userData.id;
+    
+    const hasPrivilege = isFirstLevelApprover || isSecondLevelApprover;
+    console.log("Is first level approver:", isFirstLevelApprover);
+    console.log("Is second level approver:", isSecondLevelApprover);
     console.log("Has privileged access:", hasPrivilege);
+    
     return hasPrivilege;
   };
   const [dateRange, setDateRange] = useState("01/2025 - 12/2025");
@@ -212,6 +226,11 @@ export default function SalaryPayrollPage() {
   // Fetch payroll documents
   const { data: payrollDocuments = [], isLoading: isLoadingPayrollDocuments } = useQuery({
     queryKey: ["/api/payroll/documents"],
+  });
+
+  // Fetch payment approval settings from database
+  const { data: paymentApprovalSettings } = useQuery({
+    queryKey: ["/api/approval-settings/payment"],
   });
 
   // Create payroll document mutation
