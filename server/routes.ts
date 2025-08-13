@@ -2781,7 +2781,7 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // GET /api/approval-settings/:type - Get approval settings by type
+  // GET /api/approval-settings/:type - Get approval settings by type with employee details
   app.get("/api/approval-settings/:type", authenticateToken, async (req, res) => {
     try {
       const { type } = req.params;
@@ -2797,6 +2797,23 @@ export function registerRoutes(app: Express): Server {
           firstLevelApprovalId: null,
           secondLevelApprovalId: null,
         });
+      }
+
+      // Get employee details for debugging
+      if (setting.firstLevelApprovalId) {
+        const [firstLevelEmployee] = await db
+          .select()
+          .from(employees)
+          .where(eq(employees.id, setting.firstLevelApprovalId));
+        console.log("First level approver:", firstLevelEmployee);
+      }
+
+      if (setting.secondLevelApprovalId) {
+        const [secondLevelEmployee] = await db
+          .select()
+          .from(employees)
+          .where(eq(employees.id, setting.secondLevelApprovalId));
+        console.log("Second level approver:", secondLevelEmployee);
       }
       
       res.json(setting);

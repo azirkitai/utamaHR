@@ -39,10 +39,16 @@ export default function SalaryPayrollPage() {
   const { toast } = useToast();
   const { user: userData } = useAuth();
 
+  // Fetch current user's employee data
+  const { data: currentUserEmployee } = useQuery({
+    queryKey: ["/api/user/employee"],
+  });
+
   // Check if user has approval privileges based on database settings
   const hasApprovalPrivilege = () => {
     console.log("Current user role:", userData?.role);
     console.log("Current user ID:", userData?.id);
+    console.log("Current user employee data:", currentUserEmployee);
     console.log("Payment approval settings:", paymentApprovalSettings);
     
     if (!userData?.id || !paymentApprovalSettings) return false;
@@ -54,10 +60,15 @@ export default function SalaryPayrollPage() {
     }
     
     // Check if current user is in the approval list (first level or second level)
-    const isFirstLevelApprover = paymentApprovalSettings.firstLevelApprovalId === userData.id;
-    const isSecondLevelApprover = paymentApprovalSettings.secondLevelApprovalId === userData.id;
+    // We need to check both user ID and employee ID since they might be different
+    const userEmployeeId = currentUserEmployee?.id;
+    const isFirstLevelApprover = paymentApprovalSettings.firstLevelApprovalId === userData.id || 
+                                 paymentApprovalSettings.firstLevelApprovalId === userEmployeeId;
+    const isSecondLevelApprover = paymentApprovalSettings.secondLevelApprovalId === userData.id ||
+                                  paymentApprovalSettings.secondLevelApprovalId === userEmployeeId;
     
     const hasPrivilege = isFirstLevelApprover || isSecondLevelApprover;
+    console.log("User employee ID:", userEmployeeId);
     console.log("Is first level approver:", isFirstLevelApprover);
     console.log("Is second level approver:", isSecondLevelApprover);
     console.log("Has privileged access:", hasPrivilege);
