@@ -4,9 +4,20 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Download, Eye, FileSpreadsheet } from "lucide-react";
+import { ArrowLeft, Download, Eye, FileSpreadsheet, Trash2 } from "lucide-react";
 import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 // Removed jsPDF - now using server-side Puppeteer for PDF generation
 
 export default function PayrollDetailPage() {
@@ -16,6 +27,8 @@ export default function PayrollDetailPage() {
   const [selectedEmployeeName, setSelectedEmployeeName] = useState<string>("");
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
   const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Fetch payroll document details
   const { data: payrollDocument, isLoading: isLoadingDocument } = useQuery({
@@ -101,6 +114,38 @@ export default function PayrollDetailPage() {
     } catch (error) {
       console.error('Error rejecting payroll:', error);
       alert('Gagal menolak payroll. Sila cuba lagi.');
+    }
+  };
+
+  const handleDeletePayroll = async () => {
+    if (!currentUser?.id) {
+      alert('Sila log masuk semula');
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/payroll/documents/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('utamahr_token')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete payroll document');
+      }
+
+      alert('Data payslip untuk bulan ini telah berjaya dipadam!');
+      // Navigate back to payroll list
+      window.location.href = "/payment/salary-payroll";
+    } catch (error) {
+      console.error('Error deleting payroll:', error);
+      alert('Gagal memadam data payslip. Sila cuba lagi.');
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
     }
   };
 
@@ -483,13 +528,39 @@ export default function PayrollDetailPage() {
 
               {/* Action Buttons */}
               <div className="flex justify-end space-x-2 mt-6">
-                <Button
-                  variant="outline"
-                  className="border-red-300 text-red-600 hover:bg-red-50"
-                  data-testid="button-delete-payroll"
-                >
-                  Delete
-                </Button>
+                <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="border-red-300 text-red-600 hover:bg-red-50"
+                      data-testid="button-delete-payroll"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Padam Data Payslip</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Adakah anda pasti mahu memadam keseluruhan data payslip untuk bulan ini? 
+                        <br/><br/>
+                        <strong>Amaran:</strong> Tindakan ini akan memadam semua data payslip pekerja untuk bulan {payrollDocument?.month}/{payrollDocument?.year} dan tidak boleh dibatalkan.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Batal</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDeletePayroll}
+                        disabled={isDeleting}
+                        className="bg-red-600 hover:bg-red-700 text-white"
+                      >
+                        {isDeleting ? "Mempadam..." : "Ya, Padam"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+                
                 <Button
                   className="bg-blue-900 hover:bg-blue-800 text-white"
                   data-testid="button-submit-payroll"

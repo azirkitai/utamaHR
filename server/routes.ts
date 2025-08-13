@@ -3729,6 +3729,41 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // DELETE /api/payroll/documents/:id - Delete payroll document and all related payroll items
+  app.delete('/api/payroll/documents/:id', authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      const { id } = req.params;
+      
+      // Role-based access control - only high-level roles can delete payroll documents
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager'];
+      if (!adminRoles.includes(currentUser.role)) {
+        return res.status(403).json({ error: 'Tidak dibenarkan untuk memadam dokumen payroll' });
+      }
+
+      // Check if document exists
+      const document = await storage.getPayrollDocument(id);
+      if (!document) {
+        return res.status(404).json({ error: 'Dokumen payroll tidak dijumpai' });
+      }
+
+      // Delete all payroll items for this document first
+      await storage.deletePayrollItemsByDocumentId(id);
+      
+      // Then delete the document itself
+      const deleted = await storage.deletePayrollDocument(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: 'Dokumen payroll tidak dijumpai' });
+      }
+      
+      res.json({ message: 'Dokumen payroll dan semua data berkaitan telah berjaya dipadam' });
+    } catch (error) {
+      console.error('Error deleting payroll document:', error);
+      res.status(500).json({ error: 'Gagal memadam dokumen payroll' });
+    }
+  });
+
   // Generate payroll items for a document
   app.post('/api/payroll/documents/:id/generate', authenticateToken, async (req, res) => {
     try {

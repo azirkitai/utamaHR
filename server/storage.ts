@@ -2525,6 +2525,11 @@ export class DatabaseStorage implements IStorage {
     return (result.rowCount ?? 0) > 0;
   }
 
+  async deletePayrollItemsByDocumentId(documentId: string): Promise<boolean> {
+    const result = await db.delete(payrollItems).where(eq(payrollItems.documentId, documentId));
+    return (result.rowCount ?? 0) >= 0; // Return true even if 0 rows deleted (document might have no items)
+  }
+
   async generatePayrollItems(documentId: string, force: boolean = false): Promise<PayrollItem[]> {
     try {
       console.log('Starting payroll generation for document:', documentId);
