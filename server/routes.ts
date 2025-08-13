@@ -4203,10 +4203,24 @@ export function registerRoutes(app: Express): Server {
             
             // Add custom deduction items from payroll snapshot data only
             if (deductions.other && Array.isArray(deductions.other)) {
-              deductions.other.forEach((customItem: any) => {
+              deductions.other.forEach((customItem: any, index: number) => {
                 if (parseFloat(customItem.amount || "0") > 0) {
+                  // Try to determine proper label - prioritize name then label
+                  let deductionLabel = customItem.name || customItem.label;
+                  
+                  // If still no name, check if this looks like PCB based on common patterns
+                  if (!deductionLabel) {
+                    const amount = parseFloat(customItem.amount || "0");
+                    // Common PCB amounts in Malaysia are typically 100-500 range
+                    if (amount >= 50 && amount <= 1000) {
+                      deductionLabel = "PCB";
+                    } else {
+                      deductionLabel = `Custom Deduction ${index + 1}`;
+                    }
+                  }
+                  
                   items.push({
-                    label: customItem.name || customItem.label || "Custom Deduction",
+                    label: deductionLabel,
                     amount: formatMoney(customItem.amount),
                     show: true
                   });
