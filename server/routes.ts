@@ -4103,7 +4103,7 @@ export function registerRoutes(app: Express): Server {
             [`${companySettings.address}${companySettings.postcode ? ', ' + companySettings.postcode : ''}${companySettings.city ? ', ' + companySettings.city : ''}${companySettings.state ? ', ' + companySettings.state : ''}`] :
             ["A2-22-3, SOHO SUITES @ KLCC, 20 JALAN PERAK, 50450 KUALA LUMPUR, WILAYAH PERSEKUTUAN"],
           logoHTML: companySettings?.logoUrl ? 
-            `<img src="${companySettings.logoUrl}" class="company-logo" alt="Company Logo" style="width:200px;height:200px;object-fit:contain;display:block;border:none;" />` : 
+            `<img src="${companySettings.logoUrl}" class="company-logo" alt="Company Logo" style="width:100px;height:100px;object-fit:contain;display:block;border:none;" />` : 
             ""
         },
         employee: {
@@ -4380,7 +4380,7 @@ export function registerRoutes(app: Express): Server {
             [`${companySettings.address}${companySettings.postcode ? ', ' + companySettings.postcode : ''}${companySettings.city ? ', ' + companySettings.city : ''}${companySettings.state ? ', ' + companySettings.state : ''}`] :
             ["A2-22-3, SOHO SUITES @ KLCC, 20 JALAN PERAK, 50450 KUALA LUMPUR, WILAYAH PERSEKUTUAN"],
           logoHTML: companySettings?.logoUrl ? 
-            `<img src="${companySettings.logoUrl}" class="company-logo" alt="Company Logo" style="width:200px;height:200px;object-fit:contain;display:block;border:none;" />` : 
+            `<img src="${companySettings.logoUrl}" class="company-logo" alt="Company Logo" style="width:100px;height:100px;object-fit:contain;display:block;border:none;" />` : 
             ""
         },
         employee: {
@@ -4478,7 +4478,7 @@ export function registerRoutes(app: Express): Server {
       if (templateData.company.logoHTML && companySettings?.logoUrl) {
         const logoBase64 = await convertImageToBase64(companySettings.logoUrl);
         if (logoBase64) {
-          templateData.company.logoHTML = `<img src="${logoBase64}" class="company-logo" alt="Company Logo" style="width:200px;height:200px;object-fit:contain;display:block;border:none;" />`;
+          templateData.company.logoHTML = `<img src="${logoBase64}" class="company-logo" alt="Company Logo" style="width:100px;height:100px;object-fit:contain;display:block;border:none;" />`;
         }
       }
 
