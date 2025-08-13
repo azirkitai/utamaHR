@@ -2708,34 +2708,25 @@ export default function EmployeeSalaryDetailsPage() {
                   </p>
                 </div>
 
-                {/* EIS Setting Header with Switch */}
-                <div className="space-y-3 pt-4 border-t">
-                  <div className="flex items-center justify-between">
-                    <Label className="font-medium text-gray-700">EIS Setting</Label>
-                    <div className="flex items-center space-x-2">
-                      <Label className="text-sm text-gray-500">Disabled</Label>
-                      <Switch
-                        checked={isEisEnabled}
-                        onCheckedChange={(checked) => {
-                          setIsEisEnabled(checked);
-                          if (!checked) {
-                            // Clear EIS Employee and Employer amounts when disabled
-                            updateSalaryData({ 
-                              deductions: { ...salaryData.deductions, eisEmployee: 0 },
-                              contributions: { ...salaryData.contributions, eisEmployer: 0 }
-                            });
-                          }
-                        }}
-                        data-testid="switch-eis-setting"
-                      />
-                      <Label className="text-sm text-gray-700">Enabled</Label>
-                    </div>
-                  </div>
-                </div>
-
                 {/* EIS Employee (auto calculated) */}
                 <div className="space-y-2">
-                  <Label className="font-medium">EIS Employee</Label>
+                  <div className="flex items-center justify-between">
+                    <Label className="font-medium">EIS Employee</Label>
+                    <Switch
+                      checked={isEisEnabled}
+                      onCheckedChange={(checked) => {
+                        setIsEisEnabled(checked);
+                        if (!checked) {
+                          // Clear EIS Employee and Employer amounts when disabled
+                          updateSalaryData({ 
+                            deductions: { ...salaryData.deductions, eisEmployee: 0 },
+                            contributions: { ...salaryData.contributions, eisEmployer: 0 }
+                          });
+                        }
+                      }}
+                      data-testid="switch-eis-setting"
+                    />
+                  </div>
                   <div className="flex">
                     <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
                       <span className="text-sm font-medium">RM</span>
