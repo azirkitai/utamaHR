@@ -4326,6 +4326,220 @@ export function registerRoutes(app: Express): Server {
   });
 
   // POST version (keep for download functionality)
+  // NEW: Python-based manual PDF generation route
+  app.post("/api/payroll/payslip/:employeeId/pdf-manual", authenticateToken, async (req, res) => {
+    try {
+      const { employeeId } = req.params;
+      const { documentId } = req.body;
+
+      if (!documentId) {
+        return res.status(400).json({ error: "ID dokumen payroll diperlukan" });
+      }
+
+      // Get all required data (same as existing PDF endpoint)
+      const document = await storage.getPayrollDocument(documentId);
+      const payrollItem = await storage.getPayrollItemByDocumentAndEmployee(documentId, employeeId);
+      const employee = await storage.getEmployee(employeeId);
+      const employment = await storage.getEmploymentByEmployeeId(employeeId);
+      const companySettings = await storage.getCompanySettings();
+
+      if (!document || !payrollItem || !employee) {
+        return res.status(404).json({ error: "Data payroll tidak dijumpai" });
+      }
+
+      // Parse payroll item data
+      const employeeSnapshot = JSON.parse(payrollItem.employeeSnapshot);
+      const salary = JSON.parse(payrollItem.salary);
+      const deductions = JSON.parse(payrollItem.deductions);
+      const contributions = JSON.parse(payrollItem.contributions);
+
+      console.log("Master salary deductions for YTD:", deductions);
+      console.log("Master salary contributions for YTD:", contributions);
+
+      // Format monetary values
+      const formatMoney = (value: any) => {
+        const num = parseFloat(value || "0");
+        return num.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      };
+
+      // Get YTD breakdown using master salary data
+      const ytdBreakdown = await getYTDBreakdown(employeeId, document.year, deductions, contributions);
+      console.log("YTD Breakdown:", ytdBreakdown);
+
+      // Prepare data for Python generator
+      const pythonTemplateData = {
+        company: {
+          name: companySettings?.companyName || "UTAMA MEDGROUP",
+          regNo: companySettings?.companyRegistrationNumber || "202201033996(1479693-H)",
+          address: companySettings ? 
+            `${companySettings.address}${companySettings.postcode ? ', ' + companySettings.postcode : ''}${companySettings.city ? ', ' + companySettings.city : ''}${companySettings.state ? ', ' + companySettings.state : ''}` :
+            "Lot 5138S-A, Lorong 1g Mohd Amin, Jln Wan Hassan, Kg Batu 4, 43650, Bandar Baru Bangi, Selangor"
+        },
+        employee: {
+          name: employee.fullName || employeeSnapshot.name,
+          icNo: employee.nric || employeeSnapshot.nric || "",
+          position: employment?.designation || employeeSnapshot.position || ""
+        },
+        period: {
+          month: getMonthName(document.month),
+          year: document.year
+        },
+        income: {
+          basic: formatMoney(salary.basic),
+          fixedAllowance: formatMoney(salary.fixedAllowance),
+          items: [
+            {
+              label: "Fixed Allowance",
+              amount: formatMoney(salary.fixedAllowance || "0"),
+              show: parseFloat(salary.fixedAllowance || "0") > 0
+            },
+            {
+              label: "Advance Salary",
+              amount: formatMoney(salary.advanceSalary || "0"),
+              show: parseFloat(salary.advanceSalary || "0") > 0
+            },
+            {
+              label: "Subsistence Allowance", 
+              amount: formatMoney(salary.subsistenceAllowance || "0"),
+              show: parseFloat(salary.subsistenceAllowance || "0") > 0
+            },
+            {
+              label: "Extra Responsibility Allowance",
+              amount: formatMoney(salary.extraResponsibilityAllowance || "0"),
+              show: parseFloat(salary.extraResponsibilityAllowance || "0") > 0
+            },
+            {
+              label: "BIK/VOLA",
+              amount: formatMoney(salary.bikVola || "0"),
+              show: parseFloat(salary.bikVola || "0") > 0
+            },
+            {
+              label: "Overtime",
+              amount: formatMoney(salary.overtime || "0"),
+              show: parseFloat(salary.overtime || "0") > 0
+            }
+          ],
+          totalGross: formatMoney(salary.gross)
+        },
+        deduction: {
+          epfEmp: formatMoney(deductions.epfEmployee),
+          socsoEmp: formatMoney(deductions.socsoEmployee),
+          eisEmp: formatMoney(deductions.eisEmployee),
+          items: [
+            {
+              label: "MTD",
+              amount: formatMoney(deductions.advance || "0"),
+              show: parseFloat(deductions.advance || "0") > 0
+            },
+            {
+              label: "ZAKAT",
+              amount: formatMoney(deductions.zakat || "0"),
+              show: parseFloat(deductions.zakat || "0") > 0
+            }
+          ],
+          total: formatMoney(payrollItem.totalDeductions)
+        },
+        netIncome: formatMoney(payrollItem.netSalary),
+        employerContrib: {
+          epfEr: formatMoney(contributions.epfEmployer),
+          socsoEr: formatMoney(contributions.socsoEmployer),
+          eisEr: formatMoney(contributions.eisEmployer)
+        },
+        ytd: {
+          employee: formatMoney(ytdBreakdown.totalYtdEmployee),
+          employer: formatMoney(ytdBreakdown.totalYtdEmployer),
+          mtd: formatMoney(payrollItem.netSalary),
+          breakdown: {
+            epfEmployee: formatMoney(ytdBreakdown.ytdEpfEmployee),
+            socsoEmployee: formatMoney(ytdBreakdown.ytdSocsoEmployee),
+            eisEmployee: formatMoney(ytdBreakdown.ytdEisEmployee),
+            pcb: formatMoney(ytdBreakdown.ytdPcbEmployee),
+            epfEmployer: formatMoney(ytdBreakdown.ytdEpfEmployer),
+            socsoEmployer: formatMoney(ytdBreakdown.ytdSocsoEmployer),
+            eisEmployer: formatMoney(ytdBreakdown.ytdEisEmployer)
+          }
+        }
+      };
+
+      console.log("Generating PDF using Python manual method...");
+
+      // Call Python script to generate PDF
+      const { spawn } = require('child_process');
+      const fs = require('fs');
+      const path = require('path');
+      
+      const tempJsonFile = path.join(__dirname, `temp_payslip_${employeeId}_${Date.now()}.json`);
+      const outputPdfFile = path.join(__dirname, `payslip_${employeeId}_${Date.now()}.pdf`);
+      
+      // Write data to temp JSON file
+      fs.writeFileSync(tempJsonFile, JSON.stringify(pythonTemplateData, null, 2));
+      
+      // Execute Python script
+      const pythonProcess = spawn('python3', [
+        path.join(__dirname, 'payslip-pdf-generator.py'),
+        tempJsonFile,
+        outputPdfFile
+      ]);
+
+      let pythonStdout = '';
+      let pythonStderr = '';
+
+      pythonProcess.stdout.on('data', (data) => {
+        pythonStdout += data.toString();
+      });
+
+      pythonProcess.stderr.on('data', (data) => {
+        pythonStderr += data.toString();
+      });
+
+      pythonProcess.on('close', (code) => {
+        // Clean up temp JSON file
+        try {
+          fs.unlinkSync(tempJsonFile);
+        } catch (err) {
+          console.error('Error cleaning temp file:', err);
+        }
+
+        if (code === 0) {
+          // Success - send PDF
+          const pdfBuffer = fs.readFileSync(outputPdfFile);
+          
+          res.setHeader('Content-Type', 'application/pdf');
+          res.setHeader('Content-Disposition', `attachment; filename="Payslip_${employee.fullName.replace(/\s+/g, '_')}_${document.month}_${document.year}.pdf"`);
+          res.setHeader('Content-Length', pdfBuffer.length);
+          
+          res.send(pdfBuffer);
+          
+          // Clean up PDF file
+          try {
+            fs.unlinkSync(outputPdfFile);
+          } catch (err) {
+            console.error('Error cleaning PDF file:', err);
+          }
+          
+          console.log("Python PDF generated successfully, buffer size:", pdfBuffer.length);
+        } else {
+          console.error("Python script failed with code:", code);
+          console.error("Python stderr:", pythonStderr);
+          res.status(500).json({ 
+            error: "Gagal menghasilkan PDF menggunakan Python generator",
+            details: pythonStderr 
+          });
+        }
+      });
+
+      // Handle timeout
+      setTimeout(() => {
+        pythonProcess.kill();
+        res.status(500).json({ error: "PDF generation timeout" });
+      }, 30000); // 30 second timeout
+
+    } catch (error) {
+      console.error("Manual PDF generation error:", error);
+      res.status(500).json({ error: "Gagal menghasilkan PDF manual" });
+    }
+  });
+
   app.post("/api/payroll/payslip/:employeeId/pdf", authenticateToken, async (req, res) => {
     try {
       const { employeeId } = req.params;
