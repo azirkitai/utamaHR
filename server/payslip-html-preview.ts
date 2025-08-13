@@ -16,8 +16,8 @@ export function generatePayslipHTML(templateData: any, showPreviewNote: boolean 
         
         body {
             font-family: Arial, Helvetica, sans-serif;
-            font-size: 12px;
-            line-height: 1.4;
+            font-size: 14px;
+            line-height: 1.5;
             color: #000;
             padding: 20px;
             background: white;
@@ -55,17 +55,17 @@ export function generatePayslipHTML(templateData: any, showPreviewNote: boolean 
         
         .company-name {
             font-weight: 700;
-            font-size: 18px;
+            font-size: 20px;
             margin-bottom: 4px;
         }
         
         .company-reg {
-            font-size: 14px;
+            font-size: 16px;
             margin-bottom: 4px;
         }
         
         .company-addr {
-            font-size: 12px;
+            font-size: 14px;
             line-height: 1.35;
             margin-bottom: 12px;
         }
