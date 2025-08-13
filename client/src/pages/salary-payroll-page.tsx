@@ -340,7 +340,21 @@ export default function SalaryPayrollPage() {
                   <td className="p-3 text-gray-900">{document.year}</td>
                   <td className="p-3 text-gray-900">{document.month}</td>
                   <td className="p-3 text-gray-600">
-                    {new Date(document.paymentDate).toLocaleDateString()}
+                    {(() => {
+                      try {
+                        if (!document.payrollDate) return 'N/A';
+                        const date = new Date(document.payrollDate);
+                        if (isNaN(date.getTime())) return 'Invalid Date';
+                        return date.toLocaleDateString('en-GB', {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric'
+                        });
+                      } catch (error) {
+                        console.error('Date parsing error:', error, 'for date:', document.payrollDate);
+                        return 'Date Error';
+                      }
+                    })()}
                   </td>
                   <td className="p-3">
                     {getStatusBadge(document.status)}
