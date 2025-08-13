@@ -75,12 +75,6 @@ const settingsMenuItems = [
     href: "/system-setting/department",
   },
   {
-    id: "hrdf",
-    label: "HRDF Settings",
-    icon: <Settings className="w-4 h-4" />,
-    href: "/system-setting/hrdf",
-  },
-  {
     id: "payment",
     label: "Payment",
     icon: <CreditCard className="w-4 h-4" />,
@@ -199,12 +193,6 @@ export default function SystemSettingPage() {
     queryKey: ["/api/overtime/settings"]
   });
 
-  // HRDF settings API query
-  const { data: hrdfSettingsData } = useQuery({
-    queryKey: ["/api/salary-calculation-settings"],
-    queryFn: () => apiRequest("GET", "/api/salary-calculation-settings?settingName=global")
-  });
-
   // Overtime mutations
   const saveOvertimeApprovalMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -261,27 +249,6 @@ export default function SystemSettingPage() {
       toast({
         title: "Error", 
         description: "Failed to save overtime settings",
-        variant: "destructive",
-      });
-    }
-  });
-
-  // HRDF settings mutation
-  const saveHrdfSettingsMutation = useMutation({
-    mutationFn: async (data: any) => {
-      return await apiRequest("POST", "/api/salary-calculation-settings", data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/salary-calculation-settings"] });
-      toast({
-        title: "Kejayaan",
-        description: "Tetapan HRDF berjaya disimpan",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Ralat",
-        description: "Gagal menyimpan tetapan HRDF",
         variant: "destructive",
       });
     }
@@ -4617,98 +4584,6 @@ export default function SystemSettingPage() {
     );
   };
 
-  const renderHrdfSettingsForm = () => {
-    const isHrdfDisabled = hrdfSettingsData?.disableHrdf || false;
-
-    const handleHrdfToggle = (enabled: boolean) => {
-      const settingsData = {
-        settingName: "global",
-        disableHrdf: !enabled, // Toggle the disable flag
-      };
-
-      console.log("Saving HRDF settings:", settingsData);
-      saveHrdfSettingsMutation.mutate(settingsData);
-    };
-
-    return (
-      <div className="space-y-6">
-        <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
-          <h3 className="text-lg font-semibold">Tetapan HRDF</h3>
-          <p className="text-sm mt-1">Urus konfigurasi pengiraan HRDF untuk payroll</p>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg border space-y-6">
-          {/* HRDF Enable/Disable Setting */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
-              <div className="flex-1">
-                <Label className="text-sm font-medium">Aktifkan HRDF</Label>
-                <p className="text-xs text-gray-600 mt-1">
-                  Tetapkan sama ada HRDF (Human Resources Development Fund) akan dikira dalam payroll pekerja. 
-                  Apabila diaktifkan, caruman HRDF sebanyak 1% dari gaji asas akan dikira.
-                </p>
-              </div>
-              <div className="ml-4">
-                <Switch
-                  checked={!isHrdfDisabled}
-                  onCheckedChange={handleHrdfToggle}
-                  disabled={saveHrdfSettingsMutation.isPending}
-                  data-testid="switch-hrdf-enable"
-                />
-              </div>
-            </div>
-
-            {/* Current Status Display */}
-            <div className="p-4 border rounded-lg">
-              <div className="flex items-center space-x-2">
-                <div className={`w-2 h-2 rounded-full ${!isHrdfDisabled ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                <span className="text-sm font-medium">
-                  Status: {!isHrdfDisabled ? 'HRDF Aktif' : 'HRDF Tidak Aktif'}
-                </span>
-              </div>
-              <p className="text-xs text-gray-600 mt-2">
-                {!isHrdfDisabled 
-                  ? 'HRDF akan dikira sebagai caruman majikan dalam payroll (1% dari gaji asas)'
-                  : 'HRDF tidak akan dikira dalam payroll pekerja'
-                }
-              </p>
-            </div>
-          </div>
-
-          {/* Information Box */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 className="text-sm font-medium text-blue-900 mb-2">Maklumat HRDF</h4>
-            <div className="text-xs text-blue-800 space-y-1">
-              <p>• HRDF (Human Resources Development Fund) adalah caruman majikan untuk pembangunan sumber manusia</p>
-              <p>• Kadar standard: 1% dari gaji asas pekerja</p>
-              <p>• Hanya majikan yang perlu membayar HRDF, bukan pekerja</p>
-              <p>• Perubahan tetapan ini akan mempengaruhi pengiraan payroll akan datang</p>
-            </div>
-          </div>
-
-          {/* Save Button */}
-          <div className="flex justify-end">
-            <Button 
-              onClick={() => handleHrdfToggle(!isHrdfDisabled)}
-              disabled={saveHrdfSettingsMutation.isPending}
-              className="bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700"
-              data-testid="button-save-hrdf-settings"
-            >
-              {saveHrdfSettingsMutation.isPending ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Menyimpan...
-                </>
-              ) : (
-                "Simpan Perubahan"
-              )}
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   const renderPlaceholderContent = (section: string) => (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
@@ -4781,7 +4656,6 @@ export default function SystemSettingPage() {
              currentSection === "overtime-approval" ? renderOvertimeApprovalForm() :
              currentSection === "overtime-policy" ? renderOvertimePolicyForm() :
              currentSection === "overtime-settings" ? renderOvertimeSettingsForm() :
-             currentSection === "hrdf" ? renderHrdfSettingsForm() :
              renderPlaceholderContent(currentSection)}
           </div>
         </div>

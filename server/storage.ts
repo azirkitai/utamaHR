@@ -163,11 +163,6 @@ import {
   type PayrollItem,
   type InsertPayrollItem,
   type UpdatePayrollItem,
-  // Salary Calculation Settings types
-  salaryCalculationSettings,
-  type SalaryCalculationSetting,
-  type InsertSalaryCalculationSetting,
-  type UpdateSalaryCalculationSetting,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, sql, asc, ilike, or, gte, lte, inArray, not } from "drizzle-orm";
@@ -385,12 +380,6 @@ export interface IStorage {
   getCompanySettings(): Promise<CompanySetting | undefined>;
   createCompanySettings(settings: InsertCompanySetting): Promise<CompanySetting>;
   updateCompanySettings(id: string, settings: UpdateCompanySetting): Promise<CompanySetting | undefined>;
-  
-  // =================== SALARY CALCULATION SETTINGS METHODS ===================
-  getSalaryCalculationSettings(settingName?: string): Promise<SalaryCalculationSetting | undefined>;
-  createSalaryCalculationSettings(settings: InsertSalaryCalculationSetting): Promise<SalaryCalculationSetting>;
-  updateSalaryCalculationSettings(id: string, settings: UpdateSalaryCalculationSetting): Promise<SalaryCalculationSetting | undefined>;
-  upsertSalaryCalculationSettings(settingName: string, settings: Partial<InsertSalaryCalculationSetting>): Promise<SalaryCalculationSetting>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2628,7 +2617,16 @@ export class DatabaseStorage implements IStorage {
         unpaidLeave: JSON.stringify(unpaidLeaveData),
         lateness: JSON.stringify({ minutes: 0, amount: 0 }), // To be implemented
         deductions: JSON.stringify(this.generateDeductionsFromMasterSalary(basicSalary, masterSalaryData)),
-        contributions: JSON.stringify(await this.calculateContributionsWithSettings(basicSalary, masterSalaryData)),
+        contributions: JSON.stringify({
+          epfEmployer: this.calculateEPFEmployer(basicSalary.toString()),
+          socsoEmployer: this.calculateSOCSO(basicSalary.toString(), 'employer'),
+          eisEmployer: this.calculateEIS(basicSalary.toString(), 'employer'),
+          hrdf: '0',
+          other: Object.entries(contributions || {}).map(([name, amount]) => ({
+            name,
+            amount: amount?.toString() || '0'
+          }))
+        }),
         netPay: this.calculateNetPay({ amount: basicSalary.toString() }, additionalItems, [], { amount: overtimeAmount }),
         audit: JSON.stringify({
           generatedAt: new Date().toISOString(),
@@ -2731,48 +2729,6 @@ export class DatabaseStorage implements IStorage {
     
     const rate = 0.002; // 0.2% each for employee and employer
     return (basic * rate).toFixed(2);
-  }
-
-  private calculateHRDF(basicSalary: string): string {
-    const basic = parseFloat(basicSalary);
-    if (basic <= 0) return '0.00';
-    
-    // HRDF calculation - typically 1% of basic salary for employer
-    const hrdf = basic * 0.01; // 1% employer contribution
-    return hrdf.toFixed(2);
-  }
-
-  private async calculateContributionsWithSettings(basicSalary: number, masterSalaryData: any): Promise<any> {
-    // Get HRDF settings from salary calculation settings
-    const hrdfSettings = await this.getSalaryCalculationSettings('global');
-    const isHrdfDisabled = hrdfSettings?.disableHrdf || false;
-    
-    console.log('HRDF Settings:', hrdfSettings);
-    console.log('Is HRDF Disabled:', isHrdfDisabled);
-    
-    // Calculate base contributions
-    const epfEmployer = this.calculateEPFEmployer(basicSalary.toString());
-    const socsoEmployer = this.calculateSOCSO(basicSalary.toString(), 'employer');
-    const eisEmployer = this.calculateEIS(basicSalary.toString(), 'employer');
-    
-    // Calculate HRDF based on settings
-    const hrdfAmount = isHrdfDisabled ? '0.00' : this.calculateHRDF(basicSalary.toString());
-    
-    console.log(`Contributions for salary RM${basicSalary}:`, {
-      epfEmployer,
-      socsoEmployer,
-      eisEmployer,
-      hrdf: hrdfAmount,
-      isHrdfDisabled
-    });
-
-    return {
-      epfEmployer,
-      socsoEmployer,
-      eisEmployer,
-      hrdf: hrdfAmount,
-      other: [] // For additional custom contributions
-    };
   }
 
   private calculateNetPay(basicEarning: any, additionalItems: any[], deductionItems: any[], overtime: any): string {
@@ -2949,71 +2905,6 @@ export class DatabaseStorage implements IStorage {
       return updatedSettings || undefined;
     } catch (error) {
       console.error('Error updating company settings:', error);
-      throw error;
-    }
-  }
-  
-  // =================== SALARY CALCULATION SETTINGS METHODS ===================
-  async getSalaryCalculationSettings(settingName: string = 'global'): Promise<SalaryCalculationSetting | undefined> {
-    try {
-      const [settings] = await db
-        .select()
-        .from(salaryCalculationSettings)
-        .where(eq(salaryCalculationSettings.settingName, settingName))
-        .limit(1);
-      return settings || undefined;
-    } catch (error) {
-      console.error('Error fetching salary calculation settings:', error);
-      return undefined;
-    }
-  }
-
-  async createSalaryCalculationSettings(settings: InsertSalaryCalculationSetting): Promise<SalaryCalculationSetting> {
-    try {
-      const [newSettings] = await db
-        .insert(salaryCalculationSettings)
-        .values(settings)
-        .returning();
-      return newSettings;
-    } catch (error) {
-      console.error('Error creating salary calculation settings:', error);
-      throw error;
-    }
-  }
-
-  async updateSalaryCalculationSettings(id: string, settings: UpdateSalaryCalculationSetting): Promise<SalaryCalculationSetting | undefined> {
-    try {
-      const [updatedSettings] = await db
-        .update(salaryCalculationSettings)
-        .set({ ...settings, updatedAt: new Date() })
-        .where(eq(salaryCalculationSettings.id, id))
-        .returning();
-      return updatedSettings || undefined;
-    } catch (error) {
-      console.error('Error updating salary calculation settings:', error);
-      throw error;
-    }
-  }
-
-  async upsertSalaryCalculationSettings(settingName: string, settings: Partial<InsertSalaryCalculationSetting>): Promise<SalaryCalculationSetting> {
-    try {
-      // Try to get existing settings
-      const existing = await this.getSalaryCalculationSettings(settingName);
-      
-      if (existing) {
-        // Update existing
-        const updated = await this.updateSalaryCalculationSettings(existing.id, settings);
-        return updated!;
-      } else {
-        // Create new
-        const newSettings = await this.createSalaryCalculationSettings({
-          settingName,
-          ...settings
-        } as InsertSalaryCalculationSetting);
-        return newSettings;
-      }
-    } catch (error) {
-      console.error('Error upserting salary calculation settings:', error);
       throw error;
     }
   }

@@ -643,25 +643,6 @@ export const payrollItems = pgTable('payroll_items', {
   uniqueDocumentEmployee: unique('payroll_items_document_employee_unique').on(table.documentId, table.employeeId),
 }));
 
-// Salary Calculation Settings Table (for system-wide salary calculation configurations)
-export const salaryCalculationSettings = pgTable('salary_calculation_settings', {
-  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
-  settingName: text('setting_name').notNull().unique(), // 'global' for company-wide settings
-  
-  // HRDF Settings
-  hrdfEnabled: boolean('hrdf_enabled').default(true), // Enable/disable HRDF contribution
-  hrdfEmployerRate: decimal('hrdf_employer_rate', { precision: 5, scale: 4 }).default(sql`0.0100`), // 1% default rate
-  hrdfWageCeiling: decimal('hrdf_wage_ceiling', { precision: 10, scale: 2 }).default(sql`4500.00`), // RM4500 wage ceiling
-  
-  // Other calculation settings can be added here
-  // epfEnabled: boolean('epf_enabled').default(true),
-  // socsoEnabled: boolean('socso_enabled').default(true),
-  // eisEnabled: boolean('eis_enabled').default(true),
-  
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
-
 // Claim Applications Table (for Financial and Overtime claims)
 export const claimApplications = pgTable('claim_applications', {
   id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
@@ -1257,19 +1238,6 @@ export type LeaveBalanceCarryForward = typeof leaveBalanceCarryForward.$inferSel
 export type InsertLeaveBalanceCarryForward = z.infer<typeof insertLeaveBalanceCarryForwardSchema>;
 export type UpdateLeaveBalanceCarryForward = z.infer<typeof updateLeaveBalanceCarryForwardSchema>;
 export type UpdateLeavePolicySetting = z.infer<typeof updateLeavePolicySettingSchema>;
-
-// Salary Calculation Settings schemas
-export const insertSalaryCalculationSettingSchema = createInsertSchema(salaryCalculationSettings).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-export const updateSalaryCalculationSettingSchema = insertSalaryCalculationSettingSchema.partial();
-
-// Salary Calculation Settings types
-export type SalaryCalculationSetting = typeof salaryCalculationSettings.$inferSelect;
-export type InsertSalaryCalculationSetting = z.infer<typeof insertSalaryCalculationSettingSchema>;
-export type UpdateSalaryCalculationSetting = z.infer<typeof updateSalaryCalculationSettingSchema>;
 
 // Employee Salary Management tables
 export const employeeSalaries = pgTable("employee_salaries", {
