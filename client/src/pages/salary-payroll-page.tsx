@@ -367,15 +367,6 @@ export default function SalaryPayrollPage() {
                         size="sm"
                         className="p-1 h-7 w-7 border-gray-300"
                         onClick={() => handleViewPayrollDocument(document.id, document.status)}
-                        data-testid={`button-view-payroll-${document.id}`}
-                      >
-                        <Eye className="w-3 h-3" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="p-1 h-7 w-7 border-gray-300"
-                        onClick={() => handleViewPayrollDocument(document.id, document.status)}
                         data-testid={`button-edit-payroll-${document.id}`}
                       >
                         <Edit className="w-3 h-3" />
