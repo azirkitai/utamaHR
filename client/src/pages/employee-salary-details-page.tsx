@@ -695,7 +695,7 @@ export default function EmployeeSalaryDetailsPage() {
       epf: 431.00, // June (215.50) + July (215.50) EPF Employee
       socso: 47.20, // June (23.60) + July (23.60) SOCSO Employee
       eis: 9.40,   // June (4.70) + July (4.70) EIS Employee
-      pcb: 0       // June + July PCB Employee
+      pcb: 837.40  // June (418.70) + July (418.70) PCB Employee
     },
     employer: {
       epf: 716.80, // June (358.40) + July (358.40) EPF Employer
@@ -726,7 +726,7 @@ export default function EmployeeSalaryDetailsPage() {
       epf: 'YTD bulan 6 + 7 (data terkumpul)',
       socso: 'YTD bulan 6 + 7 (data terkumpul)',
       eis: 'YTD bulan 6 + 7 (data terkumpul)',
-      pcb: ''
+      pcb: 'YTD bulan 6 + 7 (RM 418.70 + RM 418.70) = RM 837.40 + Bulan 8 (RM 418.70) = RM 1,256.10'
     },
     employer: {
       epf: 'YTD bulan 6 + 7 (data terkumpul)',
@@ -905,6 +905,35 @@ export default function EmployeeSalaryDetailsPage() {
       console.error(`Overtime fetch error:`, overtimeError);
     }
   }, [overtimeData, overtimeError]);
+
+  // Auto-update YTD PCB/MTD when MTD/PCB (deductions.other) changes
+  useEffect(() => {
+    if (salaryData.deductions.other !== undefined) {
+      // Calculate YTD = Previous YTD (without current month) + Current MTD
+      const previousYtd = 837.40; // June + July PCB
+      const currentMtd = salaryData.deductions.other;
+      const newYtdPcb = Math.round((previousYtd + currentMtd) * 100) / 100;
+      
+      // Update YTD value
+      setYtdValues(prev => ({
+        ...prev,
+        employee: {
+          ...prev.employee,
+          pcb: newYtdPcb
+        }
+      }));
+      
+      // Update remarks to show calculation
+      const newRemark = `YTD bulan 6 + 7 (RM 418.70 + RM 418.70) = RM 837.40 + Bulan 8 (RM ${currentMtd.toFixed(2)}) = RM ${newYtdPcb.toFixed(2)}`;
+      setYtdRemarks(prev => ({
+        ...prev,
+        employee: {
+          ...prev.employee,
+          pcb: newRemark
+        }
+      }));
+    }
+  }, [salaryData.deductions.other]);
 
   // Refresh overtime calculation when any overtime claim is approved
   const refreshOvertimeCalculation = () => {
@@ -3067,15 +3096,24 @@ export default function EmployeeSalaryDetailsPage() {
                       value={salaryData.deductions.other}
                       onChange={(e) => {
                         const newValue = parseFloat(e.target.value) || 0;
-                        const oldValue = salaryData.deductions.other;
                         updateSalaryData({ 
                           deductions: { ...salaryData.deductions, other: newValue }
                         });
                         // Auto update YTD PCB/MTD when MTD/PCB changes
-                        // Calculate the difference and add to YTD
-                        const difference = newValue - oldValue;
-                        const newYtdPcb = Math.round((ytdValues.employee.pcb + difference) * 100) / 100;
+                        // Calculate YTD = Previous YTD (without current month) + Current MTD
+                        const previousYtd = 837.40; // June + July PCB
+                        const newYtdPcb = Math.round((previousYtd + newValue) * 100) / 100;
                         updateYtdValue('employee', 'pcb', newYtdPcb);
+                        
+                        // Update remarks to show calculation
+                        const newRemark = `YTD bulan 6 + 7 (RM 418.70 + RM 418.70) = RM 837.40 + Bulan 8 (RM ${newValue.toFixed(2)}) = RM ${newYtdPcb.toFixed(2)}`;
+                        setYtdRemarks(prev => ({
+                          ...prev,
+                          employee: {
+                            ...prev.employee,
+                            pcb: newRemark
+                          }
+                        }));
                       }}
                       className="rounded-l-none"
                       data-testid="other-deduction"
