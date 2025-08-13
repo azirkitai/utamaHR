@@ -1231,12 +1231,11 @@ export default function EmployeeSalaryDetailsPage() {
   };
 
   const saveYtdValue = (category: 'employee' | 'employer', field: 'epf' | 'socso' | 'eis' | 'pcb') => {
-    // Auto generate remark showing current month
+    // Generate remark showing which month's YTD data was entered
     const currentDate = new Date();
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const currentMonth = monthNames[currentDate.getMonth()];
+    const currentMonth = currentDate.getMonth() + 1; // Get month number (1-12)
     const currentYear = currentDate.getFullYear();
-    const remarkText = `Kemaskini ${currentMonth} ${currentYear}`;
+    const remarkText = `YTD bulan ${currentMonth} telah dimasukkan`;
     
     console.log('Saving YTD value:', category, field, remarkText);
     
@@ -1264,7 +1263,7 @@ export default function EmployeeSalaryDetailsPage() {
     // Show success toast
     toast({
       title: "YTD Dikemas Kini",
-      description: `Nilai YTD ${field.toUpperCase()} ${category} telah disimpan untuk ${currentMonth} ${currentYear}`,
+      description: `Nilai YTD ${field.toUpperCase()} ${category} telah disimpan untuk bulan ${currentMonth}`,
     });
   };
 
