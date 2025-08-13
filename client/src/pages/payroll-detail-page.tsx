@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Download, Eye, FileSpreadsheet, Trash2 } from "lucide-react";
+import { ArrowLeft, Download, Eye, FileSpreadsheet, Trash2, Check, X } from "lucide-react";
 import { useParams } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,6 +21,218 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 // Removed jsPDF - now using server-side Puppeteer for PDF generation
+
+// Salary Payroll Approval Card Component
+function SalaryPayrollApprovalCard({ payrollDocument, currentUser }: { payrollDocument: any; currentUser: any }) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch payment approval settings
+  const { data: paymentApprovalSettings } = useQuery({
+    queryKey: ["/api/approval-settings/payment"],
+  });
+
+  // Fetch current user's employee data
+  const { data: currentUserEmployee } = useQuery({
+    queryKey: ["/api/user/employee"],
+  });
+
+  // Fetch approval employee details
+  const { data: firstLevelApprover } = useQuery({
+    queryKey: ["/api/employees", paymentApprovalSettings?.firstLevelApprovalId],
+    enabled: !!paymentApprovalSettings?.firstLevelApprovalId,
+  });
+
+  const { data: secondLevelApprover } = useQuery({
+    queryKey: ["/api/employees", paymentApprovalSettings?.secondLevelApprovalId],
+    enabled: !!paymentApprovalSettings?.secondLevelApprovalId,
+  });
+
+  // Approve payroll mutation
+  const approvePayrollMutation = useMutation({
+    mutationFn: async ({ documentId, approverId }: { documentId: string; approverId: string }) => {
+      const response = await apiRequest('POST', `/api/payroll/documents/${documentId}/approve`, { approverId });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Dokumen Diluluskan",
+        description: "Dokumen payroll telah berjaya diluluskan",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/payroll/documents"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Gagal meluluskan dokumen",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Reject payroll mutation
+  const rejectPayrollMutation = useMutation({
+    mutationFn: async ({ documentId, rejectorId, reason }: { documentId: string; rejectorId: string; reason: string }) => {
+      const response = await apiRequest('POST', `/api/payroll/documents/${documentId}/reject`, { rejectorId, reason });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Dokumen Ditolak",
+        description: "Dokumen payroll telah ditolak",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/payroll/documents"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Gagal menolak dokumen",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Check if user has approval privileges
+  const hasApprovalPrivilege = () => {
+    if (!currentUser?.id || !paymentApprovalSettings) return false;
+    
+    if (!paymentApprovalSettings.enableApproval) return false;
+    
+    const userEmployeeId = currentUserEmployee?.id;
+    const isFirstLevelApprover = paymentApprovalSettings.firstLevelApprovalId === currentUser.id || 
+                                 paymentApprovalSettings.firstLevelApprovalId === userEmployeeId;
+    const isSecondLevelApprover = paymentApprovalSettings.secondLevelApprovalId === currentUser.id ||
+                                  paymentApprovalSettings.secondLevelApprovalId === userEmployeeId;
+    
+    return isFirstLevelApprover || isSecondLevelApprover;
+  };
+
+  const handleApprove = () => {
+    if (!currentUser?.id) {
+      toast({
+        title: "Error",
+        description: "User ID tidak dijumpai. Sila login semula.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    approvePayrollMutation.mutate({ 
+      documentId: payrollDocument.id, 
+      approverId: currentUser.id 
+    });
+  };
+
+  const handleReject = () => {
+    if (!currentUser?.id) {
+      toast({
+        title: "Error",
+        description: "User ID tidak dijumpai. Sila login semula.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const reason = prompt("Sila masukkan sebab penolakan:");
+    if (reason) {
+      rejectPayrollMutation.mutate({ 
+        documentId: payrollDocument.id, 
+        rejectorId: currentUser.id, 
+        reason 
+      });
+    }
+  };
+
+  // Only show approval card if user has approval privilege and document is pending
+  if (!hasApprovalPrivilege() || !['pending', 'PendingApproval'].includes(payrollDocument.status)) {
+    return null;
+  }
+
+  return (
+    <div className="bg-white border rounded-lg shadow-sm mt-6">
+      <div className="p-4 border-b bg-gradient-to-r from-cyan-600 to-teal-600 text-white rounded-t-lg">
+        <h3 className="text-lg font-semibold">Salary Payroll Approval</h3>
+      </div>
+      
+      <div className="p-6">
+        <div className="flex items-center justify-between">
+          {/* Left side - Approver profiles */}
+          <div className="flex items-center space-x-6">
+            {firstLevelApprover && (
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                  {firstLevelApprover.profileImageUrl ? (
+                    <img 
+                      src={firstLevelApprover.profileImageUrl} 
+                      alt={firstLevelApprover.fullName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-cyan-500 flex items-center justify-center text-white font-semibold">
+                      {firstLevelApprover.fullName?.charAt(0)?.toUpperCase() || 'A'}
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">{firstLevelApprover.fullName}</p>
+                  <p className="text-sm text-gray-600">{firstLevelApprover.role}</p>
+                  <p className="text-xs text-gray-500">First Level Approver</p>
+                </div>
+              </div>
+            )}
+
+            {secondLevelApprover && (
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                  {secondLevelApprover.profileImageUrl ? (
+                    <img 
+                      src={secondLevelApprover.profileImageUrl} 
+                      alt={secondLevelApprover.fullName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-cyan-500 flex items-center justify-center text-white font-semibold">
+                      {secondLevelApprover.fullName?.charAt(0)?.toUpperCase() || 'A'}
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">{secondLevelApprover.fullName}</p>
+                  <p className="text-sm text-gray-600">{secondLevelApprover.role}</p>
+                  <p className="text-xs text-gray-500">Second Level Approver</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right side - Action buttons */}
+          <div className="flex items-center space-x-3">
+            <Button
+              onClick={handleApprove}
+              disabled={approvePayrollMutation.isPending}
+              className="bg-green-600 hover:bg-green-700 text-white px-6"
+              data-testid="button-approve-payroll"
+            >
+              <Check className="w-4 h-4 mr-2" />
+              {approvePayrollMutation.isPending ? "Approving..." : "Approve"}
+            </Button>
+            
+            <Button
+              onClick={handleReject}
+              disabled={rejectPayrollMutation.isPending}
+              variant="outline"
+              className="border-red-300 text-red-700 hover:bg-red-50 px-6"
+              data-testid="button-reject-payroll"
+            >
+              <X className="w-4 h-4 mr-2" />
+              {rejectPayrollMutation.isPending ? "Rejecting..." : "Reject"}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function PayrollDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -626,6 +840,14 @@ export default function PayrollDetailPage() {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Salary Payroll Approval Card */}
+        {payrollDocument && (
+          <SalaryPayrollApprovalCard 
+            payrollDocument={payrollDocument}
+            currentUser={currentUser}
+          />
+        )}
       </div>
     </DashboardLayout>
   );
