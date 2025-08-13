@@ -68,11 +68,62 @@ export default function PayrollDetailPage() {
       const url = window.URL.createObjectURL(blob);
       console.log('Generated PDF URL:', url);
       setPdfPreviewUrl(url);
+      
+      // Render PDF using PDF.js
+      await renderPdfToCanvas(blob);
     } catch (error) {
       console.error('Error generating PDF preview:', error);
       alert('Gagal menghasilkan preview PDF. Sila cuba lagi.');
     } finally {
       setIsGeneratingPreview(false);
+    }
+  };
+
+  const renderPdfToCanvas = async (pdfBlob: Blob) => {
+    try {
+      // Import PDF.js dynamically
+      const pdfjsLib = await import('pdfjs-dist');
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      
+      const arrayBuffer = await pdfBlob.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+      const page = await pdf.getPage(1);
+      
+      const canvas = document.getElementById('pdf-canvas') as HTMLCanvasElement;
+      const loadingDiv = document.getElementById('pdf-loading');
+      
+      if (!canvas) return;
+      
+      const context = canvas.getContext('2d');
+      if (!context) return;
+      
+      const viewport = page.getViewport({ scale: 1.5 });
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+      
+      await page.render({
+        canvasContext: context,
+        viewport: viewport
+      }).promise;
+      
+      if (loadingDiv) {
+        loadingDiv.style.display = 'none';
+      }
+      
+      console.log('PDF rendered to canvas successfully');
+    } catch (error) {
+      console.error('Error rendering PDF to canvas:', error);
+      const loadingDiv = document.getElementById('pdf-loading');
+      if (loadingDiv) {
+        loadingDiv.innerHTML = `
+          <div class="text-center">
+            <p class="text-red-600 mb-2">Failed to load PDF preview</p>
+            <button onclick="window.open('${pdfPreviewUrl}', '_blank')" class="text-blue-600 underline">
+              Open in new tab instead
+            </button>
+          </div>
+        `;
+      }
     }
   };
 
@@ -524,15 +575,22 @@ export default function PayrollDetailPage() {
                               </Button>
                             </div>
                           </div>
-                          <div className="relative" style={{ height: '700px' }}>
-                            <iframe
-                              src={`https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(pdfPreviewUrl)}`}
-                              width="100%"
-                              height="100%"
-                              style={{ border: 'none' }}
-                              title="PDF Preview"
-                              sandbox="allow-scripts allow-same-origin allow-downloads"
+                          <div className="relative bg-gray-200" style={{ height: '700px' }}>
+                            <canvas
+                              id="pdf-canvas"
+                              className="w-full h-full"
+                              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
                             />
+                            <div 
+                              id="pdf-loading" 
+                              className="absolute inset-0 flex items-center justify-center bg-gray-100"
+                              style={{ display: 'block' }}
+                            >
+                              <div className="text-center">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                                <p className="text-gray-600">Loading PDF...</p>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       ) : (
