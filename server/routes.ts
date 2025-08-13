@@ -84,7 +84,8 @@ import {
   overtimeSettings,
   financialClaimPolicies,
   payrollItems,
-  payrollDocuments
+  payrollDocuments,
+  employeeSalaries
 } from "@shared/schema";
 
 // Helper function to get month name
@@ -4560,7 +4561,7 @@ export function registerRoutes(app: Express): Server {
     return num.toFixed(2);
   }
 
-  // Function to calculate YTD values based on previous payroll items and master salary data
+  // Function to get YTD values from Master Salary configuration
   async function calculateYTDValues(
     employeeId: string, 
     currentYear: number, 
@@ -4581,64 +4582,51 @@ export function registerRoutes(app: Express): Server {
     mtd: string;
   }> {
     try {
-      // Get all payroll items for this employee for the current year up to current month
-      const ytdPayrollItems = await db
-        .select()
-        .from(payrollItems)
-        .innerJoin(payrollDocuments, eq(payrollItems.documentId, payrollDocuments.id))
-        .where(
-          and(
-            eq(payrollItems.employeeId, employeeId),
-            eq(payrollDocuments.year, currentYear),
-            lte(payrollDocuments.month, currentMonth)
-          )
-        )
-        .orderBy(payrollDocuments.month);
-
-      let ytdEmployeeTotal = 0;
-      let ytdEmployerTotal = 0;
-
-      // Calculate YTD from previous months (excluding current month to avoid double counting)
-      for (const item of ytdPayrollItems) {
-        const document = item.payroll_documents;
-        
-        // Skip current month as we'll add current values separately
-        if (document.month === currentMonth) continue;
-        
-        const deductions = JSON.parse(item.payroll_items.deductions || '{}');
-        const contributions = JSON.parse(item.payroll_items.contributions || '{}');
-        
-        // Employee contributions YTD
-        ytdEmployeeTotal += parseFloat(deductions.epfEmployee || "0");
-        ytdEmployeeTotal += parseFloat(deductions.socsoEmployee || "0");
-        ytdEmployeeTotal += parseFloat(deductions.eisEmployee || "0");
-        ytdEmployeeTotal += parseFloat(deductions.pcb38 || "0");
-        ytdEmployeeTotal += parseFloat(deductions.pcb39 || "0");
-        
-        // Employer contributions YTD
-        ytdEmployerTotal += parseFloat(contributions.epfEmployer || "0");
-        ytdEmployerTotal += parseFloat(contributions.socsoEmployer || "0");
-        ytdEmployerTotal += parseFloat(contributions.eisEmployer || "0");
+      // Get employee's master salary configuration which contains YTD data
+      const employeeSalary = await storage.getEmployeeSalary(employeeId);
+      
+      if (!employeeSalary) {
+        console.log('No master salary found for employee:', employeeId);
+        return {
+          employee: `RM 0.00`,
+          employer: `RM 0.00`,
+          mtd: `RM ${currentMonthValues.netPay.toFixed(2)}`
+        };
       }
 
-      // Add current month values
-      ytdEmployeeTotal += currentMonthValues.epfEmployee;
-      ytdEmployeeTotal += currentMonthValues.socsoEmployee;
-      ytdEmployeeTotal += currentMonthValues.eisEmployee;
-      ytdEmployeeTotal += currentMonthValues.pcb;
+      // Parse the deductions and contributions JSON from master salary
+      const masterDeductions = employeeSalary.deductions ? JSON.parse(employeeSalary.deductions) : {};
+      const masterContributions = employeeSalary.contributions ? JSON.parse(employeeSalary.contributions) : {};
+      
+      console.log('Master salary deductions:', masterDeductions);
+      console.log('Master salary contributions:', masterContributions);
 
-      ytdEmployerTotal += currentMonthValues.epfEmployer;
-      ytdEmployerTotal += currentMonthValues.socsoEmployer;
-      ytdEmployerTotal += currentMonthValues.eisEmployer;
+      // Extract YTD Employee Contributions from Master Salary
+      const ytdEpfEmployee = parseFloat(masterDeductions.ytdEpfEmployee || "0");
+      const ytdSocsoEmployee = parseFloat(masterDeductions.ytdSocsoEmployee || "0"); 
+      const ytdEisEmployee = parseFloat(masterDeductions.ytdEisEmployee || "0");
+      const ytdPcbEmployee = parseFloat(masterDeductions.ytdPcbEmployee || "0");
+
+      // Extract YTD Employer Contributions from Master Salary
+      const ytdEpfEmployer = parseFloat(masterContributions.ytdEpfEmployer || "0");
+      const ytdSocsoEmployer = parseFloat(masterContributions.ytdSocsoEmployer || "0");
+      const ytdEisEmployer = parseFloat(masterContributions.ytdEisEmployer || "0");
+
+      // Calculate total YTD Employee and Employer contributions
+      const totalYtdEmployee = ytdEpfEmployee + ytdSocsoEmployee + ytdEisEmployee + ytdPcbEmployee;
+      const totalYtdEmployer = ytdEpfEmployer + ytdSocsoEmployer + ytdEisEmployer;
+
+      console.log('YTD Employee Total:', totalYtdEmployee, {ytdEpfEmployee, ytdSocsoEmployee, ytdEisEmployee, ytdPcbEmployee});
+      console.log('YTD Employer Total:', totalYtdEmployer, {ytdEpfEmployer, ytdSocsoEmployer, ytdEisEmployer});
 
       return {
-        employee: `RM ${ytdEmployeeTotal.toFixed(2)}`,
-        employer: `RM ${ytdEmployerTotal.toFixed(2)}`,
+        employee: `RM ${totalYtdEmployee.toFixed(2)}`,
+        employer: `RM ${totalYtdEmployer.toFixed(2)}`,
         mtd: `RM ${currentMonthValues.netPay.toFixed(2)}`
       };
 
     } catch (error) {
-      console.error('Error calculating YTD values:', error);
+      console.error('Error fetching YTD values from master salary:', error);
       // Return fallback values if calculation fails
       return {
         employee: `RM 0.00`,
