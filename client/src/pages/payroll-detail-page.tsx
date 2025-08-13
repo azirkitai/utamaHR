@@ -459,14 +459,14 @@ export default function PayrollDetailPage() {
 
         {/* Progress Steps */}
         <div className="flex items-center justify-center space-x-8 py-6">
-          {/* Step 1: Update & Review - Always completed */}
+          {/* Step 1: Update & Review */}
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-medium">
               ✓
             </div>
             <span className="text-sm text-green-600 font-medium">Update & Review</span>
             {(payrollDocument as any)?.status !== 'approved' && (
-              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Completed</span>
+              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">In Progress</span>
             )}
           </div>
           
@@ -486,10 +486,8 @@ export default function PayrollDetailPage() {
             }`}>
               Approval
             </span>
-            {(payrollDocument as any)?.status === 'approved' ? (
+            {(payrollDocument as any)?.status === 'approved' && (
               <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Approved</span>
-            ) : (
-              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">In Progress</span>
             )}
           </div>
           
