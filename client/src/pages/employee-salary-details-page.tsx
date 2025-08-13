@@ -2154,18 +2154,7 @@ export default function EmployeeSalaryDetailsPage() {
               {/* Column 2 - Additional Item */}
               <div className="space-y-4">
                 <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold">Additional Item</h3>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setIsTaxExemptionDialogOpen(true)}
-                      className="h-6 w-6 p-0 text-white hover:text-gray-200 hover:bg-white/10"
-                      data-testid="additional-item-settings-toggle"
-                    >
-                      <Settings className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <h3 className="text-lg font-semibold">Additional Item</h3>
                 </div>
                 
                 {/* Advance Salary */}
@@ -2543,8 +2532,17 @@ export default function EmployeeSalaryDetailsPage() {
                 {/* Custom Additional Items */}
                 {salaryData.additionalItems.filter(item => item.code.startsWith('CUSTOM_')).map((item) => (
                   <div key={item.code} className="space-y-2">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
                       <Label className="font-medium">{item.label}</Label>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleStatutoryFlags(item.code)}
+                        className="h-6 w-6 p-0 text-blue-500 hover:text-blue-700"
+                        data-testid={`${item.code}-settings-toggle`}
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -2568,6 +2566,60 @@ export default function EmployeeSalaryDetailsPage() {
                         data-testid={`custom-additional-${item.code}`}
                       />
                     </div>
+                    
+                    {/* Show statutory flags when toggled */}
+                    {showStatutoryFlags[item.code] && (
+                      <div className="grid grid-cols-3 gap-2 mt-2 p-3 bg-gray-50 rounded border">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            checked={item.flags?.epf || false}
+                            onCheckedChange={(checked) => updateAdditionalItemFlag(item.code, "epf", !!checked)}
+                            data-testid={`${item.code}-epf`}
+                          />
+                          <Label className="text-sm">EPF</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            checked={item.flags?.socso || false}
+                            onCheckedChange={(checked) => updateAdditionalItemFlag(item.code, "socso", !!checked)}
+                            data-testid={`${item.code}-socso`}
+                          />
+                          <Label className="text-sm">SOCSO</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            checked={item.flags?.eis || false}
+                            onCheckedChange={(checked) => updateAdditionalItemFlag(item.code, "eis", !!checked)}
+                            data-testid={`${item.code}-eis`}
+                          />
+                          <Label className="text-sm">EIS</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            checked={item.flags?.hrdf || false}
+                            onCheckedChange={(checked) => updateAdditionalItemFlag(item.code, "hrdf", !!checked)}
+                            data-testid={`${item.code}-hrdf`}
+                          />
+                          <Label className="text-sm">HRDF</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            checked={item.flags?.pcb39 || false}
+                            onCheckedChange={(checked) => updateAdditionalItemFlag(item.code, "pcb39", !!checked)}
+                            data-testid={`${item.code}-pcb39`}
+                          />
+                          <Label className="text-sm">PCB39</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            checked={item.flags?.fixed || false}
+                            onCheckedChange={(checked) => updateAdditionalItemFlag(item.code, "fixed", !!checked)}
+                            data-testid={`${item.code}-fixed`}
+                          />
+                          <Label className="text-sm">Fixed</Label>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
 
