@@ -69,8 +69,10 @@ export default function PayrollDetailPage() {
       console.log('Generated PDF URL:', url);
       setPdfPreviewUrl(url);
       
-      // Render PDF using PDF.js
-      await renderPdfToCanvas(blob);
+      // Render PDF using PDF.js with a small delay to ensure UI is ready
+      setTimeout(() => {
+        renderPdfToCanvas(blob);
+      }, 100);
     } catch (error) {
       console.error('Error generating PDF preview:', error);
       alert('Gagal menghasilkan preview PDF. Sila cuba lagi.');
@@ -80,18 +82,20 @@ export default function PayrollDetailPage() {
   };
 
   const renderPdfToCanvas = async (pdfBlob: Blob) => {
+    const loadingDiv = document.getElementById('pdf-loading');
+    
     try {
-      // Import PDF.js dynamically
+      // Import PDF.js dynamically with proper worker setup
       const pdfjsLib = await import('pdfjs-dist');
-      // Use the same version for both API and worker
-      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+      
+      // Use a stable worker URL that matches the installed version
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
       
       const arrayBuffer = await pdfBlob.arrayBuffer();
       const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
       const page = await pdf.getPage(1);
       
       const canvas = document.getElementById('pdf-canvas') as HTMLCanvasElement;
-      const loadingDiv = document.getElementById('pdf-loading');
       
       if (!canvas) return;
       
@@ -100,7 +104,8 @@ export default function PayrollDetailPage() {
       
       // Calculate scale to fit container
       const containerWidth = canvas.parentElement?.clientWidth || 400;
-      const scale = Math.min(containerWidth / page.getViewport({ scale: 1 }).width, 1.2);
+      const originalViewport = page.getViewport({ scale: 1 });
+      const scale = Math.min(containerWidth / originalViewport.width, 1.5);
       
       const viewport = page.getViewport({ scale });
       canvas.height = viewport.height;
@@ -118,16 +123,25 @@ export default function PayrollDetailPage() {
       console.log('PDF rendered to canvas successfully');
     } catch (error) {
       console.error('Error rendering PDF to canvas:', error);
-      const loadingDiv = document.getElementById('pdf-loading');
+      
+      // Show fallback UI
       if (loadingDiv) {
         loadingDiv.innerHTML = `
-          <div class="text-center p-4">
-            <p class="text-red-600 mb-2">Failed to load PDF preview</p>
+          <div class="text-center p-6">
+            <div class="mb-4">
+              <svg class="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              <p class="text-gray-600 mb-4">PDF preview tidak dapat dipaparkan</p>
+            </div>
             <button onclick="window.open('${pdfPreviewUrl}', '_blank')" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-              Open in New Tab
+              Buka PDF dalam Tab Baru
             </button>
           </div>
         `;
+        loadingDiv.style.display = 'flex';
+        loadingDiv.style.alignItems = 'center';
+        loadingDiv.style.justifyContent = 'center';
       }
     }
   };
