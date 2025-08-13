@@ -4033,7 +4033,10 @@ export function registerRoutes(app: Express): Server {
           regNo: companySettings?.companyRegistrationNumber || "202201033996(1479693-H)",
           address: companySettings ? 
             `${companySettings.address}${companySettings.postcode ? ', ' + companySettings.postcode : ''}${companySettings.city ? ', ' + companySettings.city : ''}${companySettings.state ? ', ' + companySettings.state : ''}` :
-            "A2-22-3, SOHO SUITES @ KLCC, 20 JALAN PERAK, 50450 KUALA LUMPUR, WILAYAH PERSEKUTUAN"
+            "A2-22-3, SOHO SUITES @ KLCC, 20 JALAN PERAK, 50450 KUALA LUMPUR, WILAYAH PERSEKUTUAN",
+          logoHTML: companySettings?.logoUrl ? 
+            `<img src="http://localhost:5000${companySettings.logoUrl}" class="company-logo" alt="Company Logo" />` : 
+            ""
         },
         employee: {
           name: employee.fullName || employeeSnapshot.name,
@@ -4182,7 +4185,10 @@ export function registerRoutes(app: Express): Server {
           regNo: companySettings?.companyRegistrationNumber || "202201033996(1479693-H)",
           address: companySettings ? 
             `${companySettings.address}${companySettings.postcode ? ', ' + companySettings.postcode : ''}${companySettings.city ? ', ' + companySettings.city : ''}${companySettings.state ? ', ' + companySettings.state : ''}` :
-            "A2-22-3, SOHO SUITES @ KLCC, 20 JALAN PERAK, 50450 KUALA LUMPUR, WILAYAH PERSEKUTUAN"
+            "A2-22-3, SOHO SUITES @ KLCC, 20 JALAN PERAK, 50450 KUALA LUMPUR, WILAYAH PERSEKUTUAN",
+          logoHTML: companySettings?.logoUrl ? 
+            `<img src="http://localhost:5000${companySettings.logoUrl}" class="company-logo" alt="Company Logo" />` : 
+            ""
         },
         employee: {
           name: employee.fullName || employeeSnapshot.name,

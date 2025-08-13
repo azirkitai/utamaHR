@@ -33,24 +33,38 @@ export function generatePayslipHTML(templateData: any): string {
             margin-bottom: 10px;
         }
         
+        .header-container {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .company-logo {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+        }
+        
+        .company-info {
+            flex: 1;
+        }
+        
         .company-name {
             font-weight: 700;
             font-size: 18px;
             margin-bottom: 4px;
-            text-align: center;
         }
         
         .company-reg {
             font-size: 14px;
             margin-bottom: 4px;
-            text-align: center;
         }
         
         .company-addr {
             font-size: 12px;
             line-height: 1.35;
-            margin-bottom: 20px;
-            text-align: center;
+            margin-bottom: 12px;
         }
         
         .panel {
@@ -181,9 +195,14 @@ export function generatePayslipHTML(templateData: any): string {
     </div>
 
     <div class="confidential">STRICTLY PRIVATE &amp; CONFIDENTIAL</div>
-    <div class="company-name">${templateData.company.name}</div>
-    <div class="company-reg">${templateData.company.regNo}</div>
-    <div class="company-addr">${templateData.company.address}</div>
+    <div class="header-container">
+        ${templateData.company.logoHTML || ''}
+        <div class="company-info">
+            <div class="company-name">${templateData.company.name}</div>
+            <div class="company-reg">${templateData.company.regNo}</div>
+            <div class="company-addr">${templateData.company.address}</div>
+        </div>
+    </div>
 
     <!-- Employee Info Panel -->
     <div class="panel">

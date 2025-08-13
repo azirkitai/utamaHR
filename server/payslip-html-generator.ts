@@ -12,6 +12,7 @@ interface PayslipData {
     name: string;
     regNo: string;
     address: string;
+    logoHTML: string;
   };
   employee: {
     name: string;
@@ -79,6 +80,7 @@ export async function generatePayslipPDF(data: PayslipData): Promise<Buffer> {
       .replace('{{company.name}}', data.company.name)
       .replace('{{company.regNo}}', data.company.regNo)
       .replace('{{company.address}}', data.company.address)
+      .replace('{{company.logoHTML}}', data.company.logoHTML)
       
       // Employee info
       .replace('{{employee.name}}', data.employee.name)
