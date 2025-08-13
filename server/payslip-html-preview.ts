@@ -327,10 +327,6 @@ export function generatePayslipHTML(templateData: any, showPreviewNote: boolean 
                 <span>PCB/MTD</span>
                 <span class="money">RM ${templateData.ytd.breakdown.pcb || "0.00"}</span>
             </div>
-            <div class="rowi">
-                <span style="font-weight: bold;">Total Employee YTD</span>
-                <span class="money" style="font-weight: bold;">RM ${templateData.ytd.employee}</span>
-            </div>
         </div>
         
         <div class="tbl">
@@ -346,10 +342,6 @@ export function generatePayslipHTML(templateData: any, showPreviewNote: boolean 
             <div class="rowi">
                 <span>EIS Employer</span>
                 <span class="money">RM ${templateData.ytd.breakdown.eisEmployer || "0.00"}</span>
-            </div>
-            <div class="rowi">
-                <span style="font-weight: bold;">Total Employer YTD</span>
-                <span class="money" style="font-weight: bold;">RM ${templateData.ytd.employer}</span>
             </div>
         </div>
     </div>
