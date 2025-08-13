@@ -4009,6 +4009,11 @@ export function registerRoutes(app: Express): Server {
       const deductions = JSON.parse(payrollItem.deductions);
       const contributions = JSON.parse(payrollItem.contributions);
 
+      // Get Master Salary Configuration for dynamic deductions
+      const masterSalary = await storage.getMasterSalaryData(employeeId);
+      console.log("Master salary deductions:", masterSalary?.deductions);
+      console.log("Payroll deductions from item:", deductions);
+
       // Format monetary values
       const formatMoney = (value: any) => {
         const num = parseFloat(value || "0");
@@ -4077,25 +4082,111 @@ export function registerRoutes(app: Express): Server {
           epfEmp: formatMoney(deductions.epfEmployee),
           socsoEmp: formatMoney(deductions.socsoEmployee),
           eisEmp: formatMoney(deductions.eisEmployee),
-          items: [
-            {
-              label: "MTD",
-              amount: formatMoney(deductions.mtd || "0"),
-              show: parseFloat(deductions.mtd || "0") > 0
-            },
-            {
-              label: "ZAKAT", 
-              amount: formatMoney(deductions.zakat || "0"),
-              show: parseFloat(deductions.zakat || "0") > 0
+          items: (() => {
+            const items = [];
+            
+            // Add standard deduction fields from payroll data that have values
+            if (parseFloat(deductions.advance || "0") > 0) {
+              items.push({
+                label: "Advance",
+                amount: formatMoney(deductions.advance),
+                show: true
+              });
             }
-          ],
-          total: formatMoney(
-            parseFloat(deductions.epfEmployee || "0") +
-            parseFloat(deductions.socsoEmployee || "0") +
-            parseFloat(deductions.eisEmployee || "0") +
-            parseFloat(deductions.mtd || "0") +
-            parseFloat(deductions.zakat || "0")
-          )
+            
+            if (parseFloat(deductions.unpaidLeave || "0") > 0) {
+              items.push({
+                label: "Unpaid Leave",
+                amount: formatMoney(deductions.unpaidLeave),
+                show: true
+              });
+            }
+            
+            if (parseFloat(deductions.pcb39 || "0") > 0) {
+              items.push({
+                label: "PCB 39",
+                amount: formatMoney(deductions.pcb39),
+                show: true
+              });
+            }
+            
+            if (parseFloat(deductions.pcb38 || "0") > 0) {
+              items.push({
+                label: "PCB 38",
+                amount: formatMoney(deductions.pcb38),
+                show: true
+              });
+            }
+            
+            if (parseFloat(deductions.zakat || "0") > 0) {
+              items.push({
+                label: "Zakat",
+                amount: formatMoney(deductions.zakat),
+                show: true
+              });
+            }
+            
+            if (parseFloat(deductions.other || "0") > 0) {
+              items.push({
+                label: "Other",
+                amount: formatMoney(deductions.other),
+                show: true
+              });
+            }
+            
+            // Add custom deduction items from Master Salary Configuration
+            if (masterSalary && masterSalary.deductions) {
+              const masterDeductions = typeof masterSalary.deductions === 'string' 
+                ? JSON.parse(masterSalary.deductions) 
+                : masterSalary.deductions;
+                
+              if (masterDeductions.customItems && Array.isArray(masterDeductions.customItems)) {
+                masterDeductions.customItems.forEach((customItem: any) => {
+                  if (parseFloat(customItem.amount || "0") > 0) {
+                    items.push({
+                      label: customItem.label,
+                      amount: formatMoney(customItem.amount),
+                      show: true
+                    });
+                  }
+                });
+              }
+            }
+            
+            return items;
+          })(),
+          total: (() => {
+            const epf = parseFloat(deductions.epfEmployee || "0");
+            const socso = parseFloat(deductions.socsoEmployee || "0");
+            const eis = parseFloat(deductions.eisEmployee || "0");
+            const advance = parseFloat(deductions.advance || "0");
+            const unpaidLeave = parseFloat(deductions.unpaidLeave || "0");
+            const pcb39 = parseFloat(deductions.pcb39 || "0");
+            const pcb38 = parseFloat(deductions.pcb38 || "0");
+            const zakat = parseFloat(deductions.zakat || "0");
+            const other = (() => {
+              if (Array.isArray(deductions.other)) return 0;
+              if (typeof deductions.other === 'number') return deductions.other;
+              if (typeof deductions.other === 'string' && deductions.other !== '') return parseFloat(deductions.other);
+              return 0;
+            })();
+            
+            let customTotal = 0;
+            if (masterSalary && masterSalary.deductions) {
+              const masterDeductions = typeof masterSalary.deductions === 'string' 
+                ? JSON.parse(masterSalary.deductions) 
+                : masterSalary.deductions;
+              if (masterDeductions.customItems && Array.isArray(masterDeductions.customItems)) {
+                masterDeductions.customItems.forEach((item: any) => {
+                  customTotal += parseFloat(item.amount || "0");
+                });
+              }
+            }
+            
+            const total = epf + socso + eis + advance + unpaidLeave + pcb39 + pcb38 + zakat + other + customTotal;
+            console.log("Deduction calculation:", {epf, socso, eis, advance, unpaidLeave, pcb39, pcb38, zakat, other, customTotal, total});
+            return formatMoney(total);
+          })()
         },
         netIncome: formatMoney(payrollItem.netPay),
         employerContrib: {
