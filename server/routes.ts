@@ -8,6 +8,8 @@ import { generatePayslipHTML } from './payslip-html-preview';
 import puppeteer from 'puppeteer';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { db } from './db';
+import { eq, and, lte } from 'drizzle-orm';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -80,7 +82,9 @@ import {
   overtimeApprovalSettings,
   overtimePolicies,
   overtimeSettings,
-  financialClaimPolicies
+  financialClaimPolicies,
+  payrollItems,
+  payrollDocuments
 } from "@shared/schema";
 
 // Helper function to get month name
@@ -4266,11 +4270,16 @@ export function registerRoutes(app: Express): Server {
           socsoEr: formatMoney(contributions.socsoEmployer),
           eisEr: formatMoney(contributions.eisEmployer)
         },
-        ytd: {
-          employee: formatMoney(2783.00),
-          employer: formatMoney(3289.00), 
-          mtd: formatMoney(payrollItem.netPay)
-        }
+        ytd: await calculateYTDValues(employeeId, document.year, document.month, {
+          epfEmployee: parseFloat(deductions.epfEmployee || "0"),
+          socsoEmployee: parseFloat(deductions.socsoEmployee || "0"),
+          eisEmployee: parseFloat(deductions.eisEmployee || "0"),
+          pcb: parseFloat(deductions.pcb38 || "0") + parseFloat(deductions.pcb39 || "0"),
+          epfEmployer: parseFloat(contributions.epfEmployer || "0"),
+          socsoEmployer: parseFloat(contributions.socsoEmployer || "0"), 
+          eisEmployer: parseFloat(contributions.eisEmployer || "0"),
+          netPay: parseFloat(payrollItem.netPay || "0")
+        })
       };
 
       // Generate HTML preview
@@ -4430,11 +4439,16 @@ export function registerRoutes(app: Express): Server {
           socsoEr: formatMoney(contributions.socsoEmployer),
           eisEr: formatMoney(contributions.eisEmployer)
         },
-        ytd: {
-          employee: formatMoney(2783.00), // Should be calculated from YTD
-          employer: formatMoney(3289.00), // Should be calculated from YTD
-          mtd: formatMoney(payrollItem.netPay)
-        }
+        ytd: await calculateYTDValues(employeeId, document.year, document.month, {
+          epfEmployee: parseFloat(deductions.epfEmployee || "0"),
+          socsoEmployee: parseFloat(deductions.socsoEmployee || "0"),
+          eisEmployee: parseFloat(deductions.eisEmployee || "0"),
+          pcb: parseFloat(deductions.pcb38 || "0") + parseFloat(deductions.pcb39 || "0"),
+          epfEmployer: parseFloat(contributions.epfEmployer || "0"),
+          socsoEmployer: parseFloat(contributions.socsoEmployer || "0"), 
+          eisEmployer: parseFloat(contributions.eisEmployer || "0"),
+          netPay: parseFloat(payrollItem.netPay || "0")
+        })
       };
 
       // Generate PDF using same HTML template as preview
@@ -4544,6 +4558,94 @@ export function registerRoutes(app: Express): Server {
   function formatMoney(amount: number | string): string {
     const num = typeof amount === 'string' ? parseFloat(amount) : amount;
     return num.toFixed(2);
+  }
+
+  // Function to calculate YTD values based on previous payroll items and master salary data
+  async function calculateYTDValues(
+    employeeId: string, 
+    currentYear: number, 
+    currentMonth: number,
+    currentMonthValues: {
+      epfEmployee: number;
+      socsoEmployee: number;
+      eisEmployee: number;
+      pcb: number;
+      epfEmployer: number;
+      socsoEmployer: number;
+      eisEmployer: number;
+      netPay: number;
+    }
+  ): Promise<{
+    employee: string;
+    employer: string;
+    mtd: string;
+  }> {
+    try {
+      // Get all payroll items for this employee for the current year up to current month
+      const ytdPayrollItems = await db
+        .select()
+        .from(payrollItems)
+        .innerJoin(payrollDocuments, eq(payrollItems.documentId, payrollDocuments.id))
+        .where(
+          and(
+            eq(payrollItems.employeeId, employeeId),
+            eq(payrollDocuments.year, currentYear),
+            lte(payrollDocuments.month, currentMonth)
+          )
+        )
+        .orderBy(payrollDocuments.month);
+
+      let ytdEmployeeTotal = 0;
+      let ytdEmployerTotal = 0;
+
+      // Calculate YTD from previous months (excluding current month to avoid double counting)
+      for (const item of ytdPayrollItems) {
+        const document = item.payroll_documents;
+        
+        // Skip current month as we'll add current values separately
+        if (document.month === currentMonth) continue;
+        
+        const deductions = JSON.parse(item.payroll_items.deductions || '{}');
+        const contributions = JSON.parse(item.payroll_items.contributions || '{}');
+        
+        // Employee contributions YTD
+        ytdEmployeeTotal += parseFloat(deductions.epfEmployee || "0");
+        ytdEmployeeTotal += parseFloat(deductions.socsoEmployee || "0");
+        ytdEmployeeTotal += parseFloat(deductions.eisEmployee || "0");
+        ytdEmployeeTotal += parseFloat(deductions.pcb38 || "0");
+        ytdEmployeeTotal += parseFloat(deductions.pcb39 || "0");
+        
+        // Employer contributions YTD
+        ytdEmployerTotal += parseFloat(contributions.epfEmployer || "0");
+        ytdEmployerTotal += parseFloat(contributions.socsoEmployer || "0");
+        ytdEmployerTotal += parseFloat(contributions.eisEmployer || "0");
+      }
+
+      // Add current month values
+      ytdEmployeeTotal += currentMonthValues.epfEmployee;
+      ytdEmployeeTotal += currentMonthValues.socsoEmployee;
+      ytdEmployeeTotal += currentMonthValues.eisEmployee;
+      ytdEmployeeTotal += currentMonthValues.pcb;
+
+      ytdEmployerTotal += currentMonthValues.epfEmployer;
+      ytdEmployerTotal += currentMonthValues.socsoEmployer;
+      ytdEmployerTotal += currentMonthValues.eisEmployer;
+
+      return {
+        employee: `RM ${ytdEmployeeTotal.toFixed(2)}`,
+        employer: `RM ${ytdEmployerTotal.toFixed(2)}`,
+        mtd: `RM ${currentMonthValues.netPay.toFixed(2)}`
+      };
+
+    } catch (error) {
+      console.error('Error calculating YTD values:', error);
+      // Return fallback values if calculation fails
+      return {
+        employee: `RM 0.00`,
+        employer: `RM 0.00`,
+        mtd: `RM ${currentMonthValues.netPay.toFixed(2)}`
+      };
+    }
   }
 
   // Generate Excel payslip for specific employee
