@@ -4079,11 +4079,38 @@ export function registerRoutes(app: Express): Server {
       // Parse payroll item data
       const employeeSnapshot = JSON.parse(payrollItem.employeeSnapshot);
       const salary = JSON.parse(payrollItem.salary);
-      const deductions = JSON.parse(payrollItem.deductions);
+      const storedDeductions = JSON.parse(payrollItem.deductions);
       const contributions = JSON.parse(payrollItem.contributions);
 
-      // Use snapshot data from payroll item - NO CURRENT MASTER SALARY FETCH
-      console.log("Payroll deductions from item:", deductions);
+      console.log("Payroll deductions from item (stored):", storedDeductions);
+      console.log("About to get current master salary...");
+
+      // Get current Master Salary Configuration for accurate deduction values
+      console.log("Getting current master salary for employee:", employeeId);
+      const currentMasterSalary = await storage.getEmployeeSalaryByEmployeeId(employeeId);
+      console.log("Current master salary found:", !!currentMasterSalary);
+      let deductions = storedDeductions;
+      
+      if (currentMasterSalary) {
+        const masterDeductions = currentMasterSalary.deductions ? JSON.parse(currentMasterSalary.deductions) : {};
+        console.log("Master Salary deductions (current):", masterDeductions);
+        
+        // Override stored deductions with current Master Salary values to ensure accuracy
+        deductions = {
+          ...storedDeductions,
+          // Use current Master Salary values for accurate current month deductions
+          epfEmployee: masterDeductions.epfEmployee || storedDeductions.epfEmployee,
+          socsoEmployee: masterDeductions.socsoEmployee || storedDeductions.socsoEmployee,
+          eisEmployee: masterDeductions.eisEmployee || storedDeductions.eisEmployee,
+          advance: masterDeductions.advance || storedDeductions.advance,
+          unpaidLeave: masterDeductions.unpaidLeave || storedDeductions.unpaidLeave,
+          pcb39: masterDeductions.pcb39 || storedDeductions.pcb39,
+          pcb38: masterDeductions.pcb38 || storedDeductions.pcb38,
+          zakat: masterDeductions.zakat || storedDeductions.zakat,
+          other: masterDeductions.other || storedDeductions.other
+        };
+        console.log("Final deductions (with Master Salary override):", deductions);
+      }
 
       // Format monetary values
       const formatMoney = (value: any) => {
@@ -4177,8 +4204,13 @@ export function registerRoutes(app: Express): Server {
           items: (() => {
             const items = [];
             
+            console.log('=== DEDUCTION ITEMS PROCESSING ===');
+            console.log('Processing deductions for template:', deductions);
+            console.log('Checking each deduction item for values > 0...');
+            
             // Add standard deduction fields from payroll data that have values
             if (parseFloat(deductions.advance || "0") > 0) {
+              console.log('✓ Adding Advance:', deductions.advance);
               items.push({
                 label: "Advance",
                 amount: formatMoney(deductions.advance),
@@ -4219,8 +4251,9 @@ export function registerRoutes(app: Express): Server {
             }
             
             if (parseFloat(deductions.other || "0") > 0) {
+              console.log('✓ Adding Other deduction:', deductions.other);
               items.push({
-                label: "Other",
+                label: "MTD/PCB",
                 amount: formatMoney(deductions.other),
                 show: true
               });
@@ -4253,6 +4286,8 @@ export function registerRoutes(app: Express): Server {
               });
             }
             
+            console.log('Final deduction items for template:', items);
+            console.log('=== END DEDUCTION ITEMS PROCESSING ===');
             return items;
           })(),
           total: (() => {
