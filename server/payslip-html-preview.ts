@@ -312,16 +312,44 @@ export function generatePayslipHTML(templateData: any, showPreviewNote: boolean 
         <div class="tbl">
             <div class="hd">EMPLOYEE CONTRIBUTION YTD</div>
             <div class="rowi">
-                <span>Total YTD</span>
-                <span class="money">RM ${templateData.ytd.employee}</span>
+                <span>EPF Employee</span>
+                <span class="money">RM ${templateData.ytd.breakdown.epfEmployee || "0.00"}</span>
+            </div>
+            <div class="rowi">
+                <span>SOCSO Employee</span>
+                <span class="money">RM ${templateData.ytd.breakdown.socsoEmployee || "0.00"}</span>
+            </div>
+            <div class="rowi">
+                <span>EIS Employee</span>
+                <span class="money">RM ${templateData.ytd.breakdown.eisEmployee || "0.00"}</span>
+            </div>
+            <div class="rowi">
+                <span>PCB/MTD</span>
+                <span class="money">RM ${templateData.ytd.breakdown.pcb || "0.00"}</span>
+            </div>
+            <div class="rowi">
+                <span style="font-weight: bold;">Total Employee YTD</span>
+                <span class="money" style="font-weight: bold;">RM ${templateData.ytd.employee}</span>
             </div>
         </div>
         
         <div class="tbl">
             <div class="hd">EMPLOYER CONTRIBUTION YTD</div>
             <div class="rowi">
-                <span>Total YTD</span>
-                <span class="money">RM ${templateData.ytd.employer}</span>
+                <span>EPF Employer</span>
+                <span class="money">RM ${templateData.ytd.breakdown.epfEmployer || "0.00"}</span>
+            </div>
+            <div class="rowi">
+                <span>SOCSO Employer</span>
+                <span class="money">RM ${templateData.ytd.breakdown.socsoEmployer || "0.00"}</span>
+            </div>
+            <div class="rowi">
+                <span>EIS Employer</span>
+                <span class="money">RM ${templateData.ytd.breakdown.eisEmployer || "0.00"}</span>
+            </div>
+            <div class="rowi">
+                <span style="font-weight: bold;">Total Employer YTD</span>
+                <span class="money" style="font-weight: bold;">RM ${templateData.ytd.employer}</span>
             </div>
         </div>
     </div>
