@@ -43,7 +43,9 @@ export default function SalaryPayrollPage() {
   const hasApprovalPrivilege = () => {
     console.log("Current user role:", userData?.role);
     if (!userData?.role) return false;
-    const approvalRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+    // For now, restrict to only specific roles that should have approval access
+    // Change this list according to your organizational structure
+    const approvalRoles = ['Super Admin', 'Finance Manager', 'CEO', 'Managing Director'];
     const hasPrivilege = approvalRoles.includes(userData.role);
     console.log("Has privileged access:", hasPrivilege);
     return hasPrivilege;
