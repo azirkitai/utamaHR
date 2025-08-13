@@ -4015,12 +4015,14 @@ export function registerRoutes(app: Express): Server {
       const pdfBuffer = await generatePayslipPDF(templateData);
       console.log('PDF generated successfully, buffer size:', pdfBuffer.length);
 
-      // Set headers for PDF download  
+      // Set headers for PDF inline display  
       const fileName = `Payslip_${employee.fullName?.replace(/\s+/g, '_')}_${getMonthName(document.month)}_${document.year}.pdf`;
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
       res.setHeader('Content-Length', pdfBuffer.length);
       res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+      res.setHeader('Content-Security-Policy', 'frame-ancestors \'self\'');
       
       // Write buffer directly to response
       res.write(pdfBuffer);

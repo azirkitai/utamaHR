@@ -504,24 +504,13 @@ export default function PayrollDetailPage() {
                         </div>
                       ) : pdfPreviewUrl ? (
                         <div className="border rounded-lg overflow-hidden">
-                          <div className="p-4 bg-gray-50 text-center">
-                            <p className="text-gray-700 mb-4">PDF preview ready for download</p>
-                            <div className="flex justify-center space-x-3">
-                              <Button
-                                onClick={() => window.open(pdfPreviewUrl, '_blank')}
-                                className="bg-green-600 hover:bg-green-700 text-white"
-                              >
-                                Open PDF in New Tab
-                              </Button>
-                              <Button
-                                onClick={() => handleGeneratePDF(selectedEmployeeId, selectedEmployeeName)}
-                                className="bg-blue-600 hover:bg-blue-700 text-white"
-                              >
-                                <Download className="w-4 h-4 mr-2" />
-                                Download PDF
-                              </Button>
-                            </div>
-                          </div>
+                          <embed
+                            src={pdfPreviewUrl + "#toolbar=1&navpanes=1&scrollbar=1"}
+                            type="application/pdf"
+                            width="100%"
+                            height="500px"
+                            className="border-0"
+                          />
                         </div>
                       ) : (
                         <div className="flex justify-center items-center h-96 bg-gray-50 rounded-lg">
