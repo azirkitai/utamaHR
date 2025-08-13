@@ -3345,7 +3345,7 @@ export default function EmployeeSalaryDetailsPage() {
                             variant="secondary"
                             size="sm"
                             onClick={autoCalculateYtdValues}
-                            className="bg-white text-blue-700 hover:bg-gray-100"
+                            className="bg-white text-blue-700 hover:bg-gray-100 ml-4"
                             data-testid="btn-auto-calculate-ytd"
                           >
                             Auto Calculate YTD
