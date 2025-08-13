@@ -696,18 +696,18 @@ export default function EmployeeSalaryDetailsPage() {
   const [expandedTaxExemptionSettings, setExpandedTaxExemptionSettings] = useState<Set<string>>(new Set());
 
   // YTD State Management
-  // Initialize YTD with July (month 7) data - same values as August for testing
+  // Initialize YTD with June + July data - same values for each month for testing
   const [ytdValues, setYtdValues] = useState({
     employee: {
-      epf: 215.50, // July EPF Employee (same as August)
-      socso: 23.60, // July SOCSO Employee (same as August)
-      eis: 4.70,   // July EIS Employee (same as August)
-      pcb: 0       // July PCB Employee
+      epf: 431.00, // June (215.50) + July (215.50) EPF Employee
+      socso: 47.20, // June (23.60) + July (23.60) SOCSO Employee
+      eis: 9.40,   // June (4.70) + July (4.70) EIS Employee
+      pcb: 0       // June + July PCB Employee
     },
     employer: {
-      epf: 358.40, // July EPF Employer (same as August)
-      socso: 53.90, // July SOCSO Employer (same as August)
-      eis: 9.40,   // July EIS Employer (same as August)
+      epf: 716.80, // June (358.40) + July (358.40) EPF Employer
+      socso: 107.80, // June (53.90) + July (53.90) SOCSO Employer
+      eis: 18.80,   // June (9.40) + July (9.40) EIS Employer
       pcb: 0       // No PCB for employer
     }
   });
@@ -727,18 +727,18 @@ export default function EmployeeSalaryDetailsPage() {
     }
   });
 
-  // Initialize YTD remarks with July data
+  // Initialize YTD remarks with June + July data
   const [ytdRemarks, setYtdRemarks] = useState({
     employee: {
-      epf: 'YTD bulan 7 (data asal)',
-      socso: 'YTD bulan 7 (data asal)',
-      eis: 'YTD bulan 7 (data asal)',
+      epf: 'YTD bulan 6 + 7 (data terkumpul)',
+      socso: 'YTD bulan 6 + 7 (data terkumpul)',
+      eis: 'YTD bulan 6 + 7 (data terkumpul)',
       pcb: ''
     },
     employer: {
-      epf: 'YTD bulan 7 (data asal)',
-      socso: 'YTD bulan 7 (data asal)',
-      eis: 'YTD bulan 7 (data asal)',
+      epf: 'YTD bulan 6 + 7 (data terkumpul)',
+      socso: 'YTD bulan 6 + 7 (data terkumpul)',
+      eis: 'YTD bulan 6 + 7 (data terkumpul)',
       pcb: ''
     }
   });
