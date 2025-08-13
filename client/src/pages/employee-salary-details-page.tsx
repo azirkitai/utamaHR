@@ -906,34 +906,7 @@ export default function EmployeeSalaryDetailsPage() {
     }
   }, [overtimeData, overtimeError]);
 
-  // Auto-update YTD PCB/MTD when MTD/PCB (deductions.other) changes
-  useEffect(() => {
-    if (salaryData.deductions.other !== undefined) {
-      // Calculate YTD = Previous YTD (without current month) + Current MTD
-      const previousYtd = 837.40; // June + July PCB
-      const currentMtd = salaryData.deductions.other;
-      const newYtdPcb = Math.round((previousYtd + currentMtd) * 100) / 100;
-      
-      // Update YTD value
-      setYtdValues(prev => ({
-        ...prev,
-        employee: {
-          ...prev.employee,
-          pcb: newYtdPcb
-        }
-      }));
-      
-      // Update remarks to show calculation
-      const newRemark = `YTD bulan 6 + 7 (RM 418.70 + RM 418.70) = RM 837.40 + Bulan 8 (RM ${currentMtd.toFixed(2)}) = RM ${newYtdPcb.toFixed(2)}`;
-      setYtdRemarks(prev => ({
-        ...prev,
-        employee: {
-          ...prev.employee,
-          pcb: newRemark
-        }
-      }));
-    }
-  }, [salaryData.deductions.other]);
+
 
   // Refresh overtime calculation when any overtime claim is approved
   const refreshOvertimeCalculation = () => {
@@ -1274,7 +1247,7 @@ export default function EmployeeSalaryDetailsPage() {
       epf: salaryData.deductions.epfEmployee || 0,
       socso: salaryData.deductions.socsoEmployee || 0,
       eis: salaryData.deductions.eisEmployee || 0,
-      pcb: salaryData.deductions.pcb39 || 0
+      pcb: salaryData.deductions.other || 0  // Use MTD/PCB (other) instead of pcb39
     };
 
     const currentMonthEmployer = {
@@ -1290,7 +1263,7 @@ export default function EmployeeSalaryDetailsPage() {
         epf: Math.round((prev.employee.epf + currentMonthEmployee.epf) * 100) / 100,
         socso: Math.round((prev.employee.socso + currentMonthEmployee.socso) * 100) / 100,
         eis: Math.round((prev.employee.eis + currentMonthEmployee.eis) * 100) / 100,
-        pcb: Math.round((prev.employee.pcb + currentMonthEmployee.pcb) * 100) / 100
+        pcb: Math.round((837.40 + currentMonthEmployee.pcb) * 100) / 100  // PCB: Previous months (837.40) + Current MTD
       },
       employer: {
         epf: Math.round((prev.employer.epf + currentMonthEmployer.epf) * 100) / 100,
@@ -1300,13 +1273,15 @@ export default function EmployeeSalaryDetailsPage() {
       }
     }));
 
-    // Auto-generate remarks for all fields that have values
+    // Auto-generate remarks with detailed calculation for PCB
     const newRemarks = {
       employee: {
         epf: currentMonthEmployee.epf > 0 ? remarkText : '',
         socso: currentMonthEmployee.socso > 0 ? remarkText : '',
         eis: currentMonthEmployee.eis > 0 ? remarkText : '',
-        pcb: currentMonthEmployee.pcb > 0 ? remarkText : ''
+        pcb: currentMonthEmployee.pcb > 0 ? 
+          `YTD bulan 6 + 7 (RM 418.70 + RM 418.70) = RM 837.40 + Bulan ${currentMonth} (RM ${currentMonthEmployee.pcb.toFixed(2)}) = RM ${Math.round((837.40 + currentMonthEmployee.pcb) * 100) / 100}` : 
+          ''
       },
       employer: {
         epf: currentMonthEmployer.epf > 0 ? remarkText : '',
