@@ -4048,12 +4048,16 @@ export function registerRoutes(app: Express): Server {
       const pdfBuffer = await generatePayslipPDF(templateData);
       console.log('PDF generated successfully, buffer size:', pdfBuffer.length);
 
-      // Set headers for PDF inline display  
+      // Set headers for PDF inline display with iframe support
       const fileName = `Payslip_${employee.fullName?.replace(/\s+/g, '_')}_${getMonthName(document.month)}_${document.year}.pdf`;
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
       res.setHeader('Content-Length', pdfBuffer.length);
       res.setHeader('Accept-Ranges', 'bytes');
+      res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
       
       // Send buffer directly
       res.send(pdfBuffer);
