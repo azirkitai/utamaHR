@@ -1851,7 +1851,7 @@ export default function EmployeeSalaryDetailsPage() {
             </Button>
             <Button
               onClick={handleSave}
-              disabled={saveSalaryMutation.isPending || !isDirty}
+              disabled={saveSalaryMutation.isPending}
               data-testid="btnSaveChanges"
             >
               <Save className="w-4 h-4 mr-2" />
