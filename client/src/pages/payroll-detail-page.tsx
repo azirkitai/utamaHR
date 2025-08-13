@@ -455,12 +455,6 @@ export default function PayrollDetailPage() {
               </p>
             </div>
           </div>
-          <Button
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-            data-testid="button-submit-payment"
-          >
-            Submit Payment
-          </Button>
         </div>
 
         {/* Progress Steps */}
