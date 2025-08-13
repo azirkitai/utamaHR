@@ -736,6 +736,9 @@ export default function EmployeeSalaryDetailsPage() {
     }
   });
 
+  // State to track if Auto Calculate YTD has been clicked for current month
+  const [ytdCalculatedThisMonth, setYtdCalculatedThisMonth] = useState(false);
+
   // Get all employees for dropdown
   const { data: employees = [] } = useQuery<any[]>({
     queryKey: ["/api/employees"],
@@ -1290,6 +1293,9 @@ export default function EmployeeSalaryDetailsPage() {
     };
 
     setYtdRemarks(newRemarks);
+
+    // Mark that YTD has been calculated for this month
+    setYtdCalculatedThisMonth(true);
 
     // Show toast notification
     toast({
@@ -3440,10 +3446,14 @@ export default function EmployeeSalaryDetailsPage() {
                       variant="secondary"
                       size="sm"
                       onClick={autoCalculateYtdValues}
-                      className="bg-blue-600 text-white hover:bg-blue-700"
+                      disabled={ytdCalculatedThisMonth}
+                      className={ytdCalculatedThisMonth 
+                        ? "bg-gray-400 text-gray-200 cursor-not-allowed" 
+                        : "bg-blue-600 text-white hover:bg-blue-700"
+                      }
                       data-testid="btn-auto-calculate-ytd"
                     >
-                      Auto Calculate YTD
+                      {ytdCalculatedThisMonth ? "YTD Sudah Dikira" : "Auto Calculate YTD"}
                     </Button>
                   </div>
                 </CardHeader>
