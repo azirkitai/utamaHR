@@ -1137,11 +1137,18 @@ export default function EmployeeSalaryDetailsPage() {
         const hasContributionChanges = JSON.stringify(prev.contributions) !== JSON.stringify(updatedContributions);
         
         if (hasDeductionChanges || hasContributionChanges) {
-          return {
+          const newSalaryData = {
             ...prev,
             deductions: updatedDeductions,
             contributions: updatedContributions
           };
+          
+          // Auto-calculate YTD when salary data changes
+          setTimeout(() => {
+            autoCalculateYtdValues();
+          }, 100);
+          
+          return newSalaryData;
         }
         return prev;
       });
@@ -1228,6 +1235,68 @@ export default function EmployeeSalaryDetailsPage() {
         [field]: value
       }
     }));
+  };
+
+  // Auto-calculate YTD values based on current month contributions
+  const autoCalculateYtdValues = () => {
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth() + 1; // 1-12
+    const remarkText = `YTD bulan ${currentMonth} telah dimasukkan`;
+
+    // Get current month's contribution values
+    const currentMonthEmployee = {
+      epf: salaryData.deductions.epfEmployee || 0,
+      socso: salaryData.deductions.socsoEmployee || 0,
+      eis: salaryData.deductions.eisEmployee || 0,
+      pcb: salaryData.deductions.pcb39 || 0
+    };
+
+    const currentMonthEmployer = {
+      epf: salaryData.contributions.epfEmployer || 0,
+      socso: salaryData.contributions.socsoEmployer || 0,
+      eis: salaryData.contributions.eisEmployer || 0,
+      pcb: 0 // No PCB for employer
+    };
+
+    // Auto-calculate YTD: Previous YTD + Current Month
+    setYtdValues(prev => ({
+      employee: {
+        epf: prev.employee.epf + currentMonthEmployee.epf,
+        socso: prev.employee.socso + currentMonthEmployee.socso,
+        eis: prev.employee.eis + currentMonthEmployee.eis,
+        pcb: prev.employee.pcb + currentMonthEmployee.pcb
+      },
+      employer: {
+        epf: prev.employer.epf + currentMonthEmployer.epf,
+        socso: prev.employer.socso + currentMonthEmployer.socso,
+        eis: prev.employer.eis + currentMonthEmployer.eis,
+        pcb: 0 // No PCB for employer
+      }
+    }));
+
+    // Auto-generate remarks for all fields that have values
+    const newRemarks = {
+      employee: {
+        epf: currentMonthEmployee.epf > 0 ? remarkText : '',
+        socso: currentMonthEmployee.socso > 0 ? remarkText : '',
+        eis: currentMonthEmployee.eis > 0 ? remarkText : '',
+        pcb: currentMonthEmployee.pcb > 0 ? remarkText : ''
+      },
+      employer: {
+        epf: currentMonthEmployer.epf > 0 ? remarkText : '',
+        socso: currentMonthEmployer.socso > 0 ? remarkText : '',
+        eis: currentMonthEmployer.eis > 0 ? remarkText : '',
+        pcb: '' // No PCB for employer
+      }
+    };
+
+    setYtdRemarks(newRemarks);
+
+    // Show toast notification
+    toast({
+      title: "YTD Auto-Calculated",
+      description: `YTD untuk bulan ${currentMonth} telah dikira secara automatik`,
+    });
   };
 
   const saveYtdValue = (category: 'employee' | 'employer', field: 'epf' | 'socso' | 'eis' | 'pcb') => {
@@ -3268,7 +3337,18 @@ export default function EmployeeSalaryDetailsPage() {
                     {/* YTD Employee Contribution */}
                     <div className="space-y-4">
                       <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-lg">
-                        <h3 className="text-lg font-semibold">YTD EMPLOYEE CONTRIBUTION</h3>
+                        <div className="flex justify-between items-center">
+                          <h3 className="text-lg font-semibold">YTD EMPLOYEE CONTRIBUTION</h3>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={autoCalculateYtdValues}
+                            className="bg-white text-blue-700 hover:bg-gray-100"
+                            data-testid="btn-auto-calculate-ytd"
+                          >
+                            Auto Calculate YTD
+                          </Button>
+                        </div>
                       </div>
                       
                       {/* YTD EPF Employee */}
