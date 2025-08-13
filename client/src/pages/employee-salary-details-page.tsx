@@ -3047,7 +3047,7 @@ export default function EmployeeSalaryDetailsPage() {
                 {/* Other Deduction */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label className="font-medium">Other Deduction</Label>
+                    <Label className="font-medium">MTD/PCB</Label>
                     <button
                       type="button"
                       onClick={() => toggleDeductionFlags('other')}
@@ -3676,7 +3676,6 @@ export default function EmployeeSalaryDetailsPage() {
         </Card>
       )}
     </div>
-
       {/* Add Additional Item Dialog */}
       <Dialog open={showAddAdditionalItemDialog} onOpenChange={setShowAddAdditionalItemDialog}>
         <DialogContent>
@@ -3728,7 +3727,6 @@ export default function EmployeeSalaryDetailsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       {/* Add Deduction Item Dialog */}
       <Dialog open={isDeductionDialogOpen} onOpenChange={setIsDeductionDialogOpen}>
         <DialogContent>
@@ -3780,7 +3778,6 @@ export default function EmployeeSalaryDetailsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       {/* Add Contribution Item Dialog */}
       <Dialog open={showAddContributionItemDialog} onOpenChange={setShowAddContributionItemDialog}>
         <DialogContent>
@@ -3820,7 +3817,6 @@ export default function EmployeeSalaryDetailsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       {/* Tax Exemption Modal */}
       <Dialog open={isTaxExemptionDialogOpen} onOpenChange={setIsTaxExemptionDialogOpen}>
         <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
@@ -4495,7 +4491,6 @@ export default function EmployeeSalaryDetailsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       {/* Unpaid Leave Modal */}
       <Dialog open={showUnpaidLeaveModal} onOpenChange={setShowUnpaidLeaveModal}>
         <DialogContent className="max-w-md">
@@ -4584,7 +4579,6 @@ export default function EmployeeSalaryDetailsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       {/* PCB39 Modal */}
       <Dialog open={showPCB39Modal} onOpenChange={setShowPCB39Modal}>
         <DialogContent className="max-w-md">
@@ -4630,7 +4624,7 @@ export default function EmployeeSalaryDetailsPage() {
           <div className="space-y-4">
             {pcb39Mode === "custom" ? (
               /* Amount Input for Custom Mode */
-              <div className="space-y-2">
+              (<div className="space-y-2">
                 <div className="flex">
                   <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
                     <span className="text-sm font-medium">RM</span>
@@ -4645,15 +4639,14 @@ export default function EmployeeSalaryDetailsPage() {
                     data-testid="pcb39-modal-amount"
                   />
                 </div>
-              </div>
+              </div>)
             ) : (
               /* Relief and Rebate Tabs for Calculate Mode */
-              <Tabs defaultValue="relief" className="w-full">
+              (<Tabs defaultValue="relief" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="relief">Relief</TabsTrigger>
                   <TabsTrigger value="rebate">Rebate</TabsTrigger>
                 </TabsList>
-                
                 <TabsContent value="relief" className="space-y-3">
                   {/* Display existing relief items */}
                   {pcb39ReliefItems.length > 0 && (
@@ -4759,7 +4752,6 @@ export default function EmployeeSalaryDetailsPage() {
                     </div>
                   )}
                 </TabsContent>
-                
                 <TabsContent value="rebate" className="space-y-3">
                   {/* Display existing rebate items */}
                   {pcb39RebateItems.length > 0 && (
@@ -4865,7 +4857,7 @@ export default function EmployeeSalaryDetailsPage() {
                     </div>
                   )}
                 </TabsContent>
-              </Tabs>
+              </Tabs>)
             )}
           </div>
 
@@ -4889,7 +4881,6 @@ export default function EmployeeSalaryDetailsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       {/* BIK/VOLA Info Dialog */}
       <Dialog open={isBikInfoDialogOpen} onOpenChange={setIsBikInfoDialogOpen}>
         <DialogContent className="max-w-md">
@@ -4925,7 +4916,6 @@ export default function EmployeeSalaryDetailsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
     </DashboardLayout>
   );
 }
