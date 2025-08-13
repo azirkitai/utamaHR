@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Calculator, Save, Info, Settings, ChevronDown, ChevronUp, X, Trash2, Eye, EyeOff } from "lucide-react";
+import { Plus, Calculator, Save, Info, Settings, ChevronDown, ChevronUp, X, Trash2, Eye, EyeOff, Edit, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { PCB39_RELIEFS_2025 } from "@shared/pcb39-reliefs-2025";
@@ -695,6 +695,52 @@ export default function EmployeeSalaryDetailsPage() {
   // State to track which tax exemption settings are expanded
   const [expandedTaxExemptionSettings, setExpandedTaxExemptionSettings] = useState<Set<string>>(new Set());
 
+  // YTD State Management
+  const [ytdValues, setYtdValues] = useState({
+    employee: {
+      epf: 0,
+      socso: 0,
+      eis: 0,
+      pcb: 0
+    },
+    employer: {
+      epf: 0,
+      socso: 0,
+      eis: 0,
+      pcb: 0
+    }
+  });
+
+  const [ytdEditModes, setYtdEditModes] = useState({
+    employee: {
+      epf: false,
+      socso: false,
+      eis: false,
+      pcb: false
+    },
+    employer: {
+      epf: false,
+      socso: false,
+      eis: false,
+      pcb: false
+    }
+  });
+
+  const [ytdRemarks, setYtdRemarks] = useState({
+    employee: {
+      epf: '',
+      socso: '',
+      eis: '',
+      pcb: ''
+    },
+    employer: {
+      epf: '',
+      socso: '',
+      eis: '',
+      pcb: ''
+    }
+  });
+
   // Get all employees for dropdown
   const { data: employees = [] } = useQuery<any[]>({
     queryKey: ["/api/employees"],
@@ -1161,6 +1207,58 @@ export default function EmployeeSalaryDetailsPage() {
   const updateSalaryData = (updates: Partial<MasterSalaryData>) => {
     setSalaryData(prev => ({ ...prev, ...updates }));
     setIsDirty(true);
+  };
+
+  // YTD Helper Functions
+  const toggleYtdEditMode = (category: 'employee' | 'employer', field: 'epf' | 'socso' | 'eis' | 'pcb') => {
+    setYtdEditModes(prev => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [field]: !prev[category][field]
+      }
+    }));
+  };
+
+  const updateYtdValue = (category: 'employee' | 'employer', field: 'epf' | 'socso' | 'eis' | 'pcb', value: number) => {
+    setYtdValues(prev => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [field]: value
+      }
+    }));
+  };
+
+  const saveYtdValue = (category: 'employee' | 'employer', field: 'epf' | 'socso' | 'eis' | 'pcb') => {
+    // Auto generate remark showing current month
+    const currentDate = new Date();
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const currentMonth = monthNames[currentDate.getMonth()];
+    const currentYear = currentDate.getFullYear();
+    
+    setYtdRemarks(prev => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [field]: `Kemaskini ${currentMonth} ${currentYear}`
+      }
+    }));
+
+    // Close edit mode
+    setYtdEditModes(prev => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [field]: false
+      }
+    }));
+
+    // Show success toast
+    toast({
+      title: "YTD Dikemas Kini",
+      description: `Nilai YTD ${field.toUpperCase()} ${category} telah disimpan untuk ${currentMonth} ${currentYear}`,
+    });
   };
 
   const updateAdditionalItem = (index: number, field: keyof AdditionalItem, value: any) => {
@@ -3169,7 +3267,17 @@ export default function EmployeeSalaryDetailsPage() {
                       
                       {/* YTD EPF Employee */}
                       <div className="space-y-2">
-                        <Label className="font-medium">YTD EPF</Label>
+                        <div className="flex items-center justify-between">
+                          <Label className="font-medium">YTD EPF</Label>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => ytdEditModes.employee.epf ? saveYtdValue('employee', 'epf') : toggleYtdEditMode('employee', 'epf')}
+                            data-testid="btn-edit-ytd-epf-employee"
+                          >
+                            {ytdEditModes.employee.epf ? <Check className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
+                          </Button>
+                        </div>
                         <div className="flex">
                           <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
                             <span className="text-sm font-medium">RM</span>
@@ -3177,16 +3285,31 @@ export default function EmployeeSalaryDetailsPage() {
                           <Input
                             type="number"
                             step="0.01"
-                            defaultValue="0.00"
+                            value={ytdValues.employee.epf}
+                            onChange={(e) => updateYtdValue('employee', 'epf', parseFloat(e.target.value) || 0)}
                             className="rounded-l-none"
+                            disabled={!ytdEditModes.employee.epf}
                             data-testid="ytd-epf-employee"
                           />
                         </div>
+                        {ytdRemarks.employee.epf && (
+                          <p className="text-xs text-gray-500">{ytdRemarks.employee.epf}</p>
+                        )}
                       </div>
 
                       {/* YTD SOCSO Employee */}
                       <div className="space-y-2">
-                        <Label className="font-medium">YTD SOCSO</Label>
+                        <div className="flex items-center justify-between">
+                          <Label className="font-medium">YTD SOCSO</Label>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => ytdEditModes.employee.socso ? saveYtdValue('employee', 'socso') : toggleYtdEditMode('employee', 'socso')}
+                            data-testid="btn-edit-ytd-socso-employee"
+                          >
+                            {ytdEditModes.employee.socso ? <Check className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
+                          </Button>
+                        </div>
                         <div className="flex">
                           <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
                             <span className="text-sm font-medium">RM</span>
@@ -3194,16 +3317,31 @@ export default function EmployeeSalaryDetailsPage() {
                           <Input
                             type="number"
                             step="0.01"
-                            defaultValue="0.00"
+                            value={ytdValues.employee.socso}
+                            onChange={(e) => updateYtdValue('employee', 'socso', parseFloat(e.target.value) || 0)}
                             className="rounded-l-none"
+                            disabled={!ytdEditModes.employee.socso}
                             data-testid="ytd-socso-employee"
                           />
                         </div>
+                        {ytdRemarks.employee.socso && (
+                          <p className="text-xs text-gray-500">{ytdRemarks.employee.socso}</p>
+                        )}
                       </div>
 
                       {/* YTD EIS Employee */}
                       <div className="space-y-2">
-                        <Label className="font-medium">YTD EIS</Label>
+                        <div className="flex items-center justify-between">
+                          <Label className="font-medium">YTD EIS</Label>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => ytdEditModes.employee.eis ? saveYtdValue('employee', 'eis') : toggleYtdEditMode('employee', 'eis')}
+                            data-testid="btn-edit-ytd-eis-employee"
+                          >
+                            {ytdEditModes.employee.eis ? <Check className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
+                          </Button>
+                        </div>
                         <div className="flex">
                           <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
                             <span className="text-sm font-medium">RM</span>
@@ -3211,16 +3349,31 @@ export default function EmployeeSalaryDetailsPage() {
                           <Input
                             type="number"
                             step="0.01"
-                            defaultValue="0.00"
+                            value={ytdValues.employee.eis}
+                            onChange={(e) => updateYtdValue('employee', 'eis', parseFloat(e.target.value) || 0)}
                             className="rounded-l-none"
+                            disabled={!ytdEditModes.employee.eis}
                             data-testid="ytd-eis-employee"
                           />
                         </div>
+                        {ytdRemarks.employee.eis && (
+                          <p className="text-xs text-gray-500">{ytdRemarks.employee.eis}</p>
+                        )}
                       </div>
 
                       {/* YTD PCB/MTD Employee */}
                       <div className="space-y-2">
-                        <Label className="font-medium">YTD PCB/MTD</Label>
+                        <div className="flex items-center justify-between">
+                          <Label className="font-medium">YTD PCB/MTD</Label>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => ytdEditModes.employee.pcb ? saveYtdValue('employee', 'pcb') : toggleYtdEditMode('employee', 'pcb')}
+                            data-testid="btn-edit-ytd-pcb-employee"
+                          >
+                            {ytdEditModes.employee.pcb ? <Check className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
+                          </Button>
+                        </div>
                         <div className="flex">
                           <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
                             <span className="text-sm font-medium">RM</span>
@@ -3228,11 +3381,16 @@ export default function EmployeeSalaryDetailsPage() {
                           <Input
                             type="number"
                             step="0.01"
-                            defaultValue="0.00"
+                            value={ytdValues.employee.pcb}
+                            onChange={(e) => updateYtdValue('employee', 'pcb', parseFloat(e.target.value) || 0)}
                             className="rounded-l-none"
+                            disabled={!ytdEditModes.employee.pcb}
                             data-testid="ytd-pcb-employee"
                           />
                         </div>
+                        {ytdRemarks.employee.pcb && (
+                          <p className="text-xs text-gray-500">{ytdRemarks.employee.pcb}</p>
+                        )}
                       </div>
                     </div>
 
@@ -3244,7 +3402,17 @@ export default function EmployeeSalaryDetailsPage() {
                       
                       {/* YTD EPF Employer */}
                       <div className="space-y-2">
-                        <Label className="font-medium">YTD EPF</Label>
+                        <div className="flex items-center justify-between">
+                          <Label className="font-medium">YTD EPF</Label>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => ytdEditModes.employer.epf ? saveYtdValue('employer', 'epf') : toggleYtdEditMode('employer', 'epf')}
+                            data-testid="btn-edit-ytd-epf-employer"
+                          >
+                            {ytdEditModes.employer.epf ? <Check className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
+                          </Button>
+                        </div>
                         <div className="flex">
                           <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
                             <span className="text-sm font-medium">RM</span>
@@ -3252,16 +3420,31 @@ export default function EmployeeSalaryDetailsPage() {
                           <Input
                             type="number"
                             step="0.01"
-                            defaultValue="0.00"
+                            value={ytdValues.employer.epf}
+                            onChange={(e) => updateYtdValue('employer', 'epf', parseFloat(e.target.value) || 0)}
                             className="rounded-l-none"
+                            disabled={!ytdEditModes.employer.epf}
                             data-testid="ytd-epf-employer"
                           />
                         </div>
+                        {ytdRemarks.employer.epf && (
+                          <p className="text-xs text-gray-500">{ytdRemarks.employer.epf}</p>
+                        )}
                       </div>
 
                       {/* YTD SOCSO Employer */}
                       <div className="space-y-2">
-                        <Label className="font-medium">YTD SOCSO</Label>
+                        <div className="flex items-center justify-between">
+                          <Label className="font-medium">YTD SOCSO</Label>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => ytdEditModes.employer.socso ? saveYtdValue('employer', 'socso') : toggleYtdEditMode('employer', 'socso')}
+                            data-testid="btn-edit-ytd-socso-employer"
+                          >
+                            {ytdEditModes.employer.socso ? <Check className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
+                          </Button>
+                        </div>
                         <div className="flex">
                           <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
                             <span className="text-sm font-medium">RM</span>
@@ -3269,16 +3452,31 @@ export default function EmployeeSalaryDetailsPage() {
                           <Input
                             type="number"
                             step="0.01"
-                            defaultValue="0.00"
+                            value={ytdValues.employer.socso}
+                            onChange={(e) => updateYtdValue('employer', 'socso', parseFloat(e.target.value) || 0)}
                             className="rounded-l-none"
+                            disabled={!ytdEditModes.employer.socso}
                             data-testid="ytd-socso-employer"
                           />
                         </div>
+                        {ytdRemarks.employer.socso && (
+                          <p className="text-xs text-gray-500">{ytdRemarks.employer.socso}</p>
+                        )}
                       </div>
 
                       {/* YTD EIS Employer */}
                       <div className="space-y-2">
-                        <Label className="font-medium">YTD EIS</Label>
+                        <div className="flex items-center justify-between">
+                          <Label className="font-medium">YTD EIS</Label>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => ytdEditModes.employer.eis ? saveYtdValue('employer', 'eis') : toggleYtdEditMode('employer', 'eis')}
+                            data-testid="btn-edit-ytd-eis-employer"
+                          >
+                            {ytdEditModes.employer.eis ? <Check className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
+                          </Button>
+                        </div>
                         <div className="flex">
                           <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
                             <span className="text-sm font-medium">RM</span>
@@ -3286,11 +3484,48 @@ export default function EmployeeSalaryDetailsPage() {
                           <Input
                             type="number"
                             step="0.01"
-                            defaultValue="0.00"
+                            value={ytdValues.employer.eis}
+                            onChange={(e) => updateYtdValue('employer', 'eis', parseFloat(e.target.value) || 0)}
                             className="rounded-l-none"
+                            disabled={!ytdEditModes.employer.eis}
                             data-testid="ytd-eis-employer"
                           />
                         </div>
+                        {ytdRemarks.employer.eis && (
+                          <p className="text-xs text-gray-500">{ytdRemarks.employer.eis}</p>
+                        )}
+                      </div>
+
+                      {/* YTD PCB/MTD Employer */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="font-medium">YTD PCB/MTD</Label>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => ytdEditModes.employer.pcb ? saveYtdValue('employer', 'pcb') : toggleYtdEditMode('employer', 'pcb')}
+                            data-testid="btn-edit-ytd-pcb-employer"
+                          >
+                            {ytdEditModes.employer.pcb ? <Check className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
+                          </Button>
+                        </div>
+                        <div className="flex">
+                          <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                            <span className="text-sm font-medium">RM</span>
+                          </div>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={ytdValues.employer.pcb}
+                            onChange={(e) => updateYtdValue('employer', 'pcb', parseFloat(e.target.value) || 0)}
+                            className="rounded-l-none"
+                            disabled={!ytdEditModes.employer.pcb}
+                            data-testid="ytd-pcb-employer"
+                          />
+                        </div>
+                        {ytdRemarks.employer.pcb && (
+                          <p className="text-xs text-gray-500">{ytdRemarks.employer.pcb}</p>
+                        )}
                       </div>
 
                       
