@@ -4041,6 +4041,11 @@ export function registerRoutes(app: Express): Server {
           fixedAllowance: formatMoney(salary.fixedAllowance),
           items: [
             {
+              label: "Fixed Allowance",
+              amount: formatMoney(salary.fixedAllowance || "0"),
+              show: parseFloat(salary.fixedAllowance || "0") > 0
+            },
+            {
               label: "Advance Salary",
               amount: formatMoney(salary.advanceSalary || "0"),
               show: parseFloat(salary.advanceSalary || "0") > 0
@@ -4208,6 +4213,11 @@ export function registerRoutes(app: Express): Server {
           fixedAllowance: formatMoney(salary.fixedAllowance),
           items: [
             {
+              label: "Fixed Allowance",
+              amount: formatMoney(salary.fixedAllowance || "0"),
+              show: parseFloat(salary.fixedAllowance || "0") > 0
+            },
+            {
               label: "Advance Salary",
               amount: formatMoney(salary.advanceSalary || "0"),
               show: parseFloat(salary.advanceSalary || "0") > 0
@@ -4352,7 +4362,7 @@ export function registerRoutes(app: Express): Server {
         },
         income: {
           basic: formatMoney(salary.basic || 0),
-          fixedAllowance: formatMoney(salary.fixedAllowance || 0),
+          fixedAllowance: parseFloat(salary.fixedAllowance || "0") > 0 ? formatMoney(salary.fixedAllowance || 0) : null,
           advanceSalary: parseFloat(salary.advanceSalary || "0") > 0 ? formatMoney(salary.advanceSalary || 0) : null,
           subsistenceAllowance: parseFloat(salary.subsistenceAllowance || "0") > 0 ? formatMoney(salary.subsistenceAllowance || 0) : null,
           extraResponsibilityAllowance: parseFloat(salary.extraResponsibilityAllowance || "0") > 0 ? formatMoney(salary.extraResponsibilityAllowance || 0) : null,

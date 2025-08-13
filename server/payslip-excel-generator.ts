@@ -174,16 +174,9 @@ export async function generatePayslipExcel(data: PayslipData): Promise<{ excelPa
     worksheet.mergeCells(`A${currentRow}:B${currentRow}`);
     worksheet.mergeCells(`C${currentRow}:D${currentRow}`);
     
-    // Fixed Allowance (always shown)
-    currentRow++;
-    worksheet.getCell(`A${currentRow}`).value = 'FIXED ALLOWANCE';
-    worksheet.getCell(`C${currentRow}`).value = formatMoney(data.income.fixedAllowance);
-    worksheet.getCell(`C${currentRow}`).alignment = { horizontal: 'right' };
-    worksheet.mergeCells(`A${currentRow}:B${currentRow}`);
-    worksheet.mergeCells(`C${currentRow}:D${currentRow}`);
-    
-    // Dynamic income fields - only show if they have values
+    // Dynamic income fields - only show if they have values (including Fixed Allowance)
     const incomeFields = [
+      { label: 'FIXED ALLOWANCE', value: data.income.fixedAllowance },
       { label: 'ADVANCE SALARY', value: data.income.advanceSalary },
       { label: 'SUBSISTENCE ALLOWANCE', value: data.income.subsistenceAllowance },
       { label: 'EXTRA RESPONSIBILITY ALLOWANCE', value: data.income.extraResponsibilityAllowance },

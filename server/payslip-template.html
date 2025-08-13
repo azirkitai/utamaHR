@@ -90,9 +90,8 @@
     <div class="tbl">
       <div class="hd">INCOME</div>
       <div class="rowi"><div>BASIC SALARY</div><div class="money">RM {{income.basic}}</div></div>
-      <div class="rowi"><div>FIXED ALLOWANCE</div><div class="money">RM {{income.fixedAllowance}}</div></div>
 
-      <!-- Optional extra income rows (render only if > 0) -->
+      <!-- Optional income rows (render only if > 0, including Fixed Allowance) -->
       {{incomeItems}}
 
       <div class="rowi sep"><div>TOTAL GROSS INCOME</div><div class="money">RM {{income.totalGross}}</div></div>
