@@ -437,16 +437,10 @@ export default function PayrollDetailPage() {
                   <Select
                     value={selectedEmployeeId || ""}
                     onValueChange={(value) => {
-                      if (value) {
-                        const selectedItem = (payrollItems as any[]).find((item: any) => item.employeeId === value);
-                        if (selectedItem) {
-                          const employeeSnapshot = JSON.parse(selectedItem.employeeSnapshot || '{}');
-                          handleViewPayslip(value, employeeSnapshot.name || 'N/A');
-                        }
-                      } else {
-                        setSelectedEmployeeId(null);
-                        setSelectedEmployeeName("");
-                        setPdfPreviewUrl(null);
+                      const selectedItem = (payrollItems as any[]).find((item: any) => item.employeeId === value);
+                      if (selectedItem) {
+                        const employeeSnapshot = JSON.parse(selectedItem.employeeSnapshot || '{}');
+                        handleViewPayslip(value, employeeSnapshot.name || 'N/A');
                       }
                     }}
                   >
@@ -454,7 +448,6 @@ export default function PayrollDetailPage() {
                       <SelectValue placeholder="Choose an employee to preview payslip" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Select Employee</SelectItem>
                       {(payrollItems as any[]).map((item: any) => {
                         const employeeSnapshot = JSON.parse(item.employeeSnapshot || '{}');
                         return (
