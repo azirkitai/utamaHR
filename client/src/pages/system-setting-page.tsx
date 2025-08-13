@@ -1068,38 +1068,43 @@ export default function SystemSettingPage() {
   // Load existing company settings
   const { data: existingCompanySettings } = useQuery({
     queryKey: ["/api/company-settings"],
-    onSuccess: (data) => {
-      if (data) {
-        // Update companyData state with real data from database
-        setCompanyData({
-          companyName: data.companyName || "",
-          companyShortName: data.companyShortName || "",
-          companyRegNo: data.companyRegistrationNumber || "",
-          companyType: data.companyType || "",
-          industry: data.industry || "",
-          companyEmail: data.email || "",
-          companyPhone: data.phoneNumber || "",
-          companyFax: data.faxNumber || "",
-          streetAddress: data.address || "",
-          state: data.state || "",
-          city: data.city || "",
-          postcode: data.postcode || "",
-          country: data.country || "",
-          logoUrl: data.logoUrl || null,
-          bankName: data.bankName || "",
-          bankAccountNo: data.bankAccountNumber || "",
-          epfNo: data.epfNumber || "",
-          socsoNo: data.socsoNumber || "",
-          incomeTaxNo: data.incomeTaxNumber || "",
-          employerNo: data.employerNumber || "",
-          lhdnBranch: data.lhdnBranch || "",
-          originatorId: data.originatorId || "",
-          zakatNo: data.zakatNumber || "",
-          cNumber: data.cNumber || ""
-        });
-      }
-    }
+    staleTime: 0, // Always fetch fresh data
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
+
+  // Update state when data changes (replaces deprecated onSuccess)
+  useEffect(() => {
+    if (existingCompanySettings) {
+      // Update companyData state with real data from database
+      setCompanyData({
+        companyName: existingCompanySettings.companyName || "",
+        companyShortName: existingCompanySettings.companyShortName || "",
+        companyRegNo: existingCompanySettings.companyRegistrationNumber || "",
+        companyType: existingCompanySettings.companyType || "",
+        industry: existingCompanySettings.industry || "",
+        companyEmail: existingCompanySettings.email || "",
+        companyPhone: existingCompanySettings.phoneNumber || "",
+        companyFax: existingCompanySettings.faxNumber || "",
+        streetAddress: existingCompanySettings.address || "",
+        state: existingCompanySettings.state || "",
+        city: existingCompanySettings.city || "",
+        postcode: existingCompanySettings.postcode || "",
+        country: existingCompanySettings.country || "",
+        logoUrl: existingCompanySettings.logoUrl || null,
+        bankName: existingCompanySettings.bankName || "",
+        bankAccountNo: existingCompanySettings.bankAccountNumber || "",
+        epfNo: existingCompanySettings.epfNumber || "",
+        socsoNo: existingCompanySettings.socsoNumber || "",
+        incomeTaxNo: existingCompanySettings.incomeTaxNumber || "",
+        employerNo: existingCompanySettings.employerNumber || "",
+        lhdnBranch: existingCompanySettings.lhdnBranch || "",
+        originatorId: existingCompanySettings.originatorId || "",
+        zakatNo: existingCompanySettings.zakatNumber || "",
+        cNumber: existingCompanySettings.cNumber || ""
+      });
+    }
+  }, [existingCompanySettings]);
 
   const handleUpdate = async () => {
     try {
