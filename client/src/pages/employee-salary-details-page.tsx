@@ -3151,6 +3151,169 @@ export default function EmployeeSalaryDetailsPage() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* YTD (Year-To-Date) Section */}
+            <div className="grid grid-cols-1 gap-6 mt-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle>YTD (Year-To-Date)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    
+                    {/* YTD Employee Contribution */}
+                    <div className="space-y-4">
+                      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-lg">
+                        <h3 className="text-lg font-semibold">YTD EMPLOYEE CONTRIBUTION</h3>
+                      </div>
+                      
+                      {/* YTD EPF Employee */}
+                      <div className="space-y-2">
+                        <Label className="font-medium">YTD EPF</Label>
+                        <div className="flex">
+                          <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                            <span className="text-sm font-medium">RM</span>
+                          </div>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            defaultValue="0.00"
+                            className="rounded-l-none"
+                            data-testid="ytd-epf-employee"
+                          />
+                        </div>
+                      </div>
+
+                      {/* YTD SOCSO Employee */}
+                      <div className="space-y-2">
+                        <Label className="font-medium">YTD SOCSO</Label>
+                        <div className="flex">
+                          <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                            <span className="text-sm font-medium">RM</span>
+                          </div>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            defaultValue="0.00"
+                            className="rounded-l-none"
+                            data-testid="ytd-socso-employee"
+                          />
+                        </div>
+                      </div>
+
+                      {/* YTD EIS Employee */}
+                      <div className="space-y-2">
+                        <Label className="font-medium">YTD EIS</Label>
+                        <div className="flex">
+                          <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                            <span className="text-sm font-medium">RM</span>
+                          </div>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            defaultValue="0.00"
+                            className="rounded-l-none"
+                            data-testid="ytd-eis-employee"
+                          />
+                        </div>
+                      </div>
+
+                      {/* YTD PCB/MTD Employee */}
+                      <div className="space-y-2">
+                        <Label className="font-medium">YTD PCB/MTD</Label>
+                        <div className="flex">
+                          <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                            <span className="text-sm font-medium">RM</span>
+                          </div>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            defaultValue="0.00"
+                            className="rounded-l-none"
+                            data-testid="ytd-pcb-employee"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* YTD Employer Contribution */}
+                    <div className="space-y-4">
+                      <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-4 rounded-lg">
+                        <h3 className="text-lg font-semibold">YTD EMPLOYER CONTRIBUTION</h3>
+                      </div>
+                      
+                      {/* YTD EPF Employer */}
+                      <div className="space-y-2">
+                        <Label className="font-medium">YTD EPF</Label>
+                        <div className="flex">
+                          <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                            <span className="text-sm font-medium">RM</span>
+                          </div>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            defaultValue="0.00"
+                            className="rounded-l-none"
+                            data-testid="ytd-epf-employer"
+                          />
+                        </div>
+                      </div>
+
+                      {/* YTD SOCSO Employer */}
+                      <div className="space-y-2">
+                        <Label className="font-medium">YTD SOCSO</Label>
+                        <div className="flex">
+                          <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                            <span className="text-sm font-medium">RM</span>
+                          </div>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            defaultValue="0.00"
+                            className="rounded-l-none"
+                            data-testid="ytd-socso-employer"
+                          />
+                        </div>
+                      </div>
+
+                      {/* YTD EIS Employer */}
+                      <div className="space-y-2">
+                        <Label className="font-medium">YTD EIS</Label>
+                        <div className="flex">
+                          <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                            <span className="text-sm font-medium">RM</span>
+                          </div>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            defaultValue="0.00"
+                            className="rounded-l-none"
+                            data-testid="ytd-eis-employer"
+                          />
+                        </div>
+                      </div>
+
+                      {/* YTD PCB/MTD Employer */}
+                      <div className="space-y-2">
+                        <Label className="font-medium">YTD PCB/MTD</Label>
+                        <div className="flex">
+                          <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                            <span className="text-sm font-medium">RM</span>
+                          </div>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            defaultValue="0.00"
+                            className="rounded-l-none"
+                            data-testid="ytd-pcb-employer"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </CardContent>
         </Card>
       )}
