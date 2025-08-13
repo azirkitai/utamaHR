@@ -4103,7 +4103,7 @@ export function registerRoutes(app: Express): Server {
             [`${companySettings.address}${companySettings.postcode ? ', ' + companySettings.postcode : ''}${companySettings.city ? ', ' + companySettings.city : ''}${companySettings.state ? ', ' + companySettings.state : ''}`] :
             ["A2-22-3, SOHO SUITES @ KLCC, 20 JALAN PERAK, 50450 KUALA LUMPUR, WILAYAH PERSEKUTUAN"],
           logoHTML: companySettings?.logoUrl ? 
-            `<img src="${companySettings.logoUrl}" class="company-logo" alt="Company Logo" style="width:80px;height:80px;object-fit:contain;display:block;border:none;" />` : 
+            `<img src="${companySettings.logoUrl}" class="company-logo" alt="Company Logo" style="width:120px;height:120px;object-fit:contain;display:block;border:none;" />` : 
             ""
         },
         employee: {
@@ -4364,7 +4364,7 @@ export function registerRoutes(app: Express): Server {
             [`${companySettings.address}${companySettings.postcode ? ', ' + companySettings.postcode : ''}${companySettings.city ? ', ' + companySettings.city : ''}${companySettings.state ? ', ' + companySettings.state : ''}`] :
             ["A2-22-3, SOHO SUITES @ KLCC, 20 JALAN PERAK, 50450 KUALA LUMPUR, WILAYAH PERSEKUTUAN"],
           logoHTML: companySettings?.logoUrl ? 
-            `<img src="${companySettings.logoUrl}" class="company-logo" alt="Company Logo" style="width:80px;height:80px;object-fit:contain;display:block;border:none;" />` : 
+            `<img src="${companySettings.logoUrl}" class="company-logo" alt="Company Logo" style="width:120px;height:120px;object-fit:contain;display:block;border:none;" />` : 
             ""
         },
         employee: {

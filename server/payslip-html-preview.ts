@@ -41,8 +41,8 @@ export function generatePayslipHTML(templateData: any, showPreviewNote: boolean 
         }
         
         .company-logo {
-            width: 80px;
-            height: 80px;
+            width: 120px;
+            height: 120px;
             object-fit: contain;
             display: block;
             margin: 0;
