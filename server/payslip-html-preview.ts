@@ -228,10 +228,6 @@ export function generatePayslipHTML(templateData: any): string {
                 <span>Basic Salary</span>
                 <span class="money">RM ${templateData.income.basic}</span>
             </div>
-            <div class="rowi">
-                <span>Fixed Allowance</span>
-                <span class="money">RM ${templateData.income.fixedAllowance}</span>
-            </div>
             ${templateData.income.items.filter((item: any) => item.show).map((item: any) => `
             <div class="rowi">
                 <span>${item.label}</span>
