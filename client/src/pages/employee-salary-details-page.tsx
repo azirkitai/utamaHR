@@ -696,18 +696,19 @@ export default function EmployeeSalaryDetailsPage() {
   const [expandedTaxExemptionSettings, setExpandedTaxExemptionSettings] = useState<Set<string>>(new Set());
 
   // YTD State Management
+  // Initialize YTD with July (month 7) data - same values as August for testing
   const [ytdValues, setYtdValues] = useState({
     employee: {
-      epf: 0,
-      socso: 0,
-      eis: 0,
-      pcb: 0
+      epf: 215.50, // July EPF Employee (same as August)
+      socso: 23.60, // July SOCSO Employee (same as August)
+      eis: 4.70,   // July EIS Employee (same as August)
+      pcb: 0       // July PCB Employee
     },
     employer: {
-      epf: 0,
-      socso: 0,
-      eis: 0,
-      pcb: 0
+      epf: 358.40, // July EPF Employer (same as August)
+      socso: 53.90, // July SOCSO Employer (same as August)
+      eis: 9.40,   // July EIS Employer (same as August)
+      pcb: 0       // No PCB for employer
     }
   });
 
@@ -726,17 +727,18 @@ export default function EmployeeSalaryDetailsPage() {
     }
   });
 
+  // Initialize YTD remarks with July data
   const [ytdRemarks, setYtdRemarks] = useState({
     employee: {
-      epf: '',
-      socso: '',
-      eis: '',
+      epf: 'YTD bulan 7 (data asal)',
+      socso: 'YTD bulan 7 (data asal)',
+      eis: 'YTD bulan 7 (data asal)',
       pcb: ''
     },
     employer: {
-      epf: '',
-      socso: '',
-      eis: '',
+      epf: 'YTD bulan 7 (data asal)',
+      socso: 'YTD bulan 7 (data asal)',
+      eis: 'YTD bulan 7 (data asal)',
       pcb: ''
     }
   });
