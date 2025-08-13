@@ -3151,9 +3151,7 @@ export default function EmployeeSalaryDetailsPage() {
                       </div>
                     </div>
                   )}
-                  <p className="text-xs text-blue-600 font-medium">
-                    🔗 Dikaitkan dengan YTD PCB/MTD - Perubahan nilai akan mengemas kini YTD secara automatik
-                  </p>
+                  
                 </div>
 
                 {/* Custom Deduction Items */}
