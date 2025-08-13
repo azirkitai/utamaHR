@@ -1279,9 +1279,7 @@ export default function EmployeeSalaryDetailsPage() {
         epf: currentMonthEmployee.epf > 0 ? remarkText : '',
         socso: currentMonthEmployee.socso > 0 ? remarkText : '',
         eis: currentMonthEmployee.eis > 0 ? remarkText : '',
-        pcb: currentMonthEmployee.pcb > 0 ? 
-          `YTD bulan 6 + 7 (RM 418.70 + RM 418.70) = RM 837.40 + Bulan ${currentMonth} (RM ${currentMonthEmployee.pcb.toFixed(2)}) = RM ${Math.round((837.40 + currentMonthEmployee.pcb) * 100) / 100}` : 
-          ''
+        pcb: currentMonthEmployee.pcb > 0 ? remarkText : ''
       },
       employer: {
         epf: currentMonthEmployer.epf > 0 ? remarkText : '',
