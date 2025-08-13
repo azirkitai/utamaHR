@@ -1236,14 +1236,21 @@ export default function EmployeeSalaryDetailsPage() {
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const currentMonth = monthNames[currentDate.getMonth()];
     const currentYear = currentDate.getFullYear();
+    const remarkText = `Kemaskini ${currentMonth} ${currentYear}`;
     
-    setYtdRemarks(prev => ({
-      ...prev,
-      [category]: {
-        ...prev[category],
-        [field]: `Kemaskini ${currentMonth} ${currentYear}`
-      }
-    }));
+    console.log('Saving YTD value:', category, field, remarkText);
+    
+    setYtdRemarks(prev => {
+      const newRemarks = {
+        ...prev,
+        [category]: {
+          ...prev[category],
+          [field]: remarkText
+        }
+      };
+      console.log('Updated YTD remarks:', newRemarks);
+      return newRemarks;
+    });
 
     // Close edit mode
     setYtdEditModes(prev => ({
@@ -3496,37 +3503,7 @@ export default function EmployeeSalaryDetailsPage() {
                         )}
                       </div>
 
-                      {/* YTD PCB/MTD Employer */}
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <Label className="font-medium">YTD PCB/MTD</Label>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => ytdEditModes.employer.pcb ? saveYtdValue('employer', 'pcb') : toggleYtdEditMode('employer', 'pcb')}
-                            data-testid="btn-edit-ytd-pcb-employer"
-                          >
-                            {ytdEditModes.employer.pcb ? <Check className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
-                          </Button>
-                        </div>
-                        <div className="flex">
-                          <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
-                            <span className="text-sm font-medium">RM</span>
-                          </div>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            value={ytdValues.employer.pcb}
-                            onChange={(e) => updateYtdValue('employer', 'pcb', parseFloat(e.target.value) || 0)}
-                            className="rounded-l-none"
-                            disabled={!ytdEditModes.employer.pcb}
-                            data-testid="ytd-pcb-employer"
-                          />
-                        </div>
-                        {ytdRemarks.employer.pcb && (
-                          <p className="text-xs text-gray-500">{ytdRemarks.employer.pcb}</p>
-                        )}
-                      </div>
+
 
                       
                     </div>
