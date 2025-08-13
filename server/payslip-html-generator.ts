@@ -154,10 +154,10 @@ export async function generatePayslipPDF(data: PayslipData): Promise<Buffer> {
       printBackground: true,
       preferCSSPageSize: false,
       margin: {
-        top: '18mm',
-        right: '18mm',
-        bottom: '18mm',
-        left: '18mm'
+        top: '2mm',
+        right: '2mm',
+        bottom: '2mm',
+        left: '2mm'
       }
     });
     
