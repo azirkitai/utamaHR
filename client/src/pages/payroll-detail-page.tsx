@@ -45,13 +45,13 @@ export default function PayrollDetailPage() {
   const generatePdfPreview = async (employeeId: string, employeeName: string) => {
     setIsGeneratingPreview(true);
     try {
-      // Use direct URL approach instead of blob for better browser compatibility
-      const pdfUrl = `/api/payroll/payslip/${employeeId}/pdf?documentId=${id}&token=${localStorage.getItem('utamahr_token')}`;
-      setPdfPreviewUrl(pdfUrl);
-      console.log('PDF preview URL set:', pdfUrl);
+      // Use HTML preview instead of PDF for better browser compatibility
+      const previewUrl = `/api/payroll/payslip/${employeeId}/preview?documentId=${id}&token=${localStorage.getItem('utamahr_token')}`;
+      setPdfPreviewUrl(previewUrl);
+      console.log('HTML preview URL set:', previewUrl);
     } catch (error) {
-      console.error('Error generating PDF preview:', error);
-      alert('Gagal menghasilkan preview PDF. Sila cuba lagi.');
+      console.error('Error generating HTML preview:', error);
+      alert('Gagal menghasilkan preview slip gaji. Sila cuba lagi.');
     } finally {
       setIsGeneratingPreview(false);
     }

@@ -4,6 +4,7 @@ import { setupAuth, authenticateToken } from "./auth";
 import { storage } from "./storage";
 import { generatePayslipPDF } from './payslip-html-generator';
 import { generatePayslipExcel } from './payslip-excel-generator';
+import { generatePayslipHTML } from './payslip-html-preview';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
@@ -3920,6 +3921,128 @@ export function registerRoutes(app: Express): Server {
 
   // =================== PDF PAYSLIP GENERATION ===================
   // Generate PDF payslip for employee using Puppeteer + Handlebars
+  // HTML Preview version for inline display
+  app.get("/api/payroll/payslip/:employeeId/preview", async (req, res) => {
+    try {
+      const { employeeId } = req.params;
+      const { documentId, token } = req.query;
+
+      if (!documentId) {
+        return res.status(400).json({ error: "ID dokumen payroll diperlukan" });
+      }
+
+      // Verify token - simple check for now
+      if (!token) {
+        return res.status(401).json({ error: "Token diperlukan" });
+      }
+
+      // Get payroll document and item
+      const document = await storage.getPayrollDocument(documentId as string);
+      const payrollItem = await storage.getPayrollItemByDocumentAndEmployee(documentId as string, employeeId);
+      const employee = await storage.getEmployee(employeeId);
+      const employment = await storage.getEmploymentByEmployeeId(employeeId);
+      const companySettings = await storage.getCompanySettings();
+
+      if (!document || !payrollItem || !employee) {
+        return res.status(404).json({ error: "Data payroll tidak dijumpai" });
+      }
+
+      // Parse payroll item data
+      const employeeSnapshot = JSON.parse(payrollItem.employeeSnapshot);
+      const salary = JSON.parse(payrollItem.salary);
+      const deductions = JSON.parse(payrollItem.deductions);
+      const contributions = JSON.parse(payrollItem.contributions);
+
+      // Format monetary values
+      const formatMoney = (value: any) => {
+        const num = parseFloat(value || "0");
+        return num.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      };
+
+      // Prepare template data same as PDF
+      const templateData = {
+        company: {
+          name: companySettings?.companyName || "UTAMA MEDGROUP SDN BHD",
+          regNo: companySettings?.companyRegistrationNumber || "202201033996(1479693-H)",
+          address: companySettings ? 
+            `${companySettings.address}${companySettings.postcode ? ', ' + companySettings.postcode : ''}${companySettings.city ? ', ' + companySettings.city : ''}${companySettings.state ? ', ' + companySettings.state : ''}` :
+            "A2-22-3, SOHO SUITES @ KLCC, 20 JALAN PERAK, 50450 KUALA LUMPUR, WILAYAH PERSEKUTUAN"
+        },
+        employee: {
+          name: employee.fullName || employeeSnapshot.name,
+          icNo: employee.nric || employeeSnapshot.nric || "",
+          position: employeeSnapshot.position || employment?.position || ""
+        },
+        period: {
+          month: getMonthName(document.month),
+          year: document.year
+        },
+        income: {
+          basic: formatMoney(salary.basic),
+          fixedAllowance: formatMoney(salary.fixedAllowance),
+          items: [
+            {
+              label: "OVERTIME",
+              amount: formatMoney(salary.overtime || "0"),
+              show: parseFloat(salary.overtime || "0") > 0
+            },
+            {
+              label: "CLAIMS",
+              amount: formatMoney(salary.claims || "0"), 
+              show: parseFloat(salary.claims || "0") > 0
+            }
+          ],
+          totalGross: formatMoney(salary.gross)
+        },
+        deduction: {
+          epfEmp: formatMoney(deductions.epfEmployee),
+          socsoEmp: formatMoney(deductions.socsoEmployee),
+          eisEmp: formatMoney(deductions.eisEmployee),
+          items: [
+            {
+              label: "MTD",
+              amount: formatMoney(deductions.mtd || "0"),
+              show: parseFloat(deductions.mtd || "0") > 0
+            },
+            {
+              label: "ZAKAT", 
+              amount: formatMoney(deductions.zakat || "0"),
+              show: parseFloat(deductions.zakat || "0") > 0
+            }
+          ],
+          total: formatMoney(
+            parseFloat(deductions.epfEmployee || "0") +
+            parseFloat(deductions.socsoEmployee || "0") +
+            parseFloat(deductions.eisEmployee || "0") +
+            parseFloat(deductions.mtd || "0") +
+            parseFloat(deductions.zakat || "0")
+          )
+        },
+        netIncome: formatMoney(payrollItem.netPay),
+        employerContrib: {
+          epfEr: formatMoney(contributions.epfEmployer),
+          socsoEr: formatMoney(contributions.socsoEmployer),
+          eisEr: formatMoney(contributions.eisEmployer)
+        },
+        ytd: {
+          employee: formatMoney(2783.00),
+          employer: formatMoney(3289.00), 
+          mtd: formatMoney(payrollItem.netPay)
+        }
+      };
+
+      // Generate HTML preview
+      const htmlContent = generatePayslipHTML(templateData);
+      
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.send(htmlContent);
+
+    } catch (error) {
+      console.error("Error generating HTML preview:", error);
+      res.status(500).json({ error: "Gagal menjana preview slip gaji" });
+    }
+  });
+
   // GET version for direct URL access with token
   app.get("/api/payroll/payslip/:employeeId/pdf", async (req, res) => {
     try {
