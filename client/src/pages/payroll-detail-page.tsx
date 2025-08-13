@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Download, Eye, FileSpreadsheet, Trash2, Check, X, FileText } from "lucide-react";
+import { ArrowLeft, Download, Eye, FileSpreadsheet, Trash2, Check, X } from "lucide-react";
 import { useParams } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -363,43 +363,6 @@ export default function PayrollDetailPage() {
     }
   };
 
-  const handleGenerateManualPDF = async (employeeId: string, employeeName: string) => {
-    try {
-      const response = await fetch(`/api/payroll/payslip/${employeeId}/pdf-manual`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('utamahr_token')}`
-        },
-        body: JSON.stringify({ documentId: id })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate manual PDF payslip');
-      }
-
-      // Server returns the PDF buffer directly
-      const blob = await response.blob();
-      
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = `Payslip_${employeeName.replace(/\s+/g, '_')}_Manual_7_2025.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      
-      console.log('Manual PDF payslip generated and downloaded successfully');
-    } catch (error) {
-      console.error('Error generating manual PDF:', error);
-      alert('Gagal menghasilkan slip gaji PDF manual. Sila cuba lagi. Error: ' + (error instanceof Error ? error.message : 'Unknown error'));
-    }
-  };
-
   const handleGenerateExcel = async (itemId: string, employeeName: string) => {
     try {
       const response = await fetch(`/api/payroll/payslip/${itemId}/excel`, {
@@ -683,19 +646,9 @@ export default function PayrollDetailPage() {
                                   className="p-1 h-7 w-7 border-gray-300"
                                   onClick={() => handleGeneratePDF(item.employeeId, employeeSnapshot.name || 'N/A')}
                                   data-testid={`button-download-pdf-${item.employeeId}`}
-                                  title="Download PDF (HTML)"
+                                  title="Download PDF"
                                 >
                                   <Download className="w-3 h-3" />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="p-1 h-7 w-7 border-green-300 text-green-600 hover:bg-green-50"
-                                  onClick={() => handleGenerateManualPDF(item.employeeId, employeeSnapshot.name || 'N/A')}
-                                  data-testid={`button-download-manual-pdf-${item.employeeId}`}
-                                  title="Download PDF (Manual Python)"
-                                >
-                                  <FileText className="w-3 h-3" />
                                 </Button>
                                 <Button
                                   variant="outline"
@@ -839,15 +792,7 @@ export default function PayrollDetailPage() {
                             className="bg-blue-900 hover:bg-blue-800 text-white"
                           >
                             <Download className="w-4 h-4 mr-2" />
-                            Download PDF (HTML)
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={() => handleGenerateManualPDF(selectedEmployeeId, selectedEmployeeName)}
-                            className="bg-green-600 hover:bg-green-700 text-white"
-                          >
-                            <FileText className="w-4 h-4 mr-2" />
-                            Manual PDF (Python)
+                            Download PDF
                           </Button>
                         </div>
                       </div>
