@@ -4319,7 +4319,41 @@ export function registerRoutes(app: Express): Server {
             return formatMoney(total);
           })()
         },
-        netIncome: formatMoney(payrollItem.netPay),
+        netIncome: (() => {
+          console.log("=== NET PAY CALCULATION START ===");
+          // Calculate net pay dynamically: Gross Income - Total Deductions
+          const grossIncome = parseFloat(salary.gross || "0");
+          console.log("Gross income for net pay:", grossIncome);
+          const totalDeductions = (() => {
+            const epf = parseFloat(deductions.epfEmployee || "0");
+            const socso = parseFloat(deductions.socsoEmployee || "0");
+            const eis = parseFloat(deductions.eisEmployee || "0");
+            const advance = parseFloat(deductions.advance || "0");
+            const unpaidLeave = parseFloat(deductions.unpaidLeave || "0");
+            const pcb39 = parseFloat(deductions.pcb39 || "0");
+            const pcb38 = parseFloat(deductions.pcb38 || "0");
+            const zakat = parseFloat(deductions.zakat || "0");
+            const other = (() => {
+              if (Array.isArray(deductions.other)) return 0;
+              if (typeof deductions.other === 'number') return deductions.other;
+              if (typeof deductions.other === 'string' && deductions.other !== '') return parseFloat(deductions.other);
+              return 0;
+            })();
+            
+            let customTotal = 0;
+            if (deductions.other && Array.isArray(deductions.other)) {
+              deductions.other.forEach((item: any) => {
+                customTotal += parseFloat(item.amount || "0");
+              });
+            }
+            
+            return epf + socso + eis + advance + unpaidLeave + pcb39 + pcb38 + zakat + other + customTotal;
+          })();
+          
+          const netPay = grossIncome - totalDeductions;
+          console.log("NET PAY CALCULATION:", {grossIncome, totalDeductions, netPay});
+          return formatMoney(netPay);
+        })(),
         employerContrib: {
           epfEr: formatMoney(contributions.epfEmployer),
           socsoEr: formatMoney(contributions.socsoEmployer),
