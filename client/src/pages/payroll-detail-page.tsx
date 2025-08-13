@@ -510,33 +510,39 @@ export default function PayrollDetailPage() {
                           </div>
                         </div>
                       ) : pdfPreviewUrl ? (
-                        <div className="border rounded-lg overflow-hidden">
-                          <object
-                            data={pdfPreviewUrl + "#toolbar=1&navpanes=1&scrollbar=1"}
-                            type="application/pdf"
-                            width="100%"
-                            height="500px"
-                            className="border-0"
-                          >
-                            <div className="p-8 text-center bg-gray-50">
-                              <p className="text-gray-600 mb-4">PDF preview tidak dapat dipaparkan dalam browser ini.</p>
-                              <div className="flex justify-center space-x-3">
+                        <div className="border rounded-lg overflow-hidden bg-gray-100">
+                          <div className="p-4 bg-white border-b">
+                            <div className="flex items-center justify-between">
+                              <h5 className="font-medium text-gray-700">Payslip: {selectedEmployeeName}</h5>
+                              <div className="flex space-x-2">
                                 <Button
+                                  size="sm"
+                                  variant="outline"
                                   onClick={() => window.open(pdfPreviewUrl, '_blank')}
-                                  className="bg-blue-600 hover:bg-blue-700 text-white"
                                 >
-                                  Buka PDF
+                                  Buka Tab Baru
                                 </Button>
                                 <Button
+                                  size="sm"
                                   onClick={() => handleGeneratePDF(selectedEmployeeId, selectedEmployeeName)}
-                                  className="bg-green-600 hover:bg-green-700 text-white"
+                                  className="bg-blue-600 hover:bg-blue-700 text-white"
                                 >
                                   <Download className="w-4 h-4 mr-2" />
-                                  Download PDF
+                                  Download
                                 </Button>
                               </div>
                             </div>
-                          </object>
+                          </div>
+                          <iframe
+                            src={pdfPreviewUrl}
+                            width="100%"
+                            height="600px"
+                            style={{ border: 'none', backgroundColor: 'white' }}
+                            title="PDF Preview"
+                            sandbox="allow-same-origin allow-scripts allow-forms"
+                            onLoad={() => console.log('PDF iframe loaded successfully')}
+                            onError={() => console.log('PDF iframe failed to load')}
+                          />
                         </div>
                       ) : (
                         <div className="flex justify-center items-center h-96 bg-gray-50 rounded-lg">
