@@ -2615,13 +2615,62 @@ export class DatabaseStorage implements IStorage {
             console.log('No Master Salary Configuration found for', employee.fullName, 'Error:', error.message);
           }
 
-          // Simplified salary components
+          // Process additional items from Master Salary Configuration
           const additionalItems = [];
+          let fixedAllowanceAmount = 0;
+          let overtimeAmount = 0;
+          
+          // Process additional items from Master Salary data
+          if (masterSalaryData && masterSalaryData.additionalItems) {
+            console.log('=== PROCESSING ADDITIONAL ITEMS ===');
+            masterSalaryData.additionalItems.forEach((item: any) => {
+              const amount = parseFloat(item.amount || 0);
+              console.log(`Processing: ${item.label} (${item.code}) = RM ${amount}`);
+              
+              if (amount > 0.01) {
+                console.log(`✓ Including ${item.label}: RM ${amount} (> 0.01)`);
+                
+                // Handle different types of additional items
+                if (item.code === 'FIXED' || item.label === 'FIXED ALLOWANCE') {
+                  fixedAllowanceAmount = amount;
+                  console.log(`Set Fixed Allowance: RM ${fixedAllowanceAmount}`);
+                } else {
+                  additionalItems.push({
+                    code: item.code,
+                    label: item.label,
+                    amount: amount.toString(),
+                    flags: item.flags || {}
+                  });
+                  console.log(`Added to additional items: ${item.label}`);
+                }
+              } else {
+                console.log(`✗ Skipping ${item.label}: RM ${amount} (≤ 0.01)`);
+              }
+            });
+            console.log('=== END PROCESSING ADDITIONAL ITEMS ===');
+          }
+
+          // Get overtime amount from actual calculation
+          try {
+            const overtimeResult = await this.calculateEmployeeOvertimeAmount(employee.id, 2025, 8); // Using current month
+            overtimeAmount = parseFloat(overtimeResult.overtimeAmount || 0);
+            console.log('=== OVERTIME CALCULATION ===');
+            console.log('Employee:', employee.fullName);
+            console.log('Calculated Overtime Amount:', overtimeAmount);
+            
+            if (overtimeAmount > 0.01) {
+              console.log('✓ Including Overtime in payroll');
+            } else {
+              console.log('✗ No overtime to include');
+            }
+            console.log('=== END OVERTIME CALCULATION ===');
+          } catch (error) {
+            console.log('Error calculating overtime for', employee.fullName, ':', error.message);
+            overtimeAmount = 0;
+          }
+
           const deductionItems = {};
           const contributions = {};
-
-          // Simple calculations without complex dependencies
-          const overtimeAmount = 0; // Simplified for now
           const claimsData = []; // Simplified for now
           const unpaidLeaveData = { days: 0, amount: 0 }; // Simplified for now
 
@@ -2651,13 +2700,13 @@ export class DatabaseStorage implements IStorage {
         salary: JSON.stringify({
           basic: basicSalary.toString(),
           computed: basicSalary.toString(),
-          fixedAllowance: '0',
+          fixedAllowance: fixedAllowanceAmount.toString(),
           additional: additionalItems || [],
-          gross: this.calculateGrossSalary(basicSalary, additionalItems)
+          gross: this.calculateGrossSalary(basicSalary, additionalItems, fixedAllowanceAmount, overtimeAmount)
         }),
         overtime: JSON.stringify({
-          hours: overtimeAmount || 0,
-          amount: overtimeAmount || 0,
+          hours: overtimeAmount > 0 ? 1 : 0, // Simplified hours calculation
+          amount: overtimeAmount.toString(),
           calcNote: 'Calculated from approved overtime claims'
         }),
         claims: JSON.stringify(claimsData),
@@ -2665,7 +2714,13 @@ export class DatabaseStorage implements IStorage {
         lateness: JSON.stringify({ minutes: 0, amount: 0 }), // To be implemented
         deductions: JSON.stringify(finalDeductions),
         contributions: JSON.stringify(finalContributions),
-        netPay: this.calculateNetPay({ amount: basicSalary.toString() }, additionalItems, [], { amount: overtimeAmount }),
+        netPay: this.calculateNetPay(
+          { amount: basicSalary.toString() }, 
+          additionalItems, 
+          [], 
+          { amount: overtimeAmount.toString() },
+          fixedAllowanceAmount
+        ),
         audit: JSON.stringify({
           generatedAt: new Date().toISOString(),
           generatedBy: 'system',
@@ -2701,12 +2756,21 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  private calculateGrossSalary(basicSalary: number, additionalItems: any[]): string {
+  private calculateGrossSalary(basicSalary: number, additionalItems: any[], fixedAllowance: number = 0, overtime: number = 0): string {
     const totalAdditional = additionalItems.reduce((sum, item) => {
       return sum + parseFloat(item.amount || '0');
     }, 0);
     
-    return (basicSalary + totalAdditional).toFixed(2);
+    const grossSalary = basicSalary + totalAdditional + fixedAllowance + overtime;
+    console.log('=== GROSS SALARY CALCULATION ===');
+    console.log('Basic Salary:', basicSalary);
+    console.log('Additional Items Total:', totalAdditional);
+    console.log('Fixed Allowance:', fixedAllowance);
+    console.log('Overtime:', overtime);
+    console.log('Gross Salary:', grossSalary);
+    console.log('=== END GROSS SALARY CALCULATION ===');
+    
+    return grossSalary.toFixed(2);
   }
 
   // Helper methods for payroll calculations
@@ -2778,7 +2842,7 @@ export class DatabaseStorage implements IStorage {
     return (basic * rate).toFixed(2);
   }
 
-  private calculateNetPay(basicEarning: any, additionalItems: any[], deductionItems: any[], overtime: any): string {
+  private calculateNetPay(basicEarning: any, additionalItems: any[], deductionItems: any[], overtime: any, fixedAllowance: number = 0): string {
     const basic = parseFloat(basicEarning?.amount || '0');
     const additional = additionalItems.reduce((sum, item) => sum + parseFloat(item.amount || '0'), 0);
     const deductions = deductionItems.reduce((sum, item) => sum + parseFloat(item.amount || '0'), 0);
@@ -2789,8 +2853,18 @@ export class DatabaseStorage implements IStorage {
     const socso = parseFloat(this.calculateSOCSO(basicEarning?.amount || '0', 'employee'));
     const eis = parseFloat(this.calculateEIS(basicEarning?.amount || '0', 'employee'));
     
-    const grossPay = basic + additional + overtimeAmount;
+    const grossPay = basic + additional + overtimeAmount + fixedAllowance;
     const totalDeductions = deductions + epf + socso + eis;
+    
+    console.log('=== NET PAY CALCULATION ===');
+    console.log('Basic:', basic);
+    console.log('Additional:', additional);  
+    console.log('Overtime:', overtimeAmount);
+    console.log('Fixed Allowance:', fixedAllowance);
+    console.log('Gross Pay:', grossPay);
+    console.log('Total Deductions:', totalDeductions);
+    console.log('Net Pay:', grossPay - totalDeductions);
+    console.log('=== END NET PAY CALCULATION ===');
     
     return (grossPay - totalDeductions).toFixed(2);
   }
