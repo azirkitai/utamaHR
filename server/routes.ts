@@ -4010,9 +4010,7 @@ export function registerRoutes(app: Express): Server {
       const deductions = JSON.parse(payrollItem.deductions);
       const contributions = JSON.parse(payrollItem.contributions);
 
-      // Get Master Salary Configuration for dynamic deductions
-      const masterSalary = await storage.getMasterSalaryData(employeeId);
-      console.log("Master salary deductions:", masterSalary?.deductions);
+      // Use snapshot data from payroll item - NO CURRENT MASTER SALARY FETCH
       console.log("Payroll deductions from item:", deductions);
 
       // Format monetary values
@@ -4135,23 +4133,17 @@ export function registerRoutes(app: Express): Server {
               });
             }
             
-            // Add custom deduction items from Master Salary Configuration
-            if (masterSalary && masterSalary.deductions) {
-              const masterDeductions = typeof masterSalary.deductions === 'string' 
-                ? JSON.parse(masterSalary.deductions) 
-                : masterSalary.deductions;
-                
-              if (masterDeductions.customItems && Array.isArray(masterDeductions.customItems)) {
-                masterDeductions.customItems.forEach((customItem: any) => {
-                  if (parseFloat(customItem.amount || "0") > 0) {
-                    items.push({
-                      label: customItem.label,
-                      amount: formatMoney(customItem.amount),
-                      show: true
-                    });
-                  }
-                });
-              }
+            // Add custom deduction items from payroll snapshot data only
+            if (deductions.other && Array.isArray(deductions.other)) {
+              deductions.other.forEach((customItem: any) => {
+                if (parseFloat(customItem.amount || "0") > 0) {
+                  items.push({
+                    label: customItem.name || customItem.label || "Custom Deduction",
+                    amount: formatMoney(customItem.amount),
+                    show: true
+                  });
+                }
+              });
             }
             
             return items;
@@ -4172,16 +4164,12 @@ export function registerRoutes(app: Express): Server {
               return 0;
             })();
             
+            // Calculate custom total from snapshot data only
             let customTotal = 0;
-            if (masterSalary && masterSalary.deductions) {
-              const masterDeductions = typeof masterSalary.deductions === 'string' 
-                ? JSON.parse(masterSalary.deductions) 
-                : masterSalary.deductions;
-              if (masterDeductions.customItems && Array.isArray(masterDeductions.customItems)) {
-                masterDeductions.customItems.forEach((item: any) => {
-                  customTotal += parseFloat(item.amount || "0");
-                });
-              }
+            if (deductions.other && Array.isArray(deductions.other)) {
+              deductions.other.forEach((item: any) => {
+                customTotal += parseFloat(item.amount || "0");
+              });
             }
             
             const total = epf + socso + eis + advance + unpaidLeave + pcb39 + pcb38 + zakat + other + customTotal;
