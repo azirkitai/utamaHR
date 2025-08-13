@@ -441,7 +441,7 @@ export default function EmployeeSalaryDetailsPage() {
   const [isHrdfEnabled, setIsHrdfEnabled] = useState(true);
   
   // EIS switch state
-  const [isEisEnabled, setIsEisEnabled] = useState(true);
+
 
   // Function to add relief item
   const handleAddReliefItem = () => {
@@ -1045,7 +1045,7 @@ export default function EmployeeSalaryDetailsPage() {
         : { employee: 0, employer: 0, wageBase: 0, category: 1 as const };
       
       // Calculate EIS using new implementation with proper eligibility checks - only if enabled
-      const eis = (salaryData.settings.isEisEnabled && isEisEnabled) 
+      const eis = salaryData.settings.isEisEnabled 
         ? calcEis({ reportedWage: eisWageBase, enabled: true })
         : { employee: 0, employer: 0, wageBase: 0, eligible: false };
 
@@ -1255,18 +1255,18 @@ export default function EmployeeSalaryDetailsPage() {
       pcb: 0 // No PCB for employer
     };
 
-    // Auto-calculate YTD: Previous YTD + Current Month
+    // Auto-calculate YTD: Previous YTD + Current Month (with proper decimal formatting)
     setYtdValues(prev => ({
       employee: {
-        epf: prev.employee.epf + currentMonthEmployee.epf,
-        socso: prev.employee.socso + currentMonthEmployee.socso,
-        eis: prev.employee.eis + currentMonthEmployee.eis,
-        pcb: prev.employee.pcb + currentMonthEmployee.pcb
+        epf: Math.round((prev.employee.epf + currentMonthEmployee.epf) * 100) / 100,
+        socso: Math.round((prev.employee.socso + currentMonthEmployee.socso) * 100) / 100,
+        eis: Math.round((prev.employee.eis + currentMonthEmployee.eis) * 100) / 100,
+        pcb: Math.round((prev.employee.pcb + currentMonthEmployee.pcb) * 100) / 100
       },
       employer: {
-        epf: prev.employer.epf + currentMonthEmployer.epf,
-        socso: prev.employer.socso + currentMonthEmployer.socso,
-        eis: prev.employer.eis + currentMonthEmployer.eis,
+        epf: Math.round((prev.employer.epf + currentMonthEmployer.epf) * 100) / 100,
+        socso: Math.round((prev.employer.socso + currentMonthEmployer.socso) * 100) / 100,
+        eis: Math.round((prev.employer.eis + currentMonthEmployer.eis) * 100) / 100,
         pcb: 0 // No PCB for employer
       }
     }));
@@ -2717,17 +2717,14 @@ export default function EmployeeSalaryDetailsPage() {
                     </div>
                     <Input
                       type="text"
-                      value={isEisEnabled ? salaryData.deductions.eisEmployee.toFixed(2) : "0.00"}
-                      className={`rounded-l-none ${isEisEnabled ? 'bg-gray-100' : 'bg-gray-50 text-gray-400'}`}
+                      value={salaryData.deductions.eisEmployee.toFixed(2)}
+                      className="rounded-l-none bg-gray-100"
                       readOnly
                       data-testid="eis-employee-deduction"
                     />
                   </div>
                   <p className="text-xs text-gray-500">
-                    {isEisEnabled 
-                      ? "How did we calculate this? 0.2% × basic salary (capped RM5,000)."
-                      : "EIS tidak diaktifkan"
-                    }
+                    How did we calculate this? 0.2% × basic salary (capped RM5,000).
                   </p>
                 </div>
 
@@ -3230,17 +3227,14 @@ export default function EmployeeSalaryDetailsPage() {
                     </div>
                     <Input
                       type="text"
-                      value={isEisEnabled ? salaryData.contributions.eisEmployer.toFixed(2) : "0.00"}
-                      className={`rounded-l-none ${isEisEnabled ? 'bg-gray-100' : 'bg-gray-50 text-gray-400'}`}
+                      value={salaryData.contributions.eisEmployer.toFixed(2)}
+                      className="rounded-l-none bg-gray-100"
                       readOnly
                       data-testid="eis-employer-contribution"
                     />
                   </div>
                   <p className="text-xs text-gray-500">
-                    {isEisEnabled 
-                      ? "How did we calculate this? 0.2% × basic salary (capped RM5,000)."
-                      : "EIS tidak diaktifkan"
-                    }
+                    How did we calculate this? 0.2% × basic salary (capped RM5,000).
                   </p>
                 </div>
 
