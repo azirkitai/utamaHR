@@ -3331,7 +3331,18 @@ export default function EmployeeSalaryDetailsPage() {
             <div className="grid grid-cols-1 gap-6 mt-8">
               <Card>
                 <CardHeader>
-                  <CardTitle>YTD (Year-To-Date)</CardTitle>
+                  <div className="flex justify-between items-center">
+                    <CardTitle>YTD (Year-To-Date)</CardTitle>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={autoCalculateYtdValues}
+                      className="bg-blue-600 text-white hover:bg-blue-700"
+                      data-testid="btn-auto-calculate-ytd"
+                    >
+                      Auto Calculate YTD
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -3339,18 +3350,7 @@ export default function EmployeeSalaryDetailsPage() {
                     {/* YTD Employee Contribution */}
                     <div className="space-y-4">
                       <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-lg">
-                        <div className="flex justify-between items-center">
-                          <h3 className="text-lg font-semibold">YTD EMPLOYEE CONTRIBUTION</h3>
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={autoCalculateYtdValues}
-                            className="bg-white text-blue-700 hover:bg-gray-100 ml-4"
-                            data-testid="btn-auto-calculate-ytd"
-                          >
-                            Auto Calculate YTD
-                          </Button>
-                        </div>
+                        <h3 className="text-lg font-semibold">YTD EMPLOYEE CONTRIBUTION</h3>
                       </div>
                       
                       {/* YTD EPF Employee */}
