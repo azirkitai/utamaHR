@@ -1,0 +1,114 @@
+Keperluan Utama:
+
+Maklumat Syarikat:
+
+Paparkan di bahagian atas (center align) bersama logo.
+
+Logo di bahagian kiri atas, diikuti nama syarikat, alamat, nombor telefon, nombor pendaftaran syarikat.
+
+Maklumat Pekerja:
+
+Nama penuh
+
+No. IC
+
+Jawatan
+
+Tarikh mula bekerja
+
+No. pekerja
+
+Bank & nombor akaun
+
+Maklumat Gaji (jadual):
+
+Basic Salary
+
+Allowances (nyatakan jenis & jumlah)
+
+Overtime (auto dari data)
+
+Potongan (EPF Employee, SOCSO Employee, EIS, PCB, lain-lain)
+
+Jumlah potongan
+
+Gaji bersih (Net Pay)
+
+Maklumat Caruman Majikan (jadual):
+
+EPF Employer
+
+SOCSO Employer
+
+EIS Employer
+
+Jumlah keseluruhan caruman majikan
+
+Bahagian YTD (Year-To-Date):
+
+Paparkan YTD Employee Contribution & Employer Contribution
+
+Ambil data daripada database atau input
+
+Nota Kaki:
+
+Paparkan tarikh gaji, bulan gaji, dan nombor rujukan dokumen.
+
+Nota “Dokumen ini dijana secara automatik dan tidak memerlukan tandatangan”.
+
+Spesifikasi Reka Bentuk:
+
+Guna font Arial atau Helvetica.
+
+Margin kiri dan kanan: 20mm.
+
+Garisan pembahagi untuk memisahkan seksyen.
+
+Jadual guna garisan halus, header bold.
+
+Semua nombor sejajar ke kanan.
+
+Jumlah keseluruhan dalam bold dan lebih besar sedikit.
+
+Output:
+
+Simpan fail sebagai Payslip_PREVIEW_{NAMA}_{BULAN}_{TAHUN}.pdf.
+
+Jangan kunci PDF, biarkan boleh preview terus.
+
+Contoh Input Data (untuk testing):
+
+python
+Copy
+Edit
+company_info = {
+    "name": "KLINIK UTAMA 24 JAM",
+    "address": "No. 1, Jalan Contoh, 40000 Shah Alam, Selangor",
+    "phone": "03-12345678",
+    "reg_no": "1234567-A",
+    "logo_path": "logo.png"
+}
+employee_info = {
+    "name": "SYED MUHYAZIR HASSIM",
+    "ic": "800101-14-1234",
+    "position": "Manager",
+    "start_date": "01-Jan-2020",
+    "emp_no": "EMP001",
+    "bank": "Maybank",
+    "acc_no": "112233445566"
+}
+salary_info = {
+    "basic": 3000.00,
+    "allowances": {"Transport": 200.00, "Meal": 150.00},
+    "overtime": 180.50,
+    "deductions": {"EPF Employee": 330.00, "SOCSO Employee": 14.75, "EIS": 4.80, "PCB": 25.00},
+    "employer_contribution": {"EPF Employer": 410.00, "SOCSO Employer": 51.65, "EIS Employer": 6.90},
+    "ytd_employee": 5000.00,
+    "ytd_employer": 6000.00
+}
+Matlamat:
+
+Layout PDF mesti sama seperti contoh asal, tiada perubahan pada kedudukan maklumat.
+
+Skrip ini hanya untuk preview, bukan final payslip, dan mesti boleh diubahsuai untuk data pekerja lain.
+

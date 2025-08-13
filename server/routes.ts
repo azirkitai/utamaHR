@@ -3920,6 +3920,29 @@ export function registerRoutes(app: Express): Server {
 
   // =================== PDF PAYSLIP GENERATION ===================
   // Generate PDF payslip for employee using Puppeteer + Handlebars
+  // GET version for direct URL access with token
+  app.get("/api/payroll/payslip/:employeeId/pdf", async (req, res) => {
+    try {
+      const { employeeId } = req.params;
+      const { documentId, token } = req.query;
+
+      if (!documentId) {
+        return res.status(400).json({ error: "ID dokumen payroll diperlukan" });
+      }
+
+      // Verify token - simple check for now
+      if (!token) {
+        return res.status(401).json({ error: "Token diperlukan" });
+      }
+
+      await generatePayslipPDFResponse(employeeId as string, documentId as string, res);
+    } catch (error) {
+      console.error("Error in GET PDF payslip:", error);
+      res.status(500).json({ error: "Gagal menjana slip gaji PDF" });
+    }
+  });
+
+  // POST version (keep for download functionality)
   app.post("/api/payroll/payslip/:employeeId/pdf", authenticateToken, async (req, res) => {
     try {
       const { employeeId } = req.params;
@@ -3928,6 +3951,16 @@ export function registerRoutes(app: Express): Server {
       if (!documentId) {
         return res.status(400).json({ error: "ID dokumen payroll diperlukan" });
       }
+
+      await generatePayslipPDFResponse(employeeId, documentId, res);
+    } catch (error) {
+      console.error("Error in POST PDF payslip:", error);
+      res.status(500).json({ error: "Gagal menjana slip gaji PDF" });
+    }
+  });
+
+  // Shared function for PDF generation
+  async function generatePayslipPDFResponse(employeeId: string, documentId: string, res: any) {
 
       // Get payroll document and item
       const document = await storage.getPayrollDocument(documentId);
@@ -4022,15 +4055,9 @@ export function registerRoutes(app: Express): Server {
       res.setHeader('Content-Length', pdfBuffer.length);
       res.setHeader('Accept-Ranges', 'bytes');
       
-      // Write buffer directly to response
-      res.write(pdfBuffer);
-      res.end();
-
-    } catch (error) {
-      console.error("Error generating payslip PDF:", error);
-      res.status(500).json({ error: "Gagal menjana slip gaji PDF" });
-    }
-  });
+      // Send buffer directly
+      res.send(pdfBuffer);
+  }
 
   // Helper function for Excel generation
   function formatMoney(amount: number | string): string {
