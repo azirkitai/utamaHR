@@ -247,15 +247,15 @@ export function generatePayslipHTML(templateData: any, showPreviewNote: boolean 
         <div class="tbl">
             <div class="hd">DEDUCTION</div>
             <div class="rowi">
-                <span>EPF Employee (11%)</span>
+                <span>EPF Employee</span>
                 <span class="money">RM ${templateData.deduction.epfEmp}</span>
             </div>
             <div class="rowi">
-                <span>SOCSO Employee (0.5%)</span>
+                <span>SOCSO Employee</span>
                 <span class="money">RM ${templateData.deduction.socsoEmp}</span>
             </div>
             <div class="rowi">
-                <span>EIS Employee (0.2%)</span>
+                <span>EIS Employee</span>
                 <span class="money">RM ${templateData.deduction.eisEmp}</span>
             </div>
             ${templateData.deduction.items.filter((item: any) => item.show).map((item: any) => `
@@ -283,24 +283,21 @@ export function generatePayslipHTML(templateData: any, showPreviewNote: boolean 
         <div class="tbl">
             <div class="hd">EPF EMPLOYER</div>
             <div class="rowi">
-                <span>12%</span>
-                <span class="money">RM ${templateData.employerContrib.epfEr}</span>
+                <span>RM ${templateData.employerContrib.epfEr}</span>
             </div>
         </div>
         
         <div class="tbl">
             <div class="hd">SOCSO EMPLOYER</div>
             <div class="rowi">
-                <span>1.75%</span>
-                <span class="money">RM ${templateData.employerContrib.socsoEr}</span>
+                <span>RM ${templateData.employerContrib.socsoEr}</span>
             </div>
         </div>
         
         <div class="tbl">
             <div class="hd">EIS EMPLOYER</div>
             <div class="rowi">
-                <span>0.2%</span>
-                <span class="money">RM ${templateData.employerContrib.eisEr}</span>
+                <span>RM ${templateData.employerContrib.eisEr}</span>
             </div>
         </div>
     </div>

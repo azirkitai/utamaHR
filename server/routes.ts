@@ -4272,11 +4272,23 @@ export function registerRoutes(app: Express): Server {
           socsoEr: formatMoney(contributions.socsoEmployer),
           eisEr: formatMoney(contributions.eisEmployer)
         },
-        ytd: {
-          employee: (await getYTDBreakdown(employeeId)).ytdEmployeeTotal,
-          employer: (await getYTDBreakdown(employeeId)).ytdEmployerTotal,
-          mtd: formatMoney(payrollItem.netPay)
-        }
+        ytd: await (async () => {
+          const ytdData = await getYTDBreakdown(employeeId);
+          return {
+            employee: ytdData.ytdEmployeeTotal,
+            employer: ytdData.ytdEmployerTotal,
+            mtd: formatMoney(payrollItem.netPay),
+            breakdown: {
+              epfEmployee: ytdData.ytdEpfEmployee,
+              socsoEmployee: ytdData.ytdSocsoEmployee,
+              eisEmployee: ytdData.ytdEisEmployee,
+              pcb: ytdData.ytdPcbEmployee,
+              epfEmployer: ytdData.ytdEpfEmployer,
+              socsoEmployer: ytdData.ytdSocsoEmployer,
+              eisEmployer: ytdData.ytdEisEmployer
+            }
+          };
+        })()
       };
 
       // Generate HTML preview
@@ -4439,11 +4451,23 @@ export function registerRoutes(app: Express): Server {
           socsoEr: formatMoney(contributions.socsoEmployer),
           eisEr: formatMoney(contributions.eisEmployer)
         },
-        ytd: {
-          employee: (await getYTDBreakdown(employeeId)).ytdEmployeeTotal,
-          employer: (await getYTDBreakdown(employeeId)).ytdEmployerTotal,
-          mtd: formatMoney(payrollItem.netPay)
-        }
+        ytd: await (async () => {
+          const ytdData = await getYTDBreakdown(employeeId);
+          return {
+            employee: ytdData.ytdEmployeeTotal,
+            employer: ytdData.ytdEmployerTotal,
+            mtd: formatMoney(payrollItem.netPay),
+            breakdown: {
+              epfEmployee: ytdData.ytdEpfEmployee,
+              socsoEmployee: ytdData.ytdSocsoEmployee,
+              eisEmployee: ytdData.ytdEisEmployee,
+              pcb: ytdData.ytdPcbEmployee,
+              epfEmployer: ytdData.ytdEpfEmployer,
+              socsoEmployer: ytdData.ytdSocsoEmployer,
+              eisEmployer: ytdData.ytdEisEmployer
+            }
+          };
+        })()
       };
 
       // Generate PDF using same HTML template as preview
@@ -4729,11 +4753,23 @@ export function registerRoutes(app: Express): Server {
           socsoEr: formatMoney(contributions.socsoEmployer || 0),
           eisEr: formatMoney(contributions.eisEmployer || 0)
         },
-        ytd: {
-          employee: (await getYTDBreakdown(payrollItem.employeeId)).ytdEmployeeTotal,
-          employer: (await getYTDBreakdown(payrollItem.employeeId)).ytdEmployerTotal,
-          mtd: formatMoney(payrollItem.netPay)
-        }
+        ytd: await (async () => {
+          const ytdData = await getYTDBreakdown(payrollItem.employeeId);
+          return {
+            employee: ytdData.ytdEmployeeTotal,
+            employer: ytdData.ytdEmployerTotal,
+            mtd: formatMoney(payrollItem.netPay),
+            breakdown: {
+              epfEmployee: ytdData.ytdEpfEmployee,
+              socsoEmployee: ytdData.ytdSocsoEmployee,
+              eisEmployee: ytdData.ytdEisEmployee,
+              pcb: ytdData.ytdPcbEmployee,
+              epfEmployer: ytdData.ytdEpfEmployer,
+              socsoEmployer: ytdData.ytdSocsoEmployer,
+              eisEmployer: ytdData.ytdEisEmployer
+            }
+          };
+        })()
       };
 
       // Generate Excel using template approach
