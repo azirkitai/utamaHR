@@ -11,6 +11,10 @@ import { useQuery } from "@tanstack/react-query";
 export default function PayrollDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [activeTab, setActiveTab] = useState("payroll-details");
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
+  const [selectedEmployeeName, setSelectedEmployeeName] = useState<string>("");
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
+  const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
 
   // Fetch payroll document details
   const { data: payrollDocument, isLoading: isLoadingDocument } = useQuery({
@@ -28,9 +32,40 @@ export default function PayrollDetailPage() {
     window.location.href = "/payment/salary-payroll";
   };
 
-  const handleViewPayslip = (employeeId: string) => {
-    // This would open individual payslip modal or navigate to detailed view
-    console.log("View payslip for employee:", employeeId);
+  const handleViewPayslip = async (employeeId: string, employeeName: string) => {
+    setSelectedEmployeeId(employeeId);
+    setSelectedEmployeeName(employeeName);
+    setActiveTab("payslip");
+    
+    // Generate PDF preview
+    await generatePdfPreview(employeeId, employeeName);
+  };
+
+  const generatePdfPreview = async (employeeId: string, employeeName: string) => {
+    setIsGeneratingPreview(true);
+    try {
+      const response = await fetch(`/api/payroll/payslip/${employeeId}/pdf`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('utamahr_token')}`
+        },
+        body: JSON.stringify({ documentId: id })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate PDF preview');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      setPdfPreviewUrl(url);
+    } catch (error) {
+      console.error('Error generating PDF preview:', error);
+      alert('Gagal menghasilkan preview PDF. Sila cuba lagi.');
+    } finally {
+      setIsGeneratingPreview(false);
+    }
   };
 
   const handleGeneratePDF = async (employeeId: string, employeeName: string) => {
@@ -329,7 +364,7 @@ export default function PayrollDetailPage() {
                                   variant="outline"
                                   size="sm"
                                   className="p-1 h-7 w-7 border-gray-300"
-                                  onClick={() => handleViewPayslip(item.employeeId)}
+                                  onClick={() => handleViewPayslip(item.employeeId, employeeSnapshot.name || 'N/A')}
                                   data-testid={`button-view-payslip-${item.employeeId}`}
                                 >
                                   <Eye className="w-3 h-3" />
@@ -392,10 +427,88 @@ export default function PayrollDetailPage() {
           {/* Payslip Tab */}
           <TabsContent value="payslip" className="space-y-6">
             <div className="bg-white rounded-lg border p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Individual Payslips</h3>
-              <div className="text-gray-500 text-center py-8">
-                Select an employee from the Payroll Details tab to view their individual payslip
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Individual Payslips</h3>
+                {selectedEmployeeId && (
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-600">Showing payslip for:</span>
+                    <Badge variant="secondary" className="bg-cyan-100 text-cyan-800">
+                      {selectedEmployeeName}
+                    </Badge>
+                  </div>
+                )}
               </div>
+
+              {selectedEmployeeId ? (
+                <div className="space-y-4">
+                  {/* PDF Preview Section */}
+                  <div className="border rounded-lg p-4">
+                    <div className="flex justify-between items-center mb-4">
+                      <h4 className="font-medium text-gray-900">Payslip Preview</h4>
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => generatePdfPreview(selectedEmployeeId, selectedEmployeeName)}
+                          disabled={isGeneratingPreview}
+                        >
+                          {isGeneratingPreview ? "Generating..." : "Refresh Preview"}
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => handleGeneratePDF(selectedEmployeeId, selectedEmployeeName)}
+                          className="bg-blue-900 hover:bg-blue-800 text-white"
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          Download PDF
+                        </Button>
+                      </div>
+                    </div>
+
+                    {isGeneratingPreview ? (
+                      <div className="flex justify-center items-center h-96 bg-gray-50 rounded-lg">
+                        <div className="text-center">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                          <p className="text-gray-600 mt-2">Generating PDF preview...</p>
+                        </div>
+                      </div>
+                    ) : pdfPreviewUrl ? (
+                      <div className="border rounded-lg overflow-hidden">
+                        <iframe
+                          src={pdfPreviewUrl}
+                          className="w-full h-96"
+                          title="PDF Preview"
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex justify-center items-center h-96 bg-gray-50 rounded-lg">
+                        <div className="text-center">
+                          <p className="text-gray-600">Click "Refresh Preview" to generate PDF preview</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Back to List */}
+                  <div className="flex justify-start">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedEmployeeId(null);
+                        setSelectedEmployeeName("");
+                        setPdfPreviewUrl(null);
+                        setActiveTab("payroll-details");
+                      }}
+                    >
+                      Back to Payroll Details
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-gray-500 text-center py-8">
+                  Select an employee from the Payroll Details tab to view their individual payslip
+                </div>
+              )}
             </div>
           </TabsContent>
         </Tabs>
