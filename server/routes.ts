@@ -4272,7 +4272,11 @@ export function registerRoutes(app: Express): Server {
           socsoEr: formatMoney(contributions.socsoEmployer),
           eisEr: formatMoney(contributions.eisEmployer)
         },
-        ytd: await getYTDBreakdown(employeeId)
+        ytd: {
+          employee: (await getYTDBreakdown(employeeId)).ytdEmployeeTotal,
+          employer: (await getYTDBreakdown(employeeId)).ytdEmployerTotal,
+          mtd: formatMoney(payrollItem.netPay)
+        }
       };
 
       // Generate HTML preview
@@ -4435,7 +4439,11 @@ export function registerRoutes(app: Express): Server {
           socsoEr: formatMoney(contributions.socsoEmployer),
           eisEr: formatMoney(contributions.eisEmployer)
         },
-        ytd: await getYTDBreakdown(employeeId)
+        ytd: {
+          employee: (await getYTDBreakdown(employeeId)).ytdEmployeeTotal,
+          employer: (await getYTDBreakdown(employeeId)).ytdEmployerTotal,
+          mtd: formatMoney(payrollItem.netPay)
+        }
       };
 
       // Generate PDF using same HTML template as preview
@@ -4446,7 +4454,7 @@ export function registerRoutes(app: Express): Server {
       if (templateData.company.logoHTML && companySettings?.logoUrl) {
         const logoBase64 = await convertImageToBase64(companySettings.logoUrl);
         if (logoBase64) {
-          templateData.company.logoHTML = `<img src="${logoBase64}" class="company-logo" alt="Company Logo" style="width:80px;height:80px;object-fit:contain;display:block;border:none;" />`;
+          templateData.company.logoHTML = `<img src="${logoBase64}" class="company-logo" alt="Company Logo" style="width:120px;height:120px;object-fit:contain;display:block;border:none;" />`;
         }
       }
 
@@ -4607,34 +4615,30 @@ export function registerRoutes(app: Express): Server {
       });
 
       return {
-        employee: totalYtdEmployee.toFixed(2),
-        employer: totalYtdEmployer.toFixed(2),
-        breakdown: {
-          epfEmployee: ytdEpfEmployee.toFixed(2),
-          socsoEmployee: ytdSocsoEmployee.toFixed(2),
-          eisEmployee: ytdEisEmployee.toFixed(2), 
-          pcb: ytdPcbEmployee.toFixed(2),
-          epfEmployer: ytdEpfEmployer.toFixed(2),
-          socsoEmployer: ytdSocsoEmployer.toFixed(2),
-          eisEmployer: ytdEisEmployer.toFixed(2)
-        }
+        ytdEpfEmployee: ytdEpfEmployee.toFixed(2),
+        ytdSocsoEmployee: ytdSocsoEmployee.toFixed(2),
+        ytdEisEmployee: ytdEisEmployee.toFixed(2),
+        ytdPcbEmployee: ytdPcbEmployee.toFixed(2),
+        ytdEpfEmployer: ytdEpfEmployer.toFixed(2),
+        ytdSocsoEmployer: ytdSocsoEmployer.toFixed(2),
+        ytdEisEmployer: ytdEisEmployer.toFixed(2),
+        ytdEmployeeTotal: totalYtdEmployee.toFixed(2),
+        ytdEmployerTotal: totalYtdEmployer.toFixed(2)
       };
 
     } catch (error) {
       console.error('Error fetching YTD breakdown from master salary:', error);
       // Return default values as shown in screenshot if fetch fails
       return {
-        employee: "487.60",
-        employer: "843.40",
-        breakdown: {
-          epfEmployee: "431.00",
-          socsoEmployee: "47.20",
-          eisEmployee: "9.40",
-          pcb: "0.00", 
-          epfEmployer: "716.80",
-          socsoEmployer: "107.80",
-          eisEmployer: "18.80"
-        }
+        ytdEpfEmployee: "431.00",
+        ytdSocsoEmployee: "47.20",
+        ytdEisEmployee: "9.40",
+        ytdPcbEmployee: "0.00",
+        ytdEpfEmployer: "716.80",
+        ytdSocsoEmployer: "107.80",
+        ytdEisEmployer: "18.80",
+        ytdEmployeeTotal: "487.60",
+        ytdEmployerTotal: "843.40"
       };
     }
   }
@@ -4726,8 +4730,8 @@ export function registerRoutes(app: Express): Server {
           eisEr: formatMoney(contributions.eisEmployer || 0)
         },
         ytd: {
-          employee: formatMoney(2783.00), // Should be calculated from YTD
-          employer: formatMoney(3289.00), // Should be calculated from YTD
+          employee: (await getYTDBreakdown(payrollItem.employeeId)).ytdEmployeeTotal,
+          employer: (await getYTDBreakdown(payrollItem.employeeId)).ytdEmployerTotal,
           mtd: formatMoney(payrollItem.netPay)
         }
       };
@@ -4736,7 +4740,16 @@ export function registerRoutes(app: Express): Server {
       console.log('Generating Excel using template method...');
       console.log('Template data:', JSON.stringify(templateData, null, 2));
       
-      const { excelPath, pdfPath } = await generatePayslipExcel(templateData);
+      // Add missing addressLines for Excel generation
+      const templateDataWithAddressLines = {
+        ...templateData,
+        company: {
+          ...templateData.company,
+          addressLines: [templateData.company.address]
+        }
+      };
+      
+      const { excelPath, pdfPath } = await generatePayslipExcel(templateDataWithAddressLines);
       console.log('Excel generated successfully at:', excelPath);
 
       // Import fs for file operations
