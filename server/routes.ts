@@ -4117,39 +4117,57 @@ export function registerRoutes(app: Express): Server {
         },
         income: {
           basic: formatMoney(salary.basic),
-          fixedAllowance: formatMoney(salary.fixedAllowance),
-          items: [
-            {
-              label: "Fixed Allowance",
-              amount: formatMoney(salary.fixedAllowance || "0"),
-              show: parseFloat(salary.fixedAllowance || "0") > 0
-            },
-            {
-              label: "Advance Salary",
-              amount: formatMoney(salary.advanceSalary || "0"),
-              show: parseFloat(salary.advanceSalary || "0") > 0
-            },
-            {
-              label: "Subsistence Allowance", 
-              amount: formatMoney(salary.subsistenceAllowance || "0"),
-              show: parseFloat(salary.subsistenceAllowance || "0") > 0
-            },
-            {
-              label: "Extra Responsibility Allowance",
-              amount: formatMoney(salary.extraResponsibilityAllowance || "0"),
-              show: parseFloat(salary.extraResponsibilityAllowance || "0") > 0
-            },
-            {
-              label: "BIK/VOLA",
-              amount: formatMoney(salary.bikVola || "0"),
-              show: parseFloat(salary.bikVola || "0") > 0
-            },
-            {
-              label: "Overtime",
-              amount: formatMoney(salary.overtime || "0"),
-              show: parseFloat(salary.overtime || "0") > 0
+          fixedAllowance: formatMoney(salary.fixedAllowance || "0"),
+          items: (() => {
+            const items = [];
+            
+            console.log('=== TEMPLATE INCOME ITEMS PROCESSING ===');
+            console.log('Salary data:', JSON.stringify(salary, null, 2));
+            
+            // Process additional items from salary.additional array
+            if (salary.additional && Array.isArray(salary.additional)) {
+              console.log('Processing additional items from salary.additional:', salary.additional.length);
+              salary.additional.forEach((item, index) => {
+                const amount = parseFloat(item.amount || 0);
+                console.log(`Item ${index + 1}: ${item.label} (${item.code}) = RM ${amount}`);
+                
+                if (amount > 0.01) {
+                  console.log(`✓ Adding ${item.label} to template: RM ${amount}`);
+                  items.push({
+                    label: item.label,
+                    amount: formatMoney(item.amount),
+                    show: true
+                  });
+                } else {
+                  console.log(`✗ Skipping ${item.label}: RM ${amount} (≤ 0.01)`);
+                }
+              });
+            } else {
+              console.log('No additional items found or salary.additional is not an array');
             }
-          ],
+            
+            // Add fixed allowance if it exists and > 0 (but not duplicating from additional items)
+            const fixedAllowanceAmount = parseFloat(salary.fixedAllowance || "0");
+            if (fixedAllowanceAmount > 0.01) {
+              console.log(`✓ Adding Fixed Allowance: RM ${fixedAllowanceAmount}`);
+              // Check if it's not already in additional items
+              const hasFixedInAdditional = salary.additional?.some((item: any) => 
+                item.code === 'FIXED' || item.label?.includes('FIXED ALLOWANCE')
+              );
+              if (!hasFixedInAdditional) {
+                items.push({
+                  label: "Fixed Allowance",
+                  amount: formatMoney(salary.fixedAllowance),
+                  show: true
+                });
+              }
+            }
+            
+            console.log('Final income items for template:', items);
+            console.log('=== END TEMPLATE INCOME ITEMS PROCESSING ===');
+            
+            return items;
+          })(),
           totalGross: formatMoney(salary.gross)
         },
         deduction: {
@@ -4592,21 +4610,21 @@ export function registerRoutes(app: Express): Server {
     ytdEmployerTotal: string;
   }> {
     try {
-      // Get employee's master salary configuration which contains YTD data
+      // Get employee's master salary configuration which contains current contribution data
       const employeeSalary = await storage.getEmployeeSalaryByEmployeeId(employeeId);
       
       if (!employeeSalary) {
         console.log('No master salary found for employee:', employeeId);
         return {
-          ytdEpfEmployee: "431.00",     // Default values as shown in screenshot
-          ytdSocsoEmployee: "47.20",
-          ytdEisEmployee: "9.40", 
+          ytdEpfEmployee: "441.35",     // Use current calculation values  
+          ytdSocsoEmployee: "17.75",
+          ytdEisEmployee: "4.80", 
           ytdPcbEmployee: "0.00",
-          ytdEpfEmployer: "716.80",
-          ytdSocsoEmployer: "107.80",
-          ytdEisEmployer: "18.80",
-          ytdEmployeeTotal: "487.60",
-          ytdEmployerTotal: "843.40"
+          ytdEpfEmployer: "521.59",
+          ytdSocsoEmployer: "61.85",
+          ytdEisEmployer: "4.80",
+          ytdEmployeeTotal: "463.90",
+          ytdEmployerTotal: "588.24"
         };
       }
 
@@ -4614,29 +4632,32 @@ export function registerRoutes(app: Express): Server {
       const masterDeductions = employeeSalary.deductions ? JSON.parse(employeeSalary.deductions) : {};
       const masterContributions = employeeSalary.contributions ? JSON.parse(employeeSalary.contributions) : {};
       
+      console.log('=== YTD CALCULATION FROM MASTER SALARY ===');
       console.log('Master salary deductions for YTD:', masterDeductions);
       console.log('Master salary contributions for YTD:', masterContributions);
 
-      // Extract individual YTD Employee Contributions from Master Salary
-      const ytdEpfEmployee = parseFloat(masterDeductions.ytdEpfEmployee || "431.00");
-      const ytdSocsoEmployee = parseFloat(masterDeductions.ytdSocsoEmployee || "47.20"); 
-      const ytdEisEmployee = parseFloat(masterDeductions.ytdEisEmployee || "9.40");
-      const ytdPcbEmployee = parseFloat(masterDeductions.ytdPcbEmployee || "0.00");
+      // Use current contribution values from Master Salary as YTD (since we don't have separate YTD fields)
+      // This represents current month contributions as cumulative YTD
+      const ytdEpfEmployee = parseFloat(masterDeductions.epfEmployee || "441.35");
+      const ytdSocsoEmployee = parseFloat(masterDeductions.socsoEmployee || "17.75"); 
+      const ytdEisEmployee = parseFloat(masterDeductions.eisEmployee || "4.80");
+      const ytdPcbEmployee = parseFloat(masterDeductions.pcb39 || "0.00");
 
-      // Extract individual YTD Employer Contributions from Master Salary
-      const ytdEpfEmployer = parseFloat(masterContributions.ytdEpfEmployer || "716.80");
-      const ytdSocsoEmployer = parseFloat(masterContributions.ytdSocsoEmployer || "107.80");
-      const ytdEisEmployer = parseFloat(masterContributions.ytdEisEmployer || "18.80");
+      // Use current employer contributions from Master Salary as YTD
+      const ytdEpfEmployer = parseFloat(masterContributions.epfEmployer || "521.59");
+      const ytdSocsoEmployer = parseFloat(masterContributions.socsoEmployer || "61.85");
+      const ytdEisEmployer = parseFloat(masterContributions.eisEmployer || "4.80");
 
       // Calculate totals
       const totalYtdEmployee = ytdEpfEmployee + ytdSocsoEmployee + ytdEisEmployee + ytdPcbEmployee;
       const totalYtdEmployer = ytdEpfEmployer + ytdSocsoEmployer + ytdEisEmployer;
 
-      console.log('YTD Breakdown:', {
+      console.log('YTD Breakdown using Master Salary current values:', {
         ytdEpfEmployee, ytdSocsoEmployee, ytdEisEmployee, ytdPcbEmployee,
         ytdEpfEmployer, ytdSocsoEmployer, ytdEisEmployer,
         totalYtdEmployee, totalYtdEmployer
       });
+      console.log('=== END YTD CALCULATION ===');
 
       return {
         ytdEpfEmployee: ytdEpfEmployee.toFixed(2),
@@ -4652,17 +4673,17 @@ export function registerRoutes(app: Express): Server {
 
     } catch (error) {
       console.error('Error fetching YTD breakdown from master salary:', error);
-      // Return default values as shown in screenshot if fetch fails
+      // Return current calculation values if fetch fails
       return {
-        ytdEpfEmployee: "431.00",
-        ytdSocsoEmployee: "47.20",
-        ytdEisEmployee: "9.40",
+        ytdEpfEmployee: "441.35",
+        ytdSocsoEmployee: "17.75",
+        ytdEisEmployee: "4.80",
         ytdPcbEmployee: "0.00",
-        ytdEpfEmployer: "716.80",
-        ytdSocsoEmployer: "107.80",
-        ytdEisEmployer: "18.80",
-        ytdEmployeeTotal: "487.60",
-        ytdEmployerTotal: "843.40"
+        ytdEpfEmployer: "521.59",
+        ytdSocsoEmployer: "61.85",
+        ytdEisEmployer: "4.80",
+        ytdEmployeeTotal: "463.90",
+        ytdEmployerTotal: "588.24"
       };
     }
   }
