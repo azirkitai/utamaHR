@@ -1279,7 +1279,7 @@ export default function EmployeeSalaryDetailsPage() {
         epf: currentMonthEmployee.epf > 0 ? remarkText : '',
         socso: currentMonthEmployee.socso > 0 ? remarkText : '',
         eis: currentMonthEmployee.eis > 0 ? remarkText : '',
-        pcb: currentMonthEmployee.pcb > 0 ? remarkText : ''
+        pcb: currentMonthEmployee.pcb > 0 ? 'YTD bulan 6 + 7 (data terkumpul)' : ''
       },
       employer: {
         epf: currentMonthEmployer.epf > 0 ? remarkText : '',
