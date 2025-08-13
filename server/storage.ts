@@ -2576,7 +2576,41 @@ export class DatabaseStorage implements IStorage {
           let masterSalaryData = null;
           try {
             masterSalaryData = await this.getMasterSalaryData(employee.id);
-            console.log('Master Salary Data for', employee.fullName, ':', JSON.stringify(masterSalaryData, null, 2));
+            console.log('=== MASTER SALARY DATA CAPTURE ===');
+            console.log('Employee:', employee.fullName);
+            console.log('Employee ID:', employee.id);
+            console.log('Raw Master Salary Data:');
+            console.log(JSON.stringify(masterSalaryData, null, 2));
+            
+            if (masterSalaryData) {
+              console.log('=== BREAKDOWN OF CAPTURED DATA ===');
+              console.log('Basic Salary:', masterSalaryData.basicSalary);
+              console.log('Salary Type:', masterSalaryData.salaryType);
+              console.log('Additional Items:');
+              masterSalaryData.additionalItems?.forEach((item: any, index: number) => {
+                console.log(`  ${index + 1}. ${item.label} (${item.code}): RM ${item.amount}`);
+              });
+              console.log('Deductions:');
+              if (masterSalaryData.deductions) {
+                Object.keys(masterSalaryData.deductions).forEach(key => {
+                  console.log(`  ${key}: RM ${masterSalaryData.deductions[key]}`);
+                });
+              }
+              console.log('Contributions:');
+              if (masterSalaryData.contributions) {
+                Object.keys(masterSalaryData.contributions).forEach(key => {
+                  console.log(`  ${key}: RM ${masterSalaryData.contributions[key]}`);
+                });
+              }
+              console.log('Settings:');
+              if (masterSalaryData.settings) {
+                console.log('  EPF Employee Rate:', masterSalaryData.settings.epfEmployeeRate + '%');
+                console.log('  EPF Employer Rate:', masterSalaryData.settings.epfEmployerRate + '%');
+                console.log('  SOCSO Enabled:', masterSalaryData.settings.isSocsoEnabled);
+                console.log('  EIS Enabled:', masterSalaryData.settings.isEisEnabled);
+              }
+              console.log('=== END BREAKDOWN ===');
+            }
           } catch (error) {
             console.log('No Master Salary Configuration found for', employee.fullName, 'Error:', error.message);
           }
@@ -2590,6 +2624,19 @@ export class DatabaseStorage implements IStorage {
           const overtimeAmount = 0; // Simplified for now
           const claimsData = []; // Simplified for now
           const unpaidLeaveData = { days: 0, amount: 0 }; // Simplified for now
+
+          // Calculate the deductions and contributions from master salary data
+          const finalDeductions = this.generateDeductionsFromMasterSalary(basicSalary, masterSalaryData);
+          const finalContributions = {
+            epfEmployer: this.calculateEPFEmployer(basicSalary.toString()),
+            socsoEmployer: this.calculateSOCSO(basicSalary.toString(), 'employer'),
+            eisEmployer: this.calculateEIS(basicSalary.toString(), 'employer'),
+            hrdf: '0',
+            other: Object.entries(contributions || {}).map(([name, amount]) => ({
+              name,
+              amount: amount?.toString() || '0'
+            }))
+          };
 
           // Create payroll item
           const payrollItemData: InsertPayrollItem = {
@@ -2616,17 +2663,8 @@ export class DatabaseStorage implements IStorage {
         claims: JSON.stringify(claimsData),
         unpaidLeave: JSON.stringify(unpaidLeaveData),
         lateness: JSON.stringify({ minutes: 0, amount: 0 }), // To be implemented
-        deductions: JSON.stringify(this.generateDeductionsFromMasterSalary(basicSalary, masterSalaryData)),
-        contributions: JSON.stringify({
-          epfEmployer: this.calculateEPFEmployer(basicSalary.toString()),
-          socsoEmployer: this.calculateSOCSO(basicSalary.toString(), 'employer'),
-          eisEmployer: this.calculateEIS(basicSalary.toString(), 'employer'),
-          hrdf: '0',
-          other: Object.entries(contributions || {}).map(([name, amount]) => ({
-            name,
-            amount: amount?.toString() || '0'
-          }))
-        }),
+        deductions: JSON.stringify(finalDeductions),
+        contributions: JSON.stringify(finalContributions),
         netPay: this.calculateNetPay({ amount: basicSalary.toString() }, additionalItems, [], { amount: overtimeAmount }),
         audit: JSON.stringify({
           generatedAt: new Date().toISOString(),
@@ -2634,6 +2672,15 @@ export class DatabaseStorage implements IStorage {
           recalcAt: []
         })
       };
+
+          console.log('=== FINAL PAYROLL ITEM DATA ===');
+          console.log('Employee:', employee.fullName);
+          console.log('Employee Snapshot:', JSON.parse(payrollItemData.employeeSnapshot));
+          console.log('Salary Data:', JSON.parse(payrollItemData.salary));
+          console.log('Final Deductions:', finalDeductions);
+          console.log('Final Contributions:', finalContributions);
+          console.log('Net Pay:', payrollItemData.netPay);
+          console.log('=== END FINAL PAYROLL DATA ===');
 
           const createdItem = await this.createPayrollItem(payrollItemData);
           generatedItems.push(createdItem);
