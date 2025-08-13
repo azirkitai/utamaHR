@@ -4441,6 +4441,14 @@ export function registerRoutes(app: Express): Server {
       console.log('Generating PDF using HTML template method...');
       console.log('Template data:', JSON.stringify(templateData, null, 2));
       
+      // Convert logo to base64 for PDF compatibility
+      if (templateData.company.logoHTML && companySettings?.logoUrl) {
+        const logoBase64 = await convertImageToBase64(companySettings.logoUrl);
+        if (logoBase64) {
+          templateData.company.logoHTML = `<img src="${logoBase64}" class="company-logo" alt="Company Logo" style="width:80px;height:80px;object-fit:contain;display:block;border:none;" />`;
+        }
+      }
+
       // Use same HTML generator as preview but without preview note for PDF
       const htmlContent = generatePayslipHTML(templateData, false);
       
@@ -4461,6 +4469,30 @@ export function registerRoutes(app: Express): Server {
       
       // Send buffer directly
       res.send(pdfBuffer);
+  }
+
+  // Helper function to convert image URL to base64
+  async function convertImageToBase64(imageUrl: string): Promise<string> {
+    try {
+      // Convert relative URL to full URL for local access
+      const fullUrl = imageUrl.startsWith('http') ? imageUrl : `http://localhost:5000${imageUrl}`;
+      console.log('Converting image URL to base64:', fullUrl);
+      
+      const response = await fetch(fullUrl);
+      if (!response.ok) {
+        console.log('Failed to fetch image:', response.status);
+        return '';
+      }
+      
+      const buffer = await response.arrayBuffer();
+      const base64 = Buffer.from(buffer).toString('base64');
+      const mimeType = response.headers.get('content-type') || 'image/png';
+      
+      return `data:${mimeType};base64,${base64}`;
+    } catch (error) {
+      console.error('Error converting image to base64:', error);
+      return '';
+    }
   }
 
   // Helper function to convert HTML to PDF using Puppeteer
