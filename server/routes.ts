@@ -3890,14 +3890,28 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Create company settings
+  // Create or update company settings (upsert)
   app.post("/api/company-settings", authenticateToken, async (req, res) => {
     try {
       const validatedData = insertCompanySettingSchema.parse(req.body);
-      const settings = await storage.createCompanySettings(validatedData);
-      res.status(201).json(settings);
+      
+      // Check if company settings already exist
+      const existingSettings = await storage.getCompanySettings();
+      
+      let settings;
+      if (existingSettings) {
+        // Update existing settings
+        console.log("Updating existing company settings with ID:", existingSettings.id);
+        settings = await storage.updateCompanySettings(existingSettings.id, validatedData);
+      } else {
+        // Create new settings
+        console.log("Creating new company settings");
+        settings = await storage.createCompanySettings(validatedData);
+      }
+      
+      res.json(settings);
     } catch (error) {
-      console.error("Error creating company settings:", error);
+      console.error("Error saving company settings:", error);
       res.status(500).json({ error: "Gagal menyimpan tetapan syarikat" });
     }
   });

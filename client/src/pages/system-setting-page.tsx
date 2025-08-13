@@ -916,8 +916,113 @@ export default function SystemSettingPage() {
     }));
   };
 
+  // Company settings mutation
+  const updateCompanySettingsMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const token = localStorage.getItem("utamahr_token");
+      if (!token) {
+        throw new Error("Token tidak dijumpai. Sila log masuk semula.");
+      }
+
+      const response = await fetch("/api/company-settings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error("Gagal menyimpan maklumat syarikat");
+      }
+
+      return response.json();
+    },
+    onSuccess: (response) => {
+      toast({
+        title: "Berjaya!",
+        description: "Maklumat syarikat telah disimpan dengan berjaya",
+      });
+      console.log("Data yang disimpan:", response);
+      
+      // Refresh company settings query
+      queryClient.invalidateQueries({ queryKey: ["/api/company-settings"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Ralat",
+        description: error.message || "Gagal menyimpan maklumat syarikat",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Load existing company settings
+  const { data: existingCompanySettings } = useQuery({
+    queryKey: ["/api/company-settings"],
+    onSuccess: (data) => {
+      if (data) {
+        // Update companyData state with real data from database
+        setCompanyData({
+          companyName: data.companyName || "",
+          companyShortName: data.companyShortName || "",
+          companyRegNo: data.companyRegistrationNumber || "",
+          companyType: data.companyType || "",
+          industry: data.industry || "",
+          companyEmail: data.email || "",
+          companyPhone: data.phoneNumber || "",
+          companyFax: data.faxNumber || "",
+          streetAddress: data.address || "",
+          state: data.state || "",
+          city: data.city || "",
+          postcode: data.postcode || "",
+          country: data.country || "",
+          bankName: data.bankName || "",
+          bankAccountNo: data.bankAccountNumber || "",
+          epfNo: data.epfNumber || "",
+          socsoNo: data.socsoNumber || "",
+          incomeTaxNo: data.incomeTaxNumber || "",
+          employerNo: data.employerNumber || "",
+          lhdnBranch: data.lhdnBranch || "",
+          originatorId: data.originatorId || "",
+          zakatNo: data.zakatNumber || "",
+          cNumber: data.cNumber || ""
+        });
+      }
+    }
+  });
+
   const handleUpdate = () => {
-    console.log("Update company data:", companyData);
+    // Map frontend state to backend schema
+    const companySettingsData = {
+      companyName: companyData.companyName,
+      companyShortName: companyData.companyShortName,
+      companyRegistrationNumber: companyData.companyRegNo,
+      companyType: companyData.companyType,
+      industry: companyData.industry,
+      email: companyData.companyEmail,
+      phoneNumber: companyData.companyPhone,
+      faxNumber: companyData.companyFax,
+      address: companyData.streetAddress,
+      city: companyData.city,
+      postcode: companyData.postcode,
+      state: companyData.state,
+      country: companyData.country,
+      bankName: companyData.bankName,
+      bankAccountNumber: companyData.bankAccountNo,
+      epfNumber: companyData.epfNo,
+      socsoNumber: companyData.socsoNo,
+      incomeTaxNumber: companyData.incomeTaxNo,
+      employerNumber: companyData.employerNo,
+      lhdnBranch: companyData.lhdnBranch,
+      originatorId: companyData.originatorId,
+      zakatNumber: companyData.zakatNo,
+      cNumber: companyData.cNumber
+    };
+
+    console.log("Saving company settings:", companySettingsData);
+    updateCompanySettingsMutation.mutate(companySettingsData);
   };
 
   const handleSaveLeaveApproval = async () => {

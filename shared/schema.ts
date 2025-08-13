@@ -274,17 +274,41 @@ export const disciplinary = pgTable("disciplinary", {
 // Company Settings Table (for system-wide company configuration)
 export const companySettings = pgTable("company_settings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Basic Company Information
   companyName: text("company_name").notNull(),
+  companyShortName: text("company_short_name"),
   companyRegistrationNumber: text("company_registration_number"),
+  companyType: text("company_type"),
+  industry: text("industry"),
+  
+  // Contact Information
+  email: text("email"),
+  phoneNumber: text("phone_number"),
+  faxNumber: text("fax_number"),
+  website: text("website"),
+  
+  // Address Information
   address: text("address"),
   city: text("city"),
   postcode: text("postcode"),
   state: text("state"),
   country: text("country"),
-  phoneNumber: text("phone_number"),
-  email: text("email"),
-  website: text("website"),
+  
+  // Logo and Branding
   logoUrl: text("logo_url"),
+  
+  // Bank & Account Details
+  bankName: text("bank_name"),
+  bankAccountNumber: text("bank_account_number"),
+  epfNumber: text("epf_number"),
+  socsoNumber: text("socso_number"),
+  incomeTaxNumber: text("income_tax_number"),
+  employerNumber: text("employer_number"),
+  lhdnBranch: text("lhdn_branch"),
+  originatorId: text("originator_id"),
+  zakatNumber: text("zakat_number"),
+  cNumber: text("c_number"),
   
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
