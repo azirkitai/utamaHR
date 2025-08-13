@@ -1,5 +1,5 @@
 // HTML Preview Generator for Payslip (sama layout macam PDF tapi HTML)
-export function generatePayslipHTML(templateData: any): string {
+export function generatePayslipHTML(templateData: any, showPreviewNote: boolean = true): string {
   return `
 <!DOCTYPE html>
 <html lang="ms">
@@ -44,6 +44,9 @@ export function generatePayslipHTML(templateData: any): string {
             width: 80px;
             height: 80px;
             object-fit: contain;
+            display: block;
+            margin: 0;
+            border: none;
         }
         
         .company-info {
@@ -190,9 +193,9 @@ export function generatePayslipHTML(templateData: any): string {
     </style>
 </head>
 <body>
-    <div class="preview-note">
+    ${showPreviewNote ? `<div class="preview-note">
         📄 PREVIEW SLIP GAJI - Format sama seperti PDF yang akan dijana
-    </div>
+    </div>` : ''}
 
     <div class="confidential">STRICTLY PRIVATE &amp; CONFIDENTIAL</div>
     <div class="header-container">

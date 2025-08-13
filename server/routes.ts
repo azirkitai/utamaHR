@@ -4097,7 +4097,7 @@ export function registerRoutes(app: Express): Server {
             `${companySettings.address}${companySettings.postcode ? ', ' + companySettings.postcode : ''}${companySettings.city ? ', ' + companySettings.city : ''}${companySettings.state ? ', ' + companySettings.state : ''}` :
             "A2-22-3, SOHO SUITES @ KLCC, 20 JALAN PERAK, 50450 KUALA LUMPUR, WILAYAH PERSEKUTUAN",
           logoHTML: companySettings?.logoUrl ? 
-            `<img src="${companySettings.logoUrl}" class="company-logo" alt="Company Logo" style="max-width:80px;max-height:80px;object-fit:contain;" />` : 
+            `<img src="${companySettings.logoUrl}" class="company-logo" alt="Company Logo" style="width:80px;height:80px;object-fit:contain;display:block;border:none;" />` : 
             ""
         },
         employee: {
@@ -4359,7 +4359,7 @@ export function registerRoutes(app: Express): Server {
             `${companySettings.address}${companySettings.postcode ? ', ' + companySettings.postcode : ''}${companySettings.city ? ', ' + companySettings.city : ''}${companySettings.state ? ', ' + companySettings.state : ''}` :
             "A2-22-3, SOHO SUITES @ KLCC, 20 JALAN PERAK, 50450 KUALA LUMPUR, WILAYAH PERSEKUTUAN",
           logoHTML: companySettings?.logoUrl ? 
-            `<img src="${companySettings.logoUrl}" class="company-logo" alt="Company Logo" style="max-width:80px;max-height:80px;object-fit:contain;" />` : 
+            `<img src="${companySettings.logoUrl}" class="company-logo" alt="Company Logo" style="width:80px;height:80px;object-fit:contain;display:block;border:none;" />` : 
             ""
         },
         employee: {
@@ -4441,8 +4441,8 @@ export function registerRoutes(app: Express): Server {
       console.log('Generating PDF using HTML template method...');
       console.log('Template data:', JSON.stringify(templateData, null, 2));
       
-      // Use same HTML generator as preview to ensure consistency
-      const htmlContent = generatePayslipHTML(templateData);
+      // Use same HTML generator as preview but without preview note for PDF
+      const htmlContent = generatePayslipHTML(templateData, false);
       
       // Generate PDF from HTML using Puppeteer
       const pdfBuffer = await convertHTMLToPDF(htmlContent);
