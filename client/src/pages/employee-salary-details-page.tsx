@@ -3609,9 +3609,6 @@ export default function EmployeeSalaryDetailsPage() {
                         {ytdRemarks.employee.pcb && (
                           <p className="text-xs text-gray-500">{ytdRemarks.employee.pcb}</p>
                         )}
-                        <p className="text-xs text-blue-600 font-medium">
-                          🔗 Dikaitkan dengan MTD/PCB - Nilai akan dikemas kini secara automatik apabila MTD/PCB berubah
-                        </p>
                       </div>
                     </div>
 
