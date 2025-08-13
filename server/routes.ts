@@ -1791,21 +1791,8 @@ export function registerRoutes(app: Express): Server {
 
   // =================== OBJECT STORAGE ROUTES ===================
   
-  // Serve public objects (for company logo, etc.)
-  app.get("/public-objects/:filePath(*)", async (req, res) => {
-    const filePath = req.params.filePath;
-    const objectStorageService = new ObjectStorageService();
-    try {
-      const file = await objectStorageService.searchPublicObject(filePath);
-      if (!file) {
-        return res.status(404).json({ error: "File not found" });
-      }
-      objectStorageService.downloadObject(file, res);
-    } catch (error) {
-      console.error("Error searching for public object:", error);
-      return res.status(500).json({ error: "Internal server error" });
-    }
-  });
+  // Serve public objects (for company logo, etc.) - using objects path instead
+  // We will serve company logo through /objects/ path for now
 
   // The endpoint for serving private objects with authentication and ACL check
   app.get("/objects/:objectPath(*)", authenticateToken, async (req, res) => {
@@ -4009,6 +3996,8 @@ export function registerRoutes(app: Express): Server {
       const employee = await storage.getEmployee(employeeId);
       const employment = await storage.getEmploymentByEmployeeId(employeeId);
       const companySettings = await storage.getCompanySettings();
+      
+      console.log("Company settings retrieved:", companySettings);
 
       if (!document || !payrollItem || !employee) {
         return res.status(404).json({ error: "Data payroll tidak dijumpai" });
@@ -4041,7 +4030,7 @@ export function registerRoutes(app: Express): Server {
         employee: {
           name: employee.fullName || employeeSnapshot.name,
           icNo: employee.nric || employeeSnapshot.nric || "",
-          position: employeeSnapshot.position || employment?.position || ""
+          position: employeeSnapshot.position || employment?.designation || ""
         },
         period: {
           month: getMonthName(document.month),
