@@ -11,7 +11,7 @@ interface PayslipData {
   company: {
     name: string;
     regNo: string;
-    addressLines: string[];
+    address: string;
   };
   employee: {
     name: string;
@@ -78,8 +78,7 @@ export async function generatePayslipPDF(data: PayslipData): Promise<Buffer> {
       // Company info
       .replace('{{company.name}}', data.company.name)
       .replace('{{company.regNo}}', data.company.regNo)
-      .replace('{{company.address1}}', data.company.addressLines[0] || '')
-      .replace('{{company.address2}}', data.company.addressLines[1] || '')
+      .replace('{{company.address}}', data.company.address)
       
       // Employee info
       .replace('{{employee.name}}', data.employee.name)
