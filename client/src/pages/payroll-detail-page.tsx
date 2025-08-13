@@ -83,7 +83,8 @@ export default function PayrollDetailPage() {
     try {
       // Import PDF.js dynamically
       const pdfjsLib = await import('pdfjs-dist');
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      // Use the same version for both API and worker
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
       
       const arrayBuffer = await pdfBlob.arrayBuffer();
       const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
@@ -97,7 +98,11 @@ export default function PayrollDetailPage() {
       const context = canvas.getContext('2d');
       if (!context) return;
       
-      const viewport = page.getViewport({ scale: 1.5 });
+      // Calculate scale to fit container
+      const containerWidth = canvas.parentElement?.clientWidth || 400;
+      const scale = Math.min(containerWidth / page.getViewport({ scale: 1 }).width, 1.2);
+      
+      const viewport = page.getViewport({ scale });
       canvas.height = viewport.height;
       canvas.width = viewport.width;
       
@@ -116,10 +121,10 @@ export default function PayrollDetailPage() {
       const loadingDiv = document.getElementById('pdf-loading');
       if (loadingDiv) {
         loadingDiv.innerHTML = `
-          <div class="text-center">
+          <div class="text-center p-4">
             <p class="text-red-600 mb-2">Failed to load PDF preview</p>
-            <button onclick="window.open('${pdfPreviewUrl}', '_blank')" class="text-blue-600 underline">
-              Open in new tab instead
+            <button onclick="window.open('${pdfPreviewUrl}', '_blank')" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+              Open in New Tab
             </button>
           </div>
         `;
@@ -561,34 +566,101 @@ export default function PayrollDetailPage() {
                           </div>
                         </div>
                       ) : pdfPreviewUrl ? (
-                        <div className="border rounded-lg overflow-hidden bg-white">
-                          <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b flex items-center justify-between">
-                            <h5 className="font-medium text-gray-800">Payslip Preview: {selectedEmployeeName}</h5>
-                            <div className="flex space-x-2">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                          {/* PDF Preview Panel */}
+                          <div className="bg-white rounded-lg border shadow-sm">
+                            <div className="p-4 border-b bg-gray-50">
+                              <h5 className="font-medium text-gray-800">PDF Preview</h5>
+                            </div>
+                            <div className="p-4 bg-gray-100" style={{ height: '600px', overflow: 'auto' }}>
+                              <div className="relative w-full h-full flex items-center justify-center">
+                                <canvas
+                                  id="pdf-canvas"
+                                  className="border shadow-sm bg-white"
+                                  style={{ maxWidth: '100%', maxHeight: '100%' }}
+                                />
+                                <div 
+                                  id="pdf-loading" 
+                                  className="absolute inset-0 flex items-center justify-center bg-gray-100"
+                                  style={{ display: 'block' }}
+                                >
+                                  <div className="text-center">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                                    <p className="text-gray-600">Loading PDF...</p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Payslip Details Panel */}
+                          <div className="bg-white rounded-lg border shadow-sm">
+                            <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
+                              <h5 className="font-medium text-gray-800">SALARY SLIP - JULY 2025</h5>
                               <Button
                                 size="sm"
                                 onClick={() => handleGeneratePDF(selectedEmployeeId, selectedEmployeeName)}
                                 className="bg-blue-600 hover:bg-blue-700 text-white"
                               >
                                 <Download className="w-4 h-4 mr-2" />
-                                Download
+                                Download PDF
                               </Button>
                             </div>
-                          </div>
-                          <div className="relative bg-gray-200" style={{ height: '700px' }}>
-                            <canvas
-                              id="pdf-canvas"
-                              className="w-full h-full"
-                              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                            />
-                            <div 
-                              id="pdf-loading" 
-                              className="absolute inset-0 flex items-center justify-center bg-gray-100"
-                              style={{ display: 'block' }}
-                            >
-                              <div className="text-center">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                                <p className="text-gray-600">Loading PDF...</p>
+                            <div className="p-6 space-y-6">
+                              {/* Employee Info */}
+                              <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                  <p><span className="font-medium">Employee No.:</span> TEMP-7845</p>
+                                  <p><span className="font-medium">Name:</span> {selectedEmployeeName.toUpperCase()}</p>
+                                  <p><span className="font-medium">IC No.:</span> (Not Stated)</p>
+                                  <p><span className="font-medium">Bank Account No.:</span> (Not Stated)</p>
+                                </div>
+                                <div>
+                                  <p><span className="font-medium">Payroll Date:</span> 2025-08-11</p>
+                                  <p><span className="font-medium">EPF No.:</span> -</p>
+                                  <p><span className="font-medium">SOCSO No.:</span> -</p>
+                                  <p><span className="font-medium">Income Tax No.:</span> -</p>
+                                </div>
+                              </div>
+                              
+                              {/* Payment Details */}
+                              <div>
+                                <h6 className="font-semibold mb-3 pb-2 border-b">Payment Details</h6>
+                                <div className="grid grid-cols-3 gap-4 text-sm">
+                                  <div className="font-medium">Payment</div>
+                                  <div className="font-medium">Amount (RM)</div>
+                                  <div className="font-medium">Deduction</div>
+                                </div>
+                                <div className="grid grid-cols-3 gap-4 text-sm mt-2">
+                                  <div>Basic Salary</div>
+                                  <div>1,000.00</div>
+                                  <div></div>
+                                </div>
+                                <div className="grid grid-cols-3 gap-4 text-sm border-t pt-2 mt-2">
+                                  <div>Total Gross Salary</div>
+                                  <div>1,000.00</div>
+                                  <div>Total Deduction</div>
+                                </div>
+                                <div className="grid grid-cols-3 gap-4 text-sm font-semibold">
+                                  <div>NET PAY : Malaysia Ringgit</div>
+                                  <div></div>
+                                  <div>883.00</div>
+                                </div>
+                              </div>
+                              
+                              {/* Company Contribution */}
+                              <div>
+                                <h6 className="font-semibold mb-3 pb-2 border-b">Company Contribution</h6>
+                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                  <div>
+                                    <p>KWSP / EPF (Employer): RM 120.00</p>
+                                    <p>SIP (Employer): RM 0.00</p>
+                                  </div>
+                                  <div>
+                                    <p>SOCSO (Employer): RM 17.50</p>
+                                    <p>HRDF: RM 0.00</p>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           </div>
