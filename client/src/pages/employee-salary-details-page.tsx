@@ -2710,23 +2710,7 @@ export default function EmployeeSalaryDetailsPage() {
 
                 {/* EIS Employee (auto calculated) */}
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label className="font-medium">EIS Employee</Label>
-                    <Switch
-                      checked={isEisEnabled}
-                      onCheckedChange={(checked) => {
-                        setIsEisEnabled(checked);
-                        if (!checked) {
-                          // Clear EIS Employee and Employer amounts when disabled
-                          updateSalaryData({ 
-                            deductions: { ...salaryData.deductions, eisEmployee: 0 },
-                            contributions: { ...salaryData.contributions, eisEmployer: 0 }
-                          });
-                        }
-                      }}
-                      data-testid="switch-eis-setting"
-                    />
-                  </div>
+                  <Label className="font-medium">EIS Employee</Label>
                   <div className="flex">
                     <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
                       <span className="text-sm font-medium">RM</span>
