@@ -5,6 +5,7 @@ import { storage } from "./storage";
 import { generatePayslipPDF } from './payslip-html-generator';
 import { generatePayslipExcel } from './payslip-excel-generator';
 import { generatePayslipHTML } from './payslip-html-preview';
+import puppeteer from 'puppeteer';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
@@ -4436,11 +4437,15 @@ export function registerRoutes(app: Express): Server {
         }
       };
 
-      // Generate PDF using HTML template approach with Puppeteer
+      // Generate PDF using same HTML template as preview
       console.log('Generating PDF using HTML template method...');
       console.log('Template data:', JSON.stringify(templateData, null, 2));
       
-      const pdfBuffer = await generatePayslipPDF(templateData);
+      // Use same HTML generator as preview to ensure consistency
+      const htmlContent = generatePayslipHTML(templateData);
+      
+      // Generate PDF from HTML using Puppeteer
+      const pdfBuffer = await convertHTMLToPDF(htmlContent);
       console.log('PDF generated successfully, buffer size:', pdfBuffer.length);
 
       // Set headers for PDF inline display with iframe support
@@ -4456,6 +4461,51 @@ export function registerRoutes(app: Express): Server {
       
       // Send buffer directly
       res.send(pdfBuffer);
+  }
+
+  // Helper function to convert HTML to PDF using Puppeteer
+  async function convertHTMLToPDF(htmlContent: string): Promise<Buffer> {
+    console.log('Launching browser for HTML-to-PDF conversion...');
+    const browser = await puppeteer.launch({
+      headless: true,
+      executablePath: '/nix/store/zi4f80l169xlmivz8vja8wlphq74qqk0-chromium-125.0.6422.141/bin/chromium',
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--single-process',
+        '--disable-gpu',
+        '--disable-web-security',
+        '--disable-extensions'
+      ]
+    });
+    
+    console.log('Creating new page...');
+    const page = await browser.newPage();
+    
+    console.log('Setting HTML content...');
+    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+    
+    console.log('Generating PDF...');
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: {
+        top: '18mm',
+        right: '18mm',
+        bottom: '18mm',
+        left: '18mm'
+      }
+    });
+    
+    console.log('PDF generated successfully, buffer size:', pdfBuffer.length);
+    
+    await browser.close();
+    
+    return Buffer.from(pdfBuffer);
   }
 
   // Helper function for Excel generation
