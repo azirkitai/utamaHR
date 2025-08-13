@@ -205,12 +205,7 @@ const navigationItems: { category: string; items: SidebarItem[] }[] = [
             icon: <Banknote className="w-3 h-3" />,
             href: "/payment/salary-payroll",
           },
-          {
-            id: "payroll",
-            label: "Payroll Management",
-            icon: <FileText className="w-3 h-3" />,
-            href: "/payroll",
-          },
+
           {
             id: "payment-voucher",
             label: "Payment Voucher",
