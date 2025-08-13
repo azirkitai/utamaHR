@@ -69,10 +69,7 @@ export default function PayrollDetailPage() {
       console.log('Generated PDF URL:', url);
       setPdfPreviewUrl(url);
       
-      // Render PDF using PDF.js with a small delay to ensure UI is ready
-      setTimeout(() => {
-        renderPdfToCanvas(blob);
-      }, 100);
+      // PDF URL is ready for iframe display
     } catch (error) {
       console.error('Error generating PDF preview:', error);
       alert('Gagal menghasilkan preview PDF. Sila cuba lagi.');
@@ -81,70 +78,7 @@ export default function PayrollDetailPage() {
     }
   };
 
-  const renderPdfToCanvas = async (pdfBlob: Blob) => {
-    const loadingDiv = document.getElementById('pdf-loading');
-    
-    try {
-      // Import PDF.js dynamically with proper worker setup
-      const pdfjsLib = await import('pdfjs-dist');
-      
-      // Use a stable worker URL that matches the installed version
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
-      
-      const arrayBuffer = await pdfBlob.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-      const page = await pdf.getPage(1);
-      
-      const canvas = document.getElementById('pdf-canvas') as HTMLCanvasElement;
-      
-      if (!canvas) return;
-      
-      const context = canvas.getContext('2d');
-      if (!context) return;
-      
-      // Calculate scale to fit container
-      const containerWidth = canvas.parentElement?.clientWidth || 400;
-      const originalViewport = page.getViewport({ scale: 1 });
-      const scale = Math.min(containerWidth / originalViewport.width, 1.5);
-      
-      const viewport = page.getViewport({ scale });
-      canvas.height = viewport.height;
-      canvas.width = viewport.width;
-      
-      await page.render({
-        canvasContext: context,
-        viewport: viewport
-      }).promise;
-      
-      if (loadingDiv) {
-        loadingDiv.style.display = 'none';
-      }
-      
-      console.log('PDF rendered to canvas successfully');
-    } catch (error) {
-      console.error('Error rendering PDF to canvas:', error);
-      
-      // Show fallback UI
-      if (loadingDiv) {
-        loadingDiv.innerHTML = `
-          <div class="text-center p-6">
-            <div class="mb-4">
-              <svg class="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-              </svg>
-              <p class="text-gray-600 mb-4">PDF preview tidak dapat dipaparkan</p>
-            </div>
-            <button onclick="window.open('${pdfPreviewUrl}', '_blank')" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-              Buka PDF dalam Tab Baru
-            </button>
-          </div>
-        `;
-        loadingDiv.style.display = 'flex';
-        loadingDiv.style.alignItems = 'center';
-        loadingDiv.style.justifyContent = 'center';
-      }
-    }
-  };
+
 
   const handleGeneratePDF = async (employeeId: string, employeeName: string) => {
     try {
@@ -169,7 +103,7 @@ export default function PayrollDetailPage() {
       const a = document.createElement('a');
       a.style.display = 'none';
       a.href = url;
-      a.download = `Payslip_${employeeName.replace(/\s+/g, '_')}_${payrollDocument?.month}_${payrollDocument?.year}.pdf`;
+      a.download = `Payslip_${employeeName.replace(/\s+/g, '_')}_7_2025.pdf`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -586,24 +520,15 @@ export default function PayrollDetailPage() {
                             <div className="p-4 border-b bg-gray-50">
                               <h5 className="font-medium text-gray-800">PDF Preview</h5>
                             </div>
-                            <div className="p-4 bg-gray-100" style={{ height: '600px', overflow: 'auto' }}>
-                              <div className="relative w-full h-full flex items-center justify-center">
-                                <canvas
-                                  id="pdf-canvas"
-                                  className="border shadow-sm bg-white"
-                                  style={{ maxWidth: '100%', maxHeight: '100%' }}
-                                />
-                                <div 
-                                  id="pdf-loading" 
-                                  className="absolute inset-0 flex items-center justify-center bg-gray-100"
-                                  style={{ display: 'block' }}
-                                >
-                                  <div className="text-center">
-                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                                    <p className="text-gray-600">Loading PDF...</p>
-                                  </div>
-                                </div>
-                              </div>
+                            <div className="p-4 bg-gray-100" style={{ height: '600px' }}>
+                              <iframe
+                                src={pdfPreviewUrl}
+                                width="100%"
+                                height="100%"
+                                style={{ border: 'none', borderRadius: '4px' }}
+                                title="PDF Preview"
+                                className="bg-white shadow-sm"
+                              />
                             </div>
                           </div>
                           
