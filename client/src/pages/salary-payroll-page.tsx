@@ -38,6 +38,16 @@ import { useAuth } from "@/hooks/use-auth";
 export default function SalaryPayrollPage() {
   const { toast } = useToast();
   const { user: userData } = useAuth();
+
+  // Check if user has approval privileges
+  const hasApprovalPrivilege = () => {
+    console.log("Current user role:", userData?.role);
+    if (!userData?.role) return false;
+    const approvalRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+    const hasPrivilege = approvalRoles.includes(userData.role);
+    console.log("Has privileged access:", hasPrivilege);
+    return hasPrivilege;
+  };
   const [dateRange, setDateRange] = useState("01/2025 - 12/2025");
   const [selectedEmployee, setSelectedEmployee] = useState("All employee");
   const [showNewPayrollModal, setShowNewPayrollModal] = useState(false);
@@ -437,7 +447,7 @@ export default function SalaryPayrollPage() {
                       >
                         <Edit className="w-3 h-3" />
                       </Button>
-                      {(document.status === 'pending' || document.status === 'PendingApproval') && (
+                      {hasApprovalPrivilege() && (document.status === 'pending' || document.status === 'PendingApproval') && (
                         <>
                           <Button
                             variant="outline"
