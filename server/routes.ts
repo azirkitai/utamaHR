@@ -4030,7 +4030,7 @@ export function registerRoutes(app: Express): Server {
         employee: {
           name: employee.fullName || employeeSnapshot.name,
           icNo: employee.nric || employeeSnapshot.nric || "",
-          position: employeeSnapshot.position || employment?.designation || ""
+          position: employment?.designation || employeeSnapshot.position || ""
         },
         period: {
           month: getMonthName(document.month),
@@ -4279,6 +4279,9 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).json({ error: "Pekerja tidak dijumpai" });
       }
 
+      // Get employment details for designation
+      const employment = await storage.getEmploymentByEmployeeId(payrollItem.employeeId);
+
       // Parse employee snapshot for detailed data
       const employeeSnapshot = JSON.parse(payrollItem.employeeSnapshot || "{}");
       const salary = JSON.parse(payrollItem.salary || "{}");
@@ -4303,7 +4306,7 @@ export function registerRoutes(app: Express): Server {
         employee: {
           name: employeeSnapshot.name || employee.fullName || "",
           icNo: employeeSnapshot.nric || employee.nric || "",
-          position: employeeSnapshot.position || ""
+          position: employment?.designation || employeeSnapshot.position || ""
         },
         period: {
           month: getMonthName(document.month),
