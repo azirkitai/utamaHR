@@ -449,6 +449,9 @@ export default function EmployeeSalaryDetailsPage() {
   const [selectedRebateCode, setSelectedRebateCode] = useState("");
   const [rebateAmount, setRebateAmount] = useState("0.00");
   const [pcb39RebateItems, setPcb39RebateItems] = useState<Array<{code: string; label: string; amount: string}>>([]);
+  
+  // HRDF switch state
+  const [isHrdfEnabled, setIsHrdfEnabled] = useState(true);
 
   // Function to add relief item
   const handleAddReliefItem = () => {
@@ -1056,8 +1059,10 @@ export default function EmployeeSalaryDetailsPage() {
         ? calcEis({ reportedWage: eisWageBase, enabled: true })
         : { employee: 0, employer: 0, wageBase: 0, eligible: false };
 
-      // Calculate HRDF
-      const hrdf = roundToCent(hrdfWageBase * (salaryData.settings.hrdfEmployerRate || 1.00) / 100);
+      // Calculate HRDF - only if enabled
+      const hrdf = isHrdfEnabled 
+        ? roundToCent(hrdfWageBase * (salaryData.settings.hrdfEmployerRate || 1.00) / 100)
+        : 0;
 
       // Calculate PCB39 based on mode
       let pcb39Amount = salaryData.deductions.pcb39; // Default to current value
@@ -2111,7 +2116,24 @@ export default function EmployeeSalaryDetailsPage() {
 
                 {/* HRDF Settings */}
                 <div className="space-y-3 pt-4 border-t">
-                  <Label className="font-medium text-gray-700">HRDF Setting</Label>
+                  <div className="flex items-center justify-between">
+                    <Label className="font-medium text-gray-700">HRDF Setting</Label>
+                    <div className="flex items-center space-x-2">
+                      <Label className="text-sm text-gray-500">Disabled</Label>
+                      <Switch
+                        checked={isHrdfEnabled}
+                        onCheckedChange={(checked) => {
+                          setIsHrdfEnabled(checked);
+                          if (!checked) {
+                            // Clear HRDF Employer amount when disabled
+                            updateContribution("hrdf", 0);
+                          }
+                        }}
+                        data-testid="hrdf-switch"
+                      />
+                      <Label className="text-sm text-gray-500">Enabled</Label>
+                    </div>
+                  </div>
                   
                   {/* HRDF Employer Rate */}
                   <div className="space-y-2">
@@ -2120,11 +2142,13 @@ export default function EmployeeSalaryDetailsPage() {
                       <Input
                         type="number"
                         step="0.01"
-                        value={salaryData.settings.hrdfEmployerRate || 1.00}
+                        value={isHrdfEnabled ? (salaryData.settings.hrdfEmployerRate || 1.00) : ""}
                         onChange={(e) => updateSalaryData({ 
                           settings: { ...salaryData.settings, hrdfEmployerRate: parseFloat(e.target.value) || 1.00 }
                         })}
                         className="rounded-r-none"
+                        disabled={!isHrdfEnabled}
+                        placeholder={!isHrdfEnabled ? "Disabled" : ""}
                         data-testid="hrdf-employer-rate"
                       />
                       <div className="bg-gray-200 px-3 py-2 rounded-r-md border border-l-0 flex items-center">
@@ -3233,14 +3257,17 @@ export default function EmployeeSalaryDetailsPage() {
                     </div>
                     <Input
                       type="text"
-                      value={salaryData.contributions.hrdf.toFixed(2)}
-                      className="rounded-l-none bg-gray-100"
+                      value={isHrdfEnabled ? salaryData.contributions.hrdf.toFixed(2) : "0.00"}
+                      className={`rounded-l-none ${isHrdfEnabled ? 'bg-gray-100' : 'bg-gray-50 text-gray-400'}`}
                       readOnly
                       data-testid="hrdf-employer-contribution"
                     />
                   </div>
                   <p className="text-xs text-gray-500">
-                    How did we calculate this? Based on HRDF rate × basic salary.
+                    {isHrdfEnabled 
+                      ? "How did we calculate this? Based on HRDF rate × basic salary."
+                      : "HRDF tidak diaktifkan"
+                    }
                   </p>
                 </div>
 
