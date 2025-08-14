@@ -1,5 +1,12 @@
 # Overview
-UtamaHR is a comprehensive HR Management System built with React, TypeScript, and Express.js. The project's core purpose is to provide a secure, full-featured HR solution, starting with robust authentication and expanding to cover all essential HR functionalities. Key capabilities include secure JWT-based authentication, complete employee management (CRUD), detailed system settings with a modern UI, standardized employee detail layouts, real-time dashboard statistics, unread announcement tracking, comprehensive financial claim policy management, and a complete payroll system including PDF and Excel payslip generation with dynamic company data integration. The business vision is to deliver an intuitive and compliant HR platform capable of handling complex HR workflows.
+UtamaHR is a comprehensive HR Management System built with React, TypeScript, and Express.js. The project's core purpose is to provide a secure, full-featured HR solution, starting with robust authentication and expanding to cover all essential HR functionalities. Key capabilities include secure JWT-based authentication, complete employee management (CRUD), detailed system settings with a modern UI, standardized employee detail layouts, real-time dashboard statistics, unread announcement tracking, comprehensive financial claim policy management, multi-level claim approval workflows with filtering and pagination, and a complete payroll system including PDF and Excel payslip generation with dynamic company data integration. The business vision is to deliver an intuitive and compliant HR platform capable of handling complex HR workflows.
+
+## Recent Updates (August 2025)
+- Fixed claim approval pagination displaying incorrect "0 to 0 of 0 entries" in Report tab
+- Implemented proper pagination logic showing actual filtered data counts
+- Synchronized filter functionality across Summary and Report tabs
+- Enhanced data integrity with consistent Malaysian language formatting
+- Resolved controlled/uncontrolled input warnings in filter components
 
 # User Preferences
 Preferred communication style: Simple, everyday language.
