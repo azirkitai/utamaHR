@@ -52,8 +52,12 @@ export default function ClaimApprovalPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const handleViewEmployeeSummary = async (employeeName: string, employeeId: string) => {
+  const handleViewEmployeeSummary = (employeeName: string, employeeId: string) => {
     try {
+      console.log('Viewing employee summary:', employeeName, employeeId);
+      console.log('Financial claims data:', financialClaimsData);
+      console.log('Overtime claims data:', legacyOvertimeClaimsData);
+      
       // Use existing data from queries instead of making new API calls
       const employeeFinancialClaims = (financialClaimsData || []).filter((claim: any) => 
         getEmployeeName(claim.employeeId) === employeeName
@@ -63,17 +67,22 @@ export default function ClaimApprovalPage() {
         getEmployeeName(claim.employeeId) === employeeName
       );
       
+      console.log('Filtered financial claims:', employeeFinancialClaims);
+      console.log('Filtered overtime claims:', employeeOvertimeClaims);
+      
       // Combine all claims
       const allEmployeeClaims = [
         ...employeeFinancialClaims.map((claim: any) => ({ ...claim, type: 'financial' })),
         ...employeeOvertimeClaims.map((claim: any) => ({ ...claim, type: 'overtime' }))
       ];
       
+      console.log('All employee claims:', allEmployeeClaims);
+      
       setSelectedEmployeeForSummary({ name: employeeName, id: employeeId });
       setEmployeeClaimsDetail(allEmployeeClaims);
       setSummaryDetailModalOpen(true);
     } catch (error) {
-      console.error('Error fetching employee claims:', error);
+      console.error('Error in handleViewEmployeeSummary:', error);
       toast({
         title: "Ralat",
         description: "Gagal memuat maklumat claim pekerja",
