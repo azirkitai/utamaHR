@@ -248,12 +248,12 @@ export async function generatePaymentVoucherPDF(data: VoucherPDFData): Promise<B
       borderWidth: 1,
     });
 
-    // Row data - use claimCategory field as description (same as preview)
-    const description = claim.claimCategory || claim.particulars || claim.reason || claim.remark || 'Claim Item';
+    // Row data - use claimCategory field as description (same as preview, uppercase)
+    const description = (claim.claimCategory || claim.particulars || claim.reason || claim.remark || 'Claim Item').toUpperCase();
     const rowData = [
       (index + 1).toString(),
       description,
-      claim.claimType || 'General',
+      claim.claimType || 'financial',
       parseFloat(claim.amount || '0').toFixed(2)
     ];
 
