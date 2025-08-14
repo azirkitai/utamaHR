@@ -1194,42 +1194,63 @@ export default function ClaimApprovalPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {summaryData.map((item, index) => (
-              <TableRow key={item.id}>
-                <TableCell>{index + 1}</TableCell>
-                <TableCell 
-                  className="font-medium text-blue-600 hover:text-blue-800 cursor-pointer underline"
-                  onClick={() => handleViewEmployeeSummary(item.name, item.employeeId || '')}
-                  data-testid={`link-employee-${item.name.replace(/\s+/g, '-').toLowerCase()}`}
-                >
-                  {item.name}
+            {(isLoadingFinancial || isLoadingOvertime || !employeesData) ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8">
+                  <div className="flex justify-center items-center space-x-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    <span className="text-gray-600">Memuat data summary...</span>
+                  </div>
                 </TableCell>
-                <TableCell>{item.pendingClaim}</TableCell>
-                <TableCell>{item.approvedClaim}</TableCell>
-                <TableCell className="font-medium">{item.totalAmountClaim}</TableCell>
               </TableRow>
-            ))}
+            ) : summaryData.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8">
+                  <div className="text-gray-500">
+                    Tiada data summary untuk kategori {selectedCategory === 'financial' ? 'kewangan' : 'overtime'}.
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
+              summaryData.map((item, index) => (
+                <TableRow key={item.id}>
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell 
+                    className="font-medium text-blue-600 hover:text-blue-800 cursor-pointer underline"
+                    onClick={() => handleViewEmployeeSummary(item.name, item.employeeId || '')}
+                    data-testid={`link-employee-${item.name.replace(/\s+/g, '-').toLowerCase()}`}
+                  >
+                    {item.name}
+                  </TableCell>
+                  <TableCell>{item.pendingClaim}</TableCell>
+                  <TableCell>{item.approvedClaim}</TableCell>
+                  <TableCell className="font-medium">{item.totalAmountClaim}</TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-between items-center">
-        <div className="text-sm text-gray-600">
-          Showing 1 to 2 of 2 entries
+      {summaryData.length > 0 && (
+        <div className="flex justify-between items-center">
+          <div className="text-sm text-gray-600">
+            Menunjukkan 1 hingga {summaryData.length} daripada {summaryData.length} rekod
+          </div>
+          <div className="flex space-x-2">
+            <Button variant="outline" disabled data-testid="button-previous-summary">
+              Previous
+            </Button>
+            <Button variant="outline" className="bg-blue-600 text-white" data-testid="button-page-1">
+              1
+            </Button>
+            <Button variant="outline" disabled data-testid="button-next-summary">
+              Next
+            </Button>
+          </div>
         </div>
-        <div className="flex space-x-2">
-          <Button variant="outline" disabled data-testid="button-previous-summary">
-            Previous
-          </Button>
-          <Button variant="outline" className="bg-blue-600 text-white" data-testid="button-page-1">
-            1
-          </Button>
-          <Button variant="outline" disabled data-testid="button-next-summary">
-            Next
-          </Button>
-        </div>
-      </div>
+      )}
     </div>
   );
 
