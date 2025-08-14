@@ -251,8 +251,8 @@ export async function generatePaymentVoucherPDF(data: VoucherPDFData): Promise<B
     // Row data
     const rowData = [
       (index + 1).toString(),
-      claim.description || '-',
-      claim.claimType || '-',
+      claim.description || claim.supportingDocument || claim.claimType || 'Claim Item',
+      claim.claimType || 'General',
       parseFloat(claim.amount || '0').toFixed(2)
     ];
 

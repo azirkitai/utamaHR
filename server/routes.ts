@@ -5132,11 +5132,16 @@ export function registerRoutes(app: Express): Server {
       
       // Get claims for the voucher
       const claims = [];
+      let employeeName = 'Employee Name';
       if (voucher.includedClaims && voucher.includedClaims.length > 0) {
         for (const claimId of voucher.includedClaims) {
           const claim = await storage.getClaimApplication(claimId);
           if (claim) {
             claims.push(claim);
+            // Get employee name from the first claim's applicant field
+            if (!employeeName || employeeName === 'Employee Name') {
+              employeeName = claim.applicant;
+            }
           }
         }
       }
@@ -5153,9 +5158,15 @@ export function registerRoutes(app: Express): Server {
         email: companySettings.email
       };
       
+      // Enhance voucher object with employee name
+      const voucherWithEmployee = {
+        ...voucher,
+        employeeName: employeeName
+      };
+      
       // Generate PDF
       const pdfBuffer = await generatePaymentVoucherPDF({
-        voucher,
+        voucher: voucherWithEmployee,
         claims,
         company
       });

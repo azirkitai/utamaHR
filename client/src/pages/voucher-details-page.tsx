@@ -115,19 +115,18 @@ export default function VoucherDetailsPage() {
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       
-      // Create a hidden iframe to print the PDF
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      iframe.src = url;
-      document.body.appendChild(iframe);
+      // Open PDF in new window for printing
+      const printWindow = window.open(url, '_blank');
+      if (printWindow) {
+        printWindow.onload = () => {
+          printWindow.print();
+        };
+      }
       
-      iframe.onload = () => {
-        iframe.contentWindow?.print();
-        setTimeout(() => {
-          document.body.removeChild(iframe);
-          window.URL.revokeObjectURL(url);
-        }, 1000);
-      };
+      // Clean up URL after delay
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+      }, 5000);
     } catch (error) {
       console.error('Error printing voucher:', error);
     }
