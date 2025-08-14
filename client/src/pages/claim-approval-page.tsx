@@ -622,17 +622,20 @@ export default function ClaimApprovalPage() {
     }
   ];
 
-  // Summary data - separate for financial and overtime
+  // Summary data - separate for financial and overtime - APPLIES SAME FILTERS AS REPORT TAB
   const financialSummaryData = useMemo(() => {
     if (!employeesData || !financialClaimsData) return [];
     
-    // Only financial claims, filter for summary (pending + approved only, exclude rejected)
-    const allClaimsForSummary = financialClaimsData.filter(claim => 
-      ['Pending', 'firstLevelApproved', 'Approved'].includes(claim.status)
-    );
+    // USE SAME FILTERED DATA AS REPORT TAB: Apply all filters first
+    const baseClaimsForSummary = financialClaimsData.filter((claim: any) => {
+      return ['pending', 'Pending', 'firstLevelApproved', 'First Level Approved', 'approved', 'Approved'].includes(claim.status);
+    });
     
-    // Group claims by employee ID
-    const claimsGroupedByEmployee = allClaimsForSummary.reduce((acc: any, claim: any) => {
+    // Apply the same filters used in Report/Approval tabs
+    const filteredClaimsForSummary = applyFilters(baseClaimsForSummary, 'financial');
+    
+    // Group filtered claims by employee ID
+    const claimsGroupedByEmployee = filteredClaimsForSummary.reduce((acc: any, claim: any) => {
       const employeeId = claim.employeeId;
       if (!acc[employeeId]) {
         acc[employeeId] = {
@@ -666,18 +669,21 @@ export default function ClaimApprovalPage() {
         totalAmountClaim: `RM ${totalAmount.toFixed(2)}`
       };
     }).filter(summary => summary.name !== 'Unknown Employee'); // Remove entries without valid employee
-  }, [employeesData, financialClaimsData]);
+  }, [employeesData, financialClaimsData, filters]); // Add filters dependency
 
   const overtimeSummaryData = useMemo(() => {
     if (!employeesData || !overtimeClaimsFromDB) return [];
     
-    // Filter overtime claims for summary (pending + approved only, exclude rejected)
-    const allOvertimeForSummary = overtimeClaimsFromDB.filter(claim => 
+    // USE SAME FILTERED DATA AS REPORT TAB: Apply all filters first
+    const baseOvertimeForSummary = overtimeClaimsFromDB.filter(claim => 
       ['Pending', 'firstLevelApproved', 'Approved'].includes(claim.status)
     );
     
-    // Group claims by employee ID
-    const claimsGroupedByEmployee = allOvertimeForSummary.reduce((acc: any, claim: any) => {
+    // Apply the same filters used in Report/Approval tabs
+    const filteredOvertimeForSummary = applyFilters(baseOvertimeForSummary, 'overtime');
+    
+    // Group filtered claims by employee ID
+    const claimsGroupedByEmployee = filteredOvertimeForSummary.reduce((acc: any, claim: any) => {
       const employeeId = claim.employeeId;
       if (!acc[employeeId]) {
         acc[employeeId] = {
@@ -711,7 +717,7 @@ export default function ClaimApprovalPage() {
         totalAmountClaim: `RM ${approvedAmount.toFixed(2)}` // Only approved amounts
       };
     }).filter(summary => summary.name !== 'Unknown Employee'); // Remove entries without valid employee
-  }, [employeesData, overtimeClaimsFromDB]);
+  }, [employeesData, overtimeClaimsFromDB, filters]); // Add filters dependency
 
   // Use appropriate summary data based on selected category
   const summaryData = selectedCategory === 'financial' ? financialSummaryData : overtimeSummaryData;
@@ -1395,6 +1401,8 @@ export default function ClaimApprovalPage() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
             placeholder="Search:"
+            value={filters.searchTerm}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-10 w-64"
             data-testid="input-search-summary"
           />
