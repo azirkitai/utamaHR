@@ -96,8 +96,10 @@ export default function ApplyClaimPage() {
       setUploadedFile(null);
       setValidationError("");
       
-      // Invalidate relevant queries
+      // Invalidate relevant queries to refresh the data
       queryClient.invalidateQueries({ queryKey: ['/api/claim-applications'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/claim-applications/type/financial'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/claim-applications/type/overtime'] });
     },
     onError: (error: any) => {
       const errorMessage = error?.message || "Gagal menghantar permohonan tuntutan";
@@ -123,6 +125,16 @@ export default function ApplyClaimPage() {
   // Fetch financial claim policies from database
   const { data: financialClaimPolicies = [] } = useQuery({
     queryKey: ["/api/financial-claim-policies"]
+  });
+
+  // Fetch recent financial claim applications
+  const { data: recentFinancialClaims = [] } = useQuery({
+    queryKey: ["/api/claim-applications/type/financial"]
+  });
+
+  // Fetch recent overtime claim applications
+  const { data: recentOvertimeClaims = [] } = useQuery({
+    queryKey: ["/api/claim-applications/type/overtime"]
   });
 
   // Logic untuk menentukan employees yang boleh dipilih berdasarkan role
@@ -516,11 +528,41 @@ export default function ApplyClaimPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        <tr>
-                          <td colSpan={5} className="text-center py-8 text-gray-500">
-                            No data available in table
-                          </td>
-                        </tr>
+                        {recentFinancialClaims && recentFinancialClaims.length > 0 ? (
+                          (recentFinancialClaims as any[]).map((claim: any) => (
+                            <tr key={claim.id} className="border-b hover:bg-gray-50">
+                              <td className="py-3 px-4">{claim.financialPolicyName || claim.claimType}</td>
+                              <td className="py-3 px-4">RM {parseFloat(claim.amount || 0).toFixed(2)}</td>
+                              <td className="py-3 px-4">
+                                {new Date(claim.claimDate || claim.dateSubmitted).toLocaleDateString('en-MY')}
+                              </td>
+                              <td className="py-3 px-4">
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  claim.status === 'approved' 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : claim.status === 'rejected'
+                                    ? 'bg-red-100 text-red-800'
+                                    : 'bg-yellow-100 text-yellow-800'
+                                }`}>
+                                  {claim.status === 'pending' ? 'Pending' : 
+                                   claim.status === 'approved' ? 'Approved' :
+                                   claim.status === 'rejected' ? 'Rejected' : 'Unknown'}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4">
+                                <Button variant="outline" size="sm">
+                                  View
+                                </Button>
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan={5} className="text-center py-8 text-gray-500">
+                              No data available in table
+                            </td>
+                          </tr>
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -779,11 +821,43 @@ export default function ApplyClaimPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        <tr>
-                          <td colSpan={5} className="text-center py-8 text-gray-500">
-                            No data available in table
-                          </td>
-                        </tr>
+                        {recentOvertimeClaims && recentOvertimeClaims.length > 0 ? (
+                          (recentOvertimeClaims as any[]).map((claim: any) => (
+                            <tr key={claim.id} className="border-b hover:bg-gray-50">
+                              <td className="py-3 px-4">Overtime</td>
+                              <td className="py-3 px-4">
+                                {claim.totalHours ? `${parseFloat(claim.totalHours).toFixed(1)} hrs` : 'N/A'}
+                              </td>
+                              <td className="py-3 px-4">
+                                {new Date(claim.claimDate || claim.dateSubmitted).toLocaleDateString('en-MY')}
+                              </td>
+                              <td className="py-3 px-4">
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  claim.status === 'approved' 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : claim.status === 'rejected'
+                                    ? 'bg-red-100 text-red-800'
+                                    : 'bg-yellow-100 text-yellow-800'
+                                }`}>
+                                  {claim.status === 'pending' ? 'Pending' : 
+                                   claim.status === 'approved' ? 'Approved' :
+                                   claim.status === 'rejected' ? 'Rejected' : 'Unknown'}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4">
+                                <Button variant="outline" size="sm">
+                                  View
+                                </Button>
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan={5} className="text-center py-8 text-gray-500">
+                              No data available in table
+                            </td>
+                          </tr>
+                        )}
                       </tbody>
                     </table>
                   </div>
