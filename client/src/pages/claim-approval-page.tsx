@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -313,10 +313,10 @@ export default function ClaimApprovalPage() {
         return ['approved', 'rejected'].includes(claim.status);
       });
     } else {
-      // SUMMARY TAB: Show all claims including firstLevelApproved
+      // SUMMARY TAB: Show pending and approved claims only (NO rejected)
       return financialClaimsData.filter((claim: any) => {
         console.log('Financial claim filtering:', { claimId: claim.id, status: claim.status, activeTab });
-        return ['pending', 'firstLevelApproved', 'approved', 'rejected'].includes(claim.status);
+        return ['pending', 'firstLevelApproved', 'approved'].includes(claim.status);
       });
     }
   })();
@@ -338,10 +338,10 @@ export default function ClaimApprovalPage() {
         return ['approved', 'rejected'].includes(claim.status);
       });
     } else {
-      // SUMMARY TAB: Show all claims including firstLevelApproved
+      // SUMMARY TAB: Show pending and approved claims only (NO rejected)
       return overtimeClaimsFromDB.filter((claim: any) => {
         console.log('Overtime claim filtering:', { claimId: claim.id, status: claim.status, activeTab });
-        return ['pending', 'firstLevelApproved', 'approved', 'rejected'].includes(claim.status);
+        return ['pending', 'firstLevelApproved', 'approved'].includes(claim.status);
       });
     }
   })();
@@ -398,22 +398,51 @@ export default function ClaimApprovalPage() {
   ];
 
   // Summary data
-  const summaryData = [
-    {
-      id: 1,
-      name: "SITI NADIAH SABRI",
-      pendingClaim: "RM 0.00",
-      approvedClaim: "0/0",
-      totalAmountClaim: "RM 0.00"
-    },
-    {
-      id: 2,
-      name: "madrah samsi",
-      pendingClaim: "RM 0.00",
-      approvedClaim: "0/0",
-      totalAmountClaim: "RM 0.00"
-    }
-  ];
+  // Generate summary data by combining financial and overtime claims by requestor name
+  const summaryData = useMemo(() => {
+    if (!employeesData || !financialClaimsData || !overtimeClaimsFromDB) return [];
+    
+    // Combine all claims (financial and overtime) and filter for summary (pending + approved only)
+    const allClaimsForSummary = [
+      ...financialClaimsData.filter(claim => ['pending', 'firstLevelApproved', 'approved'].includes(claim.status)),
+      ...overtimeClaimsFromDB.filter(claim => ['pending', 'firstLevelApproved', 'approved'].includes(claim.status))
+    ];
+    
+    // Group claims by employee ID
+    const claimsGroupedByEmployee = allClaimsForSummary.reduce((acc: any, claim: any) => {
+      const employeeId = claim.employeeId;
+      if (!acc[employeeId]) {
+        acc[employeeId] = {
+          employeeId,
+          claims: []
+        };
+      }
+      acc[employeeId].claims.push(claim);
+      return acc;
+    }, {});
+    
+    // Convert to summary format
+    return Object.values(claimsGroupedByEmployee).map((group: any, index) => {
+      const employee = (employeesData as any[]).find(emp => emp.id === group.employeeId);
+      const employeeName = employee ? employee.fullName : 'Unknown Employee';
+      
+      // Count pending and approved claims
+      const pendingClaims = group.claims.filter((claim: any) => claim.status === 'pending');
+      const approvedClaims = group.claims.filter((claim: any) => ['approved', 'firstLevelApproved'].includes(claim.status));
+      
+      // Calculate total amounts
+      const pendingAmount = pendingClaims.reduce((total: number, claim: any) => total + (parseFloat(claim.amount) || 0), 0);
+      const totalAmount = group.claims.reduce((total: number, claim: any) => total + (parseFloat(claim.amount) || 0), 0);
+      
+      return {
+        id: index + 1,
+        name: employeeName,
+        pendingClaim: `RM ${pendingAmount.toFixed(2)}`,
+        approvedClaim: `${approvedClaims.length}/${group.claims.length}`,
+        totalAmountClaim: `RM ${totalAmount.toFixed(2)}`
+      };
+    }).filter(summary => summary.name !== 'Unknown Employee'); // Remove entries without valid employee
+  }, [employeesData, financialClaimsData, overtimeClaimsFromDB]);
 
   const handleCategorySelect = (category: "financial" | "overtime") => {
     setSelectedCategory(category);
