@@ -426,6 +426,130 @@ export default function PayrollDetailPage() {
     }
   };
 
+  const handlePrint34A4 = async (employeeId: string, employeeName: string) => {
+    try {
+      // Get HTML preview with token
+      const token = localStorage.getItem('utamahr_token');
+      const previewURL = `/api/payroll/payslip/${employeeId}/preview?documentId=${id}&token=${token}`;
+      
+      // Create a new window with specific size for 3/4 A4 preview
+      const printWindow = window.open('', '_blank', 'width=600,height=800,scrollbars=yes,resizable=yes');
+      
+      if (!printWindow) {
+        alert('Popup diblokir. Sila benarkan popup untuk fungsi print.');
+        return;
+      }
+
+      // Fetch the HTML content
+      const response = await fetch(previewURL);
+      if (!response.ok) {
+        throw new Error('Failed to fetch preview');
+      }
+      
+      const htmlContent = await response.text();
+      
+      // Modify the HTML to add custom print styles for 3/4 A4
+      const modifiedHTML = htmlContent.replace(
+        '<style>',
+        `<style>
+          /* Instructions for user */
+          .print-instructions {
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+          }
+          
+          .print-instructions h3 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            font-weight: bold;
+          }
+          
+          .print-instructions ol {
+            margin: 8px 0 0 20px;
+            padding: 0;
+          }
+          
+          .print-instructions li {
+            margin: 4px 0;
+          }
+          
+          .print-instructions strong {
+            background: rgba(255,255,255,0.2);
+            padding: 1px 4px;
+            border-radius: 3px;
+          }
+          
+          @media print {
+            .print-instructions {
+              display: none;
+            }
+            
+            @page { 
+              size: 158mm 223mm; /* 3/4 A4 size */
+              margin: 3mm;
+            }
+            
+            body {
+              font-size: 7px !important;
+              transform: scale(0.75);
+              transform-origin: top left;
+              max-width: 150mm;
+            }
+            
+            .company-logo {
+              width: 30px !important;
+              height: 30px !important;
+            }
+            
+            .company-name {
+              font-size: 8px !important;
+            }
+            
+            .net {
+              font-size: 7px !important;
+            }
+          }
+          
+        `
+      );
+      
+      // Add instructions at the top of the body
+      const finalHTML = modifiedHTML.replace(
+        '<body>',
+        `<body>
+          <div class="print-instructions">
+            <h3>🖨️ ARAHAN PRINT SAIZ 3/4 A4</h3>
+            <ol>
+              <li>Tekan <strong>Ctrl+P</strong> (Windows) atau <strong>Cmd+P</strong> (Mac)</li>
+              <li>Pilih <strong>"More settings"</strong> atau <strong>"Lebih tetapan"</strong></li>
+              <li>Pilih <strong>"Paper size: Custom"</strong></li>
+              <li>Set Width: <strong>15.8 cm</strong>, Height: <strong>22.3 cm</strong></li>
+              <li>Set Margins: <strong>Minimum</strong></li>
+              <li>Tekan <strong>Print</strong></li>
+            </ol>
+            <p style="margin: 10px 0 0 0; font-style: italic; font-size: 12px;">💡 Tip: Jika tidak ada Custom size, gunakan A5 sebagai alternatif</p>
+          </div>`
+      );
+      
+      printWindow.document.open();
+      printWindow.document.write(finalHTML);
+      printWindow.document.close();
+      
+      // Focus on the new window
+      printWindow.focus();
+      
+    } catch (error) {
+      console.error('Error opening print preview:', error);
+      alert('Gagal membuka preview print. Sila cuba lagi.');
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       pending: { className: "bg-yellow-100 text-yellow-800", text: "Pending" },
@@ -756,6 +880,18 @@ export default function PayrollDetailPage() {
                                   title="Download Excel"
                                 >
                                   <FileSpreadsheet className="w-3 h-3" />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="p-1 h-7 w-7 border-green-300 text-green-600 hover:bg-green-50"
+                                  onClick={() => handlePrint34A4(item.employeeId, employeeSnapshot.name || 'N/A')}
+                                  data-testid={`button-print-34a4-${item.employeeId}`}
+                                  title="Print 3/4 A4 Size"
+                                >
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                  </svg>
                                 </Button>
                               </div>
                             </td>
