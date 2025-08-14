@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams } from "wouter";
+import { useParams, useLocation } from "wouter";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,6 +10,7 @@ import type { PaymentVoucher, ClaimApplication } from "@shared/schema";
 
 export default function VoucherDetailsPage() {
   const { voucherId } = useParams();
+  const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("details");
 
   // Fetch voucher details
@@ -89,7 +90,7 @@ export default function VoucherDetailsPage() {
   ];
 
   const handleBack = () => {
-    window.location.href = '/payment-voucher';
+    setLocation('/payment/voucher');
   };
 
   const handlePrint = () => {
