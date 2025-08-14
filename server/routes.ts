@@ -5142,7 +5142,7 @@ export function registerRoutes(app: Express): Server {
             if (!employeeName && claim.employeeId) {
               const employee = await storage.getEmployee(claim.employeeId);
               if (employee) {
-                employeeName = employee.name;
+                employeeName = employee.fullName;
               }
             }
           }
