@@ -116,20 +116,47 @@ export default function VoucherDetailsPage() {
     }
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     try {
-      // Switch to voucher tab and trigger download via browser print
-      if (activeTab !== 'voucher') {
-        setActiveTab('voucher');
-        // Wait for tab to switch before opening print dialog for PDF save
-        setTimeout(() => {
-          window.print(); // User can save as PDF from print dialog
-        }, 100);
-      } else {
-        window.print(); // User can save as PDF from print dialog
+      const token = localStorage.getItem('utamahr_token');
+      const headers: Record<string, string> = {};
+      
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
       }
+
+      const response = await fetch(`/api/payment-vouchers/${voucherId}/pdf`, {
+        method: 'GET',
+        headers,
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate PDF');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create download link
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Payment_Voucher_${voucher?.voucherNumber || voucherId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up
+      window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error downloading voucher:', error);
+      // Fallback to browser print
+      if (activeTab !== 'voucher') {
+        setActiveTab('voucher');
+        setTimeout(() => window.print(), 100);
+      } else {
+        window.print();
+      }
     }
   };
 
@@ -362,7 +389,7 @@ export default function VoucherDetailsPage() {
               data-testid="button-download-voucher"
             >
               <Download className="h-4 w-4 mr-2" />
-              Save as PDF
+              Download PDF
             </Button>
           </div>
         </div>
