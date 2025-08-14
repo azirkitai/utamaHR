@@ -53,44 +53,39 @@ export default function ClaimApprovalPage() {
   const queryClient = useQueryClient();
 
   const handleViewEmployeeSummary = (employeeName: string, employeeId: string) => {
-    console.log('=== EMPLOYEE SUMMARY DEBUG START ===');
-    console.log('Employee Name:', employeeName);
-    console.log('Employee ID:', employeeId);
-    console.log('Financial claims data type:', typeof financialClaimsData);
-    console.log('Financial claims data:', financialClaimsData);
-    console.log('Overtime claims data type:', typeof legacyOvertimeClaimsData);
-    console.log('Overtime claims data:', legacyOvertimeClaimsData);
-    
     try {
       // Ensure data is available
       if (!financialClaimsData && !legacyOvertimeClaimsData) {
-        console.log('No data available yet');
         return;
       }
       
-      // Get all employee claims directly - no filtering by name since modal shows all claims
-      const allEmployeeClaims = [
-        ...(financialClaimsData || []).map((claim: any) => ({ ...claim, type: 'financial' })),
-        ...(legacyOvertimeClaimsData || []).map((claim: any) => ({ ...claim, type: 'overtime' }))
-      ];
+      // Filter claims for the specific employee
+      const employeeFinancialClaims = (financialClaimsData || []).filter((claim: any) => 
+        getEmployeeName(claim.employeeId) === employeeName
+      );
       
-      console.log('All combined claims:', allEmployeeClaims);
+      const employeeOvertimeClaims = (legacyOvertimeClaimsData || []).filter((claim: any) => 
+        getEmployeeName(claim.employeeId) === employeeName
+      );
+      
+      // Combine filtered claims for this employee only
+      const allEmployeeClaims = [
+        ...employeeFinancialClaims.map((claim: any) => ({ ...claim, type: 'financial' })),
+        ...employeeOvertimeClaims.map((claim: any) => ({ ...claim, type: 'overtime' }))
+      ];
       
       setSelectedEmployeeForSummary({ name: employeeName, id: employeeId });
       setEmployeeClaimsDetail(allEmployeeClaims);
       setSummaryDetailModalOpen(true);
-      console.log('Modal should open now');
       
     } catch (error) {
-      console.error('Detailed error in handleViewEmployeeSummary:', error);
-      console.error('Error stack:', error.stack);
+      console.error('Error in handleViewEmployeeSummary:', error);
       toast({
         title: "Ralat",
-        description: "Gagal memuat maklumat claim pekerja: " + (error.message || 'Unknown error'),
+        description: "Gagal memuat maklumat claim pekerja",
         variant: "destructive",
       });
     }
-    console.log('=== EMPLOYEE SUMMARY DEBUG END ===');
   };
 
   // Get current user info
@@ -1278,10 +1273,16 @@ export default function ClaimApprovalPage() {
                             }
                           </td>
                           <td className="border border-gray-300 px-4 py-2">
-                            {new Date(claim.claimDate || claim.overtimeDate).toLocaleDateString('ms-MY')}
+                            {claim.type === 'financial' 
+                              ? new Date(claim.claimDate).toLocaleDateString('ms-MY')
+                              : new Date(claim.date).toLocaleDateString('ms-MY')
+                            }
                           </td>
                           <td className="border border-gray-300 px-4 py-2 font-medium">
-                            RM {claim.amount || '0.00'}
+                            {claim.type === 'financial' 
+                              ? `RM ${claim.amount}`
+                              : claim.amount || 'RM 0.00'
+                            }
                           </td>
                           <td className="border border-gray-300 px-4 py-2">
                             <span className={`px-2 py-1 rounded text-xs ${
@@ -1299,17 +1300,41 @@ export default function ClaimApprovalPage() {
                             </span>
                           </td>
                           <td className="border border-gray-300 px-4 py-2">
-                            {claim.attachmentUrl ? (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => window.open(claim.attachmentUrl, '_blank')}
-                                data-testid={`button-view-attachment-${claim.id}`}
-                              >
-                                📎 Lihat
-                              </Button>
+                            {claim.type === 'financial' ? (
+                              // Handle financial claim documents
+                              claim.supportingDocuments && claim.supportingDocuments.length > 0 ? (
+                                <div className="space-y-1">
+                                  {claim.supportingDocuments.map((doc: any, docIndex: number) => (
+                                    <Button
+                                      key={docIndex}
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => window.open(doc.url || doc, '_blank')}
+                                      data-testid={`button-view-doc-${claim.id}-${docIndex}`}
+                                      className="text-xs"
+                                    >
+                                      📎 Dokumen {docIndex + 1}
+                                    </Button>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="text-gray-400 text-sm">Tiada</span>
+                              )
                             ) : (
-                              <span className="text-gray-400 text-sm">Tiada</span>
+                              // Handle overtime claim documents
+                              claim.supportingDocument ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => window.open(claim.supportingDocument, '_blank')}
+                                  data-testid={`button-view-doc-${claim.id}`}
+                                  className="text-xs"
+                                >
+                                  📎 Lihat Dokumen
+                                </Button>
+                              ) : (
+                                <span className="text-gray-400 text-sm">Tiada</span>
+                              )
                             )}
                           </td>
                         </tr>
