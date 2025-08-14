@@ -363,15 +363,7 @@ export default function PaymentVoucherPage() {
                   />
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="overtimeFinancial" className="text-sm font-medium">Overtime Financial</Label>
-                  <Switch
-                    id="overtimeFinancial"
-                    checked={formData.overtimeFinancial}
-                    onCheckedChange={(checked) => handleInputChange('overtimeFinancial', checked)}
-                    data-testid="switch-overtime-financial"
-                  />
-                </div>
+                
               </div>
 
               {/* Action Buttons */}
