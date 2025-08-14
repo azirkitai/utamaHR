@@ -66,7 +66,7 @@ export default function PaymentVoucherPage() {
   // Create payment voucher mutation
   const createVoucherMutation = useMutation({
     mutationFn: async (voucherData: any) => {
-      return await apiRequest(`/api/payment-vouchers`, 'POST', voucherData);
+      return await apiRequest('POST', '/api/payment-vouchers', voucherData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/payment-vouchers'] });
