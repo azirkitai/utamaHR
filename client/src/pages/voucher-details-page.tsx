@@ -93,13 +93,65 @@ export default function VoucherDetailsPage() {
     setLocation('/payment/voucher');
   };
 
-  const handlePrint = () => {
-    window.print();
+  const handlePrint = async () => {
+    try {
+      const response = await fetch(`/api/payment-vouchers/${voucherId}/pdf`, {
+        method: 'GET',
+        credentials: 'include', // Include session cookies
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate PDF');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create a hidden iframe to print the PDF
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = url;
+      document.body.appendChild(iframe);
+      
+      iframe.onload = () => {
+        iframe.contentWindow?.print();
+        setTimeout(() => {
+          document.body.removeChild(iframe);
+          window.URL.revokeObjectURL(url);
+        }, 1000);
+      };
+    } catch (error) {
+      console.error('Error printing voucher:', error);
+    }
   };
 
-  const handleDownload = () => {
-    // Implementation for downloading voucher
-    console.log('Download voucher:', voucherId);
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(`/api/payment-vouchers/${voucherId}/pdf`, {
+        method: 'GET',
+        credentials: 'include', // Include session cookies
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate PDF');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create download link
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Payment_Voucher_${voucher.voucherNumber}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading voucher:', error);
+    }
   };
 
   if (voucherLoading) {

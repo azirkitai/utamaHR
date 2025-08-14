@@ -5,6 +5,7 @@ import { storage } from "./storage";
 import { generatePayslipPDF } from './payslip-html-generator';
 import { generatePayslipExcel } from './payslip-excel-generator';
 import { generatePayslipHTML } from './payslip-html-preview';
+import { generatePaymentVoucherPDF } from './payment-voucher-pdf-generator';
 import puppeteer from 'puppeteer';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -5024,7 +5025,7 @@ export function registerRoutes(app: Express): Server {
       const voucherData = {
         ...validationResult.data,
         voucherNumber,
-        createdBy: req.user.id
+        createdBy: req.user?.id || 'system'
       };
 
       const voucher = await storage.createPaymentVoucher(voucherData);
@@ -5115,6 +5116,55 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error('Error fetching voucher claims:', error);
       res.status(500).json({ error: 'Gagal mengambil tuntutan voucher' });
+    }
+  });
+
+  // Generate PDF for payment voucher
+  app.get('/api/payment-vouchers/:id/pdf', authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Get voucher details
+      const voucher = await storage.getPaymentVoucher(id);
+      if (!voucher) {
+        return res.status(404).json({ error: 'Payment voucher not found' });
+      }
+      
+      // Get claims for the voucher
+      const claims = [];
+      if (voucher.includedClaims && voucher.includedClaims.length > 0) {
+        for (const claimId of voucher.includedClaims) {
+          const claim = await storage.getClaimApplication(claimId);
+          if (claim) {
+            claims.push(claim);
+          }
+        }
+      }
+      
+      // Get company settings
+      const companySettings = await storage.getCompanySettings();
+      
+      // Get all employees for name mapping
+      const allEmployees = await db.select().from(employees);
+      
+      // Generate PDF
+      const pdfBuffer = await generatePaymentVoucherPDF({
+        voucher,
+        claims,
+        companySettings,
+        employees: allEmployees
+      });
+      
+      // Set headers for PDF response
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename="Payment_Voucher_${voucher.voucherNumber}.pdf"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+      
+      // Send PDF
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error('Error generating payment voucher PDF:', error);
+      res.status(500).json({ error: 'Failed to generate PDF' });
     }
   });
 
