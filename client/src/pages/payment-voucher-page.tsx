@@ -30,7 +30,6 @@ export default function PaymentVoucherPage() {
   const [formData, setFormData] = useState({
     year: "2025",
     month: "August",
-    paymentVoucherNo: "PV0001",
     paymentDate: "2025-08-08",
     remarks: "Payment Remark"
   });
@@ -312,17 +311,6 @@ export default function PaymentVoucherPage() {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-
-              {/* Payment Voucher No */}
-              <div className="space-y-2">
-                <Label htmlFor="paymentVoucherNo" className="text-sm font-medium">Payment Voucher No.</Label>
-                <Input
-                  id="paymentVoucherNo"
-                  value={formData.paymentVoucherNo}
-                  onChange={(e) => handleInputChange('paymentVoucherNo', e.target.value)}
-                  data-testid="input-voucher-no"
-                />
               </div>
 
               {/* Payment Date */}
