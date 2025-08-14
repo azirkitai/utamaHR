@@ -5141,9 +5141,9 @@ export function registerRoutes(app: Express): Server {
           '--disable-gpu',
           '--disable-background-timer-throttling',
           '--disable-backgrounding-occluded-windows',
-          '--disable-renderer-backgrounding'
-        ],
-        executablePath: process.env.CHROME_BIN || undefined
+          '--disable-renderer-backgrounding',
+          '--disable-features=VizDisplayCompositor'
+        ]
       });
       
       const page = await browser.newPage();
