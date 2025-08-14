@@ -2028,11 +2028,28 @@ export class DatabaseStorage implements IStorage {
       const [overtimeApprovalData] = await db.select().from(overtimeApprovalSettings).limit(1);
       approvalSettings = overtimeApprovalData;
     } else if (currentApp.claimType === 'financial') {
-      const [financialSettings] = await db.select()
-        .from(approvalSettings)
-        .where(eq(approvalSettings.type, 'financial'))
-        .limit(1);
-      approvalSettings = financialSettings;
+      // For financial claims, check if we have groupPolicySettings
+      try {
+        const result = await db.execute(sql`
+          SELECT id, "firstLevelApprovalId", "secondLevelApprovalId", "enableApproval", "approvalLevel"
+          FROM approval_settings 
+          WHERE type = 'financial' 
+          LIMIT 1
+        `);
+        if (result.rows && result.rows.length > 0) {
+          const row = result.rows[0] as any;
+          approvalSettings = {
+            id: row.id,
+            firstLevelApprovalId: row.firstLevelApprovalId,
+            secondLevelApprovalId: row.secondLevelApprovalId,
+            enableApproval: row.enableApproval,
+            approvalLevel: row.approvalLevel
+          };
+        }
+      } catch (error) {
+        console.log('Financial approval settings not found, using single-level approval');
+        approvalSettings = null;
+      }
     }
 
     // Determine status based on approval workflow
