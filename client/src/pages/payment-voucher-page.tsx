@@ -66,10 +66,7 @@ export default function PaymentVoucherPage() {
   // Create payment voucher mutation
   const createVoucherMutation = useMutation({
     mutationFn: async (voucherData: any) => {
-      return await apiRequest(`/api/payment-vouchers`, {
-        method: 'POST',
-        body: JSON.stringify(voucherData),
-      });
+      return await apiRequest(`/api/payment-vouchers`, 'POST', voucherData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/payment-vouchers'] });
@@ -112,7 +109,7 @@ export default function PaymentVoucherPage() {
     }
 
     // Calculate total amount from approved claims
-    const totalAmount = approvedClaims.reduce((sum, claim) => sum + (claim.amount || 0), 0);
+    const totalAmount = approvedClaims.reduce((sum, claim) => sum + (parseFloat(claim.amount || '0') || 0), 0);
 
     const voucherData = {
       year: parseInt(formData.year),
@@ -484,7 +481,7 @@ export default function PaymentVoucherPage() {
                             {claim.employeeId} - {claim.claimCategory}
                           </span>
                           <span className="font-medium">
-                            RM {(claim.amount || 0).toFixed(2)}
+                            RM {(parseFloat(claim.amount || '0') || 0).toFixed(2)}
                           </span>
                         </div>
                       ))}
@@ -492,7 +489,7 @@ export default function PaymentVoucherPage() {
                         <div className="flex justify-between items-center text-sm font-semibold">
                           <span>Jumlah Keseluruhan:</span>
                           <span className="text-blue-600">
-                            RM {approvedClaims.reduce((sum, claim) => sum + (claim.amount || 0), 0).toFixed(2)}
+                            RM {approvedClaims.reduce((sum, claim) => sum + (parseFloat(claim.amount || '0') || 0), 0).toFixed(2)}
                           </span>
                         </div>
                       </div>
