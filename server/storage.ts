@@ -2026,20 +2026,23 @@ export class DatabaseStorage implements IStorage {
         return totalHours * 15.00;
       }
       
-      // Calculate hourly rate based on standard 160 working hours per month (8 hours x 20 days)
-      const hourlyRate = monthlySalary / 160;
+      // Calculate hourly rate using Malaysian Employment Act 1955 formula:
+      // OT sejam = (Gaji sebulan ÷ 26 hari) ÷ Jam kerja sehari × 1.5
+      const dailySalary = monthlySalary / 26; // Gaji sehari
+      const hourlyRate = dailySalary / 8; // Assuming 8 working hours per day
       
-      // Overtime rate is typically 1.5x normal hourly rate
+      // Overtime rate as per Malaysian Employment Act 1955 (1.5x)
       const overtimeRate = hourlyRate * 1.5;
       
       // Calculate total overtime amount
       const overtimeAmount = totalHours * overtimeRate;
       
-      console.log(`=== OVERTIME CALCULATION (FIXED) ===`);
+      console.log(`=== OVERTIME CALCULATION (MALAYSIAN EMPLOYMENT ACT 1955) ===`);
       console.log(`Employee ID: ${employeeId}`);
       console.log(`Master Salary (basic_salary): RM ${salaryInfo.basicSalary || 'NULL'}`);
       console.log(`Monthly salary used: RM ${monthlySalary}`);
-      console.log(`Hourly rate (÷160): RM ${hourlyRate.toFixed(2)}`);
+      console.log(`Daily salary (÷26): RM ${dailySalary.toFixed(2)}`);
+      console.log(`Hourly rate (÷8): RM ${hourlyRate.toFixed(2)}`);
       console.log(`Overtime rate (1.5x): RM ${overtimeRate.toFixed(2)}`);
       console.log(`Total hours: ${totalHours}`);
       console.log(`Total overtime amount: RM ${overtimeAmount.toFixed(2)}`);
