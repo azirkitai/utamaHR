@@ -934,8 +934,17 @@ export function registerRoutes(app: Express): Server {
       
       // Only admin roles can create new staff user accounts
       const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      console.log("Authorization check - Current user role:", currentUser.role);
+      console.log("Valid admin roles:", adminRoles);
+      console.log("Role check result:", adminRoles.includes(currentUser.role));
+      
       if (!adminRoles.includes(currentUser.role)) {
-        return res.status(403).json({ error: "Tidak dibenarkan untuk membuat akaun staff baru" });
+        console.log("Access denied for role:", currentUser.role);
+        return res.status(403).json({ 
+          error: "Tidak dibenarkan untuk membuat akaun staff baru",
+          currentRole: currentUser.role,
+          requiredRoles: adminRoles
+        });
       }
       
       console.log("Create staff user - Request body:", req.body);
@@ -1105,8 +1114,17 @@ export function registerRoutes(app: Express): Server {
       
       // Only admin roles can create new employee records
       const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      console.log("Employee creation authorization check - Current user role:", currentUser.role);
+      console.log("Valid admin roles:", adminRoles);
+      console.log("Role check result:", adminRoles.includes(currentUser.role));
+      
       if (!adminRoles.includes(currentUser.role)) {
-        return res.status(403).json({ error: "Tidak dibenarkan untuk menambah pekerja baru" });
+        console.log("Employee creation access denied for role:", currentUser.role);
+        return res.status(403).json({ 
+          error: "Tidak dibenarkan untuk menambah pekerja baru",
+          currentRole: currentUser.role,
+          requiredRoles: adminRoles
+        });
       }
       
       console.log("Create employee - Request body:", req.body);
