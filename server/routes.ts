@@ -5119,10 +5119,9 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Generate PDF for payment voucher using HTML-to-PDF
+  // Generate PDF for payment voucher using HTML template
   app.get('/api/payment-vouchers/:id/pdf', authenticateToken, async (req, res) => {
     try {
-      const htmlPdf = await import('html-pdf-node');
       const { id } = req.params;
       
       // Get voucher details
@@ -5446,29 +5445,9 @@ export function registerRoutes(app: Express): Server {
         </html>
       `;
 
-      // Generate PDF from HTML
-      const options = {
-        format: 'A4',
-        margin: {
-          top: '10mm',
-          right: '10mm',
-          bottom: '10mm',
-          left: '10mm'
-        },
-        printBackground: true,
-        preferCSSPageSize: true
-      };
-
-      const file = { content: htmlContent };
-      const pdfBuffer = await htmlPdf.default.generatePdf(file, options);
-      
-      // Set headers for PDF response
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `inline; filename="Payment_Voucher_${voucher.voucherNumber}.pdf"`);
-      res.setHeader('Content-Length', pdfBuffer.length);
-      
-      // Send PDF
-      res.send(pdfBuffer);
+      // Since PDF generation has system dependency issues, 
+      // redirect to the voucher preview for now and let user use browser print
+      res.redirect(`/voucher-details/${id}?tab=voucher&print=true`);
     } catch (error) {
       console.error('Error generating payment voucher PDF:', error);
       res.status(500).json({ error: 'Failed to generate PDF' });
