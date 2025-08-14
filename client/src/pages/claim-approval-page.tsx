@@ -58,45 +58,45 @@ export default function ClaimApprovalPage() {
       console.log('Employee Name:', employeeName);
       console.log('Employee ID:', employeeId);
       console.log('financialClaimsData exists:', !!financialClaimsData);
-      console.log('legacyOvertimeClaimsData exists:', !!legacyOvertimeClaimsData);
+      console.log('overtimeClaimsFromDB exists:', !!overtimeClaimsFromDB);
+      console.log('selectedCategory:', selectedCategory);
       console.log('employeesData exists:', !!employeesData);
       
-      // Ensure data is available
-      if (!financialClaimsData && !legacyOvertimeClaimsData) {
-        console.log('No data available, exiting');
-        return;
+      // Filter claims for the specific employee using employeeId (not name)
+      let allEmployeeClaims: any[] = [];
+      
+      if (selectedCategory === 'financial') {
+        // For financial summary - show only financial claims
+        const employeeFinancialClaims = (financialClaimsData || []).filter((claim: any) => 
+          claim.employeeId === employeeId
+        );
+        allEmployeeClaims = employeeFinancialClaims.map((claim: any) => ({ ...claim, type: 'financial' }));
+        console.log('Financial claims for employee:', allEmployeeClaims);
+        
+      } else if (selectedCategory === 'overtime') {
+        // For overtime summary - show only overtime claims
+        const employeeOvertimeClaims = (overtimeClaimsFromDB || []).filter((claim: any) => 
+          claim.employeeId === employeeId
+        );
+        allEmployeeClaims = employeeOvertimeClaims.map((claim: any) => ({ ...claim, type: 'overtime' }));
+        console.log('Overtime claims for employee:', allEmployeeClaims);
+        
+      } else {
+        // For mixed category - show both (should not happen in current design)
+        const employeeFinancialClaims = (financialClaimsData || []).filter((claim: any) => 
+          claim.employeeId === employeeId
+        );
+        const employeeOvertimeClaims = (overtimeClaimsFromDB || []).filter((claim: any) => 
+          claim.employeeId === employeeId
+        );
+        allEmployeeClaims = [
+          ...employeeFinancialClaims.map((claim: any) => ({ ...claim, type: 'financial' })),
+          ...employeeOvertimeClaims.map((claim: any) => ({ ...claim, type: 'overtime' }))
+        ];
+        console.log('Mixed claims for employee:', allEmployeeClaims);
       }
       
-      // Debug getEmployeeName function
-      console.log('Testing getEmployeeName function...');
-      if (financialClaimsData && financialClaimsData.length > 0) {
-        console.log('First financial claim employeeId:', financialClaimsData[0].employeeId);
-        console.log('getEmployeeName result:', getEmployeeName(financialClaimsData[0].employeeId));
-      }
-      
-      // Filter claims for the specific employee
-      const employeeFinancialClaims = (financialClaimsData || []).filter((claim: any) => {
-        const claimEmployeeName = getEmployeeName(claim.employeeId);
-        console.log(`Comparing: "${claimEmployeeName}" === "${employeeName}"`);
-        return claimEmployeeName === employeeName;
-      });
-      
-      const employeeOvertimeClaims = (legacyOvertimeClaimsData || []).filter((claim: any) => {
-        const claimEmployeeName = getEmployeeName(claim.employeeId);
-        console.log(`OT Comparing: "${claimEmployeeName}" === "${employeeName}"`);
-        return claimEmployeeName === employeeName;
-      });
-      
-      console.log('Filtered financial claims:', employeeFinancialClaims);
-      console.log('Filtered overtime claims:', employeeOvertimeClaims);
-      
-      // Combine filtered claims for this employee only
-      const allEmployeeClaims = [
-        ...employeeFinancialClaims.map((claim: any) => ({ ...claim, type: 'financial' })),
-        ...employeeOvertimeClaims.map((claim: any) => ({ ...claim, type: 'overtime' }))
-      ];
-      
-      console.log('All employee claims:', allEmployeeClaims);
+      console.log('Final employee claims:', allEmployeeClaims);
       
       setSelectedEmployeeForSummary({ name: employeeName, id: employeeId });
       setEmployeeClaimsDetail(allEmployeeClaims);
@@ -475,9 +475,8 @@ export default function ClaimApprovalPage() {
     }
   ];
 
-  // Summary data
-  // Generate summary data for financial claims only by requestor name
-  const summaryData = useMemo(() => {
+  // Summary data - separate for financial and overtime
+  const financialSummaryData = useMemo(() => {
     if (!employeesData || !financialClaimsData) return [];
     
     // Only financial claims, filter for summary (pending + approved only, exclude rejected)
@@ -514,12 +513,61 @@ export default function ClaimApprovalPage() {
       return {
         id: index + 1,
         name: employeeName,
+        employeeId: group.employeeId,
         pendingClaim: `RM ${pendingAmount.toFixed(2)}`,
         approvedClaim: `${approvedClaims.length}/${group.claims.length}`,
         totalAmountClaim: `RM ${totalAmount.toFixed(2)}`
       };
     }).filter(summary => summary.name !== 'Unknown Employee'); // Remove entries without valid employee
   }, [employeesData, financialClaimsData]);
+
+  const overtimeSummaryData = useMemo(() => {
+    if (!employeesData || !overtimeClaimsFromDB) return [];
+    
+    // Filter overtime claims for summary (pending + approved only, exclude rejected)
+    const allOvertimeForSummary = overtimeClaimsFromDB.filter(claim => 
+      ['pending', 'firstLevelApproved', 'approved'].includes(claim.status)
+    );
+    
+    // Group claims by employee ID
+    const claimsGroupedByEmployee = allOvertimeForSummary.reduce((acc: any, claim: any) => {
+      const employeeId = claim.employeeId;
+      if (!acc[employeeId]) {
+        acc[employeeId] = {
+          employeeId,
+          claims: []
+        };
+      }
+      acc[employeeId].claims.push(claim);
+      return acc;
+    }, {});
+    
+    // Convert to summary format
+    return Object.values(claimsGroupedByEmployee).map((group: any, index) => {
+      const employee = (employeesData as any[]).find(emp => emp.id === group.employeeId);
+      const employeeName = employee ? employee.fullName : 'Unknown Employee';
+      
+      // Count pending and approved claims
+      const pendingClaims = group.claims.filter((claim: any) => claim.status === 'pending');
+      const approvedClaims = group.claims.filter((claim: any) => ['approved', 'firstLevelApproved'].includes(claim.status));
+      
+      // Calculate amounts - for overtime, only count approved amounts in total
+      const pendingAmount = pendingClaims.reduce((total: number, claim: any) => total + (parseFloat(claim.amount) || 0), 0);
+      const approvedAmount = approvedClaims.reduce((total: number, claim: any) => total + (parseFloat(claim.amount) || 0), 0);
+      
+      return {
+        id: index + 1,
+        name: employeeName,
+        employeeId: group.employeeId,
+        pendingClaim: `RM ${pendingAmount.toFixed(2)}`,
+        approvedClaim: `${approvedClaims.length}/${group.claims.length}`,
+        totalAmountClaim: `RM ${approvedAmount.toFixed(2)}` // Only approved amounts
+      };
+    }).filter(summary => summary.name !== 'Unknown Employee'); // Remove entries without valid employee
+  }, [employeesData, overtimeClaimsFromDB]);
+
+  // Use appropriate summary data based on selected category
+  const summaryData = selectedCategory === 'financial' ? financialSummaryData : overtimeSummaryData;
 
   const handleCategorySelect = (category: "financial" | "overtime") => {
     setSelectedCategory(category);
@@ -1281,9 +1329,21 @@ export default function ClaimApprovalPage() {
                         <th className="border border-gray-300 px-4 py-2 text-left">Jenis</th>
                         <th className="border border-gray-300 px-4 py-2 text-left">Polisi/Sebab</th>
                         <th className="border border-gray-300 px-4 py-2 text-left">Tarikh</th>
-                        <th className="border border-gray-300 px-4 py-2 text-left">Amaun</th>
-                        <th className="border border-gray-300 px-4 py-2 text-left">Status</th>
-                        <th className="border border-gray-300 px-4 py-2 text-left">Dokumen</th>
+                        <th className="border border-gray-300 px-4 py-2 text-left">
+                          {selectedCategory === 'overtime' ? 'Masa Overtime' : 'Amaun'}
+                        </th>
+                        <th className="border border-gray-300 px-4 py-2 text-left">
+                          {selectedCategory === 'overtime' ? 'Jam' : 'Status'}
+                        </th>
+                        <th className="border border-gray-300 px-4 py-2 text-left">
+                          {selectedCategory === 'overtime' ? 'Amaun' : 'Dokumen'}
+                        </th>
+                        <th className="border border-gray-300 px-4 py-2 text-left">
+                          {selectedCategory === 'overtime' ? 'Status' : ''}
+                        </th>
+                        <th className="border border-gray-300 px-4 py-2 text-left">
+                          {selectedCategory === 'overtime' ? 'Dokumen' : ''}
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1313,65 +1373,147 @@ export default function ClaimApprovalPage() {
                               : new Date(claim.date).toLocaleDateString('ms-MY')
                             }
                           </td>
-                          <td className="border border-gray-300 px-4 py-2 font-medium">
-                            {claim.type === 'financial' 
-                              ? `RM ${claim.amount}`
-                              : claim.amount || 'RM 0.00'
-                            }
-                          </td>
-                          <td className="border border-gray-300 px-4 py-2">
-                            <span className={`px-2 py-1 rounded text-xs ${
-                              claim.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                              claim.status === 'approved' ? 'bg-green-100 text-green-800' :
-                              claim.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                              claim.status === 'firstLevelApproved' ? 'bg-blue-100 text-blue-800' :
-                              'bg-gray-100 text-gray-800'
-                            }`}>
-                              {claim.status === 'pending' ? 'Menunggu' :
-                               claim.status === 'approved' ? 'Diluluskan' :
-                               claim.status === 'rejected' ? 'Ditolak' :
-                               claim.status === 'firstLevelApproved' ? 'Lulus Tahap 1' :
-                               claim.status}
-                            </span>
-                          </td>
-                          <td className="border border-gray-300 px-4 py-2">
-                            {claim.type === 'financial' ? (
-                              // Handle financial claim documents
-                              claim.supportingDocuments && claim.supportingDocuments.length > 0 ? (
-                                <div className="space-y-1">
-                                  {claim.supportingDocuments.map((doc: any, docIndex: number) => (
+                          
+                          {/* Different columns for overtime vs financial */}
+                          {selectedCategory === 'overtime' ? (
+                            <>
+                              {/* Masa Overtime */}
+                              <td className="border border-gray-300 px-4 py-2">
+                                {claim.type === 'overtime' ? `${claim.startTime} - ${claim.endTime}` : 'N/A'}
+                              </td>
+                              {/* Jam */}
+                              <td className="border border-gray-300 px-4 py-2">
+                                {claim.type === 'overtime' ? `${claim.totalHours || 0} jam` : 'N/A'}
+                              </td>
+                              {/* Amaun */}
+                              <td className="border border-gray-300 px-4 py-2 font-medium">
+                                {claim.type === 'financial' 
+                                  ? `RM ${claim.amount}`
+                                  : `RM ${claim.amount || '0.00'}`
+                                }
+                              </td>
+                              {/* Status */}
+                              <td className="border border-gray-300 px-4 py-2">
+                                <span className={`px-2 py-1 rounded text-xs ${
+                                  claim.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                  claim.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                  claim.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                                  claim.status === 'firstLevelApproved' ? 'bg-blue-100 text-blue-800' :
+                                  'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {claim.status === 'pending' ? 'Menunggu' :
+                                   claim.status === 'approved' ? 'Diluluskan' :
+                                   claim.status === 'rejected' ? 'Ditolak' :
+                                   claim.status === 'firstLevelApproved' ? 'Lulus Tahap 1' :
+                                   claim.status}
+                                </span>
+                              </td>
+                              {/* Dokumen */}
+                              <td className="border border-gray-300 px-4 py-2">
+                                {claim.type === 'financial' ? (
+                                  // Handle financial claim documents
+                                  claim.supportingDocuments && claim.supportingDocuments.length > 0 ? (
+                                    <div className="space-y-1">
+                                      {claim.supportingDocuments.map((doc: any, docIndex: number) => (
+                                        <Button
+                                          key={docIndex}
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => window.open(doc.url || doc, '_blank')}
+                                          data-testid={`button-view-doc-${claim.id}-${docIndex}`}
+                                          className="text-xs"
+                                        >
+                                          📎 Dokumen {docIndex + 1}
+                                        </Button>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <span className="text-gray-400 text-sm">Tiada</span>
+                                  )
+                                ) : (
+                                  // Handle overtime claim documents
+                                  claim.supportingDocument ? (
                                     <Button
-                                      key={docIndex}
                                       variant="outline"
                                       size="sm"
-                                      onClick={() => window.open(doc.url || doc, '_blank')}
-                                      data-testid={`button-view-doc-${claim.id}-${docIndex}`}
+                                      onClick={() => window.open(claim.supportingDocument, '_blank')}
+                                      data-testid={`button-view-doc-${claim.id}`}
                                       className="text-xs"
                                     >
-                                      📎 Dokumen {docIndex + 1}
+                                      📎 Lihat Dokumen
                                     </Button>
-                                  ))}
-                                </div>
-                              ) : (
-                                <span className="text-gray-400 text-sm">Tiada</span>
-                              )
-                            ) : (
-                              // Handle overtime claim documents
-                              claim.supportingDocument ? (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => window.open(claim.supportingDocument, '_blank')}
-                                  data-testid={`button-view-doc-${claim.id}`}
-                                  className="text-xs"
-                                >
-                                  📎 Lihat Dokumen
-                                </Button>
-                              ) : (
-                                <span className="text-gray-400 text-sm">Tiada</span>
-                              )
-                            )}
-                          </td>
+                                  ) : (
+                                    <span className="text-gray-400 text-sm">Tiada</span>
+                                  )
+                                )}
+                              </td>
+                            </>
+                          ) : (
+                            <>
+                              {/* Financial layout - Amaun */}
+                              <td className="border border-gray-300 px-4 py-2 font-medium">
+                                {claim.type === 'financial' 
+                                  ? `RM ${claim.amount}`
+                                  : `RM ${claim.amount || '0.00'}`
+                                }
+                              </td>
+                              {/* Status */}
+                              <td className="border border-gray-300 px-4 py-2">
+                                <span className={`px-2 py-1 rounded text-xs ${
+                                  claim.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                  claim.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                  claim.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                                  claim.status === 'firstLevelApproved' ? 'bg-blue-100 text-blue-800' :
+                                  'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {claim.status === 'pending' ? 'Menunggu' :
+                                   claim.status === 'approved' ? 'Diluluskan' :
+                                   claim.status === 'rejected' ? 'Ditolak' :
+                                   claim.status === 'firstLevelApproved' ? 'Lulus Tahap 1' :
+                                   claim.status}
+                                </span>
+                              </td>
+                              {/* Dokumen */}
+                              <td className="border border-gray-300 px-4 py-2">
+                                {claim.type === 'financial' ? (
+                                  // Handle financial claim documents
+                                  claim.supportingDocuments && claim.supportingDocuments.length > 0 ? (
+                                    <div className="space-y-1">
+                                      {claim.supportingDocuments.map((doc: any, docIndex: number) => (
+                                        <Button
+                                          key={docIndex}
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() => window.open(doc.url || doc, '_blank')}
+                                          data-testid={`button-view-doc-${claim.id}-${docIndex}`}
+                                          className="text-xs"
+                                        >
+                                          📎 Dokumen {docIndex + 1}
+                                        </Button>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <span className="text-gray-400 text-sm">Tiada</span>
+                                  )
+                                ) : (
+                                  // Handle overtime claim documents
+                                  claim.supportingDocument ? (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => window.open(claim.supportingDocument, '_blank')}
+                                      data-testid={`button-view-doc-${claim.id}`}
+                                      className="text-xs"
+                                    >
+                                      📎 Lihat Dokumen
+                                    </Button>
+                                  ) : (
+                                    <span className="text-gray-400 text-sm">Tiada</span>
+                                  )
+                                )}
+                              </td>
+                            </>
+                          )}
                         </tr>
                       ))}
                     </tbody>
