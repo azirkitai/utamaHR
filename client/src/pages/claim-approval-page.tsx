@@ -54,19 +54,41 @@ export default function ClaimApprovalPage() {
 
   const handleViewEmployeeSummary = (employeeName: string, employeeId: string) => {
     try {
+      console.log('=== MODAL DEBUG START ===');
+      console.log('Employee Name:', employeeName);
+      console.log('Employee ID:', employeeId);
+      console.log('financialClaimsData exists:', !!financialClaimsData);
+      console.log('legacyOvertimeClaimsData exists:', !!legacyOvertimeClaimsData);
+      console.log('employeesData exists:', !!employeesData);
+      
       // Ensure data is available
       if (!financialClaimsData && !legacyOvertimeClaimsData) {
+        console.log('No data available, exiting');
         return;
       }
       
-      // Filter claims for the specific employee
-      const employeeFinancialClaims = (financialClaimsData || []).filter((claim: any) => 
-        getEmployeeName(claim.employeeId) === employeeName
-      );
+      // Debug getEmployeeName function
+      console.log('Testing getEmployeeName function...');
+      if (financialClaimsData && financialClaimsData.length > 0) {
+        console.log('First financial claim employeeId:', financialClaimsData[0].employeeId);
+        console.log('getEmployeeName result:', getEmployeeName(financialClaimsData[0].employeeId));
+      }
       
-      const employeeOvertimeClaims = (legacyOvertimeClaimsData || []).filter((claim: any) => 
-        getEmployeeName(claim.employeeId) === employeeName
-      );
+      // Filter claims for the specific employee
+      const employeeFinancialClaims = (financialClaimsData || []).filter((claim: any) => {
+        const claimEmployeeName = getEmployeeName(claim.employeeId);
+        console.log(`Comparing: "${claimEmployeeName}" === "${employeeName}"`);
+        return claimEmployeeName === employeeName;
+      });
+      
+      const employeeOvertimeClaims = (legacyOvertimeClaimsData || []).filter((claim: any) => {
+        const claimEmployeeName = getEmployeeName(claim.employeeId);
+        console.log(`OT Comparing: "${claimEmployeeName}" === "${employeeName}"`);
+        return claimEmployeeName === employeeName;
+      });
+      
+      console.log('Filtered financial claims:', employeeFinancialClaims);
+      console.log('Filtered overtime claims:', employeeOvertimeClaims);
       
       // Combine filtered claims for this employee only
       const allEmployeeClaims = [
@@ -74,15 +96,21 @@ export default function ClaimApprovalPage() {
         ...employeeOvertimeClaims.map((claim: any) => ({ ...claim, type: 'overtime' }))
       ];
       
+      console.log('All employee claims:', allEmployeeClaims);
+      
       setSelectedEmployeeForSummary({ name: employeeName, id: employeeId });
       setEmployeeClaimsDetail(allEmployeeClaims);
       setSummaryDetailModalOpen(true);
+      console.log('Modal should be open now');
+      console.log('=== MODAL DEBUG END ===');
       
     } catch (error) {
-      console.error('Error in handleViewEmployeeSummary:', error);
+      console.error('Detailed error in handleViewEmployeeSummary:', error);
+      console.error('Error stack:', error.stack);
+      console.error('Error message:', error.message);
       toast({
         title: "Ralat",
-        description: "Gagal memuat maklumat claim pekerja",
+        description: `Gagal memuat maklumat claim pekerja: ${error.message}`,
         variant: "destructive",
       });
     }
