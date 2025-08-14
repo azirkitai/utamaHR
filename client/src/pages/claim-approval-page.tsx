@@ -1111,7 +1111,7 @@ export default function ClaimApprovalPage() {
           <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
           <Select value={filters.department} onValueChange={(value) => handleFilterChange('department', value)}>
             <SelectTrigger className="text-sm">
-              <SelectValue />
+              <SelectValue placeholder="Pilih department" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All department</SelectItem>
@@ -1125,7 +1125,7 @@ export default function ClaimApprovalPage() {
           <label className="block text-sm font-medium text-gray-700 mb-1">Employee</label>
           <Select value={filters.employee} onValueChange={(value) => handleFilterChange('employee', value)}>
             <SelectTrigger className="text-sm">
-              <SelectValue />
+              <SelectValue placeholder="Pilih pekerja" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All employee</SelectItem>
@@ -1141,7 +1141,7 @@ export default function ClaimApprovalPage() {
           </label>
           <Select value={filters.claimType} onValueChange={(value) => handleFilterChange('claimType', value)}>
             <SelectTrigger className="text-sm">
-              <SelectValue />
+              <SelectValue placeholder={selectedCategory === "financial" ? "Pilih jenis claim" : "Pilih status overtime"} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">
@@ -1317,7 +1317,7 @@ export default function ClaimApprovalPage() {
           <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
           <Select value={filters.department} onValueChange={(value) => handleFilterChange('department', value)}>
             <SelectTrigger className="text-sm">
-              <SelectValue />
+              <SelectValue placeholder="Pilih department" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All department</SelectItem>
@@ -1331,7 +1331,7 @@ export default function ClaimApprovalPage() {
           <label className="block text-sm font-medium text-gray-700 mb-1">Employee</label>
           <Select value={filters.employee} onValueChange={(value) => handleFilterChange('employee', value)}>
             <SelectTrigger className="text-sm">
-              <SelectValue />
+              <SelectValue placeholder="Pilih pekerja" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All employee</SelectItem>
@@ -1347,7 +1347,7 @@ export default function ClaimApprovalPage() {
           </label>
           <Select value={filters.claimType} onValueChange={(value) => handleFilterChange('claimType', value)}>
             <SelectTrigger className="text-sm">
-              <SelectValue />
+              <SelectValue placeholder={selectedCategory === "financial" ? "Pilih jenis claim" : "Pilih jenis claim"} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">
