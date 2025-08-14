@@ -2002,18 +2002,24 @@ export class DatabaseStorage implements IStorage {
 
   async calculateOvertimeAmount(employeeId: string, totalHours: number): Promise<number> {
     try {
-      // Get employee salary info to calculate hourly rate
+      // Get employee salary info from Master Salary
       const salaryInfo = await this.getEmployeeSalaryByEmployeeId(employeeId);
       
-      if (!salaryInfo || !salaryInfo.basicEarnings || salaryInfo.basicEarnings.length === 0) {
+      if (!salaryInfo) {
         console.log(`No salary info found for employee ${employeeId}, using default rate`);
         // Default hourly rate if no salary info (RM 15/hour for overtime)
         return totalHours * 15.00;
       }
       
-      // Get basic monthly salary
-      const basicSalary = salaryInfo.basicEarnings[0];
-      const monthlySalary = parseFloat(basicSalary.amount) || 0;
+      // Use basic_salary from Master Salary (employee_salaries table) as primary source
+      let monthlySalary = parseFloat(salaryInfo.basicSalary?.toString() || '0');
+      
+      // If master salary is 0 or null, try to get from basic earnings as fallback
+      if (monthlySalary <= 0 && salaryInfo.basicEarnings && salaryInfo.basicEarnings.length > 0) {
+        const basicEarnings = salaryInfo.basicEarnings[0];
+        monthlySalary = parseFloat(basicEarnings.amount) || 0;
+        console.log(`Using Basic Earnings as fallback: RM ${monthlySalary}`);
+      }
       
       if (monthlySalary <= 0) {
         console.log(`Invalid monthly salary for employee ${employeeId}, using default rate`);
@@ -2029,12 +2035,15 @@ export class DatabaseStorage implements IStorage {
       // Calculate total overtime amount
       const overtimeAmount = totalHours * overtimeRate;
       
-      console.log(`Overtime calculation for employee ${employeeId}:`);
-      console.log(`Monthly salary: RM ${monthlySalary}`);
-      console.log(`Hourly rate: RM ${hourlyRate.toFixed(2)}`);
+      console.log(`=== OVERTIME CALCULATION (FIXED) ===`);
+      console.log(`Employee ID: ${employeeId}`);
+      console.log(`Master Salary (basic_salary): RM ${salaryInfo.basicSalary || 'NULL'}`);
+      console.log(`Monthly salary used: RM ${monthlySalary}`);
+      console.log(`Hourly rate (÷160): RM ${hourlyRate.toFixed(2)}`);
       console.log(`Overtime rate (1.5x): RM ${overtimeRate.toFixed(2)}`);
       console.log(`Total hours: ${totalHours}`);
       console.log(`Total overtime amount: RM ${overtimeAmount.toFixed(2)}`);
+      console.log(`=== END CALCULATION ===`);
       
       return parseFloat(overtimeAmount.toFixed(2));
     } catch (error) {
