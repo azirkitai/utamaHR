@@ -3364,6 +3364,54 @@ export function registerRoutes(app: Express): Server {
 
   // =================== CLAIM APPLICATION ROUTES ===================
 
+  // Calculate overtime amount for real-time preview
+  app.post('/api/overtime/calculate-amount', authenticateToken, async (req, res) => {
+    try {
+      const { employeeId, totalHours } = req.body;
+      
+      if (!employeeId || !totalHours) {
+        return res.status(400).json({ error: 'Employee ID dan jumlah jam diperlukan' });
+      }
+      
+      const amount = await storage.calculateOvertimeAmount(employeeId, parseFloat(totalHours));
+      res.json({ amount });
+    } catch (error) {
+      console.error('Error calculating overtime amount:', error);
+      res.status(500).json({ error: 'Gagal mengira jumlah overtime' });
+    }
+  });
+
+  // Update all overtime amounts that are null or zero
+  app.post('/api/overtime/recalculate-amounts', authenticateToken, async (req, res) => {
+    try {
+      const applications = await storage.getClaimApplicationsByType('overtime');
+      const updates: Array<{id: string, oldAmount: number | null, newAmount: number}> = [];
+      
+      for (const app of applications) {
+        if (app.totalHours && (!app.amount || app.amount === 0)) {
+          const calculatedAmount = await storage.calculateOvertimeAmount(app.employeeId, app.totalHours);
+          await storage.updateClaimApplication(app.id, {
+            amount: calculatedAmount,
+            calculatedAmount: calculatedAmount
+          });
+          updates.push({
+            id: app.id,
+            oldAmount: app.amount,
+            newAmount: calculatedAmount
+          });
+        }
+      }
+      
+      res.json({ 
+        message: `${updates.length} overtime applications updated`,
+        updates
+      });
+    } catch (error) {
+      console.error('Error recalculating overtime amounts:', error);
+      res.status(500).json({ error: 'Gagal mengira semula jumlah overtime' });
+    }
+  });
+
   // Get all claim applications
   app.get('/api/claim-applications', authenticateToken, async (req, res) => {
     try {

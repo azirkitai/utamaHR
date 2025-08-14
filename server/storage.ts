@@ -2000,7 +2000,58 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(claimApplications.dateSubmitted));
   }
 
+  async calculateOvertimeAmount(employeeId: string, totalHours: number): Promise<number> {
+    try {
+      // Get employee salary info to calculate hourly rate
+      const salaryInfo = await this.getEmployeeSalaryByEmployeeId(employeeId);
+      
+      if (!salaryInfo || !salaryInfo.basicEarnings || salaryInfo.basicEarnings.length === 0) {
+        console.log(`No salary info found for employee ${employeeId}, using default rate`);
+        // Default hourly rate if no salary info (RM 15/hour for overtime)
+        return totalHours * 15.00;
+      }
+      
+      // Get basic monthly salary
+      const basicSalary = salaryInfo.basicEarnings[0];
+      const monthlySalary = parseFloat(basicSalary.amount) || 0;
+      
+      if (monthlySalary <= 0) {
+        console.log(`Invalid monthly salary for employee ${employeeId}, using default rate`);
+        return totalHours * 15.00;
+      }
+      
+      // Calculate hourly rate based on standard 160 working hours per month (8 hours x 20 days)
+      const hourlyRate = monthlySalary / 160;
+      
+      // Overtime rate is typically 1.5x normal hourly rate
+      const overtimeRate = hourlyRate * 1.5;
+      
+      // Calculate total overtime amount
+      const overtimeAmount = totalHours * overtimeRate;
+      
+      console.log(`Overtime calculation for employee ${employeeId}:`);
+      console.log(`Monthly salary: RM ${monthlySalary}`);
+      console.log(`Hourly rate: RM ${hourlyRate.toFixed(2)}`);
+      console.log(`Overtime rate (1.5x): RM ${overtimeRate.toFixed(2)}`);
+      console.log(`Total hours: ${totalHours}`);
+      console.log(`Total overtime amount: RM ${overtimeAmount.toFixed(2)}`);
+      
+      return parseFloat(overtimeAmount.toFixed(2));
+    } catch (error) {
+      console.error('Error calculating overtime amount:', error);
+      // Return default calculation if error occurs
+      return totalHours * 15.00;
+    }
+  }
+
   async createClaimApplication(application: InsertClaimApplication): Promise<ClaimApplication> {
+    // If this is an overtime application, calculate the amount automatically
+    if (application.claimCategory === 'overtime' && application.totalHours && application.employeeId) {
+      const calculatedAmount = await this.calculateOvertimeAmount(application.employeeId, application.totalHours);
+      application.amount = calculatedAmount;
+      application.calculatedAmount = calculatedAmount;
+    }
+
     const [claimApp] = await db
       .insert(claimApplications)
       .values(application)
