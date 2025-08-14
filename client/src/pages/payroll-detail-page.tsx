@@ -620,9 +620,35 @@ export default function PayrollDetailPage() {
                           return total;
                         })();
                         
-                        const totalDeductions = parseFloat(deductionsData.epfEmployee || '0') + 
-                                              parseFloat(deductionsData.socsoEmployee || '0') + 
-                                              parseFloat(deductionsData.eisEmployee || '0');
+                        // Calculate total deductions from all deduction items
+                        const totalDeductions = (() => {
+                          let total = 0;
+                          
+                          // Standard deductions
+                          total += parseFloat(deductionsData.epfEmployee || '0');
+                          total += parseFloat(deductionsData.socsoEmployee || '0');
+                          total += parseFloat(deductionsData.eisEmployee || '0');
+                          
+                          // Additional deductions
+                          total += parseFloat(deductionsData.advance || '0');
+                          total += parseFloat(deductionsData.unpaidLeave || '0');
+                          total += parseFloat(deductionsData.pcb38 || '0');
+                          total += parseFloat(deductionsData.pcb39 || '0');
+                          total += parseFloat(deductionsData.zakat || '0');
+                          
+                          // Other deductions (including MTD/PCB)
+                          if (typeof deductionsData.other === 'number') {
+                            total += deductionsData.other;
+                          } else if (typeof deductionsData.other === 'string' && deductionsData.other !== '') {
+                            total += parseFloat(deductionsData.other);
+                          } else if (Array.isArray(deductionsData.other)) {
+                            deductionsData.other.forEach((item: any) => {
+                              total += parseFloat(item.amount || '0');
+                            });
+                          }
+                          
+                          return total;
+                        })();
                         const totalContributions = parseFloat(contributionsData.epfEmployer || '0') + 
                                                   parseFloat(contributionsData.socsoEmployer || '0') + 
                                                   parseFloat(contributionsData.eisEmployer || '0');
