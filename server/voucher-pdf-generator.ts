@@ -112,16 +112,16 @@ export async function generateVoucherPDF(data: VoucherData): Promise<Buffer> {
     // Add a small delay to ensure content is rendered
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    // Use A4 format for voucher with optimized margins
+    // Use A4 format for voucher with tight margins for compact layout
     const pdfBuffer = await page.pdf({
       format: 'A4',
       printBackground: true,
       preferCSSPageSize: false,
       margin: {
-        top: '8mm',
-        right: '12mm', 
-        bottom: '8mm',
-        left: '12mm'
+        top: '6mm',
+        right: '10mm', 
+        bottom: '6mm',
+        left: '10mm'
       }
     });
     
