@@ -33,7 +33,7 @@
         .voucher-title {
             font-size: 12pt;
             font-weight: bold;
-            margin: 8pt 0 6pt 0;
+            margin: 4pt 0 6pt 0;
             text-align: center;
         }
         
@@ -67,16 +67,16 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15pt;
-            margin-bottom: 8pt;
+            margin-bottom: 6pt;
         }
         
         .detail-row {
             display: flex;
-            margin-bottom: 2pt;
+            margin-bottom: 1pt;
         }
         
         .detail-label {
-            width: 100pt;
+            width: 110pt;
             flex-shrink: 0;
             font-size: 10pt;
         }
@@ -89,7 +89,7 @@
         .payment-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 4pt;
+            margin-bottom: 6pt;
             border: 1px solid #000;
             font-size: 10pt;
         }
@@ -97,10 +97,10 @@
         .payment-table th,
         .payment-table td {
             border: 1px solid #000;
-            padding: 2pt 4pt;
+            padding: 3pt;
             text-align: left;
             vertical-align: middle;
-            height: 16pt;
+            height: 18pt;
         }
         
         .payment-table th {
@@ -115,14 +115,21 @@
         
         .payment-table th:first-child,
         .payment-table td:first-child {
-            width: 40pt;
+            width: 35pt;
             text-align: center;
+        }
+        
+        .payment-table th:nth-child(2),
+        .payment-table td:nth-child(2) {
+            text-align: left;
+            padding-left: 6pt;
         }
         
         .payment-table th:last-child,
         .payment-table td:last-child {
-            width: 80pt;
+            width: 90pt;
             text-align: right;
+            padding-right: 6pt;
         }
         
         .text-right {
@@ -134,14 +141,16 @@
             font-weight: bold;
             padding: 4pt 6pt;
             border: 1px solid #000;
-            margin-bottom: 4pt;
+            margin-bottom: 2pt;
             font-size: 10pt;
+            display: flex;
+            justify-content: space-between;
         }
         
         .amount-words {
             border: 1px solid #000;
             padding: 4pt 6pt;
-            margin-bottom: 12pt;
+            margin-bottom: 6pt;
             font-weight: bold;
             font-size: 10pt;
         }
@@ -149,18 +158,18 @@
         .signatures {
             display: flex;
             justify-content: space-between;
-            margin-top: 12pt;
+            margin-top: 6pt;
         }
         
         .signature-box {
             text-align: center;
-            width: 130pt;
+            width: 120pt;
         }
         
         .signature-line {
             border-top: 1px solid #000;
             margin-bottom: 2pt;
-            height: 20pt;
+            height: 18pt;
         }
         
         .signature-label {
@@ -253,11 +262,9 @@
     </table>
     
     <!-- Total Line -->
-    <div class="total-row" style="padding: 8px; background-color: #f0f0f0; border: 1px solid #666; font-weight: bold;">
-        <div style="display: flex; justify-content: space-between;">
-            <span>MALAYSIA RINGGIT : TOTAL</span>
-            <span>{{totalAmount}}</span>
-        </div>
+    <div class="total-row">
+        <span>MALAYSIA RINGGIT : TOTAL</span>
+        <span>{{totalAmount}}</span>
     </div>
     
     <!-- Amount in Words -->
