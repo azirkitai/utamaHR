@@ -141,10 +141,10 @@ export async function generatePayslipPDF(data: PayslipData): Promise<Buffer> {
     console.log('Creating new page...');
     const page = await browser.newPage();
     
-    // Set viewport for 3/4 A4 size (158mm x 223mm)
+    // Set viewport for smaller rendering - FORCE 3/4 size  
     await page.setViewport({
-      width: 595, // 3/4 of A4 width in pixels at 96dpi
-      height: 842, // 3/4 of A4 height in pixels at 96dpi  
+      width: 475, // Smaller width for forced 3/4 rendering
+      height: 672, // Smaller height for forced 3/4 rendering
       deviceScaleFactor: 1
     });
     
@@ -157,15 +157,14 @@ export async function generatePayslipPDF(data: PayslipData): Promise<Buffer> {
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     const pdfBuffer = await page.pdf({
-      width: '158mm', // 3/4 of A4 width (210mm)
-      height: '223mm', // 3/4 of A4 height (297mm)
+      format: 'A5', // Use A5 instead which is closer to 3/4 A4
       printBackground: true,
-      preferCSSPageSize: false, // Force Puppeteer dimensions
+      preferCSSPageSize: false, // Force format size 
       margin: {
-        top: '2mm',
-        right: '2mm', 
-        bottom: '2mm',
-        left: '2mm'
+        top: '5mm',
+        right: '5mm', 
+        bottom: '5mm',
+        left: '5mm'
       }
     });
     
