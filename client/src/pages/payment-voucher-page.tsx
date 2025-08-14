@@ -178,10 +178,10 @@ export default function PaymentVoucherPage() {
                   </td>
                   <td className="p-3 text-gray-900">
                     {voucher.includedClaims && voucher.includedClaims.length > 0 
-                      ? voucher.includedClaims.map(claimId => {
+                      ? [...new Set(voucher.includedClaims.map(claimId => {
                           const claim = approvedClaims.find(c => c.id === claimId);
                           return claim ? getEmployeeName(claim.employeeId) : 'Unknown';
-                        }).join(', ')
+                        }))].join(', ')
                       : 'Tiada data'
                     }
                   </td>
