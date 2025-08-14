@@ -95,9 +95,17 @@ export default function VoucherDetailsPage() {
 
   const handlePrint = async () => {
     try {
+      const token = localStorage.getItem('utamahr_token');
+      const headers: Record<string, string> = {};
+      
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
       const response = await fetch(`/api/payment-vouchers/${voucherId}/pdf`, {
         method: 'GET',
-        credentials: 'include', // Include session cookies
+        headers,
+        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -127,9 +135,17 @@ export default function VoucherDetailsPage() {
 
   const handleDownload = async () => {
     try {
+      const token = localStorage.getItem('utamahr_token');
+      const headers: Record<string, string> = {};
+      
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
       const response = await fetch(`/api/payment-vouchers/${voucherId}/pdf`, {
         method: 'GET',
-        credentials: 'include', // Include session cookies
+        headers,
+        credentials: 'include',
       });
 
       if (!response.ok) {
