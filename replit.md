@@ -2,6 +2,10 @@
 UtamaHR is a comprehensive HR Management System built with React, TypeScript, and Express.js. The project's core purpose is to provide a secure, full-featured HR solution, starting with robust authentication and expanding to cover all essential HR functionalities. Key capabilities include secure JWT-based authentication, complete employee management (CRUD), detailed system settings with a modern UI, standardized employee detail layouts, real-time dashboard statistics, unread announcement tracking, comprehensive financial claim policy management, multi-level claim approval workflows with filtering and pagination, and a complete payroll system including PDF and Excel payslip generation with dynamic company data integration. The business vision is to deliver an intuitive and compliant HR platform capable of handling complex HR workflows.
 
 ## Recent Updates (August 2025)
+- Successfully implemented voucher PDF generation using HTML template + Puppeteer approach
+- Fixed __dirname ES module compatibility issues in voucher PDF generator
+- Voucher PDF system now uses identical working technique as payroll system
+- Payment voucher downloads generate proper PDF files with complete formatting
 - Fixed claim approval pagination displaying incorrect "0 to 0 of 0 entries" in Report tab
 - Implemented proper pagination logic showing actual filtered data counts
 - Synchronized filter functionality across Summary and Report tabs
