@@ -59,7 +59,7 @@ export default function ClaimApprovalPage() {
         getEmployeeName(claim.employeeId) === employeeName
       );
       
-      const employeeOvertimeClaims = (overtimeClaimsData || []).filter((claim: any) => 
+      const employeeOvertimeClaims = (legacyOvertimeClaimsData || []).filter((claim: any) => 
         getEmployeeName(claim.employeeId) === employeeName
       );
       
@@ -1110,7 +1110,7 @@ export default function ClaimApprovalPage() {
                 <TableCell>{index + 1}</TableCell>
                 <TableCell 
                   className="font-medium text-blue-600 hover:text-blue-800 cursor-pointer underline"
-                  onClick={() => handleViewEmployeeSummary(item.name, item.id)}
+                  onClick={() => handleViewEmployeeSummary(item.name, item.employeeId || '')}
                   data-testid={`link-employee-${item.name.replace(/\s+/g, '-').toLowerCase()}`}
                 >
                   {item.name}
