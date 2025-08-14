@@ -5144,15 +5144,20 @@ export function registerRoutes(app: Express): Server {
       // Get company settings
       const companySettings = await storage.getCompanySettings();
       
-      // Get all employees for name mapping
-      const allEmployees = await db.select().from(employees);
+      // Format company data for PDF
+      const company = {
+        name: companySettings.companyName,
+        regNo: companySettings.registrationNumber,
+        address: companySettings.address,
+        phone: companySettings.phone,
+        email: companySettings.email
+      };
       
       // Generate PDF
       const pdfBuffer = await generatePaymentVoucherPDF({
         voucher,
         claims,
-        companySettings,
-        employees: allEmployees
+        company
       });
       
       // Set headers for PDF response
