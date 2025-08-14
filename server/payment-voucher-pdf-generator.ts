@@ -248,8 +248,8 @@ export async function generatePaymentVoucherPDF(data: VoucherPDFData): Promise<B
       borderWidth: 1,
     });
 
-    // Row data - use particulars field as description for claims
-    const description = claim.particulars || claim.reason || claim.remark || claim.claimType || 'Claim Item';
+    // Row data - use claimCategory field as description (same as preview)
+    const description = claim.claimCategory || claim.particulars || claim.reason || claim.remark || 'Claim Item';
     const rowData = [
       (index + 1).toString(),
       description,

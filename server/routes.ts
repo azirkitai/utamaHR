@@ -5138,9 +5138,12 @@ export function registerRoutes(app: Express): Server {
           const claim = await storage.getClaimApplication(claimId);
           if (claim) {
             claims.push(claim);
-            // Get employee name from the first claim's applicant field
-            if (!employeeName && claim.applicant) {
-              employeeName = claim.applicant;
+            // Get employee name from the first claim's employeeId
+            if (!employeeName && claim.employeeId) {
+              const employee = await storage.getEmployee(claim.employeeId);
+              if (employee) {
+                employeeName = employee.name;
+              }
             }
           }
         }
