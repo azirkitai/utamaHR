@@ -37,7 +37,7 @@ export default function PaymentVoucherPage() {
     year: "2025",
     month: "8",
     paymentDate: "2025-08-08",
-    remarks: "Pembayaran untuk tuntutan kewangan bulan Ogos 2025"
+    remarks: "Payment for financial claims August 2025"
   });
   const { toast } = useToast();
 
@@ -76,21 +76,21 @@ export default function PaymentVoucherPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/payment-vouchers'] });
       toast({
-        title: "Berjaya",
-        description: "Voucher pembayaran berjaya dicipta",
+        title: "Success",
+        description: "Payment voucher created successfully",
       });
       setShowNewVoucherModal(false);
       setFormData({
         year: "2025",
         month: "8", 
         paymentDate: "2025-08-08",
-        remarks: "Pembayaran untuk tuntutan kewangan"
+        remarks: "Payment for financial claims"
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Ralat",
-        description: error.message || "Gagal mencipta voucher pembayaran",
+        title: "Error",
+        description: error.message || "Failed to create payment voucher",
         variant: "destructive",
       });
     },
@@ -106,8 +106,8 @@ export default function PaymentVoucherPage() {
   const handleGeneratePayment = () => {
     if (!approvedClaims.length) {
       toast({
-        title: "Amaran",
-        description: "Tiada tuntutan kewangan yang diluluskan untuk tempoh ini",
+        title: "Warning",
+        description: "No approved financial claims for this period",
         variant: "destructive",
       });
       return;
