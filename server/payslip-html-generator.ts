@@ -160,12 +160,12 @@ export async function generatePayslipPDF(data: PayslipData): Promise<Buffer> {
       width: '158mm', // 3/4 of A4 width (210mm)
       height: '223mm', // 3/4 of A4 height (297mm)
       printBackground: true,
-      preferCSSPageSize: true, // Use CSS @page settings
+      preferCSSPageSize: false, // Force Puppeteer dimensions
       margin: {
-        top: '5mm',
-        right: '5mm', 
-        bottom: '5mm',
-        left: '5mm'
+        top: '2mm',
+        right: '2mm', 
+        bottom: '2mm',
+        left: '2mm'
       }
     });
     
