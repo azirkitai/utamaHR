@@ -1,313 +1,349 @@
-import puppeteer from 'puppeteer';
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import type { PaymentVoucher, ClaimApplication } from '@shared/schema';
 
 export interface VoucherPDFData {
   voucher: PaymentVoucher;
   claims: ClaimApplication[];
-  companySettings: any;
-  employees: any[];
+  company: {
+    name: string;
+    regNo?: string | null;
+    address: string;
+    phone?: string | null;
+    email?: string | null;
+  };
+}
+
+function convertToWords(num: number): string {
+  if (num === 0) return "ZERO RINGGIT ONLY";
+  
+  const ones = ['', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE'];
+  const teens = ['TEN', 'ELEVEN', 'TWELVE', 'THIRTEEN', 'FOURTEEN', 'FIFTEEN', 'SIXTEEN', 'SEVENTEEN', 'EIGHTEEN', 'NINETEEN'];
+  const tens = ['', '', 'TWENTY', 'THIRTY', 'FORTY', 'FIFTY', 'SIXTY', 'SEVENTY', 'EIGHTY', 'NINETY'];
+  const thousands = ['', 'THOUSAND', 'MILLION', 'BILLION'];
+
+  function convertHundreds(num: number): string {
+    let result = '';
+    
+    if (num >= 100) {
+      result += ones[Math.floor(num / 100)] + ' HUNDRED ';
+      num %= 100;
+    }
+    
+    if (num >= 20) {
+      result += tens[Math.floor(num / 10)] + ' ';
+      num %= 10;
+    } else if (num >= 10) {
+      result += teens[num - 10] + ' ';
+      num = 0;
+    }
+    
+    if (num > 0) {
+      result += ones[num] + ' ';
+    }
+    
+    return result;
+  }
+
+  let integerPart = Math.floor(num);
+  let cents = Math.round((num - integerPart) * 100);
+  
+  if (integerPart === 0 && cents === 0) return "ZERO RINGGIT ONLY";
+  
+  let result = '';
+  let thousandCounter = 0;
+  
+  while (integerPart > 0) {
+    let chunk = integerPart % 1000;
+    if (chunk !== 0) {
+      result = convertHundreds(chunk) + thousands[thousandCounter] + ' ' + result;
+    }
+    integerPart = Math.floor(integerPart / 1000);
+    thousandCounter++;
+  }
+  
+  result = result.trim() + ' RINGGIT';
+  
+  if (cents > 0) {
+    result += ' AND ' + convertHundreds(cents).trim() + ' SEN';
+  }
+  
+  return result.trim() + ' ONLY';
 }
 
 export async function generatePaymentVoucherPDF(data: VoucherPDFData): Promise<Buffer> {
-  const { voucher, claims, companySettings, employees } = data;
+  const { voucher, claims, company } = data;
+  const totalAmount = claims.reduce((sum, claim) => sum + parseFloat(claim.amount || '0'), 0);
 
-  // Helper functions
-  const getEmployeeName = (employeeId: string) => {
-    const employee = employees.find(emp => emp.id === employeeId);
-    return employee ? employee.fullName : 'Unknown Employee';
-  };
+  // Create a new PDF document
+  const pdfDoc = await PDFDocument.create();
+  const page = pdfDoc.addPage([595.28, 841.89]); // A4 size in points
+  
+  // Get fonts
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  
+  const { width, height } = page.getSize();
+  let yPosition = height - 60; // Start from top
 
-  const getEmployeeNRIC = (employeeId: string): string => {
-    const employee = employees.find(emp => emp.id === employeeId);
-    return employee?.nric || 'Not Stated';
-  };
+  // Header - Company Info
+  page.drawText(company.name, {
+    x: 50,
+    y: yPosition,
+    size: 18,
+    font: boldFont,
+    color: rgb(0, 0, 0),
+  });
+  yPosition -= 25;
 
-  const getEmployeeBankInfo = (employeeId: string): string => {
-    const employee = employees.find(emp => emp.id === employeeId);
-    if (employee?.bankName && employee?.accountNumber) {
-      return `${employee.bankName} - ${employee.accountNumber}`;
-    }
-    return 'Not Stated';
-  };
+  if (company.regNo) {
+    page.drawText(`Registration No: ${company.regNo}`, {
+      x: 50,
+      y: yPosition,
+      size: 11,
+      font: font,
+    });
+    yPosition -= 15;
+  }
 
-  const convertToWords = (amount: number): string => {
-    if (amount === 0) return 'ZERO';
-    
-    const ones = ['', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE', 'TEN', 'ELEVEN', 'TWELVE', 'THIRTEEN', 'FOURTEEN', 'FIFTEEN', 'SIXTEEN', 'SEVENTEEN', 'EIGHTEEN', 'NINETEEN'];
-    const tens = ['', '', 'TWENTY', 'THIRTY', 'FORTY', 'FIFTY', 'SIXTY', 'SEVENTY', 'EIGHTY', 'NINETY'];
-    
-    const convert = (num: number): string => {
-      if (num === 0) return '';
-      else if (num < 20) return ones[num];
-      else if (num < 100) return tens[Math.floor(num / 10)] + (num % 10 !== 0 ? ' ' + ones[num % 10] : '');
-      else if (num < 1000) return ones[Math.floor(num / 100)] + ' HUNDRED' + (num % 100 !== 0 ? ' ' + convert(num % 100) : '');
-      else if (num < 1000000) return convert(Math.floor(num / 1000)) + ' THOUSAND' + (num % 1000 !== 0 ? ' ' + convert(num % 1000) : '');
-      else return convert(Math.floor(num / 1000000)) + ' MILLION' + (num % 1000000 !== 0 ? ' ' + convert(num % 1000000) : '');
-    };
-    
-    const wholePart = Math.floor(amount);
-    const decimalPart = Math.round((amount - wholePart) * 100);
-    
-    let result = convert(wholePart);
-    if (decimalPart > 0) {
-      result += ' AND ' + convert(decimalPart) + ' CENTS';
-    }
-    
-    return result + ' ONLY';
-  };
+  page.drawText(company.address, {
+    x: 50,
+    y: yPosition,
+    size: 11,
+    font: font,
+  });
+  yPosition -= 15;
 
-  const months = [
-    { value: "1", label: "January" }, { value: "2", label: "February" },
-    { value: "3", label: "March" }, { value: "4", label: "April" },
-    { value: "5", label: "May" }, { value: "6", label: "June" },
-    { value: "7", label: "July" }, { value: "8", label: "August" },
-    { value: "9", label: "September" }, { value: "10", label: "October" },
-    { value: "11", label: "November" }, { value: "12", label: "December" }
-  ];
+  if (company.phone) {
+    page.drawText(`Phone: ${company.phone}`, {
+      x: 50,
+      y: yPosition,
+      size: 11,
+      font: font,
+    });
+    yPosition -= 15;
+  }
 
-  const monthName = months.find(m => m.value === voucher.month.toString())?.label || `Month ${voucher.month}`;
-  const totalAmount = claims.reduce((sum, claim) => sum + (parseFloat(claim.amount || '0') || 0), 0);
+  if (company.email) {
+    page.drawText(`Email: ${company.email}`, {
+      x: 50,
+      y: yPosition,
+      size: 11,
+      font: font,
+    });
+    yPosition -= 15;
+  }
 
-  const html = `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            color: #1f2937;
-            line-height: 1.4;
-        }
-        .voucher-container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            padding: 40px;
-        }
-        .company-header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        .company-name {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-        .company-details {
-            font-size: 12px;
-            margin-bottom: 4px;
-            color: #374151;
-        }
-        .voucher-title {
-            font-size: 24px;
-            font-weight: bold;
-            margin-top: 24px;
-        }
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-            margin-bottom: 40px;
-        }
-        .paid-to-section {
-            font-size: 12px;
-        }
-        .section-title {
-            font-weight: bold;
-            margin-bottom: 12px;
-        }
-        .employee-details {
-            margin-bottom: 4px;
-        }
-        .payment-for-section {
-            margin-top: 32px;
-        }
-        .payment-for-title {
-            font-weight: bold;
-            margin-bottom: 12px;
-            border-bottom: 1px solid #9ca3af;
-            padding-bottom: 4px;
-        }
-        .voucher-details {
-            font-size: 12px;
-        }
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-        }
-        .detail-value {
-            font-weight: 500;
-        }
-        .payment-details {
-            margin-bottom: 40px;
-        }
-        .payment-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #e5e7eb;
-            font-size: 12px;
-        }
-        .payment-total {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 2px solid #9ca3af;
-            font-weight: bold;
-        }
-        .amount-words {
-            margin-top: 16px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        .footer {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 80px;
-        }
-        .signature-section {
-            text-align: center;
-            width: 200px;
-        }
-        .signature-line {
-            border-top: 1px solid #9ca3af;
-            margin-bottom: 8px;
-        }
-        .signature-label {
-            font-size: 10px;
-        }
-    </style>
-</head>
-<body>
-    <div class="voucher-container">
-        <!-- Company Header -->
-        <div class="company-header">
-            <div class="company-name">
-                ${companySettings?.companyName?.toUpperCase() || 'COMPANY NAME'}
-            </div>
-            ${companySettings?.address ? `<div class="company-details">${companySettings.address}</div>` : ''}
-            ${companySettings?.city && companySettings?.state && companySettings?.postalCode ? 
-              `<div class="company-details">${companySettings.postalCode} ${companySettings.city}, ${companySettings.state}</div>` : ''}
-            ${(companySettings?.phone || companySettings?.fax) ? 
-              `<div class="company-details">
-                ${companySettings.phone ? `Tel: ${companySettings.phone}` : ''}
-                ${companySettings.phone && companySettings.fax ? ' | ' : ''}
-                ${companySettings.fax ? `Fax: ${companySettings.fax}` : ''}
-              </div>` : ''}
-            ${companySettings?.email ? `<div class="company-details">Email: ${companySettings.email}</div>` : ''}
-            
-            <div class="voucher-title">PAYMENT VOUCHER</div>
-        </div>
+  yPosition -= 20;
 
-        <!-- Main Content Grid -->
-        <div class="main-content">
-            <!-- Left Side - PAID TO -->
-            <div class="paid-to-section">
-                <div class="section-title">PAID TO:</div>
-                ${claims.length > 0 ? `
-                <div class="employee-details">Employee No: ${claims[0].employeeId}</div>
-                <div class="employee-details">Name: ${getEmployeeName(claims[0].employeeId)}</div>
-                <div class="employee-details">NRIC: ${getEmployeeNRIC(claims[0].employeeId)}</div>
-                <div class="employee-details">Bank / Cheque No.: ${getEmployeeBankInfo(claims[0].employeeId)}</div>
-                ` : ''}
-                
-                <div class="payment-for-section">
-                    <div class="payment-for-title">PAYMENT FOR:</div>
-                    <div style="font-weight: bold;">AMOUNT (RM)</div>
-                </div>
-            </div>
+  // Title
+  page.drawText('PAYMENT VOUCHER', {
+    x: (width - 180) / 2,
+    y: yPosition,
+    size: 20,
+    font: boldFont,
+  });
+  yPosition -= 40;
 
-            <!-- Right Side - Voucher Details -->
-            <div class="voucher-details">
-                <div class="detail-row">
-                    <span>Payment Voucher No:</span>
-                    <span class="detail-value">${voucher.voucherNumber}</span>
-                </div>
-                <div class="detail-row">
-                    <span>Payment Date:</span>
-                    <span class="detail-value">${new Date(voucher.paymentDate).toLocaleDateString('en-GB')}</span>
-                </div>
-                <div class="detail-row">
-                    <span>Month:</span>
-                    <span class="detail-value">${monthName}</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Payment Details -->
-        <div class="payment-details">
-            ${claims.map(claim => `
-            <div class="payment-item">
-                <span>${claim.claimCategory.toUpperCase()}</span>
-                <span>${(parseFloat(claim.amount || '0') || 0).toFixed(2)}</span>
-            </div>
-            `).join('')}
-            
-            <!-- Total Line -->
-            <div class="payment-total">
-                <span>MALAYSIA RINGGIT : TOTAL</span>
-                <span>${totalAmount.toFixed(2)}</span>
-            </div>
-            
-            <!-- Amount in Words -->
-            <div class="amount-words">
-                MALAYSIA RINGGIT : ${convertToWords(totalAmount)}
-            </div>
-        </div>
-
-        <!-- Footer -->
-        <div class="footer">
-            <div class="signature-section">
-                <div class="signature-line"></div>
-                <div class="signature-label">Prepared By</div>
-            </div>
-            <div class="signature-section">
-                <div class="signature-line"></div>
-                <div class="signature-label">Checked By</div>
-            </div>
-            <div class="signature-section">
-                <div class="signature-line"></div>
-                <div class="signature-label">Approved By</div>
-            </div>
-        </div>
-    </div>
-</body>
-</html>
-  `;
-
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-gpu',
-      '--disable-web-security',
-      '--disable-features=VizDisplayCompositor'
-    ]
+  // Voucher Info
+  page.drawText(`Voucher No: ${voucher.voucherNumber}`, {
+    x: 50,
+    y: yPosition,
+    size: 12,
+    font: boldFont,
   });
 
-  try {
-    const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: 'networkidle0' });
+  const formattedDate = new Date(voucher.createdAt).toLocaleDateString('en-GB');
+  page.drawText(`Date: ${formattedDate}`, {
+    x: width - 150,
+    y: yPosition,
+    size: 12,
+    font: boldFont,
+  });
+  yPosition -= 30;
+
+  // Pay To
+  page.drawText('PAY TO:', {
+    x: 50,
+    y: yPosition,
+    size: 12,
+    font: boldFont,
+  });
+  yPosition -= 20;
+
+  page.drawText(voucher.employeeName, {
+    x: 50,
+    y: yPosition,
+    size: 12,
+    font: boldFont,
+  });
+  
+  // Draw line under employee name
+  page.drawLine({
+    start: { x: 50, y: yPosition - 5 },
+    end: { x: width - 50, y: yPosition - 5 },
+    thickness: 1,
+    color: rgb(0, 0, 0),
+  });
+  yPosition -= 40;
+
+  // Table Header
+  const tableHeaders = ['No.', 'Description', 'Claim Type', 'Amount (RM)'];
+  const columnWidths = [40, 200, 120, 100];
+  let currentX = 50;
+
+  // Draw table header background
+  page.drawRectangle({
+    x: 50,
+    y: yPosition - 20,
+    width: width - 100,
+    height: 20,
+    color: rgb(0.95, 0.95, 0.95),
+  });
+
+  // Draw table header border
+  page.drawRectangle({
+    x: 50,
+    y: yPosition - 20,
+    width: width - 100,
+    height: 20,
+    borderColor: rgb(0, 0, 0),
+    borderWidth: 1,
+  });
+
+  // Draw table headers
+  tableHeaders.forEach((header, index) => {
+    page.drawText(header, {
+      x: currentX + 5,
+      y: yPosition - 15,
+      size: 10,
+      font: boldFont,
+    });
+    currentX += columnWidths[index];
+  });
+
+  yPosition -= 20;
+
+  // Table rows
+  claims.forEach((claim, index) => {
+    currentX = 50;
     
-    const pdf = await page.pdf({
-      format: 'A4',
-      margin: {
-        top: '20mm',
-        right: '20mm',
-        bottom: '20mm',
-        left: '20mm'
-      },
-      printBackground: true
+    // Draw row background (alternating)
+    if (index % 2 === 1) {
+      page.drawRectangle({
+        x: 50,
+        y: yPosition - 20,
+        width: width - 100,
+        height: 20,
+        color: rgb(0.98, 0.98, 0.98),
+      });
+    }
+
+    // Draw row border
+    page.drawRectangle({
+      x: 50,
+      y: yPosition - 20,
+      width: width - 100,
+      height: 20,
+      borderColor: rgb(0, 0, 0),
+      borderWidth: 1,
     });
 
-    return Buffer.from(pdf);
-  } finally {
-    await browser.close();
-  }
+    // Row data
+    const rowData = [
+      (index + 1).toString(),
+      claim.description || '-',
+      claim.claimType || '-',
+      parseFloat(claim.amount || '0').toFixed(2)
+    ];
+
+    rowData.forEach((data, colIndex) => {
+      const textX = colIndex === 3 ? currentX + columnWidths[colIndex] - 10 : currentX + 5; // Right align amount
+      page.drawText(data, {
+        x: textX,
+        y: yPosition - 15,
+        size: 10,
+        font: font,
+      });
+      currentX += columnWidths[colIndex];
+    });
+
+    yPosition -= 20;
+  });
+
+  yPosition -= 30;
+
+  // Total section
+  page.drawRectangle({
+    x: 50,
+    y: yPosition - 25,
+    width: width - 100,
+    height: 25,
+    color: rgb(0.9, 0.9, 0.9),
+    borderColor: rgb(0, 0, 0),
+    borderWidth: 2,
+  });
+
+  page.drawText('MALAYSIA RINGGIT : TOTAL', {
+    x: 60,
+    y: yPosition - 18,
+    size: 14,
+    font: boldFont,
+  });
+
+  page.drawText(totalAmount.toFixed(2), {
+    x: width - 120,
+    y: yPosition - 18,
+    size: 14,
+    font: boldFont,
+  });
+
+  yPosition -= 40;
+
+  // Amount in words
+  page.drawRectangle({
+    x: 50,
+    y: yPosition - 25,
+    width: width - 100,
+    height: 25,
+    color: rgb(0.95, 0.95, 0.95),
+    borderColor: rgb(0, 0, 0),
+    borderWidth: 1,
+  });
+
+  page.drawText(`MALAYSIA RINGGIT : ${convertToWords(totalAmount)}`, {
+    x: 60,
+    y: yPosition - 18,
+    size: 12,
+    font: boldFont,
+  });
+
+  yPosition -= 80;
+
+  // Signature section
+  const signatureLabels = ['Prepared By', 'Checked By', 'Approved By'];
+  const signatureSpacing = (width - 100) / 3;
+
+  signatureLabels.forEach((label, index) => {
+    const x = 50 + (index * signatureSpacing);
+    
+    // Signature line
+    page.drawLine({
+      start: { x: x + 10, y: yPosition },
+      end: { x: x + signatureSpacing - 20, y: yPosition },
+      thickness: 1,
+      color: rgb(0, 0, 0),
+    });
+
+    // Label
+    page.drawText(label, {
+      x: x + ((signatureSpacing - label.length * 6) / 2),
+      y: yPosition - 20,
+      size: 11,
+      font: boldFont,
+    });
+  });
+
+  // Generate PDF bytes
+  const pdfBytes = await pdfDoc.save();
+  return Buffer.from(pdfBytes);
 }
