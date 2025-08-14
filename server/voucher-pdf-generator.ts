@@ -36,7 +36,6 @@ function generateClaimRows(claims: VoucherData['claims']): string {
     <tr>
       <td>${index + 1}</td>
       <td>${claim.description.toUpperCase()}</td>
-      <td>financial</td>
       <td class="text-right">${claim.amount}</td>
     </tr>
   `).join('');
