@@ -124,6 +124,8 @@ import {
   type FinancialClaimPolicy,
   type InsertFinancialClaimPolicy,
   type UpdateFinancialClaimPolicy,
+  // Approval Settings
+  approvalSettings,
   // Claim Application types
   claimApplications,
   type ClaimApplication,
