@@ -53,42 +53,44 @@ export default function ClaimApprovalPage() {
   const queryClient = useQueryClient();
 
   const handleViewEmployeeSummary = (employeeName: string, employeeId: string) => {
+    console.log('=== EMPLOYEE SUMMARY DEBUG START ===');
+    console.log('Employee Name:', employeeName);
+    console.log('Employee ID:', employeeId);
+    console.log('Financial claims data type:', typeof financialClaimsData);
+    console.log('Financial claims data:', financialClaimsData);
+    console.log('Overtime claims data type:', typeof legacyOvertimeClaimsData);
+    console.log('Overtime claims data:', legacyOvertimeClaimsData);
+    
     try {
-      console.log('Viewing employee summary:', employeeName, employeeId);
-      console.log('Financial claims data:', financialClaimsData);
-      console.log('Overtime claims data:', legacyOvertimeClaimsData);
+      // Ensure data is available
+      if (!financialClaimsData && !legacyOvertimeClaimsData) {
+        console.log('No data available yet');
+        return;
+      }
       
-      // Use existing data from queries instead of making new API calls
-      const employeeFinancialClaims = (financialClaimsData || []).filter((claim: any) => 
-        getEmployeeName(claim.employeeId) === employeeName
-      );
-      
-      const employeeOvertimeClaims = (legacyOvertimeClaimsData || []).filter((claim: any) => 
-        getEmployeeName(claim.employeeId) === employeeName
-      );
-      
-      console.log('Filtered financial claims:', employeeFinancialClaims);
-      console.log('Filtered overtime claims:', employeeOvertimeClaims);
-      
-      // Combine all claims
+      // Get all employee claims directly - no filtering by name since modal shows all claims
       const allEmployeeClaims = [
-        ...employeeFinancialClaims.map((claim: any) => ({ ...claim, type: 'financial' })),
-        ...employeeOvertimeClaims.map((claim: any) => ({ ...claim, type: 'overtime' }))
+        ...(financialClaimsData || []).map((claim: any) => ({ ...claim, type: 'financial' })),
+        ...(legacyOvertimeClaimsData || []).map((claim: any) => ({ ...claim, type: 'overtime' }))
       ];
       
-      console.log('All employee claims:', allEmployeeClaims);
+      console.log('All combined claims:', allEmployeeClaims);
       
       setSelectedEmployeeForSummary({ name: employeeName, id: employeeId });
       setEmployeeClaimsDetail(allEmployeeClaims);
       setSummaryDetailModalOpen(true);
+      console.log('Modal should open now');
+      
     } catch (error) {
-      console.error('Error in handleViewEmployeeSummary:', error);
+      console.error('Detailed error in handleViewEmployeeSummary:', error);
+      console.error('Error stack:', error.stack);
       toast({
         title: "Ralat",
-        description: "Gagal memuat maklumat claim pekerja",
+        description: "Gagal memuat maklumat claim pekerja: " + (error.message || 'Unknown error'),
         variant: "destructive",
       });
     }
+    console.log('=== EMPLOYEE SUMMARY DEBUG END ===');
   };
 
   // Get current user info
