@@ -602,6 +602,24 @@ export default function PayrollDetailPage() {
                         // Calculate totals
                         const basicSalary = parseFloat(salaryData.basic || '0');
                         const grossSalary = parseFloat(salaryData.gross || '0');
+                        
+                        // Calculate total additional items from salary.additional array
+                        const totalAdditional = (() => {
+                          let total = 0;
+                          
+                          // Add fixed allowance if exists
+                          total += parseFloat(salaryData.fixedAllowance || '0');
+                          
+                          // Add all additional items from array
+                          if (salaryData.additional && Array.isArray(salaryData.additional)) {
+                            salaryData.additional.forEach((item: any) => {
+                              total += parseFloat(item.amount || '0');
+                            });
+                          }
+                          
+                          return total;
+                        })();
+                        
                         const totalDeductions = parseFloat(deductionsData.epfEmployee || '0') + 
                                               parseFloat(deductionsData.socsoEmployee || '0') + 
                                               parseFloat(deductionsData.eisEmployee || '0');
@@ -613,7 +631,7 @@ export default function PayrollDetailPage() {
                           <tr key={item.id} className="border-b hover:bg-gray-50">
                             <td className="p-3 text-gray-900 font-medium">{employeeSnapshot.name || 'N/A'}</td>
                             <td className="p-3 text-center text-gray-600">RM {basicSalary.toFixed(2)}</td>
-                            <td className="p-3 text-center text-gray-600">RM {parseFloat(salaryData.fixedAllowance || '0').toFixed(2)}</td>
+                            <td className="p-3 text-center text-gray-600">RM {totalAdditional.toFixed(2)}</td>
                             <td className="p-3 text-center text-gray-600">RM {grossSalary.toFixed(2)}</td>
                             <td className="p-3 text-center text-gray-600">RM {totalDeductions.toFixed(2)}</td>
                             <td className="p-3 text-center text-gray-600">RM {totalContributions.toFixed(2)}</td>
