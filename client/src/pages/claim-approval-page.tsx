@@ -150,6 +150,9 @@ export default function ClaimApprovalPage() {
 
   // Helper function to get employee name by ID
   const getEmployeeName = (employeeId: string) => {
+    if (!employeeId) {
+      return 'Unknown Employee';
+    }
     const employee = employeesData.find((emp: any) => emp.id === employeeId);
     return employee ? employee.fullName : `Unknown Employee (${employeeId.slice(0, 8)}...)`;
   };
