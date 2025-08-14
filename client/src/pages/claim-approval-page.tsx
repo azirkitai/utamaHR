@@ -46,8 +46,41 @@ export default function ClaimApprovalPage() {
   const [bulkAction, setBulkAction] = useState("");
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [selectedClaimForView, setSelectedClaimForView] = useState<any>(null);
+  const [summaryDetailModalOpen, setSummaryDetailModalOpen] = useState(false);
+  const [selectedEmployeeForSummary, setSelectedEmployeeForSummary] = useState<any>(null);
+  const [employeeClaimsDetail, setEmployeeClaimsDetail] = useState<any[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  const handleViewEmployeeSummary = async (employeeName: string, employeeId: string) => {
+    try {
+      // Use existing data from queries instead of making new API calls
+      const employeeFinancialClaims = (financialClaimsData || []).filter((claim: any) => 
+        getEmployeeName(claim.employeeId) === employeeName
+      );
+      
+      const employeeOvertimeClaims = (overtimeClaimsData || []).filter((claim: any) => 
+        getEmployeeName(claim.employeeId) === employeeName
+      );
+      
+      // Combine all claims
+      const allEmployeeClaims = [
+        ...employeeFinancialClaims.map((claim: any) => ({ ...claim, type: 'financial' })),
+        ...employeeOvertimeClaims.map((claim: any) => ({ ...claim, type: 'overtime' }))
+      ];
+      
+      setSelectedEmployeeForSummary({ name: employeeName, id: employeeId });
+      setEmployeeClaimsDetail(allEmployeeClaims);
+      setSummaryDetailModalOpen(true);
+    } catch (error) {
+      console.error('Error fetching employee claims:', error);
+      toast({
+        title: "Ralat",
+        description: "Gagal memuat maklumat claim pekerja",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Get current user info
   const { data: currentUser } = useQuery({
@@ -1075,7 +1108,13 @@ export default function ClaimApprovalPage() {
             {summaryData.map((item, index) => (
               <TableRow key={item.id}>
                 <TableCell>{index + 1}</TableCell>
-                <TableCell className="font-medium">{item.name}</TableCell>
+                <TableCell 
+                  className="font-medium text-blue-600 hover:text-blue-800 cursor-pointer underline"
+                  onClick={() => handleViewEmployeeSummary(item.name, item.id)}
+                  data-testid={`link-employee-${item.name.replace(/\s+/g, '-').toLowerCase()}`}
+                >
+                  {item.name}
+                </TableCell>
                 <TableCell>{item.pendingClaim}</TableCell>
                 <TableCell>{item.approvedClaim}</TableCell>
                 <TableCell className="font-medium">{item.totalAmountClaim}</TableCell>
@@ -1169,6 +1208,116 @@ export default function ClaimApprovalPage() {
             {activeTab === "approval" && renderApprovalTab()}
             {activeTab === "report" && renderReportTab()}
             {activeTab === "summary" && renderSummaryTab()}
+          </div>
+        )}
+
+        {/* Employee Summary Detail Modal */}
+        {summaryDetailModalOpen && selectedEmployeeForSummary && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg max-w-6xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold">Senarai Lengkap Claim - {selectedEmployeeForSummary.name}</h2>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setSummaryDetailModalOpen(false)}
+                  data-testid="button-close-summary-detail"
+                >
+                  ✕
+                </Button>
+              </div>
+              
+              {employeeClaimsDetail.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  Tiada claim dijumpai untuk pekerja ini.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full border-collapse border border-gray-300">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="border border-gray-300 px-4 py-2 text-left">Bil</th>
+                        <th className="border border-gray-300 px-4 py-2 text-left">Jenis</th>
+                        <th className="border border-gray-300 px-4 py-2 text-left">Polisi/Sebab</th>
+                        <th className="border border-gray-300 px-4 py-2 text-left">Tarikh</th>
+                        <th className="border border-gray-300 px-4 py-2 text-left">Amaun</th>
+                        <th className="border border-gray-300 px-4 py-2 text-left">Status</th>
+                        <th className="border border-gray-300 px-4 py-2 text-left">Dokumen</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {employeeClaimsDetail.map((claim, index) => (
+                        <tr key={claim.id} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                          <td className="border border-gray-300 px-4 py-2">{index + 1}</td>
+                          <td className="border border-gray-300 px-4 py-2">
+                            {claim.type === 'financial' ? (
+                              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
+                                Kewangan
+                              </span>
+                            ) : (
+                              <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
+                                Overtime
+                              </span>
+                            )}
+                          </td>
+                          <td className="border border-gray-300 px-4 py-2">
+                            {claim.type === 'financial' 
+                              ? (claim.financialPolicyName || claim.claimType || 'N/A')
+                              : (claim.reason || 'Kerja Lebih Masa')
+                            }
+                          </td>
+                          <td className="border border-gray-300 px-4 py-2">
+                            {new Date(claim.claimDate || claim.overtimeDate).toLocaleDateString('ms-MY')}
+                          </td>
+                          <td className="border border-gray-300 px-4 py-2 font-medium">
+                            RM {claim.amount || '0.00'}
+                          </td>
+                          <td className="border border-gray-300 px-4 py-2">
+                            <span className={`px-2 py-1 rounded text-xs ${
+                              claim.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                              claim.status === 'approved' ? 'bg-green-100 text-green-800' :
+                              claim.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                              claim.status === 'firstLevelApproved' ? 'bg-blue-100 text-blue-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {claim.status === 'pending' ? 'Menunggu' :
+                               claim.status === 'approved' ? 'Diluluskan' :
+                               claim.status === 'rejected' ? 'Ditolak' :
+                               claim.status === 'firstLevelApproved' ? 'Lulus Tahap 1' :
+                               claim.status}
+                            </span>
+                          </td>
+                          <td className="border border-gray-300 px-4 py-2">
+                            {claim.attachmentUrl ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => window.open(claim.attachmentUrl, '_blank')}
+                                data-testid={`button-view-attachment-${claim.id}`}
+                              >
+                                📎 Lihat
+                              </Button>
+                            ) : (
+                              <span className="text-gray-400 text-sm">Tiada</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              
+              <div className="flex justify-end mt-6">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setSummaryDetailModalOpen(false)}
+                  data-testid="button-close-summary-detail-bottom"
+                >
+                  Tutup
+                </Button>
+              </div>
+            </div>
           </div>
         )}
 
