@@ -149,11 +149,32 @@ export default function ClaimApprovalPage() {
 
   // Check if user has financial approval rights
   const hasFinancialApprovalRights = () => {
-    if (!currentUser || !approvalSettings) return false;
+    if (!currentUser || !approvalSettings || !employeesData) return false;
     
-    // Check if user is assigned as financial approver
-    const isFirstLevel = (approvalSettings as any).firstLevelApprovalId === (currentUser as any).id;
-    const isSecondLevel = (approvalSettings as any).secondLevelApprovalId === (currentUser as any).id;
+    console.log('=== DEBUGGING FINANCIAL APPROVAL ACCESS ===');
+    console.log('Current user:', currentUser);
+    console.log('Financial approval settings:', approvalSettings);
+    
+    // Find current user's employee record
+    const currentEmployee = employeesData.find((emp: any) => emp.userId === (currentUser as any).id);
+    console.log('Current employee record:', currentEmployee);
+    
+    if (!currentEmployee) {
+      console.log('No employee record found for current user');
+      console.log('=== END FINANCIAL DEBUG ===');
+      return false;
+    }
+    
+    // Check if user's employee ID is assigned as financial approver
+    const isFirstLevel = (approvalSettings as any).firstLevelApprovalId === currentEmployee.id;
+    const isSecondLevel = (approvalSettings as any).secondLevelApprovalId === currentEmployee.id;
+    
+    console.log('Current employee ID:', currentEmployee.id);
+    console.log('First level approver ID:', (approvalSettings as any).firstLevelApprovalId);
+    console.log('Second level approver ID:', (approvalSettings as any).secondLevelApprovalId);
+    console.log('Is first level approver:', isFirstLevel);
+    console.log('Is second level approver:', isSecondLevel);
+    console.log('=== END FINANCIAL DEBUG ===');
     
     return isFirstLevel || isSecondLevel;
   };
@@ -522,7 +543,13 @@ export default function ClaimApprovalPage() {
                       <TableCell>{new Date(item.claimDate).toLocaleDateString()}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
-                          <Button size="sm" variant="outline" data-testid={`button-view-${item.id}`}>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            data-testid={`button-view-${item.id}`}
+                            onClick={() => handleView(item)}
+                            title="Lihat Maklumat"
+                          >
                             <Eye className="w-4 h-4" />
                           </Button>
                           <Button 
@@ -532,6 +559,7 @@ export default function ClaimApprovalPage() {
                             data-testid={`button-approve-${item.id}`}
                             onClick={() => handleApprove(item.id)}
                             disabled={approveMutation.isPending}
+                            title="Lulus"
                           >
                             <Check className="w-4 h-4" />
                           </Button>
@@ -542,6 +570,7 @@ export default function ClaimApprovalPage() {
                             data-testid={`button-reject-${item.id}`}
                             onClick={() => handleReject(item.id)}
                             disabled={rejectMutation.isPending}
+                            title="Tolak"
                           >
                             <X className="w-4 h-4" />
                           </Button>
@@ -587,7 +616,13 @@ export default function ClaimApprovalPage() {
                       <TableCell>{new Date(item.claimDate).toLocaleDateString()}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
-                          <Button size="sm" variant="outline" data-testid={`button-view-${item.id}`}>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            data-testid={`button-view-${item.id}`}
+                            onClick={() => handleView(item)}
+                            title="Lihat Maklumat"
+                          >
                             <Eye className="w-4 h-4" />
                           </Button>
                           <Button 
@@ -597,6 +632,7 @@ export default function ClaimApprovalPage() {
                             data-testid={`button-approve-${item.id}`}
                             onClick={() => handleApprove(item.id)}
                             disabled={approveMutation.isPending}
+                            title="Lulus"
                           >
                             <Check className="w-4 h-4" />
                           </Button>
@@ -607,6 +643,7 @@ export default function ClaimApprovalPage() {
                             data-testid={`button-reject-${item.id}`}
                             onClick={() => handleReject(item.id)}
                             disabled={rejectMutation.isPending}
+                            title="Tolak"
                           >
                             <X className="w-4 h-4" />
                           </Button>
@@ -992,6 +1029,146 @@ export default function ClaimApprovalPage() {
             {activeTab === "approval" && renderApprovalTab()}
             {activeTab === "report" && renderReportTab()}
             {activeTab === "summary" && renderSummaryTab()}
+          </div>
+        )}
+
+        {/* View Claim Modal */}
+        {viewModalOpen && selectedClaimForView && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold">Maklumat Permohonan</h2>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setViewModalOpen(false)}
+                >
+                  ✕
+                </Button>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="font-medium text-gray-700">Pemohon:</label>
+                  <p className="text-gray-900">
+                    {getEmployeeName(selectedClaimForView.employeeId)}
+                  </p>
+                </div>
+                
+                <div>
+                  <label className="font-medium text-gray-700">Jenis Permohonan:</label>
+                  <p className="text-gray-900">
+                    {selectedCategory === 'financial' ? selectedClaimForView.claimType : 'Overtime'}
+                  </p>
+                </div>
+                
+                <div>
+                  <label className="font-medium text-gray-700">Status:</label>
+                  <p className="text-gray-900">
+                    {selectedClaimForView.status === 'pending' ? 'Menunggu' : 
+                     selectedClaimForView.status === 'approved' ? 'Diluluskan' :
+                     selectedClaimForView.status === 'rejected' ? 'Ditolak' : selectedClaimForView.status}
+                  </p>
+                </div>
+                
+                <div>
+                  <label className="font-medium text-gray-700">Tarikh Permohonan:</label>
+                  <p className="text-gray-900">
+                    {new Date(selectedClaimForView.claimDate).toLocaleDateString('ms-MY')}
+                  </p>
+                </div>
+                
+                {selectedCategory === 'financial' ? (
+                  <>
+                    <div>
+                      <label className="font-medium text-gray-700">Polisi Tuntutan:</label>
+                      <p className="text-gray-900">
+                        {selectedClaimForView.financialPolicyName || 'N/A'}
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <label className="font-medium text-gray-700">Jumlah:</label>
+                      <p className="text-gray-900 font-bold text-lg">
+                        RM {selectedClaimForView.amount || '0.00'}
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <label className="font-medium text-gray-700">Sebab:</label>
+                      <p className="text-gray-900">
+                        {selectedClaimForView.reason || 'N/A'}
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <label className="font-medium text-gray-700">Masa:</label>
+                      <p className="text-gray-900">
+                        {selectedClaimForView.startTime} - {selectedClaimForView.endTime}
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <label className="font-medium text-gray-700">Jumlah Jam:</label>
+                      <p className="text-gray-900">
+                        {selectedClaimForView.totalHours || 0} jam
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <label className="font-medium text-gray-700">Amaun:</label>
+                      <p className="text-gray-900 font-bold text-lg">
+                        RM {selectedClaimForView.amount || '0.00'}
+                      </p>
+                    </div>
+                  </>
+                )}
+                
+                {selectedClaimForView.reason && selectedCategory === 'financial' && (
+                  <div className="col-span-2">
+                    <label className="font-medium text-gray-700">Catatan:</label>
+                    <p className="text-gray-900">
+                      {selectedClaimForView.reason}
+                    </p>
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex justify-end space-x-2 mt-6">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setViewModalOpen(false)}
+                >
+                  Tutup
+                </Button>
+                {selectedClaimForView.status === 'pending' && (
+                  <>
+                    <Button 
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                      onClick={() => {
+                        handleApprove(selectedClaimForView.id);
+                        setViewModalOpen(false);
+                      }}
+                      disabled={approveMutation.isPending}
+                    >
+                      Lulus
+                    </Button>
+                    <Button 
+                      className="bg-red-600 hover:bg-red-700 text-white"
+                      onClick={() => {
+                        handleReject(selectedClaimForView.id);
+                        setViewModalOpen(false);
+                      }}
+                      disabled={rejectMutation.isPending}
+                    >
+                      Tolak
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>
