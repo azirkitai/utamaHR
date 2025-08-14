@@ -398,15 +398,14 @@ export default function ClaimApprovalPage() {
   ];
 
   // Summary data
-  // Generate summary data by combining financial and overtime claims by requestor name
+  // Generate summary data for financial claims only by requestor name
   const summaryData = useMemo(() => {
-    if (!employeesData || !financialClaimsData || !overtimeClaimsFromDB) return [];
+    if (!employeesData || !financialClaimsData) return [];
     
-    // Combine all claims (financial and overtime) and filter for summary (pending + approved only)
-    const allClaimsForSummary = [
-      ...financialClaimsData.filter(claim => ['pending', 'firstLevelApproved', 'approved'].includes(claim.status)),
-      ...overtimeClaimsFromDB.filter(claim => ['pending', 'firstLevelApproved', 'approved'].includes(claim.status))
-    ];
+    // Only financial claims, filter for summary (pending + approved only, exclude rejected)
+    const allClaimsForSummary = financialClaimsData.filter(claim => 
+      ['pending', 'firstLevelApproved', 'approved'].includes(claim.status)
+    );
     
     // Group claims by employee ID
     const claimsGroupedByEmployee = allClaimsForSummary.reduce((acc: any, claim: any) => {
@@ -442,7 +441,7 @@ export default function ClaimApprovalPage() {
         totalAmountClaim: `RM ${totalAmount.toFixed(2)}`
       };
     }).filter(summary => summary.name !== 'Unknown Employee'); // Remove entries without valid employee
-  }, [employeesData, financialClaimsData, overtimeClaimsFromDB]);
+  }, [employeesData, financialClaimsData]);
 
   const handleCategorySelect = (category: "financial" | "overtime") => {
     setSelectedCategory(category);
