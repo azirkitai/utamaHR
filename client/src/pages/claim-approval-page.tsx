@@ -109,14 +109,18 @@ export default function ClaimApprovalPage() {
 
   // Reset filters if invalid values detected
   useEffect(() => {
-    if (filters.employee !== 'all' && !filters.employee.startsWith('all') && filters.employee.includes('-')) {
-      console.log('Resetting invalid employee filter:', filters.employee);
-      setFilters(prev => ({
-        ...prev,
-        employee: 'all'
-      }));
+    // Check if employee ID exists in the actual employee data
+    if (filters.employee !== 'all' && employeesData && employeesData.length > 0) {
+      const employeeExists = employeesData.some((emp: any) => emp.id === filters.employee);
+      if (!employeeExists) {
+        console.log('Resetting invalid employee filter:', filters.employee);
+        setFilters(prev => ({
+          ...prev,
+          employee: 'all'
+        }));
+      }
     }
-  }, [filters.employee]);
+  }, [filters.employee, employeesData]);
 
   const handleViewEmployeeSummary = (employeeName: string, employeeId: string) => {
     try {
