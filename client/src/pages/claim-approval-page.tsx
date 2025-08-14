@@ -481,7 +481,7 @@ export default function ClaimApprovalPage() {
     
     // Only financial claims, filter for summary (pending + approved only, exclude rejected)
     const allClaimsForSummary = financialClaimsData.filter(claim => 
-      ['pending', 'firstLevelApproved', 'approved'].includes(claim.status)
+      ['Pending', 'firstLevelApproved', 'Approved'].includes(claim.status)
     );
     
     // Group claims by employee ID
@@ -502,9 +502,9 @@ export default function ClaimApprovalPage() {
       const employee = (employeesData as any[]).find(emp => emp.id === group.employeeId);
       const employeeName = employee ? employee.fullName : 'Unknown Employee';
       
-      // Count pending and approved claims
-      const pendingClaims = group.claims.filter((claim: any) => claim.status === 'pending');
-      const approvedClaims = group.claims.filter((claim: any) => ['approved', 'firstLevelApproved'].includes(claim.status));
+      // Count pending and approved claims for FINANCIAL
+      const pendingClaims = group.claims.filter((claim: any) => claim.status === 'Pending');
+      const approvedClaims = group.claims.filter((claim: any) => ['Approved', 'firstLevelApproved'].includes(claim.status));
       
       // Calculate total amounts
       const pendingAmount = pendingClaims.reduce((total: number, claim: any) => total + (parseFloat(claim.amount) || 0), 0);
@@ -526,7 +526,7 @@ export default function ClaimApprovalPage() {
     
     // Filter overtime claims for summary (pending + approved only, exclude rejected)
     const allOvertimeForSummary = overtimeClaimsFromDB.filter(claim => 
-      ['pending', 'firstLevelApproved', 'approved'].includes(claim.status)
+      ['Pending', 'firstLevelApproved', 'Approved'].includes(claim.status)
     );
     
     // Group claims by employee ID
@@ -547,9 +547,9 @@ export default function ClaimApprovalPage() {
       const employee = (employeesData as any[]).find(emp => emp.id === group.employeeId);
       const employeeName = employee ? employee.fullName : 'Unknown Employee';
       
-      // Count pending and approved claims
-      const pendingClaims = group.claims.filter((claim: any) => claim.status === 'pending');
-      const approvedClaims = group.claims.filter((claim: any) => ['approved', 'firstLevelApproved'].includes(claim.status));
+      // Count pending and approved claims for OVERTIME
+      const pendingClaims = group.claims.filter((claim: any) => claim.status === 'Pending');
+      const approvedClaims = group.claims.filter((claim: any) => ['Approved', 'firstLevelApproved'].includes(claim.status));
       
       // Calculate amounts - for overtime, only count approved amounts in total
       const pendingAmount = pendingClaims.reduce((total: number, claim: any) => total + (parseFloat(claim.amount) || 0), 0);
