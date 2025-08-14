@@ -35,6 +35,45 @@ export default function VoucherDetailsPage() {
     return employee ? employee.fullName : 'Unknown Employee';
   };
 
+  const getEmployeeNRIC = (employeeId: string): string => {
+    const employee = (employeesData as any[])?.find(emp => emp.id === employeeId);
+    return employee?.nric || 'Not Stated';
+  };
+
+  const getEmployeeBankInfo = (employeeId: string): string => {
+    const employee = (employeesData as any[])?.find(emp => emp.id === employeeId);
+    return employee?.bankAccountNumber || 'Not Stated';
+  };
+
+  const convertToWords = (amount: number): string => {
+    if (amount === 0) return 'ZERO';
+    
+    const ones = ['', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE',
+                  'TEN', 'ELEVEN', 'TWELVE', 'THIRTEEN', 'FOURTEEN', 'FIFTEEN', 'SIXTEEN', 
+                  'SEVENTEEN', 'EIGHTEEN', 'NINETEEN'];
+    
+    const tens = ['', '', 'TWENTY', 'THIRTY', 'FORTY', 'FIFTY', 'SIXTY', 'SEVENTY', 'EIGHTY', 'NINETY'];
+    
+    const convert = (num: number): string => {
+      if (num === 0) return '';
+      else if (num < 20) return ones[num];
+      else if (num < 100) return tens[Math.floor(num / 10)] + (num % 10 !== 0 ? ' ' + ones[num % 10] : '');
+      else if (num < 1000) return ones[Math.floor(num / 100)] + ' HUNDRED' + (num % 100 !== 0 ? ' ' + convert(num % 100) : '');
+      else if (num < 1000000) return convert(Math.floor(num / 1000)) + ' THOUSAND' + (num % 1000 !== 0 ? ' ' + convert(num % 1000) : '');
+      else return convert(Math.floor(num / 1000000)) + ' MILLION' + (num % 1000000 !== 0 ? ' ' + convert(num % 1000000) : '');
+    };
+    
+    const wholePart = Math.floor(amount);
+    const decimalPart = Math.round((amount - wholePart) * 100);
+    
+    let result = convert(wholePart);
+    if (decimalPart > 0) {
+      result += ' AND ' + convert(decimalPart) + ' CENTS';
+    }
+    
+    return result + ' ONLY';
+  };
+
   const months = [
     { value: "1", label: "January" }, { value: "2", label: "February" },
     { value: "3", label: "March" }, { value: "4", label: "April" },
@@ -218,88 +257,80 @@ export default function VoucherDetailsPage() {
               </CardHeader>
               <CardContent className="p-6">
                 <div className="bg-white min-h-96 border rounded-lg p-8" style={{ fontFamily: 'Arial, sans-serif' }}>
-                  {/* Voucher Header */}
+                  {/* Header */}
                   <div className="text-center mb-8">
-                    <div className="text-2xl font-bold text-gray-900 mb-2">PAYMENT VOUCHER</div>
-                    <div className="text-lg text-gray-700">{voucher.voucherNumber}</div>
+                    <div className="text-2xl font-bold text-gray-900 mb-4">PAYMENT VOUCHER</div>
                   </div>
 
-                  {/* Voucher Info */}
+                  {/* Main Content Grid */}
                   <div className="grid grid-cols-2 gap-8 mb-8">
+                    {/* Left Side - PAID TO */}
                     <div>
-                      <div className="space-y-2">
-                        <div className="flex">
-                          <span className="font-medium w-24">Voucher No:</span>
-                          <span>{voucher.voucherNumber}</span>
-                        </div>
-                        <div className="flex">
-                          <span className="font-medium w-24">Month:</span>
-                          <span>{monthName}</span>
-                        </div>
-                        <div className="flex">
-                          <span className="font-medium w-24">Year:</span>
-                          <span>{voucher.year}</span>
+                      <div className="mb-4">
+                        <div className="font-bold text-gray-900 mb-3">PAID TO:</div>
+                        {voucherClaims.length > 0 && (
+                          <div className="space-y-1 text-sm">
+                            <div>Employee No: {voucherClaims[0].employeeId}</div>
+                            <div>Name: {getEmployeeName(voucherClaims[0].employeeId)}</div>
+                            <div>NRIC: {getEmployeeNRIC(voucherClaims[0].employeeId)}</div>
+                            <div>Bank / Cheque No.: {getEmployeeBankInfo(voucherClaims[0].employeeId)}</div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="mt-8">
+                        <div className="font-bold text-gray-900 mb-3 border-b border-gray-400 pb-1">PAYMENT FOR:</div>
+                        <div className="space-y-1 text-sm">
+                          <div className="font-bold">AMOUNT (RM)</div>
                         </div>
                       </div>
                     </div>
+
+                    {/* Right Side - Voucher Details */}
                     <div>
-                      <div className="space-y-2">
-                        <div className="flex">
-                          <span className="font-medium w-32">Payment Date:</span>
-                          <span>{new Date(voucher.paymentDate).toLocaleDateString('ms-MY')}</span>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span>Payment Voucher No:</span>
+                          <span className="font-medium">{voucher.voucherNumber}</span>
                         </div>
-                        <div className="flex">
-                          <span className="font-medium w-32">Status:</span>
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            voucher.status === 'Approved' ? 'bg-green-100 text-green-800' :
-                            voucher.status === 'Rejected' ? 'bg-red-100 text-red-800' :
-                            voucher.status === 'Generated' ? 'bg-blue-100 text-blue-800' :
-                            'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {voucher.status}
-                          </span>
+                        <div className="flex justify-between">
+                          <span>Payment Date:</span>
+                          <span className="font-medium">{new Date(voucher.paymentDate).toLocaleDateString('en-GB')}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Month:</span>
+                          <span className="font-medium">{monthName}</span>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Claims Table */}
+                  {/* Payment Details */}
                   <div className="mb-8">
-                    <table className="w-full border-collapse border border-gray-300">
-                      <thead>
-                        <tr className="bg-gray-100">
-                          <th className="border border-gray-300 p-2 text-left font-medium">No</th>
-                          <th className="border border-gray-300 p-2 text-left font-medium">Employee Name</th>
-                          <th className="border border-gray-300 p-2 text-left font-medium">Claim Type</th>
-                          <th className="border border-gray-300 p-2 text-right font-medium">Amount (RM)</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {voucherClaims.map((claim, index) => (
-                          <tr key={claim.id}>
-                            <td className="border border-gray-300 p-2">{index + 1}</td>
-                            <td className="border border-gray-300 p-2">{getEmployeeName(claim.employeeId)}</td>
-                            <td className="border border-gray-300 p-2">{claim.claimCategory}</td>
-                            <td className="border border-gray-300 p-2 text-right">
-                              {(parseFloat(claim.amount || '0') || 0).toFixed(2)}
-                            </td>
-                          </tr>
-                        ))}
-                        <tr className="bg-gray-100 font-bold">
-                          <td colSpan={3} className="border border-gray-300 p-2 text-right">Total Amount:</td>
-                          <td className="border border-gray-300 p-2 text-right">
-                            RM {voucherClaims.reduce((sum, claim) => sum + (parseFloat(claim.amount || '0') || 0), 0).toFixed(2)}
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
+                    {voucherClaims.map((claim, index) => (
+                      <div key={claim.id} className="flex justify-between py-2 border-b border-gray-200">
+                        <span className="text-sm">{claim.claimCategory.toUpperCase()}</span>
+                        <span className="font-medium">{(parseFloat(claim.amount || '0') || 0).toFixed(2)}</span>
+                      </div>
+                    ))}
+                    
+                    {/* Total Line */}
+                    <div className="flex justify-between py-3 border-b-2 border-gray-400 font-bold">
+                      <span>MALAYSIA RINGGIT : TOTAL</span>
+                      <span>{voucherClaims.reduce((sum, claim) => sum + (parseFloat(claim.amount || '0') || 0), 0).toFixed(2)}</span>
+                    </div>
+                    
+                    {/* Amount in Words */}
+                    <div className="mt-4 text-sm">
+                      <div className="font-bold">MALAYSIA RINGGIT : {convertToWords(voucherClaims.reduce((sum, claim) => sum + (parseFloat(claim.amount || '0') || 0), 0))}</div>
+                    </div>
                   </div>
 
                   {/* Remarks */}
                   {voucher.remarks && (
                     <div className="mb-8">
-                      <div className="font-medium text-gray-900 mb-2">Remarks:</div>
-                      <div className="text-gray-700 border border-gray-300 p-3 rounded">
+                      <div className="font-bold text-gray-900 mb-2">REMARKS:</div>
+                      <div className="text-gray-700 border border-gray-300 p-3 rounded text-sm">
                         {voucher.remarks}
                       </div>
                     </div>
@@ -309,11 +340,15 @@ export default function VoucherDetailsPage() {
                   <div className="flex justify-between items-end mt-16">
                     <div className="text-center">
                       <div className="border-t border-gray-400 w-48 mb-2"></div>
-                      <div className="text-sm">Prepared By</div>
+                      <div className="text-xs">Prepared By</div>
                     </div>
                     <div className="text-center">
                       <div className="border-t border-gray-400 w-48 mb-2"></div>
-                      <div className="text-sm">Approved By</div>
+                      <div className="text-xs">Checked By</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="border-t border-gray-400 w-48 mb-2"></div>
+                      <div className="text-xs">Approved By</div>
                     </div>
                   </div>
                 </div>
