@@ -5122,11 +5122,11 @@ export function registerRoutes(app: Express): Server {
   // Generate PDF for payment voucher using HTML-to-PDF
   app.get('/api/payment-vouchers/:id/pdf', authenticateToken, async (req, res) => {
     try {
-      const puppeteer = require('puppeteer');
+      const puppeteer = await import('puppeteer');
       const { id } = req.params;
       
       // Launch browser and create page
-      const browser = await puppeteer.launch({
+      const browser = await puppeteer.default.launch({
         headless: true,
         args: ['--no-sandbox', '--disable-setuid-sandbox']
       });
