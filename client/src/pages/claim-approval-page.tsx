@@ -1275,19 +1275,25 @@ export default function ClaimApprovalPage() {
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-between items-center">
-        <div className="text-sm text-gray-600">
-          Showing 0 to 0 of 0 entries
+      {((selectedCategory === "financial" && filteredFinancialClaims.length > 0) || 
+        (selectedCategory === "overtime" && filteredOvertimeClaims.length > 0)) && (
+        <div className="flex justify-between items-center">
+          <div className="text-sm text-gray-600">
+            Menunjukkan 1 hingga {selectedCategory === "financial" ? filteredFinancialClaims.length : filteredOvertimeClaims.length} daripada {selectedCategory === "financial" ? filteredFinancialClaims.length : filteredOvertimeClaims.length} rekod
+          </div>
+          <div className="flex space-x-2">
+            <Button variant="outline" disabled data-testid="button-previous-report">
+              Previous
+            </Button>
+            <Button variant="outline" className="bg-blue-600 text-white" data-testid="button-page-1">
+              1
+            </Button>
+            <Button variant="outline" disabled data-testid="button-next-report">
+              Next
+            </Button>
+          </div>
         </div>
-        <div className="flex space-x-2">
-          <Button variant="outline" disabled data-testid="button-previous-report">
-            Previous
-          </Button>
-          <Button variant="outline" disabled data-testid="button-next-report">
-            Next
-          </Button>
-        </div>
-      </div>
+      )}
     </div>
   );
 
