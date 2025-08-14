@@ -239,6 +239,56 @@ export default function ClaimApprovalPage() {
     setViewModalOpen(true);
   };
 
+  // Function to determine which buttons should be shown based on user approval rights and claim status
+  const getAvailableActions = (claim: any) => {
+    const isFinancial = selectedCategory === 'financial';
+    let canApprove = false;
+    let canReject = false;
+    
+    if (isFinancial) {
+      const approvalSettings = financialApprovalSettings;
+      if (!approvalSettings || !currentUser || !employeesData) return { canApprove: false, canReject: false };
+      
+      const currentEmployee = (employeesData as any[]).find((emp: any) => emp.userId === (currentUser as any).id);
+      if (!currentEmployee) return { canApprove: false, canReject: false };
+      
+      const isFirstLevel = (approvalSettings as any).firstLevelApprovalId === currentEmployee.id;
+      const isSecondLevel = (approvalSettings as any).secondLevelApprovalId === currentEmployee.id;
+      
+      // For financial claims: check approval level system
+      if (claim.status === 'pending') {
+        // Pending claims can only be approved by first level approvers
+        canApprove = isFirstLevel;
+        canReject = isFirstLevel;
+      } else if (claim.status === 'firstLevelApproved' && (approvalSettings as any).approvalLevel === 'Second Level') {
+        // First level approved claims can only be approved by second level approvers (if enabled)
+        canApprove = isSecondLevel;
+        canReject = isSecondLevel;
+      }
+    } else {
+      // For overtime claims
+      const approvalSettings = overtimeApprovalSettings;
+      if (!approvalSettings || !currentUser || !employeesData) return { canApprove: false, canReject: false };
+      
+      const currentEmployee = (employeesData as any[]).find((emp: any) => emp.userId === (currentUser as any).id);
+      if (!currentEmployee) return { canApprove: false, canReject: false };
+      
+      const isFirstLevel = (approvalSettings as any).firstLevel === currentEmployee.id;
+      const isSecondLevel = (approvalSettings as any).secondLevel === currentEmployee.id;
+      
+      // For overtime claims: similar logic
+      if (claim.status === 'pending') {
+        canApprove = isFirstLevel;
+        canReject = isFirstLevel;
+      } else if (claim.status === 'firstLevelApproved') {
+        canApprove = isSecondLevel;
+        canReject = isSecondLevel;
+      }
+    }
+    
+    return { canApprove, canReject };
+  };
+
   // Check if user can see different types of claims
   const userCanApproveFinancial = hasFinancialApprovalRights();
   const userCanApproveOvertime = hasOvertimeApprovalRights();
@@ -552,28 +602,39 @@ export default function ClaimApprovalPage() {
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="text-green-600 hover:bg-green-50" 
-                            data-testid={`button-approve-${item.id}`}
-                            onClick={() => handleApprove(item.id)}
-                            disabled={approveMutation.isPending}
-                            title="Lulus"
-                          >
-                            <Check className="w-4 h-4" />
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="text-red-600 hover:bg-red-50" 
-                            data-testid={`button-reject-${item.id}`}
-                            onClick={() => handleReject(item.id)}
-                            disabled={rejectMutation.isPending}
-                            title="Tolak"
-                          >
-                            <X className="w-4 h-4" />
-                          </Button>
+                          {(() => {
+                            const actions = getAvailableActions(item);
+                            return (
+                              <>
+                                {actions.canApprove && (
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    className="text-green-600 hover:bg-green-50" 
+                                    data-testid={`button-approve-${item.id}`}
+                                    onClick={() => handleApprove(item.id)}
+                                    disabled={approveMutation.isPending}
+                                    title="Lulus"
+                                  >
+                                    <Check className="w-4 h-4" />
+                                  </Button>
+                                )}
+                                {actions.canReject && (
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    className="text-red-600 hover:bg-red-50" 
+                                    data-testid={`button-reject-${item.id}`}
+                                    onClick={() => handleReject(item.id)}
+                                    disabled={rejectMutation.isPending}
+                                    title="Tolak"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </Button>
+                                )}
+                              </>
+                            );
+                          })()}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -625,28 +686,39 @@ export default function ClaimApprovalPage() {
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="text-green-600 hover:bg-green-50" 
-                            data-testid={`button-approve-${item.id}`}
-                            onClick={() => handleApprove(item.id)}
-                            disabled={approveMutation.isPending}
-                            title="Lulus"
-                          >
-                            <Check className="w-4 h-4" />
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="text-red-600 hover:bg-red-50" 
-                            data-testid={`button-reject-${item.id}`}
-                            onClick={() => handleReject(item.id)}
-                            disabled={rejectMutation.isPending}
-                            title="Tolak"
-                          >
-                            <X className="w-4 h-4" />
-                          </Button>
+                          {(() => {
+                            const actions = getAvailableActions(item);
+                            return (
+                              <>
+                                {actions.canApprove && (
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    className="text-green-600 hover:bg-green-50" 
+                                    data-testid={`button-approve-${item.id}`}
+                                    onClick={() => handleApprove(item.id)}
+                                    disabled={approveMutation.isPending}
+                                    title="Lulus"
+                                  >
+                                    <Check className="w-4 h-4" />
+                                  </Button>
+                                )}
+                                {actions.canReject && (
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    className="text-red-600 hover:bg-red-50" 
+                                    data-testid={`button-reject-${item.id}`}
+                                    onClick={() => handleReject(item.id)}
+                                    disabled={rejectMutation.isPending}
+                                    title="Tolak"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </Button>
+                                )}
+                              </>
+                            );
+                          })()}
                         </div>
                       </TableCell>
                     </TableRow>
