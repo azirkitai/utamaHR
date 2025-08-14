@@ -5122,51 +5122,349 @@ export function registerRoutes(app: Express): Server {
   // Generate PDF for payment voucher using HTML-to-PDF
   app.get('/api/payment-vouchers/:id/pdf', authenticateToken, async (req, res) => {
     try {
-      const puppeteer = await import('puppeteer');
+      const htmlPdf = require('html-pdf-node');
       const { id } = req.params;
       
-      // Launch browser and create page
-      const browser = await puppeteer.default.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-      });
-      const page = await browser.newPage();
+      // Get voucher details
+      const voucher = await storage.getPaymentVoucher(id);
+      if (!voucher) {
+        return res.status(404).json({ error: 'Payment voucher not found' });
+      }
       
-      // Set viewport and wait for content
-      await page.setViewport({ width: 1200, height: 800 });
+      // Get claims for the voucher
+      const claims = [];
+      let employeeName = '';
+      if (voucher.includedClaims && voucher.includedClaims.length > 0) {
+        for (const claimId of voucher.includedClaims) {
+          const claim = await storage.getClaimApplication(claimId);
+          if (claim) {
+            claims.push(claim);
+            // Get employee name from the first claim's employeeId
+            if (!employeeName && claim.employeeId) {
+              const employee = await storage.getEmployee(claim.employeeId);
+              if (employee) {
+                employeeName = employee.fullName;
+              }
+            }
+          }
+        }
+      }
       
-      // Navigate to the voucher preview page
-      const voucherUrl = `http://localhost:5000/voucher-details/${id}?tab=voucher&pdf=true`;
-      await page.goto(voucherUrl, { 
-        waitUntil: 'networkidle2',
-        timeout: 30000 
-      });
+      // Get company settings
+      const companySettings = await storage.getCompanySettings();
       
-      // Wait for voucher content to load
-      await page.waitForSelector('[data-testid="voucher-preview-content"]', { timeout: 10000 });
+      // Get employees data for name mapping
+      const employeesData = await storage.getAllEmployees();
       
-      // Generate PDF with exact preview styling
-      const pdfBuffer = await page.pdf({
+      // Helper functions
+      const getEmployeeName = (employeeId: string) => {
+        const employee = employeesData?.find((emp: any) => emp.id === employeeId);
+        return employee ? employee.fullName : 'Employee Name';
+      };
+      
+      const getEmployeeNRIC = (employeeId: string): string => {
+        const employee = employeesData?.find((emp: any) => emp.id === employeeId);
+        return employee?.nric || 'Not Stated';
+      };
+
+      const getEmployeeBankInfo = (employeeId: string): string => {
+        const employee = employeesData?.find((emp: any) => emp.id === employeeId);
+        return employee?.bankAccountNumber || 'Not Stated';
+      };
+
+      const convertToWords = (amount: number): string => {
+        if (amount === 0) return 'ZERO';
+        
+        const ones = ['', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE',
+                      'TEN', 'ELEVEN', 'TWELVE', 'THIRTEEN', 'FOURTEEN', 'FIFTEEN', 'SIXTEEN', 
+                      'SEVENTEEN', 'EIGHTEEN', 'NINETEEN'];
+        
+        const tens = ['', '', 'TWENTY', 'THIRTY', 'FORTY', 'FIFTY', 'SIXTY', 'SEVENTY', 'EIGHTY', 'NINETY'];
+        
+        const convert = (num: number): string => {
+          if (num === 0) return '';
+          else if (num < 20) return ones[num];
+          else if (num < 100) return tens[Math.floor(num / 10)] + (num % 10 !== 0 ? ' ' + ones[num % 10] : '');
+          else if (num < 1000) return ones[Math.floor(num / 100)] + ' HUNDRED' + (num % 100 !== 0 ? ' ' + convert(num % 100) : '');
+          else if (num < 1000000) return convert(Math.floor(num / 1000)) + ' THOUSAND' + (num % 1000 !== 0 ? ' ' + convert(num % 1000) : '');
+          else return convert(Math.floor(num / 1000000)) + ' MILLION' + (num % 1000000 !== 0 ? ' ' + convert(num % 1000000) : '');
+        };
+        
+        const wholePart = Math.floor(amount);
+        const decimalPart = Math.round((amount - wholePart) * 100);
+        
+        let result = convert(wholePart);
+        if (decimalPart > 0) {
+          result += ' AND ' + convert(decimalPart) + ' SEN';
+        }
+        result += ' ONLY';
+        
+        return result;
+      };
+
+      const months = [
+        { value: '1', label: 'January' }, { value: '2', label: 'February' }, { value: '3', label: 'March' },
+        { value: '4', label: 'April' }, { value: '5', label: 'May' }, { value: '6', label: 'June' },
+        { value: '7', label: 'July' }, { value: '8', label: 'August' }, { value: '9', label: 'September' },
+        { value: '10', label: 'October' }, { value: '11', label: 'November' }, { value: '12', label: 'December' }
+      ];
+
+      const monthName = months.find(m => m.value === voucher.month.toString())?.label || voucher.month;
+      
+      // Create HTML template that matches the exact voucher preview
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { 
+              margin: 0; 
+              padding: 20px; 
+              font-family: Arial, sans-serif; 
+              font-size: 12px;
+              line-height: 1.4;
+            }
+            
+            .text-center { text-align: center; }
+            .text-left { text-align: left; }
+            .text-right { text-align: right; }
+            .font-bold { font-weight: bold; }
+            .text-lg { font-size: 16px; }
+            .text-sm { font-size: 11px; }
+            .text-xs { font-size: 10px; }
+            .mb-2 { margin-bottom: 8px; }
+            .mb-4 { margin-bottom: 16px; }
+            .mb-6 { margin-bottom: 24px; }
+            .mb-8 { margin-bottom: 32px; }
+            .mt-4 { margin-top: 16px; }
+            .mt-16 { margin-top: 64px; }
+            
+            .border-b { border-bottom: 1px solid #666; }
+            .border-gray-400 { border-color: #999; }
+            .pb-1 { padding-bottom: 4px; }
+            .p-2 { padding: 8px; }
+            
+            .grid-cols-2 {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 32px;
+            }
+            
+            .space-y-2 > * + * { margin-top: 8px; }
+            
+            .flex {
+              display: flex;
+            }
+            
+            .justify-between {
+              justify-content: space-between;
+            }
+            
+            .items-end {
+              align-items: flex-end;
+            }
+            
+            .w-32 {
+              width: 8rem;
+            }
+            
+            .w-48 {
+              width: 12rem;
+            }
+            
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              border: 1px solid #666;
+            }
+            
+            th, td {
+              border: 1px solid #666;
+              padding: 8px;
+              text-align: left;
+            }
+            
+            th {
+              font-weight: bold;
+              background-color: #f5f5f5;
+            }
+            
+            .text-right {
+              text-align: right;
+            }
+            
+            .total-row {
+              background-color: #f0f0f0;
+              font-weight: bold;
+            }
+            
+            .signature-line {
+              border-top: 1px solid #666;
+              width: 192px;
+              margin-bottom: 8px;
+            }
+          </style>
+        </head>
+        <body>
+          <!-- Company Header -->
+          <div class="text-center mb-8">
+            <div class="text-lg font-bold mb-2">
+              ${companySettings?.companyName || 'UTAMA MEDGROUP'}
+            </div>
+            ${companySettings?.address ? `<div class="text-sm mb-1">${companySettings.address}</div>` : ''}
+            ${companySettings?.email ? `<div class="text-sm">Email: ${companySettings.email}</div>` : ''}
+          </div>
+
+          <!-- Voucher Title -->
+          <div class="text-center mb-8">
+            <h2 class="text-lg font-bold">PAYMENT VOUCHER</h2>
+          </div>
+
+          <!-- Voucher Header Info -->
+          <div class="flex justify-between mb-8">
+            <div class="space-y-2">
+              <div class="flex">
+                <span class="w-32 text-sm">Voucher No:</span>
+                <span class="font-bold text-sm">${voucher.voucherNumber}</span>
+              </div>
+              <div class="flex">
+                <span class="w-32 text-sm">Date:</span>
+                <span class="font-bold text-sm">${new Date(voucher.paymentDate).toLocaleDateString('en-GB')}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- PAY TO Section -->
+          <div class="mb-6">
+            <div class="flex">
+              <span class="text-sm font-bold">PAY TO:</span>
+            </div>
+            <div class="mt-2">
+              <div class="text-sm font-bold border-b border-gray-400 pb-1">
+                ${claims.length > 0 ? getEmployeeName(claims[0].employeeId) : 'Employee Name'}
+              </div>
+            </div>
+          </div>
+
+          <!-- Employee Details Section -->
+          <div class="grid-cols-2 mb-8">
+            <!-- Left Side -->
+            <div>
+              <div class="space-y-2 text-sm">
+                <div class="flex">
+                  <span class="w-32">Employee No:</span>
+                  <span>${claims.length > 0 ? (employeesData?.find((emp: any) => emp.id === claims[0].employeeId)?.staffId || 'S27650-5127') : 'S27650-5127'}</span>
+                </div>
+                <div class="flex">
+                  <span class="w-32">Name:</span>
+                  <span>${claims.length > 0 ? getEmployeeName(claims[0].employeeId) : 'Employee Name'}</span>
+                </div>
+                <div class="flex">
+                  <span class="w-32">NRIC:</span>
+                  <span>${claims.length > 0 ? getEmployeeNRIC(claims[0].employeeId) : 'Not Stated'}</span>
+                </div>
+                <div class="flex">
+                  <span class="w-32">Bank / Cheque No:</span>
+                  <span>${claims.length > 0 ? getEmployeeBankInfo(claims[0].employeeId) : 'Not Stated'}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Side - Voucher Details -->
+            <div>
+              <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                  <span>Payment Voucher No:</span>
+                  <span class="font-bold">${voucher.voucherNumber}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span>Payment Date:</span>
+                  <span class="font-bold">${new Date(voucher.paymentDate).toLocaleDateString('en-GB')}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span>Month:</span>
+                  <span class="font-bold">${monthName}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment Details Table -->
+          <div class="mb-8">
+            <table>
+              <thead>
+                <tr>
+                  <th class="text-sm">No.</th>
+                  <th class="text-sm">Description</th>
+                  <th class="text-sm">Claim Type</th>
+                  <th class="text-sm text-right">Amount (RM)</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${claims.map((claim, index) => `
+                  <tr>
+                    <td class="text-sm">${index + 1}</td>
+                    <td class="text-sm">${claim.claimCategory.toUpperCase()}</td>
+                    <td class="text-sm">financial</td>
+                    <td class="text-sm text-right">${(parseFloat(claim.amount || '0') || 0).toFixed(2)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            
+            <!-- Total Line -->
+            <div class="total-row p-2 text-sm">
+              <div class="flex justify-between">
+                <span class="font-bold">MALAYSIA RINGGIT : TOTAL</span>
+                <span class="font-bold">${claims.reduce((sum, claim) => sum + (parseFloat(claim.amount || '0') || 0), 0).toFixed(2)}</span>
+              </div>
+            </div>
+            
+            <!-- Amount in Words -->
+            <div class="mt-4 p-2 text-sm font-bold" style="border: 1px solid #666;">
+              MALAYSIA RINGGIT : ${convertToWords(claims.reduce((sum, claim) => sum + (parseFloat(claim.amount || '0') || 0), 0))}
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div class="flex justify-between items-end mt-16">
+            <div class="text-center">
+              <div class="signature-line"></div>
+              <div class="text-xs">Prepared By</div>
+            </div>
+            <div class="text-center">
+              <div class="signature-line"></div>
+              <div class="text-xs">Checked By</div>
+            </div>
+            <div class="text-center">
+              <div class="signature-line"></div>
+              <div class="text-xs">Approved By</div>
+            </div>
+          </div>
+        </body>
+        </html>
+      `;
+
+      // Generate PDF from HTML
+      const options = {
         format: 'A4',
         margin: {
           top: '10mm',
-          right: '10mm', 
+          right: '10mm',
           bottom: '10mm',
           left: '10mm'
         },
         printBackground: true,
         preferCSSPageSize: true
-      });
-      
-      await browser.close();
-      
-      // Get voucher details for filename
-      const voucher = await storage.getPaymentVoucher(id);
-      const filename = voucher ? `Payment_Voucher_${voucher.voucherNumber}.pdf` : `Payment_Voucher_${id}.pdf`;
+      };
+
+      const file = { content: htmlContent };
+      const pdfBuffer = await htmlPdf.generatePdf(file, options);
       
       // Set headers for PDF response
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+      res.setHeader('Content-Disposition', `inline; filename="Payment_Voucher_${voucher.voucherNumber}.pdf"`);
       res.setHeader('Content-Length', pdfBuffer.length);
       
       // Send PDF
