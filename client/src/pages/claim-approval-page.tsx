@@ -399,17 +399,21 @@ export default function ClaimApprovalPage() {
     if (!overtimeClaimsFromDB) return [];
     
     if (activeTab === 'approval') {
-      // APPROVAL TAB: Only show pending claims that user can approve
+      // APPROVAL TAB: Show claims that user can approve based on current status
       if (!userCanApproveOvertime) return [];
+      
       return overtimeClaimsFromDB.filter((claim: any) => {
         console.log('Overtime claim filtering:', { claimId: claim.id, status: claim.status, activeTab });
-        return claim.status === 'Pending' || claim.status === 'pending';
+        
+        const { canApprove } = getAvailableActions(claim);
+        // Show claims where user can take approval action
+        return canApprove || (claim.status === 'Pending' || claim.status === 'pending');
       });
     } else if (activeTab === 'report') {
-      // REPORT TAB: Only show processed claims (approved, rejected) - NOT pending
+      // REPORT TAB: Show ALL processed claims (approved, rejected, firstLevelApproved)
       return overtimeClaimsFromDB.filter((claim: any) => {
         console.log('Overtime claim filtering:', { claimId: claim.id, status: claim.status, activeTab });
-        return ['approved', 'Approved', 'rejected', 'Rejected'].includes(claim.status);
+        return ['approved', 'Approved', 'rejected', 'Rejected', 'firstLevelApproved', 'First Level Approved'].includes(claim.status);
       });
     } else {
       // SUMMARY TAB: Show pending and approved claims only (NO rejected)
