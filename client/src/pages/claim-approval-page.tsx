@@ -107,21 +107,6 @@ export default function ClaimApprovalPage() {
     handleFilterChange('searchTerm', value);
   };
 
-  // Reset filters if invalid values detected
-  useEffect(() => {
-    // Check if employee ID exists in the actual employee data
-    if (filters.employee !== 'all' && employeesData && employeesData.length > 0) {
-      const employeeExists = employeesData.some((emp: any) => emp.id === filters.employee);
-      if (!employeeExists) {
-        console.log('Resetting invalid employee filter:', filters.employee);
-        setFilters(prev => ({
-          ...prev,
-          employee: 'all'
-        }));
-      }
-    }
-  }, [filters.employee, employeesData]);
-
   const handleViewEmployeeSummary = (employeeName: string, employeeId: string) => {
     try {
       console.log('=== MODAL DEBUG START ===');
@@ -226,20 +211,20 @@ export default function ClaimApprovalPage() {
 
   // Get unique departments from employees data  
   const departments = Array.from(new Set(
-    employeesData
+    (employeesData as any[])
       .map((emp: any) => emp.employment?.department)
       .filter((dept: string) => dept)
   ));
 
   // Get unique claim types from existing claims
   const uniqueFinancialClaimTypes = Array.from(new Set(
-    financialClaimsData
+    (financialClaimsData as any[])
       ?.map((claim: any) => claim.financialPolicyName || claim.claimCategory)
       .filter((type: string) => type) || []
   ));
 
   const uniqueOvertimeTypes = Array.from(new Set(
-    overtimeClaimsFromDB
+    (overtimeClaimsFromDB as any[])
       ?.map((claim: any) => claim.overtimePolicyType)
       .filter((type: string) => type) || []
   ));
@@ -249,9 +234,24 @@ export default function ClaimApprovalPage() {
     if (!employeeId) {
       return 'Unknown Employee';
     }
-    const employee = employeesData.find((emp: any) => emp.id === employeeId);
+    const employee = (employeesData as any[]).find((emp: any) => emp.id === employeeId);
     return employee ? employee.fullName : `Unknown Employee (${employeeId.slice(0, 8)}...)`;
   };
+
+  // Reset filters if invalid values detected
+  useEffect(() => {
+    // Check if employee ID exists in the actual employee data
+    if (filters.employee !== 'all' && Array.isArray(employeesData) && employeesData.length > 0) {
+      const employeeExists = (employeesData as any[]).some((emp: any) => emp.id === filters.employee);
+      if (!employeeExists) {
+        console.log('Resetting invalid employee filter:', filters.employee);
+        setFilters(prev => ({
+          ...prev,
+          employee: 'all'
+        }));
+      }
+    }
+  }, [filters.employee, employeesData]);
 
   // Approve claim mutation
   const approveMutation = useMutation({
@@ -259,7 +259,7 @@ export default function ClaimApprovalPage() {
       const token = localStorage.getItem('utamahr_token');
       
       // Find current user's employee record to get employee ID
-      const currentEmployee = employeesData.find((emp: any) => emp.userId === (currentUser as any).id);
+      const currentEmployee = (employeesData as any[]).find((emp: any) => emp.userId === (currentUser as any).id);
       if (!currentEmployee) {
         throw new Error('Employee record not found');
       }
@@ -289,7 +289,7 @@ export default function ClaimApprovalPage() {
       const token = localStorage.getItem('utamahr_token');
       
       // Find current user's employee record to get employee ID
-      const currentEmployee = employeesData.find((emp: any) => emp.userId === (currentUser as any).id);
+      const currentEmployee = (employeesData as any[]).find((emp: any) => emp.userId === (currentUser as any).id);
       if (!currentEmployee) {
         throw new Error('Employee record not found');
       }
@@ -481,7 +481,7 @@ export default function ClaimApprovalPage() {
       const dateInRange = claimDateValue && !isNaN(claimDate.getTime()) && claimDate >= startDate && claimDate <= endDate;
       
       // Department filter
-      const employeeDepartment = employeesData.find((emp: any) => emp.id === claim.employeeId)?.employment?.department;
+      const employeeDepartment = (employeesData as any[]).find((emp: any) => emp.id === claim.employeeId)?.employment?.department;
       const departmentMatch = filters.department === 'all' || employeeDepartment === filters.department;
       
       // Employee filter
@@ -1172,13 +1172,6 @@ export default function ClaimApprovalPage() {
           </Select>
         </div>
         <div className="flex items-end space-x-2">
-          <Button 
-            className="bg-blue-600 hover:bg-blue-700" 
-            onClick={handleApplyFilters}
-            data-testid="button-filter"
-          >
-            <Filter className="w-4 h-4" />
-          </Button>
           <Button 
             variant="outline" 
             onClick={handleResetFilters}
