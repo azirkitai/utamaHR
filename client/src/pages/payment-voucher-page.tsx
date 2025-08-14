@@ -63,6 +63,11 @@ export default function PaymentVoucherPage() {
     enabled: !!(formData.year && formData.month),
   });
 
+  // Fetch employees data for name mapping
+  const { data: employeesData = [] } = useQuery({
+    queryKey: ['/api/employees'],
+  });
+
   // Create payment voucher mutation
   const createVoucherMutation = useMutation({
     mutationFn: async (voucherData: any) => {
@@ -114,7 +119,7 @@ export default function PaymentVoucherPage() {
     const voucherData = {
       year: parseInt(formData.year),
       month: parseInt(formData.month),
-      paymentDate: new Date(formData.paymentDate),
+      paymentDate: formData.paymentDate, // Will be processed by schema
       totalAmount: totalAmount.toString(),
       includedClaims: approvedClaims.map(claim => claim.id),
       remarks: formData.remarks,
@@ -122,6 +127,12 @@ export default function PaymentVoucherPage() {
     };
 
     createVoucherMutation.mutate(voucherData);
+  };
+
+  // Get employee name by ID  
+  const getEmployeeName = (employeeId: string) => {
+    const employee = (employeesData as any[])?.find(emp => emp.id === employeeId);
+    return employee ? employee.fullName : 'Unknown Employee';
   };
 
   const renderPaymentVoucherListTable = () => (
@@ -476,11 +487,16 @@ export default function PaymentVoucherPage() {
                   ) : (
                     <div className="space-y-2">
                       {approvedClaims.map((claim, index) => (
-                        <div key={claim.id} className="flex justify-between items-center text-sm">
-                          <span className="text-gray-700">
-                            {claim.employeeId} - {claim.claimCategory}
-                          </span>
-                          <span className="font-medium">
+                        <div key={claim.id} className="flex justify-between items-center text-sm bg-white p-2 rounded border">
+                          <div className="flex-1">
+                            <div className="font-medium text-gray-900">
+                              {getEmployeeName(claim.employeeId)}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {claim.claimCategory} • {claim.employeeId}
+                            </div>
+                          </div>
+                          <span className="font-semibold text-green-600">
                             RM {(parseFloat(claim.amount || '0') || 0).toFixed(2)}
                           </span>
                         </div>
