@@ -143,24 +143,23 @@ export default function PaymentVoucherPage() {
             <tr className="bg-gray-50 border-b">
               <th className="text-left p-3 font-medium text-gray-900 w-16">No</th>
               <th className="text-left p-3 font-medium text-gray-900 min-w-40">Payment Voucher No.</th>
-              <th className="text-left p-3 font-medium text-gray-900 min-w-24">Year</th>
+              <th className="text-left p-3 font-medium text-gray-900 min-w-48">Name</th>
               <th className="text-left p-3 font-medium text-gray-900 min-w-24">Month</th>
-              <th className="text-left p-3 font-medium text-gray-900 min-w-32">Payment Date</th>
+              <th className="text-left p-3 font-medium text-gray-900 min-w-24">Year</th>
               <th className="text-left p-3 font-medium text-gray-900 min-w-24">Status</th>
-              <th className="text-left p-3 font-medium text-gray-900 min-w-32">Remarks</th>
               <th className="text-center p-3 font-medium text-gray-900 min-w-24">Action</th>
             </tr>
           </thead>
           <tbody>
             {vouchersLoading ? (
               <tr>
-                <td colSpan={8} className="p-8 text-center text-gray-500">
+                <td colSpan={7} className="p-8 text-center text-gray-500">
                   Memuatkan voucher pembayaran...
                 </td>
               </tr>
             ) : vouchers.length === 0 ? (
               <tr>
-                <td colSpan={8} className="p-8 text-center text-gray-500">
+                <td colSpan={7} className="p-8 text-center text-gray-500">
                   Tiada voucher pembayaran dijumpai.
                 </td>
               </tr>
@@ -168,49 +167,45 @@ export default function PaymentVoucherPage() {
               vouchers.map((voucher, index) => (
                 <tr key={voucher.id} className="border-b hover:bg-gray-50">
                   <td className="p-3 text-gray-900">{index + 1}</td>
-                  <td className="p-3 font-medium text-blue-600">{voucher.voucherNumber}</td>
-                  <td className="p-3 text-gray-900">{voucher.year}</td>
+                  <td className="p-3">
+                    <button 
+                      className="font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                      onClick={() => window.location.href = `/voucher-details/${voucher.id}`}
+                      data-testid={`link-voucher-${voucher.voucherNumber}`}
+                    >
+                      {voucher.voucherNumber}
+                    </button>
+                  </td>
+                  <td className="p-3 text-gray-900">
+                    {voucher.includedClaims && voucher.includedClaims.length > 0 
+                      ? voucher.includedClaims.map(claimId => {
+                          const claim = approvedClaims.find(c => c.id === claimId);
+                          return claim ? getEmployeeName(claim.employeeId) : 'Unknown';
+                        }).join(', ')
+                      : 'Tiada data'
+                    }
+                  </td>
                   <td className="p-3 text-gray-900">{months.find(m => m.value === voucher.month.toString())?.label || voucher.month}</td>
-                  <td className="p-3 text-gray-900">{new Date(voucher.paymentDate).toLocaleDateString('ms-MY')}</td>
+                  <td className="p-3 text-gray-900">{voucher.year}</td>
                   <td className="p-3">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                       voucher.status === 'Approved' ? 'bg-green-100 text-green-800' :
                       voucher.status === 'Rejected' ? 'bg-red-100 text-red-800' :
+                      voucher.status === 'Generated' ? 'bg-blue-100 text-blue-800' :
                       'bg-yellow-100 text-yellow-800'
                     }`}>
                       {voucher.status}
                     </span>
                   </td>
-                  <td className="p-3 text-gray-900 max-w-48 truncate" title={voucher.remarks || ''}>
-                    {voucher.remarks || '-'}
-                  </td>
-                  <td className="p-3">
-                    <div className="flex gap-1 justify-center">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        data-testid={`button-view-voucher-${voucher.id}`}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        data-testid={`button-edit-voucher-${voucher.id}`}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                        data-testid={`button-delete-voucher-${voucher.id}`}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                  <td className="p-3 text-center">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      data-testid={`button-edit-voucher-${voucher.id}`}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
                   </td>
                 </tr>
               ))

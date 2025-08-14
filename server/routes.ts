@@ -5090,6 +5090,34 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Get claims for a specific voucher
+  app.get('/api/payment-vouchers/:id/claims', authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const voucher = await storage.getPaymentVoucher(id);
+      
+      if (!voucher) {
+        return res.status(404).json({ error: 'Voucher pembayaran tidak dijumpai' });
+      }
+
+      // Get claims based on includedClaims array in voucher
+      const claims = [];
+      if (voucher.includedClaims && voucher.includedClaims.length > 0) {
+        for (const claimId of voucher.includedClaims) {
+          const claim = await storage.getClaimApplication(claimId);
+          if (claim) {
+            claims.push(claim);
+          }
+        }
+      }
+      
+      res.json(claims);
+    } catch (error) {
+      console.error('Error fetching voucher claims:', error);
+      res.status(500).json({ error: 'Gagal mengambil tuntutan voucher' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

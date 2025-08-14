@@ -360,6 +360,7 @@ export interface IStorage {
   
   // =================== CLAIM APPLICATION METHODS ===================
   getAllClaimApplications(): Promise<ClaimApplication[]>;
+  getClaimApplication(id: string): Promise<ClaimApplication | undefined>;
   getClaimApplicationsByEmployeeId(employeeId: string): Promise<ClaimApplication[]>;
   getClaimApplicationsByType(claimType: 'financial' | 'overtime'): Promise<ClaimApplication[]>;
   createClaimApplication(application: InsertClaimApplication): Promise<ClaimApplication>;
@@ -1998,6 +1999,11 @@ export class DatabaseStorage implements IStorage {
   // =================== CLAIM APPLICATION METHODS ===================
   async getAllClaimApplications(): Promise<ClaimApplication[]> {
     return await db.select().from(claimApplications).orderBy(desc(claimApplications.dateSubmitted));
+  }
+
+  async getClaimApplication(id: string): Promise<ClaimApplication | undefined> {
+    const [claim] = await db.select().from(claimApplications).where(eq(claimApplications.id, id));
+    return claim;
   }
 
   async getClaimApplicationsByEmployeeId(employeeId: string): Promise<ClaimApplication[]> {
