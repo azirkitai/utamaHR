@@ -520,6 +520,7 @@ export default function ApplyClaimPage() {
                     <table className="w-full">
                       <thead>
                         <tr className="border-b">
+                          <th className="text-left py-3 px-4 font-medium text-gray-700">Pemohon</th>
                           <th className="text-left py-3 px-4 font-medium text-gray-700">Claim Type</th>
                           <th className="text-left py-3 px-4 font-medium text-gray-700">Amount</th>
                           <th className="text-left py-3 px-4 font-medium text-gray-700">Date</th>
@@ -531,6 +532,9 @@ export default function ApplyClaimPage() {
                         {recentFinancialClaims && recentFinancialClaims.length > 0 ? (
                           (recentFinancialClaims as any[]).map((claim: any) => (
                             <tr key={claim.id} className="border-b hover:bg-gray-50">
+                              <td className="py-3 px-4">
+                                {availableEmployees.find((emp: any) => emp.id === claim.employeeId)?.fullName || 'Unknown'}
+                              </td>
                               <td className="py-3 px-4">{claim.financialPolicyName || claim.claimType}</td>
                               <td className="py-3 px-4">RM {parseFloat(claim.amount || 0).toFixed(2)}</td>
                               <td className="py-3 px-4">
@@ -558,7 +562,7 @@ export default function ApplyClaimPage() {
                           ))
                         ) : (
                           <tr>
-                            <td colSpan={5} className="text-center py-8 text-gray-500">
+                            <td colSpan={6} className="text-center py-8 text-gray-500">
                               No data available in table
                             </td>
                           </tr>
@@ -813,8 +817,9 @@ export default function ApplyClaimPage() {
                     <table className="w-full">
                       <thead>
                         <tr className="border-b">
+                          <th className="text-left py-3 px-4 font-medium text-gray-700">Pemohon</th>
                           <th className="text-left py-3 px-4 font-medium text-gray-700">Claim Type</th>
-                          <th className="text-left py-3 px-4 font-medium text-gray-700">Amount</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-700">Hours</th>
                           <th className="text-left py-3 px-4 font-medium text-gray-700">Date</th>
                           <th className="text-left py-3 px-4 font-medium text-gray-700">Status</th>
                           <th className="text-left py-3 px-4 font-medium text-gray-700">Action</th>
@@ -824,6 +829,9 @@ export default function ApplyClaimPage() {
                         {recentOvertimeClaims && recentOvertimeClaims.length > 0 ? (
                           (recentOvertimeClaims as any[]).map((claim: any) => (
                             <tr key={claim.id} className="border-b hover:bg-gray-50">
+                              <td className="py-3 px-4">
+                                {availableEmployees.find((emp: any) => emp.id === claim.employeeId)?.fullName || 'Unknown'}
+                              </td>
                               <td className="py-3 px-4">Overtime</td>
                               <td className="py-3 px-4">
                                 {claim.totalHours ? `${parseFloat(claim.totalHours).toFixed(1)} hrs` : 'N/A'}
@@ -853,7 +861,7 @@ export default function ApplyClaimPage() {
                           ))
                         ) : (
                           <tr>
-                            <td colSpan={5} className="text-center py-8 text-gray-500">
+                            <td colSpan={6} className="text-center py-8 text-gray-500">
                               No data available in table
                             </td>
                           </tr>
