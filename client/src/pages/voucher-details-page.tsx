@@ -257,8 +257,14 @@ export default function VoucherDetailsPage() {
               </CardHeader>
               <CardContent className="p-6">
                 <div className="bg-white min-h-96 border rounded-lg p-8" style={{ fontFamily: 'Arial, sans-serif' }}>
-                  {/* Header */}
+                  {/* Company Header */}
                   <div className="text-center mb-8">
+                    <div className="text-lg font-bold text-gray-900 mb-2">UTAMA HEALTHCARE SDN BHD</div>
+                    <div className="text-sm text-gray-700 mb-1">No. 123, Jalan Utama, Taman Kesihatan,</div>
+                    <div className="text-sm text-gray-700 mb-1">47400 Petaling Jaya, Selangor</div>
+                    <div className="text-sm text-gray-700 mb-1">Tel: 03-7956 1234 | Fax: 03-7956 5678</div>
+                    <div className="text-sm text-gray-700 mb-6">Email: info@utamahealthcare.com.my</div>
+                    
                     <div className="text-2xl font-bold text-gray-900 mb-4">PAYMENT VOUCHER</div>
                   </div>
 
