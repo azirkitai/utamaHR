@@ -2027,10 +2027,10 @@ export class DatabaseStorage implements IStorage {
       approvalSettings = overtimeApprovalData;
     } else if (currentApp.claimType === 'financial') {
       const [financialSettings] = await db.select()
-        .from(groupPolicySettings)
-        .where(eq(groupPolicySettings.settingType, 'financial_claim_approval'))
+        .from(approvalSettings)
+        .where(eq(approvalSettings.type, 'financial'))
         .limit(1);
-      approvalSettings = financialSettings?.[0];
+      approvalSettings = financialSettings;
     }
 
     // Determine status based on approval workflow
