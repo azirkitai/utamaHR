@@ -651,6 +651,9 @@ export default function PayrollDetailPage() {
                                                   parseFloat(contributionsData.socsoEmployer || '0') + 
                                                   parseFloat(contributionsData.eisEmployer || '0');
                         
+                        // Calculate NET PAY dynamically: Gross Income - Total Deductions
+                        const netPay = grossSalary - totalDeductions;
+                        
                         return (
                           <tr key={item.id} className="border-b hover:bg-gray-50">
                             <td className="p-3 text-gray-900 font-medium">{employeeSnapshot.name || 'N/A'}</td>
@@ -667,7 +670,7 @@ export default function PayrollDetailPage() {
                             <td className="p-3 text-center text-gray-600 bg-yellow-50">RM {parseFloat(contributionsData.socsoEmployer || '0').toFixed(2)}</td>
                             <td className="p-3 text-center text-gray-600 bg-yellow-50">RM {parseFloat(contributionsData.eisEmployer || '0').toFixed(2)}</td>
                             <td className="p-3 text-center text-gray-600 bg-yellow-50">RM {parseFloat(contributionsData.hrdf || '0').toFixed(2)}</td>
-                            <td className="p-3 text-center text-gray-600 font-medium">RM {parseFloat(item.netPay || '0').toFixed(2)}</td>
+                            <td className="p-3 text-center text-gray-600 font-medium">RM {netPay.toFixed(2)}</td>
                             <td className="p-3 text-center">
                               {getStatusBadge(item.status || 'pending')}
                             </td>
