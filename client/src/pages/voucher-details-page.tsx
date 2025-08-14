@@ -353,15 +353,7 @@ export default function VoucherDetailsPage() {
                     </div>
                   </div>
 
-                  {/* Remarks */}
-                  {voucher.remarks && (
-                    <div className="mb-8">
-                      <div className="font-bold text-gray-900 mb-2">REMARKS:</div>
-                      <div className="text-gray-700 border border-gray-300 p-3 rounded text-sm">
-                        {voucher.remarks}
-                      </div>
-                    </div>
-                  )}
+                  
 
                   {/* Footer */}
                   <div className="flex justify-between items-end mt-16">
