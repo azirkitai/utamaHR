@@ -29,6 +29,11 @@ export default function VoucherDetailsPage() {
     queryKey: ['/api/employees'],
   });
 
+  // Fetch company settings for voucher header
+  const { data: companySettings } = useQuery({
+    queryKey: ['/api/company-settings'],
+  });
+
   // Get employee name by ID  
   const getEmployeeName = (employeeId: string) => {
     const employee = (employeesData as any[])?.find(emp => emp.id === employeeId);
@@ -259,11 +264,27 @@ export default function VoucherDetailsPage() {
                 <div className="bg-white min-h-96 border rounded-lg p-8" style={{ fontFamily: 'Arial, sans-serif' }}>
                   {/* Company Header */}
                   <div className="text-center mb-8">
-                    <div className="text-lg font-bold text-gray-900 mb-2">UTAMA HEALTHCARE SDN BHD</div>
-                    <div className="text-sm text-gray-700 mb-1">No. 123, Jalan Utama, Taman Kesihatan,</div>
-                    <div className="text-sm text-gray-700 mb-1">47400 Petaling Jaya, Selangor</div>
-                    <div className="text-sm text-gray-700 mb-1">Tel: 03-7956 1234 | Fax: 03-7956 5678</div>
-                    <div className="text-sm text-gray-700 mb-6">Email: info@utamahealthcare.com.my</div>
+                    <div className="text-lg font-bold text-gray-900 mb-2">
+                      {companySettings?.companyName?.toUpperCase() || 'COMPANY NAME'}
+                    </div>
+                    {companySettings?.address && (
+                      <div className="text-sm text-gray-700 mb-1">{companySettings.address}</div>
+                    )}
+                    {companySettings?.city && companySettings?.state && companySettings?.postalCode && (
+                      <div className="text-sm text-gray-700 mb-1">
+                        {companySettings.postalCode} {companySettings.city}, {companySettings.state}
+                      </div>
+                    )}
+                    {(companySettings?.phone || companySettings?.fax) && (
+                      <div className="text-sm text-gray-700 mb-1">
+                        {companySettings.phone && `Tel: ${companySettings.phone}`}
+                        {companySettings.phone && companySettings.fax && ' | '}
+                        {companySettings.fax && `Fax: ${companySettings.fax}`}
+                      </div>
+                    )}
+                    {companySettings?.email && (
+                      <div className="text-sm text-gray-700 mb-6">Email: {companySettings.email}</div>
+                    )}
                     
                     <div className="text-2xl font-bold text-gray-900 mb-4">PAYMENT VOUCHER</div>
                   </div>
