@@ -5119,64 +5119,54 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Generate PDF for payment voucher
+  // Generate PDF for payment voucher using HTML-to-PDF
   app.get('/api/payment-vouchers/:id/pdf', authenticateToken, async (req, res) => {
     try {
+      const puppeteer = require('puppeteer');
       const { id } = req.params;
       
-      // Get voucher details
-      const voucher = await storage.getPaymentVoucher(id);
-      if (!voucher) {
-        return res.status(404).json({ error: 'Payment voucher not found' });
-      }
-      
-      // Get claims for the voucher
-      const claims = [];
-      let employeeName = '';
-      if (voucher.includedClaims && voucher.includedClaims.length > 0) {
-        for (const claimId of voucher.includedClaims) {
-          const claim = await storage.getClaimApplication(claimId);
-          if (claim) {
-            claims.push(claim);
-            // Get employee name from the first claim's employeeId
-            if (!employeeName && claim.employeeId) {
-              const employee = await storage.getEmployee(claim.employeeId);
-              if (employee) {
-                employeeName = employee.fullName;
-              }
-            }
-          }
-        }
-      }
-      
-      // Get company settings
-      const companySettings = await storage.getCompanySettings();
-      
-      // Format company data for PDF
-      const company = {
-        name: companySettings.companyName,
-        regNo: companySettings.registrationNumber,
-        address: companySettings.address,
-        phone: companySettings.phone,
-        email: companySettings.email
-      };
-      
-      // Enhance voucher object with employee name
-      const voucherWithEmployee = {
-        ...voucher,
-        employeeName: employeeName || 'Employee Name'
-      };
-      
-      // Generate PDF
-      const pdfBuffer = await generatePaymentVoucherPDF({
-        voucher: voucherWithEmployee,
-        claims,
-        company
+      // Launch browser and create page
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
       });
+      const page = await browser.newPage();
+      
+      // Set viewport and wait for content
+      await page.setViewport({ width: 1200, height: 800 });
+      
+      // Navigate to the voucher preview page
+      const voucherUrl = `http://localhost:5000/voucher-details/${id}?tab=voucher&pdf=true`;
+      await page.goto(voucherUrl, { 
+        waitUntil: 'networkidle2',
+        timeout: 30000 
+      });
+      
+      // Wait for voucher content to load
+      await page.waitForSelector('[data-testid="voucher-preview-content"]', { timeout: 10000 });
+      
+      // Generate PDF with exact preview styling
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        margin: {
+          top: '10mm',
+          right: '10mm', 
+          bottom: '10mm',
+          left: '10mm'
+        },
+        printBackground: true,
+        preferCSSPageSize: true
+      });
+      
+      await browser.close();
+      
+      // Get voucher details for filename
+      const voucher = await storage.getPaymentVoucher(id);
+      const filename = voucher ? `Payment_Voucher_${voucher.voucherNumber}.pdf` : `Payment_Voucher_${id}.pdf`;
       
       // Set headers for PDF response
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `inline; filename="Payment_Voucher_${voucher.voucherNumber}.pdf"`);
+      res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
       res.setHeader('Content-Length', pdfBuffer.length);
       
       // Send PDF

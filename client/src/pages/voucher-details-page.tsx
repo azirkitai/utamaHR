@@ -11,7 +11,13 @@ import type { PaymentVoucher, ClaimApplication } from "@shared/schema";
 export default function VoucherDetailsPage() {
   const { voucherId } = useParams();
   const [, setLocation] = useLocation();
-  const [activeTab, setActiveTab] = useState("details");
+  
+  // Check if this is being accessed for PDF generation
+  const urlParams = new URLSearchParams(window.location.search);
+  const isPdfMode = urlParams.get('pdf') === 'true';
+  const initialTab = urlParams.get('tab') || 'details';
+  
+  const [activeTab, setActiveTab] = useState(initialTab);
 
   // Fetch voucher details
   const { data: voucher, isLoading: voucherLoading } = useQuery<PaymentVoucher>({
@@ -200,6 +206,166 @@ export default function VoucherDetailsPage() {
 
   const monthName = months.find(m => m.value === voucher.month.toString())?.label || voucher.month;
 
+  // If in PDF mode, render only the voucher preview content
+  if (isPdfMode && activeTab === 'voucher') {
+    return (
+      <div className="bg-white p-8" style={{ fontFamily: 'Arial, sans-serif' }}>
+        <style>
+          {`
+            @media print {
+              body { margin: 0; padding: 0; }
+              * { print-color-adjust: exact; }
+            }
+            @page { 
+              margin: 10mm; 
+              size: A4 portrait; 
+            }
+          `}
+        </style>
+        
+        {/* Company Header */}
+        <div className="text-center mb-8">
+          <div className="text-lg font-bold text-gray-900 mb-2">
+            {companySettings?.companyName || 'UTAMA MEDGROUP'}
+          </div>
+          {companySettings?.address && (
+            <div className="text-sm text-gray-600 mb-1">{companySettings.address}</div>
+          )}
+          {companySettings?.email && (
+            <div className="text-sm text-gray-600">Email: {companySettings.email}</div>
+          )}
+        </div>
+
+        {/* Voucher Title */}
+        <div className="text-center mb-8">
+          <h2 className="text-xl font-bold text-gray-900">PAYMENT VOUCHER</h2>
+        </div>
+
+        {/* Voucher Header Info */}
+        <div className="flex justify-between mb-8">
+          <div className="space-y-2">
+            <div className="flex">
+              <span className="w-32 text-sm">Voucher No:</span>
+              <span className="font-medium text-sm">{voucher.voucherNumber}</span>
+            </div>
+            <div className="flex">
+              <span className="w-32 text-sm">Date:</span>
+              <span className="font-medium text-sm">{new Date(voucher.paymentDate).toLocaleDateString('en-GB')}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* PAY TO Section */}
+        <div className="mb-6">
+          <div className="flex">
+            <span className="text-sm font-medium w-16">PAY TO:</span>
+          </div>
+          <div className="mt-2">
+            <div className="text-sm font-medium border-b border-gray-400 pb-1">
+              {voucherClaims.length > 0 ? getEmployeeName(voucherClaims[0].employeeId) : 'Employee Name'}
+            </div>
+          </div>
+        </div>
+
+        {/* Employee Details Section */}
+        <div className="grid grid-cols-2 gap-8 mb-8">
+          {/* Left Side */}
+          <div>
+            <div className="space-y-2 text-sm">
+              <div className="flex">
+                <span className="w-32">Employee No:</span>
+                <span>{voucherClaims.length > 0 ? (employeesData as any[])?.find(emp => emp.id === voucherClaims[0].employeeId)?.staffId || 'S27650-5127' : 'S27650-5127'}</span>
+              </div>
+              <div className="flex">
+                <span className="w-32">Name:</span>
+                <span>{voucherClaims.length > 0 ? getEmployeeName(voucherClaims[0].employeeId) : 'Employee Name'}</span>
+              </div>
+              <div className="flex">
+                <span className="w-32">NRIC:</span>
+                <span>{voucherClaims.length > 0 ? getEmployeeNRIC(voucherClaims[0].employeeId) : 'Not Stated'}</span>
+              </div>
+              <div className="flex">
+                <span className="w-32">Bank / Cheque No:</span>
+                <span>{voucherClaims.length > 0 ? getEmployeeBankInfo(voucherClaims[0].employeeId) : 'Not Stated'}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Side - Voucher Details */}
+          <div>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span>Payment Voucher No:</span>
+                <span className="font-medium">{voucher.voucherNumber}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Payment Date:</span>
+                <span className="font-medium">{new Date(voucher.paymentDate).toLocaleDateString('en-GB')}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Month:</span>
+                <span className="font-medium">{monthName}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Payment Details Table */}
+        <div className="mb-8">
+          <table className="w-full border border-gray-400">
+            <thead>
+              <tr className="border-b border-gray-400">
+                <th className="border-r border-gray-400 px-2 py-2 text-left text-sm font-medium">No.</th>
+                <th className="border-r border-gray-400 px-2 py-2 text-left text-sm font-medium">Description</th>
+                <th className="border-r border-gray-400 px-2 py-2 text-left text-sm font-medium">Claim Type</th>
+                <th className="px-2 py-2 text-right text-sm font-medium">Amount (RM)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {voucherClaims.map((claim, index) => (
+                <tr key={claim.id} className="border-b border-gray-400">
+                  <td className="border-r border-gray-400 px-2 py-2 text-sm">{index + 1}</td>
+                  <td className="border-r border-gray-400 px-2 py-2 text-sm">{claim.claimCategory.toUpperCase()}</td>
+                  <td className="border-r border-gray-400 px-2 py-2 text-sm">financial</td>
+                  <td className="px-2 py-2 text-sm text-right">{(parseFloat(claim.amount || '0') || 0).toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          
+          {/* Total Line */}
+          <div className="border border-gray-400 border-t-0 p-2 bg-gray-50 font-bold text-sm">
+            <div className="flex justify-between">
+              <span>MALAYSIA RINGGIT : TOTAL</span>
+              <span>{voucherClaims.reduce((sum, claim) => sum + (parseFloat(claim.amount || '0') || 0), 0).toFixed(2)}</span>
+            </div>
+          </div>
+          
+          {/* Amount in Words */}
+          <div className="mt-4 border border-gray-400 p-2 text-sm font-bold">
+            MALAYSIA RINGGIT : {convertToWords(voucherClaims.reduce((sum, claim) => sum + (parseFloat(claim.amount || '0') || 0), 0))}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex justify-between items-end mt-16">
+          <div className="text-center">
+            <div className="border-t border-gray-400 w-48 mb-2"></div>
+            <div className="text-xs">Prepared By</div>
+          </div>
+          <div className="text-center">
+            <div className="border-t border-gray-400 w-48 mb-2"></div>
+            <div className="text-xs">Checked By</div>
+          </div>
+          <div className="text-center">
+            <div className="border-t border-gray-400 w-48 mb-2"></div>
+            <div className="text-xs">Approved By</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -329,7 +495,7 @@ export default function VoucherDetailsPage() {
                 <CardTitle className="text-lg">Voucher Preview</CardTitle>
               </CardHeader>
               <CardContent className="p-6">
-                <div className="bg-white min-h-96 border rounded-lg p-8" style={{ fontFamily: 'Arial, sans-serif' }}>
+                <div className="bg-white min-h-96 border rounded-lg p-8" data-testid="voucher-preview-content" style={{ fontFamily: 'Arial, sans-serif' }}>
                   {/* Company Header */}
                   <div className="text-center mb-8">
                     <div className="text-lg font-bold text-gray-900 mb-2">
