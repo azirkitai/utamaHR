@@ -86,7 +86,7 @@ export async function generatePaymentVoucherPDF(data: VoucherPDFData): Promise<B
   let yPosition = height - 60; // Start from top
 
   // Header - Company Info
-  page.drawText(company.name, {
+  page.drawText(company.name || 'Company Name', {
     x: 50,
     y: yPosition,
     size: 18,
@@ -105,7 +105,7 @@ export async function generatePaymentVoucherPDF(data: VoucherPDFData): Promise<B
     yPosition -= 15;
   }
 
-  page.drawText(company.address, {
+  page.drawText(company.address || 'Company Address', {
     x: 50,
     y: yPosition,
     size: 11,
@@ -145,14 +145,14 @@ export async function generatePaymentVoucherPDF(data: VoucherPDFData): Promise<B
   yPosition -= 40;
 
   // Voucher Info
-  page.drawText(`Voucher No: ${voucher.voucherNumber}`, {
+  page.drawText(`Voucher No: ${voucher.voucherNumber || 'N/A'}`, {
     x: 50,
     y: yPosition,
     size: 12,
     font: boldFont,
   });
 
-  const formattedDate = new Date(voucher.createdAt).toLocaleDateString('en-GB');
+  const formattedDate = voucher.createdAt ? new Date(voucher.createdAt).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB');
   page.drawText(`Date: ${formattedDate}`, {
     x: width - 150,
     y: yPosition,
@@ -170,7 +170,7 @@ export async function generatePaymentVoucherPDF(data: VoucherPDFData): Promise<B
   });
   yPosition -= 20;
 
-  page.drawText(voucher.employeeName, {
+  page.drawText(voucher.employeeName || 'Employee Name', {
     x: 50,
     y: yPosition,
     size: 12,
@@ -258,7 +258,7 @@ export async function generatePaymentVoucherPDF(data: VoucherPDFData): Promise<B
 
     rowData.forEach((data, colIndex) => {
       const textX = colIndex === 3 ? currentX + columnWidths[colIndex] - 10 : currentX + 5; // Right align amount
-      page.drawText(data, {
+      page.drawText(data || '', {
         x: textX,
         y: yPosition - 15,
         size: 10,
