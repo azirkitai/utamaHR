@@ -22,24 +22,77 @@ import {
   Play,
   Eye,
   Edit,
-  Trash2
+  Trash2,
+  Plus,
+  Calendar
 } from "lucide-react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import type { PaymentVoucher, ClaimApplication } from "@shared/schema";
 
 export default function PaymentVoucherPage() {
   const [showNewVoucherModal, setShowNewVoucherModal] = useState(false);
   const [formData, setFormData] = useState({
     year: "2025",
-    month: "August",
+    month: "8",
     paymentDate: "2025-08-08",
-    remarks: "Payment Remark"
+    remarks: "Pembayaran untuk tuntutan kewangan bulan Ogos 2025"
   });
+  const { toast } = useToast();
 
   const months = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+    { value: "1", label: "January" }, { value: "2", label: "February" },
+    { value: "3", label: "March" }, { value: "4", label: "April" },
+    { value: "5", label: "May" }, { value: "6", label: "June" },
+    { value: "7", label: "July" }, { value: "8", label: "August" },
+    { value: "9", label: "September" }, { value: "10", label: "October" },
+    { value: "11", label: "November" }, { value: "12", label: "December" }
   ];
 
   const years = ["2023", "2024", "2025", "2026"];
+
+  // Fetch all payment vouchers
+  const { data: vouchers = [], isLoading: vouchersLoading } = useQuery<PaymentVoucher[]>({
+    queryKey: ['/api/payment-vouchers'],
+  });
+
+  // Fetch approved claims for selected year/month
+  const { data: approvedClaims = [], isLoading: claimsLoading } = useQuery<ClaimApplication[]>({
+    queryKey: ['/api/payment-vouchers/claims', formData.year, formData.month],
+    enabled: !!(formData.year && formData.month),
+  });
+
+  // Create payment voucher mutation
+  const createVoucherMutation = useMutation({
+    mutationFn: async (voucherData: any) => {
+      return await apiRequest(`/api/payment-vouchers`, {
+        method: 'POST',
+        body: JSON.stringify(voucherData),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/payment-vouchers'] });
+      toast({
+        title: "Berjaya",
+        description: "Voucher pembayaran berjaya dicipta",
+      });
+      setShowNewVoucherModal(false);
+      setFormData({
+        year: "2025",
+        month: "8", 
+        paymentDate: "2025-08-08",
+        remarks: "Pembayaran untuk tuntutan kewangan"
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Ralat",
+        description: error.message || "Gagal mencipta voucher pembayaran",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({
@@ -49,9 +102,29 @@ export default function PaymentVoucherPage() {
   };
 
   const handleGeneratePayment = () => {
-    // Handle generate payment logic here
-    console.log("Generate Payment:", formData);
-    setShowNewVoucherModal(false);
+    if (!approvedClaims.length) {
+      toast({
+        title: "Amaran",
+        description: "Tiada tuntutan kewangan yang diluluskan untuk tempoh ini",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Calculate total amount from approved claims
+    const totalAmount = approvedClaims.reduce((sum, claim) => sum + (claim.amount || 0), 0);
+
+    const voucherData = {
+      year: parseInt(formData.year),
+      month: parseInt(formData.month),
+      paymentDate: formData.paymentDate,
+      totalAmount,
+      claimIds: approvedClaims.map(claim => claim.id),
+      remarks: formData.remarks,
+      status: 'Pending' as const
+    };
+
+    createVoucherMutation.mutate(voucherData);
   };
 
   const renderPaymentVoucherListTable = () => (
@@ -71,11 +144,69 @@ export default function PaymentVoucherPage() {
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td colSpan={8} className="p-8 text-center text-gray-500">
-                No data available in table
-              </td>
-            </tr>
+            {vouchersLoading ? (
+              <tr>
+                <td colSpan={8} className="p-8 text-center text-gray-500">
+                  Memuatkan voucher pembayaran...
+                </td>
+              </tr>
+            ) : vouchers.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="p-8 text-center text-gray-500">
+                  Tiada voucher pembayaran dijumpai.
+                </td>
+              </tr>
+            ) : (
+              vouchers.map((voucher, index) => (
+                <tr key={voucher.id} className="border-b hover:bg-gray-50">
+                  <td className="p-3 text-gray-900">{index + 1}</td>
+                  <td className="p-3 font-medium text-blue-600">{voucher.voucherNumber}</td>
+                  <td className="p-3 text-gray-900">{voucher.year}</td>
+                  <td className="p-3 text-gray-900">{months.find(m => m.value === voucher.month.toString())?.label || voucher.month}</td>
+                  <td className="p-3 text-gray-900">{new Date(voucher.paymentDate).toLocaleDateString('ms-MY')}</td>
+                  <td className="p-3">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      voucher.status === 'Approved' ? 'bg-green-100 text-green-800' :
+                      voucher.status === 'Rejected' ? 'bg-red-100 text-red-800' :
+                      'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {voucher.status}
+                    </span>
+                  </td>
+                  <td className="p-3 text-gray-900 max-w-48 truncate" title={voucher.remarks || ''}>
+                    {voucher.remarks || '-'}
+                  </td>
+                  <td className="p-3">
+                    <div className="flex gap-1 justify-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        data-testid={`button-view-voucher-${voucher.id}`}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        data-testid={`button-edit-voucher-${voucher.id}`}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                        data-testid={`button-delete-voucher-${voucher.id}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
@@ -305,8 +436,8 @@ export default function PaymentVoucherPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {months.map((month) => (
-                      <SelectItem key={month} value={month}>
-                        {month}
+                      <SelectItem key={month.value} value={month.value}>
+                        {month.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -337,6 +468,39 @@ export default function PaymentVoucherPage() {
                 />
               </div>
 
+              {/* Approved Claims Summary */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Tuntutan Kewangan Diluluskan</Label>
+                <div className="bg-gray-50 p-3 rounded-lg max-h-48 overflow-y-auto">
+                  {claimsLoading ? (
+                    <p className="text-sm text-gray-600">Memuatkan tuntutan...</p>
+                  ) : approvedClaims.length === 0 ? (
+                    <p className="text-sm text-gray-600">Tiada tuntutan kewangan diluluskan untuk tempoh ini.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {approvedClaims.map((claim, index) => (
+                        <div key={claim.id} className="flex justify-between items-center text-sm">
+                          <span className="text-gray-700">
+                            {claim.employeeId} - {claim.claimCategory}
+                          </span>
+                          <span className="font-medium">
+                            RM {(claim.amount || 0).toFixed(2)}
+                          </span>
+                        </div>
+                      ))}
+                      <div className="border-t pt-2 mt-2">
+                        <div className="flex justify-between items-center text-sm font-semibold">
+                          <span>Jumlah Keseluruhan:</span>
+                          <span className="text-blue-600">
+                            RM {approvedClaims.reduce((sum, claim) => sum + (claim.amount || 0), 0).toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               
 
               {/* Action Buttons */}
@@ -351,9 +515,19 @@ export default function PaymentVoucherPage() {
                 </Button>
                 <Button
                   onClick={handleGeneratePayment}
-                  className="bg-blue-900 hover:bg-blue-800 text-white"
+                  className="bg-blue-900 hover:bg-blue-800 text-white disabled:bg-gray-400"
+                  disabled={createVoucherMutation.isPending || claimsLoading || approvedClaims.length === 0}
                   data-testid="button-generate-payment"
-                >Generate Voucher</Button>
+                >
+                  {createVoucherMutation.isPending ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Menjana Voucher...
+                    </>
+                  ) : (
+                    "Generate Voucher"
+                  )}
+                </Button>
               </div>
             </div>
           </DialogContent>

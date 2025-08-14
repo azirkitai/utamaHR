@@ -131,6 +131,11 @@ import {
   type ClaimApplication,
   type InsertClaimApplication,
   type UpdateClaimApplication,
+  // Payment Voucher types
+  paymentVouchers,
+  type PaymentVoucher,
+  type InsertPaymentVoucher,
+  type UpdatePaymentVoucher,
   // Employee Salary types
   employeeSalaries,
   salaryBasicEarnings,
@@ -382,6 +387,15 @@ export interface IStorage {
   getCompanySettings(): Promise<CompanySetting | undefined>;
   createCompanySettings(settings: InsertCompanySetting): Promise<CompanySetting>;
   updateCompanySettings(id: string, settings: UpdateCompanySetting): Promise<CompanySetting | undefined>;
+  
+  // =================== PAYMENT VOUCHER METHODS ===================
+  getAllPaymentVouchers(): Promise<PaymentVoucher[]>;
+  getPaymentVoucher(id: string): Promise<PaymentVoucher | undefined>;
+  createPaymentVoucher(voucher: InsertPaymentVoucher): Promise<PaymentVoucher>;
+  updatePaymentVoucher(id: string, voucher: UpdatePaymentVoucher): Promise<PaymentVoucher | undefined>;
+  deletePaymentVoucher(id: string): Promise<boolean>;
+  generateVoucherNumber(): Promise<string>;
+  getApprovedFinancialClaims(year: number, month: number): Promise<ClaimApplication[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3113,6 +3127,117 @@ export class DatabaseStorage implements IStorage {
       return updatedSettings || undefined;
     } catch (error) {
       console.error('Error updating company settings:', error);
+      throw error;
+    }
+  }
+
+  // =================== PAYMENT VOUCHER METHODS ===================
+  async getAllPaymentVouchers(): Promise<PaymentVoucher[]> {
+    try {
+      return await db.select().from(paymentVouchers).orderBy(desc(paymentVouchers.createdAt));
+    } catch (error) {
+      console.error('Error fetching payment vouchers:', error);
+      throw error;
+    }
+  }
+
+  async getPaymentVoucher(id: string): Promise<PaymentVoucher | undefined> {
+    try {
+      const [voucher] = await db.select().from(paymentVouchers).where(eq(paymentVouchers.id, id));
+      return voucher || undefined;
+    } catch (error) {
+      console.error('Error fetching payment voucher:', error);
+      throw error;
+    }
+  }
+
+  async createPaymentVoucher(voucher: InsertPaymentVoucher): Promise<PaymentVoucher> {
+    try {
+      const [newVoucher] = await db
+        .insert(paymentVouchers)
+        .values(voucher)
+        .returning();
+      return newVoucher;
+    } catch (error) {
+      console.error('Error creating payment voucher:', error);
+      throw error;
+    }
+  }
+
+  async updatePaymentVoucher(id: string, voucher: UpdatePaymentVoucher): Promise<PaymentVoucher | undefined> {
+    try {
+      const [updatedVoucher] = await db
+        .update(paymentVouchers)
+        .set({ ...voucher, updatedAt: new Date() })
+        .where(eq(paymentVouchers.id, id))
+        .returning();
+      return updatedVoucher || undefined;
+    } catch (error) {
+      console.error('Error updating payment voucher:', error);
+      throw error;
+    }
+  }
+
+  async deletePaymentVoucher(id: string): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(paymentVouchers)
+        .where(eq(paymentVouchers.id, id));
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error('Error deleting payment voucher:', error);
+      throw error;
+    }
+  }
+
+  async generateVoucherNumber(): Promise<string> {
+    try {
+      // Get the latest voucher number
+      const [latestVoucher] = await db
+        .select({ voucherNumber: paymentVouchers.voucherNumber })
+        .from(paymentVouchers)
+        .orderBy(desc(paymentVouchers.createdAt))
+        .limit(1);
+
+      if (!latestVoucher) {
+        return 'PV001UMG';
+      }
+
+      // Extract number from PV001UMG format
+      const match = latestVoucher.voucherNumber.match(/PV(\d+)UMG/);
+      if (!match) {
+        return 'PV001UMG';
+      }
+
+      const currentNumber = parseInt(match[1], 10);
+      const nextNumber = currentNumber + 1;
+      
+      // Format with leading zeros (3 digits)
+      const formattedNumber = nextNumber.toString().padStart(3, '0');
+      
+      return `PV${formattedNumber}UMG`;
+    } catch (error) {
+      console.error('Error generating voucher number:', error);
+      return 'PV001UMG';
+    }
+  }
+
+  async getApprovedFinancialClaims(year: number, month: number): Promise<ClaimApplication[]> {
+    try {
+      return await db
+        .select()
+        .from(claimApplications)
+        .where(
+          and(
+            eq(claimApplications.claimType, 'financial'),
+            eq(claimApplications.status, 'Approved'),
+            sql`EXTRACT(YEAR FROM ${claimApplications.claimDate}) = ${year}`,
+            sql`EXTRACT(MONTH FROM ${claimApplications.claimDate}) = ${month}`
+          )
+        )
+        .orderBy(asc(claimApplications.employeeId));
+    } catch (error) {
+      console.error('Error fetching approved financial claims:', error);
       throw error;
     }
   }

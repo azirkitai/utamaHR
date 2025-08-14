@@ -682,6 +682,26 @@ export const claimApplications = pgTable('claim_applications', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+// Payment Vouchers Table
+export const paymentVouchers = pgTable('payment_vouchers', {
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  voucherNumber: text('voucher_number').notNull().unique(), // PV001UMG, PV002UMG, etc
+  year: integer('year').notNull(),
+  month: integer('month').notNull(), // 1-12
+  paymentDate: timestamp('payment_date').notNull(),
+  remarks: text('remarks'),
+  status: text('status').notNull().default('Generated'), // 'Generated', 'Processing', 'Paid'
+  
+  // Claims included in this voucher (JSON array of claim IDs)
+  includedClaims: text('included_claims').array().default(sql`'{}'`), // Claim application IDs
+  totalAmount: decimal('total_amount', { precision: 12, scale: 2 }).notNull().default('0'),
+  
+  // Audit fields
+  createdBy: varchar('created_by').notNull().references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 // =================== VALIDATION SCHEMAS ===================
 
 // Attendance record schemas
@@ -1029,6 +1049,14 @@ export const insertClaimApplicationSchema = createInsertSchema(claimApplications
 });
 export const updateClaimApplicationSchema = insertClaimApplicationSchema.partial();
 
+// Payment Voucher schemas
+export const insertPaymentVoucherSchema = createInsertSchema(paymentVouchers).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const updatePaymentVoucherSchema = insertPaymentVoucherSchema.partial();
+
 // =================== TYPESCRIPT TYPES ===================
 
 // User types
@@ -1141,6 +1169,11 @@ export type UpdatePayrollItem = z.infer<typeof updatePayrollItemSchema>;
 export type ClaimApplication = typeof claimApplications.$inferSelect;
 export type InsertClaimApplication = z.infer<typeof insertClaimApplicationSchema>;
 export type UpdateClaimApplication = z.infer<typeof updateClaimApplicationSchema>;
+
+// Payment Voucher types
+export type PaymentVoucher = typeof paymentVouchers.$inferSelect;
+export type InsertPaymentVoucher = z.infer<typeof insertPaymentVoucherSchema>;
+export type UpdatePaymentVoucher = z.infer<typeof updatePaymentVoucherSchema>;
 
 // Employee Documents table
 export const employeeDocuments = pgTable("employee_documents", {

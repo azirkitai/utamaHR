@@ -54,6 +54,8 @@ import {
   updatePayrollItemSchema,
   insertCompanySettingSchema,
   updateCompanySettingSchema,
+  insertPaymentVoucherSchema,
+  updatePaymentVoucherSchema,
   type AttendanceRecord
 } from "@shared/schema";
 import { checkEnvironmentSecrets } from "./env-check";
@@ -4972,6 +4974,119 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error generating payslip Excel:", error);
       res.status(500).json({ error: "Gagal menjana slip gaji Excel" });
+    }
+  });
+
+  // =================== PAYMENT VOUCHER ROUTES ===================
+
+  // Get all payment vouchers
+  app.get('/api/payment-vouchers', authenticateToken, async (req, res) => {
+    try {
+      const vouchers = await storage.getAllPaymentVouchers();
+      res.json(vouchers);
+    } catch (error) {
+      console.error('Error fetching payment vouchers:', error);
+      res.status(500).json({ error: 'Gagal mengambil voucer pembayaran' });
+    }
+  });
+
+  // Get a specific payment voucher
+  app.get('/api/payment-vouchers/:id', authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const voucher = await storage.getPaymentVoucher(id);
+      
+      if (!voucher) {
+        return res.status(404).json({ error: 'Voucer pembayaran tidak dijumpai' });
+      }
+      
+      res.json(voucher);
+    } catch (error) {
+      console.error('Error fetching payment voucher:', error);
+      res.status(500).json({ error: 'Gagal mengambil voucer pembayaran' });
+    }
+  });
+
+  // Create a new payment voucher
+  app.post('/api/payment-vouchers', authenticateToken, async (req, res) => {
+    try {
+      const validationResult = insertPaymentVoucherSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: 'Data tidak sah', 
+          details: validationResult.error.issues 
+        });
+      }
+
+      // Generate voucher number
+      const voucherNumber = await storage.generateVoucherNumber();
+      
+      const voucherData = {
+        ...validationResult.data,
+        voucherNumber,
+        createdBy: req.user.id
+      };
+
+      const voucher = await storage.createPaymentVoucher(voucherData);
+      res.status(201).json(voucher);
+    } catch (error) {
+      console.error('Error creating payment voucher:', error);
+      res.status(500).json({ error: 'Gagal mencipta voucer pembayaran' });
+    }
+  });
+
+  // Update a payment voucher
+  app.put('/api/payment-vouchers/:id', authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const validationResult = updatePaymentVoucherSchema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: 'Data tidak sah', 
+          details: validationResult.error.issues 
+        });
+      }
+
+      const voucher = await storage.updatePaymentVoucher(id, validationResult.data);
+      
+      if (!voucher) {
+        return res.status(404).json({ error: 'Voucer pembayaran tidak dijumpai' });
+      }
+      
+      res.json(voucher);
+    } catch (error) {
+      console.error('Error updating payment voucher:', error);
+      res.status(500).json({ error: 'Gagal mengemas kini voucer pembayaran' });
+    }
+  });
+
+  // Delete a payment voucher
+  app.delete('/api/payment-vouchers/:id', authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const success = await storage.deletePaymentVoucher(id);
+      
+      if (!success) {
+        return res.status(404).json({ error: 'Voucer pembayaran tidak dijumpai' });
+      }
+      
+      res.json({ message: 'Voucer pembayaran berjaya dipadam' });
+    } catch (error) {
+      console.error('Error deleting payment voucher:', error);
+      res.status(500).json({ error: 'Gagal memadam voucer pembayaran' });
+    }
+  });
+
+  // Get approved financial claims for a specific period (for voucher creation)
+  app.get('/api/payment-vouchers/claims/:year/:month', authenticateToken, async (req, res) => {
+    try {
+      const { year, month } = req.params;
+      const claims = await storage.getApprovedFinancialClaims(parseInt(year), parseInt(month));
+      res.json(claims);
+    } catch (error) {
+      console.error('Error fetching approved claims:', error);
+      res.status(500).json({ error: 'Gagal mengambil tuntutan yang diluluskan' });
     }
   });
 
