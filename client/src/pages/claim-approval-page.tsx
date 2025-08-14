@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -106,6 +106,17 @@ export default function ClaimApprovalPage() {
   const handleSearchChange = (value: string) => {
     handleFilterChange('searchTerm', value);
   };
+
+  // Reset filters if invalid values detected
+  useEffect(() => {
+    if (filters.employee !== 'all' && !filters.employee.startsWith('all') && filters.employee.includes('-')) {
+      console.log('Resetting invalid employee filter:', filters.employee);
+      setFilters(prev => ({
+        ...prev,
+        employee: 'all'
+      }));
+    }
+  }, [filters.employee]);
 
   const handleViewEmployeeSummary = (employeeName: string, employeeId: string) => {
     try {
@@ -455,12 +466,15 @@ export default function ClaimApprovalPage() {
   const applyFilters = (claims: any[], type: 'financial' | 'overtime') => {
     if (!claims) return [];
     
-    return claims.filter((claim: any) => {
+    // Applying filters to claims data
+    
+    const filteredClaims = claims.filter((claim: any) => {
       // Date filter
-      const claimDate = new Date(type === 'financial' ? claim.claimDate : claim.date);
+      const claimDateValue = type === 'financial' ? claim.claimDate : (claim.date || claim.createdAt);
+      const claimDate = new Date(claimDateValue);
       const startDate = new Date(filters.startDate);
       const endDate = new Date(filters.endDate);
-      const dateInRange = claimDate >= startDate && claimDate <= endDate;
+      const dateInRange = claimDateValue && !isNaN(claimDate.getTime()) && claimDate >= startDate && claimDate <= endDate;
       
       // Department filter
       const employeeDepartment = employeesData.find((emp: any) => emp.id === claim.employeeId)?.employment?.department;
@@ -481,8 +495,14 @@ export default function ClaimApprovalPage() {
         (claim.reason && claim.reason.toLowerCase().includes(filters.searchTerm.toLowerCase())) ||
         (claim.particulars && claim.particulars.toLowerCase().includes(filters.searchTerm.toLowerCase()));
       
-      return dateInRange && departmentMatch && employeeMatch && claimTypeMatch && searchMatch;
+      const shouldPass = dateInRange && departmentMatch && employeeMatch && claimTypeMatch && searchMatch;
+      
+      // Return filtered result
+      
+      return shouldPass;
     });
+    
+    return filteredClaims;
   };
 
   const filteredFinancialClaims = (() => {
@@ -494,19 +514,17 @@ export default function ClaimApprovalPage() {
       // APPROVAL TAB: Only show pending claims that user can approve
       if (!userCanApproveFinancial) return [];
       tabFilteredClaims = financialClaimsData.filter((claim: any) => {
-        console.log('Financial claim filtering:', { claimId: claim.id, status: claim.status, activeTab });
-        return claim.status === 'Pending' || claim.status === 'pending';
+        const isPending = claim.status === 'Pending' || claim.status === 'pending';
+        return isPending;
       });
     } else if (activeTab === 'report') {
       // REPORT TAB: Only show processed claims (approved, rejected) - NOT pending
       tabFilteredClaims = financialClaimsData.filter((claim: any) => {
-        console.log('Financial claim filtering:', { claimId: claim.id, status: claim.status, activeTab });
         return ['approved', 'Approved', 'rejected', 'Rejected'].includes(claim.status);
       });
     } else {
       // SUMMARY TAB: Show pending and approved claims only (NO rejected)
       tabFilteredClaims = financialClaimsData.filter((claim: any) => {
-        console.log('Financial claim filtering:', { claimId: claim.id, status: claim.status, activeTab });
         return ['pending', 'Pending', 'firstLevelApproved', 'First Level Approved', 'approved', 'Approved'].includes(claim.status);
       });
     }
