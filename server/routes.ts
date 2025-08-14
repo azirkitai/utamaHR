@@ -5119,111 +5119,142 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Generate PDF using Puppeteer to capture exact browser rendering
+  // Generate PDF using HTML template - same technique as payroll
   app.get('/api/payment-vouchers/:id/pdf', authenticateToken, async (req, res) => {
-    let browser;
     try {
       const { id } = req.params;
       
-      // Import Puppeteer dynamically
-      const puppeteer = await import('puppeteer');
-      
-      // Launch browser with required flags for Replit environment
-      browser = await puppeteer.default.launch({
-        headless: true,
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--no-first-run',
-          '--no-zygote',
-          '--disable-gpu',
-          '--disable-background-timer-throttling',
-          '--disable-backgrounding-occluded-windows',
-          '--disable-renderer-backgrounding',
-          '--disable-features=VizDisplayCompositor'
-        ]
-      });
-      
-      const page = await browser.newPage();
-      
-      // Set viewport for A4 size
-      await page.setViewport({ 
-        width: 794,  // A4 width in pixels at 96 DPI
-        height: 1123 // A4 height in pixels at 96 DPI
-      });
-      
-      // Navigate to the voucher preview page
-      const voucherUrl = `http://localhost:5000/voucher-details/${id}?tab=voucher&pdf=true`;
-      await page.goto(voucherUrl, { 
-        waitUntil: 'networkidle2',
-        timeout: 30000 
-      });
-      
-      // Wait for voucher content to fully load
-      await page.waitForSelector('[data-testid="voucher-preview-content"]', { 
-        timeout: 10000 
-      });
-      
-      // Add print CSS to hide unwanted elements
-      await page.addStyleTag({
-        content: `
-          nav, .sidebar, .header, .dashboard-layout-sidebar, .dashboard-layout-header,
-          .tabs-list, button:not(.print-only), .no-print, .flex.space-x-2 {
-            display: none !important;
-          }
-          
-          .voucher-preview-content {
-            padding: 20px !important;
-            margin: 0 !important;
-          }
-          
-          body {
-            margin: 0 !important;
-            padding: 0 !important;
-          }
-        `
-      });
-      
-      // Generate PDF with exact same settings as Ctrl+P → Save as PDF
-      const pdfBuffer = await page.pdf({
-        format: 'A4',
-        margin: {
-          top: '10mm',
-          right: '10mm', 
-          bottom: '10mm',
-          left: '10mm'
-        },
-        printBackground: true,
-        preferCSSPageSize: true
-      });
-      
-      await browser.close();
-      
-      // Get voucher details for filename
+      // Get voucher details
       const voucher = await storage.getPaymentVoucher(id);
-      const filename = voucher ? `Payment_Voucher_${voucher.voucherNumber}.pdf` : `Payment_Voucher_${id}.pdf`;
+      if (!voucher) {
+        return res.status(404).json({ error: 'Payment voucher not found' });
+      }
+      
+      // Get claims for the voucher
+      const claims = [];
+      let employeeName = '';
+      if (voucher.includedClaims && voucher.includedClaims.length > 0) {
+        for (const claimId of voucher.includedClaims) {
+          const claim = await storage.getClaimApplication(claimId);
+          if (claim) {
+            claims.push(claim);
+            // Get employee name from the first claim's employeeId
+            if (!employeeName && claim.employeeId) {
+              const employee = await storage.getEmployee(claim.employeeId);
+              if (employee) {
+                employeeName = employee.fullName;
+              }
+            }
+          }
+        }
+      }
+      
+      // Get company settings
+      const companySettings = await storage.getCompanySettings();
+      
+      // Get employees data for name mapping
+      const employeesData = await storage.getAllEmployees();
+      
+      const getEmployeeName = (employeeId: string) => {
+        const employee = employeesData?.find((emp: any) => emp.id === employeeId);
+        return employee ? employee.fullName : 'Employee Name';
+      };
+      
+      const getEmployeeNRIC = (employeeId: string): string => {
+        const employee = employeesData?.find((emp: any) => emp.id === employeeId);
+        return employee?.nric || 'Not Stated';
+      };
+
+      const getEmployeeBankInfo = (employeeId: string): string => {
+        const employee = employeesData?.find((emp: any) => emp.id === employeeId);
+        return employee?.bankAccountNumber || 'Not Stated';
+      };
+
+      const getEmployeeStaffId = (employeeId: string): string => {
+        const employee = employeesData?.find((emp: any) => emp.id === employeeId);
+        return employee?.staffId || 'S27650-5127';
+      };
+
+      const convertToWords = (amount: number): string => {
+        if (amount === 0) return 'ZERO';
+        
+        const ones = ['', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE',
+                      'TEN', 'ELEVEN', 'TWELVE', 'THIRTEEN', 'FOURTEEN', 'FIFTEEN', 'SIXTEEN', 
+                      'SEVENTEEN', 'EIGHTEEN', 'NINETEEN'];
+        
+        const tens = ['', '', 'TWENTY', 'THIRTY', 'FORTY', 'FIFTY', 'SIXTY', 'SEVENTY', 'EIGHTY', 'NINETY'];
+        
+        const convert = (num: number): string => {
+          if (num === 0) return '';
+          else if (num < 20) return ones[num];
+          else if (num < 100) return tens[Math.floor(num / 10)] + (num % 10 !== 0 ? ' ' + ones[num % 10] : '');
+          else if (num < 1000) return ones[Math.floor(num / 100)] + ' HUNDRED' + (num % 100 !== 0 ? ' ' + convert(num % 100) : '');
+          else if (num < 1000000) return convert(Math.floor(num / 1000)) + ' THOUSAND' + (num % 1000 !== 0 ? ' ' + convert(num % 1000) : '');
+          else return convert(Math.floor(num / 1000000)) + ' MILLION' + (num % 1000000 !== 0 ? ' ' + convert(num % 1000000) : '');
+        };
+        
+        const wholePart = Math.floor(amount);
+        const decimalPart = Math.round((amount - wholePart) * 100);
+        
+        let result = convert(wholePart);
+        if (decimalPart > 0) {
+          result += ' AND ' + convert(decimalPart) + ' SEN';
+        }
+        result += ' ONLY';
+        
+        return result;
+      };
+
+      const months = [
+        { value: '1', label: 'January' }, { value: '2', label: 'February' }, { value: '3', label: 'March' },
+        { value: '4', label: 'April' }, { value: '5', label: 'May' }, { value: '6', label: 'June' },
+        { value: '7', label: 'July' }, { value: '8', label: 'August' }, { value: '9', label: 'September' },
+        { value: '10', label: 'October' }, { value: '11', label: 'November' }, { value: '12', label: 'December' }
+      ];
+
+      const monthName = months.find(m => m.value === voucher.month.toString())?.label || voucher.month;
+      const totalAmount = claims.reduce((sum, claim) => sum + (parseFloat(claim.amount || '0') || 0), 0);
+
+      // Use the same PDF generator approach as payroll
+      const { generateVoucherPDF } = await import('./voucher-pdf-generator');
+      
+      const voucherData = {
+        company: {
+          name: companySettings?.companyName || 'UTAMA MEDGROUP',
+          address: companySettings?.address || '',
+          email: companySettings?.email || ''
+        },
+        voucher: {
+          number: voucher.voucherNumber,
+          date: new Date(voucher.paymentDate).toLocaleDateString('en-GB'),
+          month: monthName
+        },
+        employee: {
+          name: claims.length > 0 ? getEmployeeName(claims[0].employeeId) : 'Employee Name',
+          staffId: claims.length > 0 ? getEmployeeStaffId(claims[0].employeeId) : 'S27650-5127',
+          nric: claims.length > 0 ? getEmployeeNRIC(claims[0].employeeId) : 'Not Stated',
+          bankAccount: claims.length > 0 ? getEmployeeBankInfo(claims[0].employeeId) : 'Not Stated'
+        },
+        claims: claims.map(claim => ({
+          description: claim.claimCategory,
+          amount: (parseFloat(claim.amount || '0') || 0).toFixed(2)
+        })),
+        totalAmount: totalAmount.toFixed(2),
+        amountInWords: convertToWords(totalAmount)
+      };
+
+      const pdfBuffer = await generateVoucherPDF(voucherData);
       
       // Set headers for PDF response
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+      res.setHeader('Content-Disposition', `inline; filename="Payment_Voucher_${voucher.voucherNumber}.pdf"`);
       res.setHeader('Content-Length', pdfBuffer.length);
       
       // Send PDF
       res.send(pdfBuffer);
+      
     } catch (error) {
       console.error('Error generating payment voucher PDF:', error);
-      
-      // Close browser if it was opened
-      if (browser) {
-        try {
-          await browser.close();
-        } catch (closeError) {
-          console.error('Error closing browser:', closeError);
-        }
-      }
-      
       res.status(500).json({ error: 'Failed to generate PDF' });
     }
   });
