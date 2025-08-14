@@ -571,13 +571,11 @@ export default function PayrollDetailPage() {
                       <th className="text-center p-1 text-gray-600"></th>
                       <th className="text-center p-1 text-gray-600"></th>
                       <th className="text-center p-1 text-gray-600"></th>
-                      <th className="text-center p-1 text-gray-600 bg-cyan-50">Employee Contribution</th>
                       <th className="text-center p-1 text-gray-600 bg-cyan-50"></th>
+                      <th className="text-center p-1 text-gray-600 bg-cyan-50" colSpan={2}>Employee Contribution</th>
                       <th className="text-center p-1 text-gray-600 bg-cyan-50"></th>
-                      <th className="text-center p-1 text-gray-600 bg-cyan-50"></th>
-                      <th className="text-center p-1 text-gray-600 bg-yellow-50">Employer Contribution</th>
                       <th className="text-center p-1 text-gray-600 bg-yellow-50"></th>
-                      <th className="text-center p-1 text-gray-600 bg-yellow-50"></th>
+                      <th className="text-center p-1 text-gray-600 bg-yellow-50" colSpan={2}>Employer Contribution</th>
                       <th className="text-center p-1 text-gray-600 bg-yellow-50"></th>
                       <th className="text-center p-1 text-gray-600"></th>
                       <th className="text-center p-1 text-gray-600"></th>
