@@ -5122,7 +5122,7 @@ export function registerRoutes(app: Express): Server {
   // Generate PDF for payment voucher using HTML-to-PDF
   app.get('/api/payment-vouchers/:id/pdf', authenticateToken, async (req, res) => {
     try {
-      const htmlPdf = require('html-pdf-node');
+      const htmlPdf = await import('html-pdf-node');
       const { id } = req.params;
       
       // Get voucher details
@@ -5460,7 +5460,7 @@ export function registerRoutes(app: Express): Server {
       };
 
       const file = { content: htmlContent };
-      const pdfBuffer = await htmlPdf.generatePdf(file, options);
+      const pdfBuffer = await htmlPdf.default.generatePdf(file, options);
       
       // Set headers for PDF response
       res.setHeader('Content-Type', 'application/pdf');
