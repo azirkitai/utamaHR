@@ -3809,6 +3809,32 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // NEW: Refresh/update existing payroll items with current Master Salary configuration
+  app.post('/api/payroll/documents/:id/refresh', authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      const { id } = req.params;
+      
+      // Role-based access control
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (!adminRoles.includes(currentUser.role)) {
+        return res.status(403).json({ error: 'Tidak dibenarkan untuk mengemaskini slip gaji' });
+      }
+
+      // Force regenerate all existing items to use current Master Salary configuration
+      console.log('Starting payroll refresh with current Master Salary configuration for document:', id);
+      const items = await storage.generatePayrollItems(id, true); // Force regeneration
+      
+      res.json({ 
+        message: `${items.length} slip gaji berjaya dikemaskini dengan konfigurasi terkini`,
+        items: items.length 
+      });
+    } catch (error) {
+      console.error('Error refreshing payroll items:', error);
+      res.status(500).json({ error: 'Gagal mengemaskini slip gaji dengan konfigurasi terkini' });
+    }
+  });
+
   // Get payroll items for a document
   app.get('/api/payroll/documents/:id/items', authenticateToken, async (req, res) => {
     try {

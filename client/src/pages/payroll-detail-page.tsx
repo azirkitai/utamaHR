@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Download, Eye, FileSpreadsheet, Trash2, Check, X } from "lucide-react";
+import { ArrowLeft, Download, Eye, FileSpreadsheet, Trash2, Check, X, RefreshCw } from "lucide-react";
 import { useParams } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -243,6 +243,7 @@ export default function PayrollDetailPage() {
   const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const queryClient = useQueryClient();
 
   // Fetch payroll document details
   const { data: payrollDocument, isLoading: isLoadingDocument } = useQuery({
@@ -259,6 +260,27 @@ export default function PayrollDetailPage() {
   // Fetch current user data for approval section
   const { data: currentUser } = useQuery({
     queryKey: ["/api/user"],
+  });
+
+  // Mutation for refreshing payroll data with current Master Salary configuration
+  const refreshPayrollMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest(`/api/payroll/documents/${id}/refresh`, {
+        method: 'POST',
+        body: JSON.stringify({}),
+      });
+      return response;
+    },
+    onSuccess: () => {
+      // Refresh data after successful update
+      queryClient.invalidateQueries({ queryKey: ["/api/payroll/documents", id, "items"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/payroll/documents", id] });
+      alert('Data payroll telah berjaya dikemaskini dengan konfigurasi Master Salary terkini!');
+    },
+    onError: (error) => {
+      console.error('Error refreshing payroll:', error);
+      alert('Gagal mengemaskini data payroll. Sila cuba lagi.');
+    }
   });
 
 
@@ -454,6 +476,22 @@ export default function PayrollDetailPage() {
                 Payment Date: {(payrollDocument as any)?.paymentDate ? new Date((payrollDocument as any).paymentDate).toLocaleDateString() : 'N/A'}
               </p>
             </div>
+          </div>
+          
+          {/* Action Buttons */}
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refreshPayrollMutation.mutate()}
+              disabled={refreshPayrollMutation.isPending}
+              className="flex items-center space-x-2 border-blue-300 text-blue-600 hover:bg-blue-50"
+              data-testid="button-refresh-payroll"
+              title="Kemaskini data payroll dengan konfigurasi Master Salary terkini"
+            >
+              <RefreshCw className={`w-4 h-4 ${refreshPayrollMutation.isPending ? 'animate-spin' : ''}`} />
+              <span>{refreshPayrollMutation.isPending ? 'Refreshing...' : 'Refresh Data'}</span>
+            </Button>
           </div>
         </div>
 
