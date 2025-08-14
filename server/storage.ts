@@ -2038,21 +2038,26 @@ export class DatabaseStorage implements IStorage {
     let firstLevelApproverId = currentApp.firstLevelApproverId;
     let secondLevelApproverId = currentApp.secondLevelApproverId;
 
-    if (currentApp.status === 'pending') {
+    if (currentApp.status === 'Pending' || currentApp.status === 'pending') {
       // First level approval
       firstLevelApproverId = approverId;
       
       // Check if second level approver is set
-      const hasSecondLevel = approvalSettings?.secondLevel && approvalSettings.secondLevel.trim() !== '';
+      let hasSecondLevel = false;
+      if (currentApp.claimType === 'overtime') {
+        hasSecondLevel = approvalSettings?.secondLevel && approvalSettings.secondLevel.trim() !== '';
+      } else if (currentApp.claimType === 'financial') {
+        hasSecondLevel = approvalSettings?.secondLevelApprovalId && approvalSettings.secondLevelApprovalId.trim() !== '';
+      }
       
       if (hasSecondLevel) {
         // Two-level approval: set to awaiting second approval
-        newStatus = 'awaitingSecondApproval';
+        newStatus = 'firstLevelApproved';
       } else {
         // Single-level approval: directly approve
         newStatus = 'approved';
       }
-    } else if (currentApp.status === 'firstLevelApproved' || currentApp.status === 'awaitingSecondApproval') {
+    } else if (currentApp.status === 'firstLevelApproved' || currentApp.status === 'First Level Approved' || currentApp.status === 'awaitingSecondApproval') {
       // Second level approval - final approval
       newStatus = 'approved';
       secondLevelApproverId = approverId;

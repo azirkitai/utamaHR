@@ -241,6 +241,9 @@ export default function ClaimApprovalPage() {
 
   // Function to determine which buttons should be shown based on user approval rights and claim status
   const getAvailableActions = (claim: any) => {
+    // Only show buttons in approval tab
+    if (activeTab !== 'approval') return { canApprove: false, canReject: false };
+    
     const isFinancial = selectedCategory === 'financial';
     let canApprove = false;
     let canReject = false;
@@ -255,15 +258,15 @@ export default function ClaimApprovalPage() {
       const isFirstLevel = (financialSettings as any).firstLevelApprovalId === currentEmployee.id;
       const isSecondLevel = (financialSettings as any).secondLevelApprovalId === currentEmployee.id;
       
-      // For financial claims: check approval level system
-      if (claim.status === 'pending') {
-        // Pending claims can only be approved by first level approvers
+      // For financial claims: Maryam is first level approver, system is "First Level" only
+      if (claim.status === 'Pending' || claim.status === 'pending') {
+        // Pending claims can be approved by first level approvers
         canApprove = isFirstLevel;
         canReject = isFirstLevel;
-      } else if (claim.status === 'firstLevelApproved' && (financialSettings as any).approvalLevel === 'Second Level') {
-        // First level approved claims can only be approved by second level approvers (if enabled)
-        canApprove = isSecondLevel;
-        canReject = isSecondLevel;
+      } else if (claim.status === 'First Level Approved' || claim.status === 'firstLevelApproved') {
+        // If there's a second level approver configured, they can approve/reject
+        canApprove = isSecondLevel && (financialSettings as any).secondLevelApprovalId;
+        canReject = isSecondLevel && (financialSettings as any).secondLevelApprovalId;
       }
     } else {
       // For overtime claims
@@ -274,13 +277,14 @@ export default function ClaimApprovalPage() {
       if (!currentEmployee) return { canApprove: false, canReject: false };
       
       const isFirstLevel = (overtimeSettings as any).firstLevel === currentEmployee.id;
-      const isSecondLevel = (overtimeSettings as any).secondLevel === currentEmployee.id;
+      const isSecondLevel = (overtimeSettings as any).secondLevel === currentEmployee.id && 
+                           (overtimeSettings as any).secondLevel !== '';
       
-      // For overtime claims: similar logic
-      if (claim.status === 'pending') {
+      // For overtime claims
+      if (claim.status === 'Pending' || claim.status === 'pending') {
         canApprove = isFirstLevel;
         canReject = isFirstLevel;
-      } else if (claim.status === 'firstLevelApproved') {
+      } else if (claim.status === 'First Level Approved' || claim.status === 'firstLevelApproved') {
         canApprove = isSecondLevel;
         canReject = isSecondLevel;
       }
@@ -304,19 +308,19 @@ export default function ClaimApprovalPage() {
       if (!userCanApproveFinancial) return [];
       return financialClaimsData.filter((claim: any) => {
         console.log('Financial claim filtering:', { claimId: claim.id, status: claim.status, activeTab });
-        return claim.status === 'pending';
+        return claim.status === 'Pending' || claim.status === 'pending';
       });
     } else if (activeTab === 'report') {
       // REPORT TAB: Only show processed claims (approved, rejected) - NOT pending
       return financialClaimsData.filter((claim: any) => {
         console.log('Financial claim filtering:', { claimId: claim.id, status: claim.status, activeTab });
-        return ['approved', 'rejected'].includes(claim.status);
+        return ['approved', 'Approved', 'rejected', 'Rejected'].includes(claim.status);
       });
     } else {
       // SUMMARY TAB: Show pending and approved claims only (NO rejected)
       return financialClaimsData.filter((claim: any) => {
         console.log('Financial claim filtering:', { claimId: claim.id, status: claim.status, activeTab });
-        return ['pending', 'firstLevelApproved', 'approved'].includes(claim.status);
+        return ['pending', 'Pending', 'firstLevelApproved', 'First Level Approved', 'approved', 'Approved'].includes(claim.status);
       });
     }
   })();
@@ -329,19 +333,19 @@ export default function ClaimApprovalPage() {
       if (!userCanApproveOvertime) return [];
       return overtimeClaimsFromDB.filter((claim: any) => {
         console.log('Overtime claim filtering:', { claimId: claim.id, status: claim.status, activeTab });
-        return claim.status === 'pending';
+        return claim.status === 'Pending' || claim.status === 'pending';
       });
     } else if (activeTab === 'report') {
       // REPORT TAB: Only show processed claims (approved, rejected) - NOT pending
       return overtimeClaimsFromDB.filter((claim: any) => {
         console.log('Overtime claim filtering:', { claimId: claim.id, status: claim.status, activeTab });
-        return ['approved', 'rejected'].includes(claim.status);
+        return ['approved', 'Approved', 'rejected', 'Rejected'].includes(claim.status);
       });
     } else {
       // SUMMARY TAB: Show pending and approved claims only (NO rejected)
       return overtimeClaimsFromDB.filter((claim: any) => {
         console.log('Overtime claim filtering:', { claimId: claim.id, status: claim.status, activeTab });
-        return ['pending', 'firstLevelApproved', 'approved'].includes(claim.status);
+        return ['pending', 'Pending', 'firstLevelApproved', 'First Level Approved', 'approved', 'Approved'].includes(claim.status);
       });
     }
   })();
