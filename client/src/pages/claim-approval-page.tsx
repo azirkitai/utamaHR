@@ -1348,44 +1348,8 @@ export default function ClaimApprovalPage() {
             </SelectContent>
           </Select>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            {selectedCategory === "financial" ? "Claim Type" : "Claim Type"}
-          </label>
-          <Select value={filters.claimType} onValueChange={(value) => handleFilterChange('claimType', value)}>
-            <SelectTrigger className="text-sm">
-              <SelectValue placeholder={selectedCategory === "financial" ? "Pilih jenis claim" : "Pilih jenis claim"} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">
-                {selectedCategory === "financial" ? "All claim type" : "All claim type"}
-              </SelectItem>
-              {selectedCategory === "financial" ? (
-                <>
-                  {financialPoliciesData.map((policy: any) => (
-                    <SelectItem key={policy.id} value={policy.claimName}>
-                      {policy.claimName}
-                    </SelectItem>
-                  ))}
-                </>
-              ) : (
-                <>
-                  <SelectItem value="normal">Normal</SelectItem>
-                  <SelectItem value="rest_day">Rest Day</SelectItem>
-                  <SelectItem value="public_holiday">Public Holiday</SelectItem>
-                </>
-              )}
-            </SelectContent>
-          </Select>
-        </div>
+        
         <div className="flex items-end space-x-2">
-          <Button 
-            className="bg-blue-600 hover:bg-blue-700" 
-            onClick={handleApplyFilters}
-            data-testid="button-filter-summary"
-          >
-            <Filter className="w-4 h-4" />
-          </Button>
           <Button 
             variant="outline" 
             onClick={handleResetFilters}
