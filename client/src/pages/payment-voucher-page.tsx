@@ -114,11 +114,11 @@ export default function PaymentVoucherPage() {
     const voucherData = {
       year: parseInt(formData.year),
       month: parseInt(formData.month),
-      paymentDate: formData.paymentDate,
-      totalAmount,
-      claimIds: approvedClaims.map(claim => claim.id),
+      paymentDate: new Date(formData.paymentDate),
+      totalAmount: totalAmount.toString(),
+      includedClaims: approvedClaims.map(claim => claim.id),
       remarks: formData.remarks,
-      status: 'Pending' as const
+      status: 'Generated' as const
     };
 
     createVoucherMutation.mutate(voucherData);
