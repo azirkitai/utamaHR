@@ -203,6 +203,32 @@ export default function ClaimApprovalPage() {
     queryKey: ["/api/employees"],
   });
 
+  // Fetch financial claim policies for dropdown
+  const { data: financialPoliciesData = [] } = useQuery({
+    queryKey: ["/api/financial-claim-policies"],
+    refetchOnWindowFocus: false,
+  });
+
+  // Get unique departments from employees data  
+  const departments = Array.from(new Set(
+    employeesData
+      .map((emp: any) => emp.employment?.department)
+      .filter((dept: string) => dept)
+  ));
+
+  // Get unique claim types from existing claims
+  const uniqueFinancialClaimTypes = Array.from(new Set(
+    financialClaimsData
+      ?.map((claim: any) => claim.financialPolicyName || claim.claimCategory)
+      .filter((type: string) => type) || []
+  ));
+
+  const uniqueOvertimeTypes = Array.from(new Set(
+    overtimeClaimsFromDB
+      ?.map((claim: any) => claim.overtimePolicyType)
+      .filter((type: string) => type) || []
+  ));
+
   // Helper function to get employee name by ID
   const getEmployeeName = (employeeId: string) => {
     if (!employeeId) {
@@ -1071,8 +1097,9 @@ export default function ClaimApprovalPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All department</SelectItem>
-              <SelectItem value="hr">Human Resources</SelectItem>
-              <SelectItem value="it">Information Technology</SelectItem>
+              {departments.map((dept: string) => (
+                <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -1104,15 +1131,17 @@ export default function ClaimApprovalPage() {
               </SelectItem>
               {selectedCategory === "financial" ? (
                 <>
-                  <SelectItem value="medical">Medical</SelectItem>
-                  <SelectItem value="travel">Travel</SelectItem>
-                  <SelectItem value="meal">Meal</SelectItem>
+                  {financialPoliciesData.map((policy: any) => (
+                    <SelectItem key={policy.id} value={policy.claimName}>
+                      {policy.claimName}
+                    </SelectItem>
+                  ))}
                 </>
               ) : (
                 <>
-                  <SelectItem value="weekend">Weekend</SelectItem>
-                  <SelectItem value="public-holiday">Public Holiday</SelectItem>
                   <SelectItem value="normal">Normal</SelectItem>
+                  <SelectItem value="rest_day">Rest Day</SelectItem>  
+                  <SelectItem value="public_holiday">Public Holiday</SelectItem>
                 </>
               )}
             </SelectContent>
@@ -1274,8 +1303,9 @@ export default function ClaimApprovalPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All department</SelectItem>
-              <SelectItem value="hr">Human Resources</SelectItem>
-              <SelectItem value="it">Information Technology</SelectItem>
+              {departments.map((dept: string) => (
+                <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -1307,15 +1337,17 @@ export default function ClaimApprovalPage() {
               </SelectItem>
               {selectedCategory === "financial" ? (
                 <>
-                  <SelectItem value="medical">Medical</SelectItem>
-                  <SelectItem value="travel">Travel</SelectItem>
-                  <SelectItem value="meal">Meal</SelectItem>
+                  {financialPoliciesData.map((policy: any) => (
+                    <SelectItem key={policy.id} value={policy.claimName}>
+                      {policy.claimName}
+                    </SelectItem>
+                  ))}
                 </>
               ) : (
                 <>
-                  <SelectItem value="weekend">Weekend</SelectItem>
-                  <SelectItem value="public-holiday">Public Holiday</SelectItem>
                   <SelectItem value="normal">Normal</SelectItem>
+                  <SelectItem value="rest_day">Rest Day</SelectItem>
+                  <SelectItem value="public_holiday">Public Holiday</SelectItem>
                 </>
               )}
             </SelectContent>
