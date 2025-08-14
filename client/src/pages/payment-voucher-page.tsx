@@ -32,9 +32,7 @@ export default function PaymentVoucherPage() {
     month: "August",
     paymentVoucherNo: "PV0001",
     paymentDate: "2025-08-08",
-    remarks: "Payment Remark",
-    claimFinancial: false,
-    overtimeFinancial: false
+    remarks: "Payment Remark"
   });
 
   const months = [
@@ -351,20 +349,7 @@ export default function PaymentVoucherPage() {
                 />
               </div>
 
-              {/* Toggles */}
-              <div className="space-y-4 pt-4">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="claimFinancial" className="text-sm font-medium">Claim Financial</Label>
-                  <Switch
-                    id="claimFinancial"
-                    checked={formData.claimFinancial}
-                    onCheckedChange={(checked) => handleInputChange('claimFinancial', checked)}
-                    data-testid="switch-claim-financial"
-                  />
-                </div>
-
-                
-              </div>
+              
 
               {/* Action Buttons */}
               <div className="flex justify-end space-x-2 pt-6">
