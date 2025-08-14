@@ -1125,7 +1125,9 @@ export default function ClaimApprovalPage() {
           <label className="block text-sm font-medium text-gray-700 mb-1">Employee</label>
           <Select value={filters.employee} onValueChange={(value) => handleFilterChange('employee', value)}>
             <SelectTrigger className="text-sm">
-              <SelectValue placeholder="Pilih pekerja" />
+              <SelectValue placeholder="Pilih pekerja">
+                {filters.employee === 'all' ? 'All employee' : getEmployeeName(filters.employee)}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All employee</SelectItem>
@@ -1331,7 +1333,9 @@ export default function ClaimApprovalPage() {
           <label className="block text-sm font-medium text-gray-700 mb-1">Employee</label>
           <Select value={filters.employee} onValueChange={(value) => handleFilterChange('employee', value)}>
             <SelectTrigger className="text-sm">
-              <SelectValue placeholder="Pilih pekerja" />
+              <SelectValue placeholder="Pilih pekerja">
+                {filters.employee === 'all' ? 'All employee' : getEmployeeName(filters.employee)}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All employee</SelectItem>
