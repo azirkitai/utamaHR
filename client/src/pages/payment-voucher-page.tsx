@@ -353,9 +353,7 @@ export default function PaymentVoucherPage() {
                   onClick={handleGeneratePayment}
                   className="bg-blue-900 hover:bg-blue-800 text-white"
                   data-testid="button-generate-payment"
-                >
-                  Generate Payment
-                </Button>
+                >Generate Voucher</Button>
               </div>
             </div>
           </DialogContent>
