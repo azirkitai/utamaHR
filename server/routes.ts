@@ -938,31 +938,74 @@ export function registerRoutes(app: Express): Server {
         return res.status(403).json({ error: "Tidak dibenarkan untuk membuat akaun staff baru" });
       }
       
+      console.log("Create staff user - Request body:", req.body);
+      console.log("Current user:", { id: currentUser.id, role: currentUser.role });
+      
       const { username, password, role } = req.body;
       
       if (!username || !password || !role) {
-        return res.status(400).json({ error: "Username, password dan role diperlukan" });
+        return res.status(400).json({ 
+          error: "Username, password dan role diperlukan",
+          received: { username: !!username, password: !!password, role: !!role }
+        });
+      }
+      
+      // Validate role
+      const validRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC', 'Finance/Account', 'Manager/Supervisor', 'Staff/Employee'];
+      if (!validRoles.includes(role)) {
+        return res.status(400).json({ 
+          error: "Role tidak sah",
+          validRoles,
+          received: role
+        });
       }
       
       // Check if username already exists
       const existingUser = await storage.getUserByUsername(username);
       if (existingUser) {
-        return res.status(400).json({ error: "Username sudah wujud" });
+        return res.status(400).json({ 
+          error: "Username sudah wujud",
+          username
+        });
       }
       
       // Create new user
+      console.log("Creating user with data:", { username, role });
       const newUser = await storage.createUser({
         username,
         password,
         role,
       });
       
+      console.log("User created successfully:", newUser.id);
+      
       // Return user without password
       const { password: _, ...userWithoutPassword } = newUser;
       res.status(201).json(userWithoutPassword);
     } catch (error) {
       console.error("Create staff user error:", error);
-      res.status(500).json({ error: "Gagal membuat akaun staff baru" });
+      
+      if (error instanceof Error) {
+        // Check for specific database errors
+        if (error.message.includes('duplicate key')) {
+          return res.status(400).json({ 
+            error: "Username sudah wujud",
+            details: error.message
+          });
+        }
+        
+        if (error.message.includes('constraint')) {
+          return res.status(400).json({ 
+            error: "Data tidak memenuhi syarat database",
+            details: error.message
+          });
+        }
+      }
+      
+      res.status(500).json({ 
+        error: "Gagal membuat akaun staff baru",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
@@ -1066,22 +1109,79 @@ export function registerRoutes(app: Express): Server {
         return res.status(403).json({ error: "Tidak dibenarkan untuk menambah pekerja baru" });
       }
       
-      console.log("Request body:", req.body);
+      console.log("Create employee - Request body:", req.body);
+      console.log("Current user:", { id: currentUser.id, role: currentUser.role });
+      
+      // Validate required fields before schema validation
+      if (!req.body.userId || !req.body.fullName) {
+        return res.status(400).json({ 
+          error: "Field userId dan fullName diperlukan",
+          received: req.body
+        });
+      }
+      
+      // Check if user exists
+      const targetUser = await storage.getUserById(req.body.userId);
+      if (!targetUser) {
+        return res.status(400).json({ 
+          error: "User ID tidak dijumpai",
+          userId: req.body.userId
+        });
+      }
+      
+      // Check if employee record already exists for this user
+      const existingEmployee = await storage.getEmployeeByUserId(req.body.userId);
+      if (existingEmployee) {
+        return res.status(400).json({ 
+          error: "Employee record sudah wujud untuk user ini",
+          userId: req.body.userId
+        });
+      }
+      
       const validatedData = insertEmployeeSchema.parse(req.body);
       
       // Set userId if provided in request (for admin/HR assigning to specific user)
-      // Otherwise, employee record will be created without user linkage
       const employeeData = {
         ...validatedData,
-        // userId can be set by admin/HR when creating employee record for specific user
       };
       
       console.log("Validated data:", employeeData);
       const employee = await storage.createEmployee(employeeData);
+      console.log("Employee created successfully:", employee.id);
       res.status(201).json(employee);
     } catch (error) {
       console.error("Create employee error:", error);
-      res.status(400).json({ error: "Gagal menambah pekerja" });
+      
+      if (error instanceof Error) {
+        // Check for specific database errors
+        if (error.message.includes('duplicate key')) {
+          return res.status(400).json({ 
+            error: "Employee record dengan data ini sudah wujud",
+            details: error.message
+          });
+        }
+        
+        if (error.message.includes('foreign key')) {
+          return res.status(400).json({ 
+            error: "User ID tidak sah atau tidak dijumpai",
+            details: error.message
+          });
+        }
+        
+        // Zod validation errors
+        if (error.name === 'ZodError') {
+          return res.status(400).json({ 
+            error: "Data tidak sah",
+            details: error.message,
+            issues: (error as any).issues
+          });
+        }
+      }
+      
+      res.status(500).json({ 
+        error: "Gagal menambah pekerja",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 
