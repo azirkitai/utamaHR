@@ -91,7 +91,15 @@ export async function generateVoucherPDF(data: VoucherData): Promise<Buffer> {
       ]
     });
 
+    console.log('Creating new page...');
     const page = await browser.newPage();
+    
+    // Set viewport for voucher (A4 size)
+    await page.setViewport({
+      width: 794,  // A4 width in pixels
+      height: 1123, // A4 height in pixels  
+      deviceScaleFactor: 1
+    });
     
     console.log('Setting voucher HTML content...');
     await page.setContent(html, { waitUntil: 'networkidle0' });
@@ -117,7 +125,7 @@ export async function generateVoucherPDF(data: VoucherData): Promise<Buffer> {
     console.log('Voucher PDF generated successfully, buffer size:', pdfBuffer.length);
     
     await browser.close();
-    return pdfBuffer;
+    return Buffer.from(pdfBuffer);
     
   } catch (error) {
     console.error('Error generating voucher PDF:', error);
