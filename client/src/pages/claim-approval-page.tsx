@@ -159,13 +159,13 @@ export default function ClaimApprovalPage() {
       console.log('Modal should be open now');
       console.log('=== MODAL DEBUG END ===');
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Detailed error in handleViewEmployeeSummary:', error);
-      console.error('Error stack:', error.stack);
-      console.error('Error message:', error.message);
+      console.error('Error stack:', error?.stack);
+      console.error('Error message:', error?.message);
       toast({
         title: "Ralat",
-        description: `Gagal memuat maklumat claim pekerja: ${error.message}`,
+        description: `Gagal memuat maklumat claim pekerja: ${error?.message || 'Unknown error'}`,
         variant: "destructive",
       });
     }
@@ -281,6 +281,14 @@ export default function ClaimApprovalPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/claim-applications/type/overtime"] });
       queryClient.invalidateQueries({ queryKey: ["/api/claim-applications/type/financial"] });
     },
+    onError: (error: Error) => {
+      console.error('Approve claim error:', error);
+      toast({
+        title: "Ralat!",
+        description: error.message || "Gagal meluluskan permohonan",
+        variant: "destructive",
+      });
+    },
   });
 
   // Reject claim mutation
@@ -311,11 +319,19 @@ export default function ClaimApprovalPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/claim-applications/type/overtime"] });
       queryClient.invalidateQueries({ queryKey: ["/api/claim-applications/type/financial"] });
     },
+    onError: (error: Error) => {
+      console.error('Reject claim error:', error);
+      toast({
+        title: "Ralat!",
+        description: error.message || "Gagal menolak permohonan",
+        variant: "destructive",
+      });
+    },
   });
 
   // Check if user has financial approval rights
   const hasFinancialApprovalRights = () => {
-    if (!currentUser || !approvalSettings || !employeesData) return false;
+    if (!currentUser || !approvalSettings || !employeesData || !Array.isArray(employeesData)) return false;
     
     console.log('=== DEBUGGING FINANCIAL APPROVAL ACCESS ===');
     console.log('Current user:', currentUser);
@@ -347,7 +363,7 @@ export default function ClaimApprovalPage() {
 
   // Check if user has overtime approval rights
   const hasOvertimeApprovalRights = () => {
-    if (!currentUser || !overtimeApprovalSettings || !employeesData) return false;
+    if (!currentUser || !overtimeApprovalSettings || !employeesData || !Array.isArray(employeesData)) return false;
     
     console.log('=== DEBUGGING OVERTIME APPROVAL ACCESS ===');
     console.log('Current user:', currentUser);
@@ -1141,7 +1157,7 @@ export default function ClaimApprovalPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All employee</SelectItem>
-              {employeesData.map((emp: any) => (
+              {Array.isArray(employeesData) && employeesData.map((emp: any) => (
                 <SelectItem key={emp.id} value={emp.id}>{emp.fullName}</SelectItem>
               ))}
             </SelectContent>
@@ -1161,7 +1177,7 @@ export default function ClaimApprovalPage() {
               </SelectItem>
               {selectedCategory === "financial" ? (
                 <>
-                  {financialPoliciesData.map((policy: any) => (
+                  {Array.isArray(financialPoliciesData) && financialPoliciesData.map((policy: any) => (
                     <SelectItem key={policy.id} value={policy.claimName}>
                       {policy.claimName}
                     </SelectItem>
@@ -1348,7 +1364,7 @@ export default function ClaimApprovalPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All employee</SelectItem>
-              {employeesData.map((emp: any) => (
+              {Array.isArray(employeesData) && employeesData.map((emp: any) => (
                 <SelectItem key={emp.id} value={emp.id}>{emp.fullName}</SelectItem>
               ))}
             </SelectContent>
@@ -1522,9 +1538,9 @@ export default function ClaimApprovalPage() {
         {/* Employee Summary Detail Modal */}
         {summaryDetailModalOpen && selectedEmployeeForSummary && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg max-w-6xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="bg-white p-6 rounded-lg max-w-6xl w-full mx-4 max-h-[90vh] overflow-y-auto" role="dialog" aria-labelledby="summary-detail-title" aria-describedby="summary-detail-description">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold">Senarai Lengkap Claim - {selectedEmployeeForSummary.name}</h2>
+                <h2 id="summary-detail-title" className="text-2xl font-bold">Senarai Lengkap Claim - {selectedEmployeeForSummary.name}</h2>
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -1535,6 +1551,9 @@ export default function ClaimApprovalPage() {
                 </Button>
               </div>
               
+              <div id="summary-detail-description" className="sr-only">
+                Modal yang menunjukkan senarai lengkap claim untuk pekerja terpilih
+              </div>
               {employeeClaimsDetail.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   Tiada claim dijumpai untuk pekerja ini.
@@ -1756,9 +1775,9 @@ export default function ClaimApprovalPage() {
         {/* View Claim Modal */}
         {viewModalOpen && selectedClaimForView && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="bg-white p-6 rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" role="dialog" aria-labelledby="view-claim-title" aria-describedby="view-claim-description">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold">Maklumat Permohonan</h2>
+                <h2 id="view-claim-title" className="text-2xl font-bold">Maklumat Permohonan</h2>
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -1768,6 +1787,9 @@ export default function ClaimApprovalPage() {
                 </Button>
               </div>
               
+              <div id="view-claim-description" className="sr-only">
+                Modal yang menunjukkan maklumat lengkap permohonan claim terpilih
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="font-medium text-gray-700">Pemohon:</label>
