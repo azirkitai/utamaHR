@@ -41,7 +41,7 @@ export default function ClaimApprovalPage() {
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("approval");
   const [selectedCategory, setSelectedCategory] = useState<"financial" | "overtime" | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [bulkAction, setBulkAction] = useState("");
   const [viewModalOpen, setViewModalOpen] = useState(false);
@@ -49,8 +49,63 @@ export default function ClaimApprovalPage() {
   const [summaryDetailModalOpen, setSummaryDetailModalOpen] = useState(false);
   const [selectedEmployeeForSummary, setSelectedEmployeeForSummary] = useState<any>(null);
   const [employeeClaimsDetail, setEmployeeClaimsDetail] = useState<any[]>([]);
+  
+  // Filter states - uniform across all tabs
+  const [filters, setFilters] = useState({
+    startDate: '2025-08-01',
+    endDate: '2025-08-31', 
+    department: 'all',
+    employee: 'all',
+    claimType: 'all',
+    searchTerm: ''
+  });
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Filter handler functions
+  const handleFilterChange = (key: keyof typeof filters, value: string) => {
+    setFilters(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  const handleDateRangeChange = (startDate: string, endDate: string) => {
+    setFilters(prev => ({
+      ...prev,
+      startDate,
+      endDate
+    }));
+  };
+
+  const handleApplyFilters = () => {
+    // Filters are automatically applied through state change
+    toast({ 
+      title: "Filter Digunakan", 
+      description: "Filter telah dikemaskini untuk semua tab" 
+    });
+  };
+
+  const handleResetFilters = () => {
+    setFilters({
+      startDate: '2025-08-01',
+      endDate: '2025-08-31',
+      department: 'all',
+      employee: 'all', 
+      claimType: 'all',
+      searchTerm: ''
+    });
+    toast({ 
+      title: "Filter Direset", 
+      description: "Semua filter telah ditetapkan semula" 
+    });
+  };
+
+  // Update search function to use unified filter
+  const handleSearchChange = (value: string) => {
+    handleFilterChange('searchTerm', value);
+  };
 
   const handleViewEmployeeSummary = (employeeName: string, employeeId: string) => {
     try {
@@ -370,39 +425,80 @@ export default function ClaimApprovalPage() {
   // Filter claims based on user approval rights AND status 
   // Approval tab: only pending claims (requires approval rights)
   // Report tab: processed claims (accessible to all users for transparency)
+  // Filter function that applies all filters uniformly
+  const applyFilters = (claims: any[], type: 'financial' | 'overtime') => {
+    if (!claims) return [];
+    
+    return claims.filter((claim: any) => {
+      // Date filter
+      const claimDate = new Date(type === 'financial' ? claim.claimDate : claim.date);
+      const startDate = new Date(filters.startDate);
+      const endDate = new Date(filters.endDate);
+      const dateInRange = claimDate >= startDate && claimDate <= endDate;
+      
+      // Department filter
+      const employeeDepartment = employeesData.find((emp: any) => emp.id === claim.employeeId)?.employment?.department;
+      const departmentMatch = filters.department === 'all' || employeeDepartment === filters.department;
+      
+      // Employee filter
+      const employeeMatch = filters.employee === 'all' || claim.employeeId === filters.employee;
+      
+      // Claim type filter
+      const claimTypeMatch = filters.claimType === 'all' || 
+        (type === 'financial' && (claim.claimType === filters.claimType || claim.financialPolicyName === filters.claimType)) ||
+        (type === 'overtime' && claim.overtimePolicyType === filters.claimType);
+      
+      // Search filter
+      const employeeName = getEmployeeName(claim.employeeId);
+      const searchMatch = filters.searchTerm === '' || 
+        employeeName.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
+        (claim.reason && claim.reason.toLowerCase().includes(filters.searchTerm.toLowerCase())) ||
+        (claim.particulars && claim.particulars.toLowerCase().includes(filters.searchTerm.toLowerCase()));
+      
+      return dateInRange && departmentMatch && employeeMatch && claimTypeMatch && searchMatch;
+    });
+  };
+
   const filteredFinancialClaims = (() => {
     if (!financialClaimsData) return [];
     
+    // First apply tab-specific status filtering
+    let tabFilteredClaims = [];
     if (activeTab === 'approval') {
       // APPROVAL TAB: Only show pending claims that user can approve
       if (!userCanApproveFinancial) return [];
-      return financialClaimsData.filter((claim: any) => {
+      tabFilteredClaims = financialClaimsData.filter((claim: any) => {
         console.log('Financial claim filtering:', { claimId: claim.id, status: claim.status, activeTab });
         return claim.status === 'Pending' || claim.status === 'pending';
       });
     } else if (activeTab === 'report') {
       // REPORT TAB: Only show processed claims (approved, rejected) - NOT pending
-      return financialClaimsData.filter((claim: any) => {
+      tabFilteredClaims = financialClaimsData.filter((claim: any) => {
         console.log('Financial claim filtering:', { claimId: claim.id, status: claim.status, activeTab });
         return ['approved', 'Approved', 'rejected', 'Rejected'].includes(claim.status);
       });
     } else {
       // SUMMARY TAB: Show pending and approved claims only (NO rejected)
-      return financialClaimsData.filter((claim: any) => {
+      tabFilteredClaims = financialClaimsData.filter((claim: any) => {
         console.log('Financial claim filtering:', { claimId: claim.id, status: claim.status, activeTab });
         return ['pending', 'Pending', 'firstLevelApproved', 'First Level Approved', 'approved', 'Approved'].includes(claim.status);
       });
     }
+    
+    // Then apply additional filters
+    return applyFilters(tabFilteredClaims, 'financial');
   })();
       
   const filteredOvertimeClaims = (() => {
     if (!overtimeClaimsFromDB) return [];
     
+    // First apply tab-specific status filtering
+    let tabFilteredClaims = [];
     if (activeTab === 'approval') {
       // APPROVAL TAB: Show claims that user can approve based on current status
       if (!userCanApproveOvertime) return [];
       
-      return overtimeClaimsFromDB.filter((claim: any) => {
+      tabFilteredClaims = overtimeClaimsFromDB.filter((claim: any) => {
         console.log('Overtime claim filtering:', { claimId: claim.id, status: claim.status, activeTab });
         
         const { canApprove } = getAvailableActions(claim);
@@ -411,17 +507,20 @@ export default function ClaimApprovalPage() {
       });
     } else if (activeTab === 'report') {
       // REPORT TAB: Show ALL processed claims (approved, rejected, firstLevelApproved)
-      return overtimeClaimsFromDB.filter((claim: any) => {
+      tabFilteredClaims = overtimeClaimsFromDB.filter((claim: any) => {
         console.log('Overtime claim filtering:', { claimId: claim.id, status: claim.status, activeTab });
         return ['approved', 'Approved', 'rejected', 'Rejected', 'firstLevelApproved', 'First Level Approved'].includes(claim.status);
       });
     } else {
       // SUMMARY TAB: Show pending and approved claims only (NO rejected)
-      return overtimeClaimsFromDB.filter((claim: any) => {
+      tabFilteredClaims = overtimeClaimsFromDB.filter((claim: any) => {
         console.log('Overtime claim filtering:', { claimId: claim.id, status: claim.status, activeTab });
         return ['pending', 'Pending', 'firstLevelApproved', 'First Level Approved', 'approved', 'Approved'].includes(claim.status);
       });
     }
+    
+    // Then apply additional filters
+    return applyFilters(tabFilteredClaims, 'overtime');
   })();
 
   console.log('Filtered results:', { 
@@ -704,8 +803,8 @@ export default function ClaimApprovalPage() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
                 placeholder="Search:"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={filters.searchTerm}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 className="pl-10 w-64"
                 data-testid="input-search"
               />
@@ -949,14 +1048,24 @@ export default function ClaimApprovalPage() {
       <div className="grid grid-cols-2 md:grid-cols-6 gap-4 p-4 bg-gray-50 rounded-lg">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Date Period</label>
-          <Input type="date" defaultValue="2025-08-01" className="text-sm" />
+          <Input 
+            type="date" 
+            value={filters.startDate} 
+            onChange={(e) => handleFilterChange('startDate', e.target.value)}
+            className="text-sm" 
+          />
         </div>
         <div>
-          <Input type="date" defaultValue="2025-08-31" className="text-sm mt-6" />
+          <Input 
+            type="date" 
+            value={filters.endDate} 
+            onChange={(e) => handleFilterChange('endDate', e.target.value)}
+            className="text-sm mt-6" 
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
-          <Select defaultValue="all">
+          <Select value={filters.department} onValueChange={(value) => handleFilterChange('department', value)}>
             <SelectTrigger className="text-sm">
               <SelectValue />
             </SelectTrigger>
@@ -969,12 +1078,15 @@ export default function ClaimApprovalPage() {
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Employee</label>
-          <Select defaultValue="all">
+          <Select value={filters.employee} onValueChange={(value) => handleFilterChange('employee', value)}>
             <SelectTrigger className="text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All employee</SelectItem>
+              {employeesData.map((emp: any) => (
+                <SelectItem key={emp.id} value={emp.id}>{emp.fullName}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -982,7 +1094,7 @@ export default function ClaimApprovalPage() {
           <label className="block text-sm font-medium text-gray-700 mb-1">
             {selectedCategory === "financial" ? "Claim Type" : "Overtime Status"}
           </label>
-          <Select defaultValue="all">
+          <Select value={filters.claimType} onValueChange={(value) => handleFilterChange('claimType', value)}>
             <SelectTrigger className="text-sm">
               <SelectValue />
             </SelectTrigger>
@@ -990,14 +1102,35 @@ export default function ClaimApprovalPage() {
               <SelectItem value="all">
                 {selectedCategory === "financial" ? "All claim type" : "All overtime status"}
               </SelectItem>
+              {selectedCategory === "financial" ? (
+                <>
+                  <SelectItem value="medical">Medical</SelectItem>
+                  <SelectItem value="travel">Travel</SelectItem>
+                  <SelectItem value="meal">Meal</SelectItem>
+                </>
+              ) : (
+                <>
+                  <SelectItem value="weekend">Weekend</SelectItem>
+                  <SelectItem value="public-holiday">Public Holiday</SelectItem>
+                  <SelectItem value="normal">Normal</SelectItem>
+                </>
+              )}
             </SelectContent>
           </Select>
         </div>
         <div className="flex items-end space-x-2">
-          <Button className="bg-blue-600 hover:bg-blue-700" data-testid="button-filter">
+          <Button 
+            className="bg-blue-600 hover:bg-blue-700" 
+            onClick={handleApplyFilters}
+            data-testid="button-filter"
+          >
             <Filter className="w-4 h-4" />
           </Button>
-          <Button variant="outline" data-testid="button-reset-filter">
+          <Button 
+            variant="outline" 
+            onClick={handleResetFilters}
+            data-testid="button-reset-filter"
+          >
             <X className="w-4 h-4" />
           </Button>
         </div>
@@ -1008,6 +1141,8 @@ export default function ClaimApprovalPage() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
             placeholder="Search:"
+            value={filters.searchTerm}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-10 w-64"
             data-testid="input-search-report"
           />
@@ -1116,14 +1251,24 @@ export default function ClaimApprovalPage() {
       <div className="grid grid-cols-2 md:grid-cols-6 gap-4 p-4 bg-gray-50 rounded-lg">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Date Period</label>
-          <Input type="date" defaultValue="2025-08-01" className="text-sm" />
+          <Input 
+            type="date" 
+            value={filters.startDate} 
+            onChange={(e) => handleFilterChange('startDate', e.target.value)}
+            className="text-sm" 
+          />
         </div>
         <div>
-          <Input type="date" defaultValue="2025-08-31" className="text-sm mt-6" />
+          <Input 
+            type="date" 
+            value={filters.endDate} 
+            onChange={(e) => handleFilterChange('endDate', e.target.value)}
+            className="text-sm mt-6" 
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
-          <Select defaultValue="all">
+          <Select value={filters.department} onValueChange={(value) => handleFilterChange('department', value)}>
             <SelectTrigger className="text-sm">
               <SelectValue />
             </SelectTrigger>
@@ -1136,12 +1281,15 @@ export default function ClaimApprovalPage() {
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Employee</label>
-          <Select defaultValue="all">
+          <Select value={filters.employee} onValueChange={(value) => handleFilterChange('employee', value)}>
             <SelectTrigger className="text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All employee</SelectItem>
+              {employeesData.map((emp: any) => (
+                <SelectItem key={emp.id} value={emp.id}>{emp.fullName}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -1149,7 +1297,7 @@ export default function ClaimApprovalPage() {
           <label className="block text-sm font-medium text-gray-700 mb-1">
             {selectedCategory === "financial" ? "Claim Type" : "Claim Type"}
           </label>
-          <Select defaultValue="all">
+          <Select value={filters.claimType} onValueChange={(value) => handleFilterChange('claimType', value)}>
             <SelectTrigger className="text-sm">
               <SelectValue />
             </SelectTrigger>
@@ -1157,14 +1305,35 @@ export default function ClaimApprovalPage() {
               <SelectItem value="all">
                 {selectedCategory === "financial" ? "All claim type" : "All claim type"}
               </SelectItem>
+              {selectedCategory === "financial" ? (
+                <>
+                  <SelectItem value="medical">Medical</SelectItem>
+                  <SelectItem value="travel">Travel</SelectItem>
+                  <SelectItem value="meal">Meal</SelectItem>
+                </>
+              ) : (
+                <>
+                  <SelectItem value="weekend">Weekend</SelectItem>
+                  <SelectItem value="public-holiday">Public Holiday</SelectItem>
+                  <SelectItem value="normal">Normal</SelectItem>
+                </>
+              )}
             </SelectContent>
           </Select>
         </div>
         <div className="flex items-end space-x-2">
-          <Button className="bg-blue-600 hover:bg-blue-700" data-testid="button-filter-summary">
+          <Button 
+            className="bg-blue-600 hover:bg-blue-700" 
+            onClick={handleApplyFilters}
+            data-testid="button-filter-summary"
+          >
             <Filter className="w-4 h-4" />
           </Button>
-          <Button variant="outline" data-testid="button-reset-filter-summary">
+          <Button 
+            variant="outline" 
+            onClick={handleResetFilters}
+            data-testid="button-reset-filter-summary"
+          >
             <X className="w-4 h-4" />
           </Button>
         </div>
