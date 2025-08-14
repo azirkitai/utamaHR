@@ -107,7 +107,7 @@ export default function VoucherDetailsPage() {
         <div className="flex items-center justify-center min-h-96">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-            <p className="text-gray-600">Memuatkan maklumat voucher...</p>
+            <p className="text-gray-600">Loading voucher information...</p>
           </div>
         </div>
       </DashboardLayout>
@@ -119,10 +119,10 @@ export default function VoucherDetailsPage() {
       <DashboardLayout>
         <div className="flex items-center justify-center min-h-96">
           <div className="text-center">
-            <p className="text-gray-600 text-lg mb-4">Voucher tidak dijumpai</p>
+            <p className="text-gray-600 text-lg mb-4">Voucher not found</p>
             <Button onClick={handleBack} variant="outline">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Kembali ke Payment Voucher
+              Back to Payment Voucher
             </Button>
           </div>
         </div>
@@ -145,7 +145,7 @@ export default function VoucherDetailsPage() {
               data-testid="button-back-to-voucher-list"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Kembali ke Payment Voucher
+              Back to Payment Voucher
             </Button>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Voucher Details</h1>
@@ -209,13 +209,13 @@ export default function VoucherDetailsPage() {
                       {claimsLoading ? (
                         <tr>
                           <td colSpan={4} className="p-8 text-center text-gray-500">
-                            Memuatkan maklumat tuntutan...
+                            Loading claim information...
                           </td>
                         </tr>
                       ) : voucherClaims.length === 0 ? (
                         <tr>
                           <td colSpan={4} className="p-8 text-center text-gray-500">
-                            Tiada maklumat tuntutan dijumpai.
+                            No claim information found.
                           </td>
                         </tr>
                       ) : (
@@ -240,7 +240,7 @@ export default function VoucherDetailsPage() {
                       {voucherClaims.length > 0 && (
                         <tr className="bg-gray-50 font-semibold">
                           <td colSpan={3} className="p-3 text-right text-gray-900">
-                            Jumlah Keseluruhan:
+                            Total Amount:
                           </td>
                           <td className="p-3 text-right text-gray-900">
                             RM {voucherClaims.reduce((sum, claim) => sum + (parseFloat(claim.amount || '0') || 0), 0).toFixed(2)}
