@@ -246,35 +246,35 @@ export default function ClaimApprovalPage() {
     let canReject = false;
     
     if (isFinancial) {
-      const approvalSettings = financialApprovalSettings;
-      if (!approvalSettings || !currentUser || !employeesData) return { canApprove: false, canReject: false };
+      const financialSettings = approvalSettings;
+      if (!financialSettings || !currentUser || !employeesData) return { canApprove: false, canReject: false };
       
       const currentEmployee = (employeesData as any[]).find((emp: any) => emp.userId === (currentUser as any).id);
       if (!currentEmployee) return { canApprove: false, canReject: false };
       
-      const isFirstLevel = (approvalSettings as any).firstLevelApprovalId === currentEmployee.id;
-      const isSecondLevel = (approvalSettings as any).secondLevelApprovalId === currentEmployee.id;
+      const isFirstLevel = (financialSettings as any).firstLevelApprovalId === currentEmployee.id;
+      const isSecondLevel = (financialSettings as any).secondLevelApprovalId === currentEmployee.id;
       
       // For financial claims: check approval level system
       if (claim.status === 'pending') {
         // Pending claims can only be approved by first level approvers
         canApprove = isFirstLevel;
         canReject = isFirstLevel;
-      } else if (claim.status === 'firstLevelApproved' && (approvalSettings as any).approvalLevel === 'Second Level') {
+      } else if (claim.status === 'firstLevelApproved' && (financialSettings as any).approvalLevel === 'Second Level') {
         // First level approved claims can only be approved by second level approvers (if enabled)
         canApprove = isSecondLevel;
         canReject = isSecondLevel;
       }
     } else {
       // For overtime claims
-      const approvalSettings = overtimeApprovalSettings;
-      if (!approvalSettings || !currentUser || !employeesData) return { canApprove: false, canReject: false };
+      const overtimeSettings = overtimeApprovalSettings;
+      if (!overtimeSettings || !currentUser || !employeesData) return { canApprove: false, canReject: false };
       
       const currentEmployee = (employeesData as any[]).find((emp: any) => emp.userId === (currentUser as any).id);
       if (!currentEmployee) return { canApprove: false, canReject: false };
       
-      const isFirstLevel = (approvalSettings as any).firstLevel === currentEmployee.id;
-      const isSecondLevel = (approvalSettings as any).secondLevel === currentEmployee.id;
+      const isFirstLevel = (overtimeSettings as any).firstLevel === currentEmployee.id;
+      const isSecondLevel = (overtimeSettings as any).secondLevel === currentEmployee.id;
       
       // For overtime claims: similar logic
       if (claim.status === 'pending') {
