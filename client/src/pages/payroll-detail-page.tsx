@@ -39,13 +39,13 @@ function SalaryPayrollApprovalCard({ payrollDocument, currentUser }: { payrollDo
 
   // Fetch approval employee details
   const { data: firstLevelApprover } = useQuery({
-    queryKey: ["/api/employees", paymentApprovalSettings?.firstLevelApprovalId],
-    enabled: !!paymentApprovalSettings?.firstLevelApprovalId,
+    queryKey: ["/api/employees", (paymentApprovalSettings as any)?.firstLevelApprovalId],
+    enabled: !!(paymentApprovalSettings as any)?.firstLevelApprovalId,
   });
 
   const { data: secondLevelApprover } = useQuery({
-    queryKey: ["/api/employees", paymentApprovalSettings?.secondLevelApprovalId],
-    enabled: !!paymentApprovalSettings?.secondLevelApprovalId,
+    queryKey: ["/api/employees", (paymentApprovalSettings as any)?.secondLevelApprovalId],
+    enabled: !!(paymentApprovalSettings as any)?.secondLevelApprovalId,
   });
 
   // Approve payroll mutation
@@ -96,13 +96,13 @@ function SalaryPayrollApprovalCard({ payrollDocument, currentUser }: { payrollDo
   const hasApprovalPrivilege = () => {
     if (!currentUser?.id || !paymentApprovalSettings) return false;
     
-    if (!paymentApprovalSettings.enableApproval) return false;
+    if (!(paymentApprovalSettings as any).enableApproval) return false;
     
-    const userEmployeeId = currentUserEmployee?.id;
-    const isFirstLevelApprover = paymentApprovalSettings.firstLevelApprovalId === currentUser.id || 
-                                 paymentApprovalSettings.firstLevelApprovalId === userEmployeeId;
-    const isSecondLevelApprover = paymentApprovalSettings.secondLevelApprovalId === currentUser.id ||
-                                  paymentApprovalSettings.secondLevelApprovalId === userEmployeeId;
+    const userEmployeeId = (currentUserEmployee as any)?.id;
+    const isFirstLevelApprover = (paymentApprovalSettings as any).firstLevelApprovalId === currentUser.id || 
+                                 (paymentApprovalSettings as any).firstLevelApprovalId === userEmployeeId;
+    const isSecondLevelApprover = (paymentApprovalSettings as any).secondLevelApprovalId === currentUser.id ||
+                                  (paymentApprovalSettings as any).secondLevelApprovalId === userEmployeeId;
     
     return isFirstLevelApprover || isSecondLevelApprover;
   };
@@ -118,7 +118,7 @@ function SalaryPayrollApprovalCard({ payrollDocument, currentUser }: { payrollDo
     }
     
     approvePayrollMutation.mutate({ 
-      documentId: payrollDocument.id, 
+      documentId: (payrollDocument as any).id, 
       approverId: currentUser.id 
     });
   };
@@ -265,10 +265,7 @@ export default function PayrollDetailPage() {
   // Mutation for refreshing payroll data with current Master Salary configuration
   const refreshPayrollMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest(`/api/payroll/documents/${id}/refresh`, {
-        method: 'POST',
-        body: JSON.stringify({}),
-      });
+      const response = await apiRequest('POST', `/api/payroll/documents/${id}/refresh`, {});
       return response;
     },
     onSuccess: () => {
@@ -286,7 +283,7 @@ export default function PayrollDetailPage() {
 
 
   const handleDeletePayroll = async () => {
-    if (!currentUser?.id) {
+    if (!(currentUser as any)?.id) {
       alert('Sila log masuk semula');
       return;
     }
@@ -795,7 +792,7 @@ export default function PayrollDetailPage() {
                       <AlertDialogDescription>
                         Adakah anda pasti mahu memadam keseluruhan data payslip untuk bulan ini? 
                         <br/><br/>
-                        <strong>Amaran:</strong> Tindakan ini akan memadam semua data payslip pekerja untuk bulan {payrollDocument?.month}/{payrollDocument?.year} dan tidak boleh dibatalkan.
+                        <strong>Amaran:</strong> Tindakan ini akan memadam semua data payslip pekerja untuk bulan {(payrollDocument as any)?.month}/{(payrollDocument as any)?.year} dan tidak boleh dibatalkan.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
