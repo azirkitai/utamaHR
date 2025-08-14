@@ -186,19 +186,10 @@ export async function generatePaymentVoucherPDF(data: VoucherPDFData): Promise<B
   });
   yPosition -= 40;
 
-  // Table Header
+  // Table Header - simplified like preview
   const tableHeaders = ['No.', 'Description', 'Claim Type', 'Amount (RM)'];
   const columnWidths = [40, 200, 120, 100];
   let currentX = 50;
-
-  // Draw table header background
-  page.drawRectangle({
-    x: 50,
-    y: yPosition - 20,
-    width: width - 100,
-    height: 20,
-    color: rgb(0.95, 0.95, 0.95),
-  });
 
   // Draw table header border
   page.drawRectangle({
@@ -223,21 +214,10 @@ export async function generatePaymentVoucherPDF(data: VoucherPDFData): Promise<B
 
   yPosition -= 20;
 
-  // Table rows
+  // Table rows - simple like preview
   claims.forEach((claim, index) => {
     currentX = 50;
     
-    // Draw row background (alternating)
-    if (index % 2 === 1) {
-      page.drawRectangle({
-        x: 50,
-        y: yPosition - 20,
-        width: width - 100,
-        height: 20,
-        color: rgb(0.98, 0.98, 0.98),
-      });
-    }
-
     // Draw row border
     page.drawRectangle({
       x: 50,
@@ -248,12 +228,12 @@ export async function generatePaymentVoucherPDF(data: VoucherPDFData): Promise<B
       borderWidth: 1,
     });
 
-    // Row data - use claimCategory field as description (same as preview, uppercase)
-    const description = (claim.claimCategory || claim.particulars || claim.reason || claim.remark || 'Claim Item').toUpperCase();
+    // Row data - exactly like preview: description uppercase, amount right-aligned
+    const description = (claim.claimCategory || 'financial').toUpperCase();
     const rowData = [
       (index + 1).toString(),
       description,
-      claim.claimType || 'financial',
+      'financial',
       parseFloat(claim.amount || '0').toFixed(2)
     ];
 
