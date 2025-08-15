@@ -4307,12 +4307,20 @@ export function registerRoutes(app: Express): Server {
         return res.status(401).json({ error: "Token diperlukan" });
       }
 
+      // Debug: Log selected employee
+      console.log('=== PREVIEW REQUEST START ===');
+      console.log('Selected Employee ID:', employeeId);
+      console.log('Document ID:', documentId);
+
       // Get payroll document and item
       const document = await storage.getPayrollDocument(documentId as string);
       const payrollItem = await storage.getPayrollItemByDocumentAndEmployee(documentId as string, employeeId);
       const employee = await storage.getEmployee(employeeId);
       const employment = await storage.getEmploymentByEmployeeId(employeeId);
       const companySettings = await storage.getCompanySettings();
+
+      console.log('Employee found:', employee?.fullName);
+      console.log('Payroll item found:', !!payrollItem);
       
       console.log("Company settings retrieved:", companySettings);
 
@@ -4327,6 +4335,7 @@ export function registerRoutes(app: Express): Server {
       const contributions = JSON.parse(payrollItem.contributions);
 
       console.log("Payroll deductions from item (stored):", storedDeductions);
+      console.log("Salary data structure:", JSON.stringify(salary, null, 2));
       console.log("About to get current master salary...");
 
       // Get current Master Salary Configuration for accurate deduction values
@@ -4392,10 +4401,24 @@ export function registerRoutes(app: Express): Server {
           items: (() => {
             const items = [];
             
-            console.log('=== TEMPLATE INCOME ITEMS PROCESSING ===');
+            console.log('=== ENHANCED TEMPLATE INCOME ITEMS PROCESSING ===');
             console.log('Salary data:', JSON.stringify(salary, null, 2));
             
-            // Process additional items from salary.additional array
+            // FIRST: Always add Basic Salary if it exists and > 0
+            const basicSalaryAmount = parseFloat(salary.basic || salary.basicSalary || "0");
+            console.log('Basic Salary amount:', basicSalaryAmount);
+            if (basicSalaryAmount > 0.01) {
+              console.log(`✓ Adding Basic Salary to template: RM ${basicSalaryAmount}`);
+              items.push({
+                label: "Basic Salary",
+                amount: formatMoney(basicSalaryAmount),
+                show: true
+              });
+            } else {
+              console.log(`✗ Basic Salary not added: RM ${basicSalaryAmount} (≤ 0.01)`);
+            }
+            
+            // SECOND: Process additional items from salary.additional array
             if (salary.additional && Array.isArray(salary.additional)) {
               console.log('Processing additional items from salary.additional:', salary.additional.length);
               salary.additional.forEach((item, index) => {
@@ -4435,7 +4458,7 @@ export function registerRoutes(app: Express): Server {
             }
             
             console.log('Final income items for template:', items);
-            console.log('=== END TEMPLATE INCOME ITEMS PROCESSING ===');
+            console.log('=== END ENHANCED TEMPLATE INCOME ITEMS PROCESSING ===');
             
             return items;
           })(),

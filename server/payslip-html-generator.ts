@@ -3,6 +3,8 @@ import { join } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import puppeteer from 'puppeteer';
+// Import utilities (if needed)
+// Note: formatMoney and amount utils are already available in the routes context
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
