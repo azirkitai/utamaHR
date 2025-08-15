@@ -348,6 +348,8 @@ export default function PayrollDetailPage() {
 
   const handleGeneratePDF = async (employeeId: string, employeeName: string) => {
     try {
+      console.log('Starting PDF download for employee:', employeeId, employeeName);
+      
       const response = await fetch(`/api/payroll/payslip/${employeeId}/pdf`, {
         method: 'POST',
         headers: {
@@ -357,28 +359,72 @@ export default function PayrollDetailPage() {
         body: JSON.stringify({ documentId: id })
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
-        throw new Error('Failed to generate PDF payslip');
+        const errorText = await response.text();
+        console.error('Server error response:', errorText);
+        throw new Error(`Server returned ${response.status}: ${errorText}`);
+      }
+
+      // Check if response is actually a PDF
+      const contentType = response.headers.get('content-type');
+      console.log('Content-Type:', contentType);
+      
+      if (!contentType?.includes('application/pdf')) {
+        console.error('Response is not a PDF, content-type:', contentType);
+        const responseText = await response.text();
+        console.error('Response body:', responseText);
+        throw new Error('Server did not return a PDF file');
       }
 
       // Server now returns the PDF buffer directly
       const blob = await response.blob();
+      console.log('Blob created, size:', blob.size);
+      
+      if (blob.size === 0) {
+        throw new Error('Empty PDF file received');
+      }
+      
+      // Extract filename from response headers or generate dynamic filename
+      let filename = `Payslip_${employeeName.replace(/\s+/g, '_')}.pdf`;
+      const contentDisposition = response.headers.get('content-disposition');
+      if (contentDisposition) {
+        const matches = contentDisposition.match(/filename="([^"]+)"/);
+        if (matches) {
+          filename = matches[1];
+        }
+      }
+      
+      console.log('Download filename:', filename);
       
       // Create download link
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.style.display = 'none';
       a.href = url;
-      a.download = `Payslip_${employeeName.replace(/\s+/g, '_')}_7_2025.pdf`;
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
       
       console.log('PDF payslip generated and downloaded successfully');
+      
+      toast({
+        title: "Success",
+        description: "Slip gaji PDF berjaya dimuat turun",
+      });
+      
     } catch (error) {
       console.error('Error generating PDF:', error);
-      alert('Gagal menghasilkan slip gaji PDF. Sila cuba lagi.');
+      
+      toast({
+        title: "Error",
+        description: error.message || "Gagal menghasilkan slip gaji PDF. Sila cuba lagi.",
+        variant: "destructive",
+      });
     }
   };
 
