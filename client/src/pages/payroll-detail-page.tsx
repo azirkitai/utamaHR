@@ -569,49 +569,138 @@ export default function PayrollDetailPage() {
     }
   };
 
-  // Main function that tries all methods with jsPDF as primary option
+  // SIMPLE METHOD: Direct window.open approach (most straightforward)
+  const handleGeneratePDF_Simple = (employeeId: string, employeeName: string) => {
+    try {
+      console.log('SIMPLE METHOD: Direct window.open PDF');
+      const token = localStorage.getItem('utamahr_token');
+      
+      // Try the simple PDF endpoint first
+      const simplePdfUrl = `/api/payroll/payslip/${employeeId}/simple-pdf?documentId=${id}`;
+      
+      // Open PDF directly in new window
+      const newWindow = window.open(simplePdfUrl, '_blank');
+      
+      if (newWindow) {
+        console.log('PDF opened in new window');
+        alert('PDF slip gaji sedang dibuka dalam tab baru...');
+      } else {
+        // Fallback: create download link
+        const link = document.createElement('a');
+        link.href = simplePdfUrl;
+        link.download = `Payslip_${employeeName.replace(/\s+/g, '_')}.pdf`;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        alert('PDF slip gaji sedang dimuat turun...');
+      }
+    } catch (error) {
+      console.error('Simple method error:', error);
+      throw error;
+    }
+  };
+
+  // PRINT METHOD: Use browser print functionality  
+  const handleGeneratePDF_Print = async (employeeId: string, employeeName: string) => {
+    try {
+      console.log('PRINT METHOD: Using browser print');
+      
+      // Get the HTML preview content
+      const previewResponse = await fetch(`/api/payroll/payslip/${employeeId}/preview?documentId=${id}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('utamahr_token')}`
+        }
+      });
+      
+      if (!previewResponse.ok) {
+        throw new Error('Failed to get preview');
+      }
+      
+      const htmlContent = await previewResponse.text();
+      
+      // Create new window with print-friendly content
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>Slip Gaji - ${employeeName}</title>
+            <style>
+              @media print {
+                body { margin: 0; }
+                @page { size: A4; margin: 0.5in; }
+              }
+            </style>
+          </head>
+          <body>
+            ${htmlContent}
+          </body>
+          </html>
+        `);
+        printWindow.document.close();
+        
+        // Wait for content to load then print
+        setTimeout(() => {
+          printWindow.focus();
+          printWindow.print();
+        }, 1000);
+      }
+      
+      console.log('Print dialog opened');
+      alert('Dialog print telah dibuka. Pilih "Save as PDF" untuk muat turun.');
+    } catch (error) {
+      console.error('Print method error:', error);
+      throw error;
+    }
+  };
+
+  // Main function - try simple methods first
   const handleGeneratePDF = async (employeeId: string, employeeName: string) => {
-    console.log('Starting PDF download with MULTI-METHOD approach including jsPDF');
+    console.log('Starting SIMPLE PDF download approach');
     console.log('Employee ID:', employeeId, 'Name:', employeeName, 'Document ID:', id);
     
-    // Try METHOD 4 first (jsPDF - most reliable for downloads)
+    // Ask user which method they prefer
+    const methodChoice = confirm(
+      'Pilih cara untuk muat turun PDF:\n\n' +
+      'OK = Buka PDF dalam tab baru (mudah)\n' +
+      'Cancel = Guna print dialog (boleh pilih Save as PDF)'
+    );
+    
+    if (methodChoice) {
+      // Try simple window.open method
+      try {
+        handleGeneratePDF_Simple(employeeId, employeeName);
+        return;
+      } catch (error) {
+        console.log('Simple method failed, trying print method...');
+      }
+    }
+    
+    // Try print method
+    try {
+      await handleGeneratePDF_Print(employeeId, employeeName);
+      return;
+    } catch (error) {
+      console.log('Print method failed, trying fallback methods...');
+    }
+    
+    // Fallback to jsPDF method
     try {
       await handleGeneratePDF_Method4(employeeId, employeeName);
       return;
     } catch (error) {
-      console.log('Method 4 (jsPDF) failed, trying Method 5...');
+      console.log('jsPDF method failed, trying server methods...');
     }
     
-    // Try METHOD 5 (html-pdf-node alternative)
+    // Try server-side methods
     try {
       await handleGeneratePDF_Method5(employeeId, employeeName);
       return;
     } catch (error) {
-      console.log('Method 5 failed, trying Method 1...');
-    }
-    
-    // Try METHOD 1 (Direct URL download)
-    try {
-      handleGeneratePDF_Method1(employeeId, employeeName);
-      return;
-    } catch (error) {
-      console.log('Method 1 failed, trying Method 2...');
-    }
-    
-    // Try METHOD 2 (Improved blob)
-    try {
-      await handleGeneratePDF_Method2(employeeId, employeeName);
-      return;
-    } catch (error) {
-      console.log('Method 2 failed, trying Method 3...');
-    }
-    
-    // Try METHOD 3 as last resort (iframe)
-    try {
-      handleGeneratePDF_Method3(employeeId, employeeName);
-    } catch (error) {
-      console.error('All 5 PDF download methods failed:', error);
-      alert('Gagal memuat turun PDF dengan semua 5 kaedah. Sila cuba lagi atau hubungi admin.');
+      console.error('All PDF methods failed:', error);
+      alert('Gagal muat turun PDF dengan semua kaedah. Sila cuba lagi atau hubungi admin sistem.');
     }
   };
 
@@ -972,10 +1061,20 @@ export default function PayrollDetailPage() {
                                 <Button
                                   variant="outline"
                                   size="sm"
+                                  className="p-1 h-7 w-7 border-green-300 text-green-600"
+                                  onClick={() => handleGeneratePDF_Simple(item.employeeId, employeeSnapshot.name || 'N/A')}
+                                  data-testid={`button-simple-pdf-${item.employeeId}`}
+                                  title="Test Simple PDF"
+                                >
+                                  <Download className="w-3 h-3" />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
                                   className="p-1 h-7 w-7 border-gray-300"
                                   onClick={() => handleGeneratePDF(item.employeeId, employeeSnapshot.name || 'N/A')}
                                   data-testid={`button-download-pdf-${item.employeeId}`}
-                                  title="Download PDF"
+                                  title="Download PDF (All Methods)"
                                 >
                                   <Download className="w-3 h-3" />
                                 </Button>
