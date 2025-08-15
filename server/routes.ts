@@ -4780,12 +4780,8 @@ export function registerRoutes(app: Express): Server {
           epfEmp: parseFloat(safeDeductions.epfEmployee),
           socsoEmp: parseFloat(safeDeductions.socsoEmployee),
           eisEmp: parseFloat(safeDeductions.eisEmployee),
-          pcb: parseFloat(safeDeductions.other), // MTD/PCB is stored in 'other' field
-          other: parseFloat(safeDeductions.other),
           total: parseFloat(safeDeductions.epfEmployee) + parseFloat(safeDeductions.socsoEmployee) + parseFloat(safeDeductions.eisEmployee) + parseFloat(safeDeductions.other),
-          items: [
-            ...(parseFloat(safeDeductions.other) > 0 ? [{ label: "MTD/PCB", amount: parseFloat(safeDeductions.other) }] : [])
-          ]
+          additional: parseFloat(safeDeductions.other) > 0 ? [{ label: "MTD/PCB", amount: parseFloat(safeDeductions.other) }] : []
         },
         employerContrib: {
           epfEr: parseFloat(contributions.epfEmployer || 0),
