@@ -124,8 +124,20 @@ export function buildPdfPropsFromTemplateData(templateData: any): PayslipPDFProp
     },
     payroll: {
       grossPay: parseAmount(templateData.income?.totalGross || templateData.salary?.gross || 0),
-      totalDeductions: parseAmount(templateData.deduction?.total || 0),
-      netPay: parseAmount(templateData.netIncome || 0),
+      totalDeductions: parseAmount(templateData.deduction?.total || 
+        (parseAmount(templateData.deduction?.epfEmp || 0) + 
+         parseAmount(templateData.deduction?.socsoEmp || 0) + 
+         parseAmount(templateData.deduction?.eisEmp || 0) + 
+         parseAmount(templateData.deduction?.pcb || 0) + 
+         parseAmount(templateData.deduction?.other || 0))),
+      netPay: parseAmount(templateData.netIncome || 
+        (parseAmount(templateData.income?.totalGross || templateData.salary?.gross || 0) - 
+         parseAmount(templateData.deduction?.total || 
+           (parseAmount(templateData.deduction?.epfEmp || 0) + 
+            parseAmount(templateData.deduction?.socsoEmp || 0) + 
+            parseAmount(templateData.deduction?.eisEmp || 0) + 
+            parseAmount(templateData.deduction?.pcb || 0) + 
+            parseAmount(templateData.deduction?.other || 0))))),
     },
     income: {
       basicSalary: basicSalary,

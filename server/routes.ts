@@ -4751,8 +4751,8 @@ export function registerRoutes(app: Express): Server {
           socsoEmp: parseFloat(deductions.socsoEmployee || 0),
           eisEmp: parseFloat(deductions.eisEmployee || 0),
           pcb: parseFloat(deductions.pcb38 || deductions.pcb39 || 0),
-          other: parseFloat(deductions.pcb38 || deductions.pcb39 || 0),
-          total: Object.values(deductions).reduce((sum, val) => sum + parseFloat(val || 0), 0),
+          other: parseFloat(deductions.other || 0),
+          total: parseFloat(deductions.epfEmployee || 0) + parseFloat(deductions.socsoEmployee || 0) + parseFloat(deductions.eisEmployee || 0) + parseFloat(deductions.pcb38 || deductions.pcb39 || 0) + parseFloat(deductions.other || 0),
           items: []
         },
         employerContrib: {
@@ -4760,7 +4760,7 @@ export function registerRoutes(app: Express): Server {
           socsoEr: parseFloat(contributions.socsoEmployer || 0),
           eisEr: parseFloat(contributions.eisEmployer || 0)
         },
-        netIncome: parseFloat(salary.gross || 0) - Object.values(deductions).reduce((sum, val) => sum + parseFloat(val || 0), 0),
+        netIncome: parseFloat(salary.gross || 0) - (parseFloat(deductions.epfEmployee || 0) + parseFloat(deductions.socsoEmployee || 0) + parseFloat(deductions.eisEmployee || 0) + parseFloat(deductions.pcb38 || deductions.pcb39 || 0) + parseFloat(deductions.other || 0)),
         ytd: {
           breakdown: {
             epfEmployee: parseFloat(ytdData.ytdEpfEmployee),
