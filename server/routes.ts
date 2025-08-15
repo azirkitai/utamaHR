@@ -4787,7 +4787,8 @@ export function registerRoutes(app: Express): Server {
           epfEmployee: parseFloat(safeDeductions.epfEmployee),
           socsoEmployee: parseFloat(safeDeductions.socsoEmployee),
           eisEmployee: parseFloat(safeDeductions.eisEmployee),
-          additional: parseFloat(safeDeductions.other) > 0 ? [{ label: "MTD/PCB", amount: parseFloat(safeDeductions.other) }] : []
+          pcb: parseFloat(safeDeductions.other), // For mapper to recognize MTD/PCB
+          additional: [] // Keep empty to avoid duplication
         },
         employerContrib: {
           epfEr: parseFloat(contributions.epfEmployer || 0),

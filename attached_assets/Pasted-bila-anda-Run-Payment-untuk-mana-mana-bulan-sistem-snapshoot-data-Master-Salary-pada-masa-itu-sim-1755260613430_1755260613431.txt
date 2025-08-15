@@ -1,0 +1,310 @@
+bila anda Run Payment untuk mana-mana bulan, sistem snapshoot data Master Salary pada masa itu,
+
+simpan ikut bulan & tahun,
+
+Payroll Details dan PDF pakai snapshot (bukan baca Master Salary live),
+
+ubah Master Salary lepas tu tak ubah data bulan lama.
+
+1) Flow & Status
+
+Status payroll period
+
+draft → in_progress → pending_approval → paid (locked)
+
+Rule penting
+
+Snapshot hanya boleh dihasilkan/ditimpa jika period draft/in_progress.
+
+Bila paid, semua record lock (read-only).
+
+2) Struktur DB (minimum)
+-- payroll_batches: satu rekod per syarikat+bulan
+CREATE TABLE payroll_batches (
+  id TEXT PRIMARY KEY,
+  company_id TEXT,
+  year INT, month INT,
+  status TEXT,                       -- draft|in_progress|pending_approval|paid
+  remarks TEXT,
+  created_at TIMESTAMP, updated_at TIMESTAMP,
+  UNIQUE(company_id, year, month)    -- 1 period unik
+);
+
+-- payroll_employees: snapshot gaji untuk seorang pekerja dalam period
+CREATE TABLE payroll_employees (
+  id TEXT PRIMARY KEY,
+  batch_id TEXT, company_id TEXT, employee_id TEXT,
+  snapshot JSONB,                   -- SIMPAN SEMUA DATA TERKIRA (lihat 'snapshot shape' di bawah)
+  gross NUMERIC(12,2),
+  total_deduction NUMERIC(12,2),
+  net NUMERIC(12,2),
+  created_at TIMESTAMP, updated_at TIMESTAMP,
+  UNIQUE(batch_id, employee_id)
+);
+
+-- OPTIONAL (kalau nak normalise baris item)
+CREATE TABLE payroll_items (
+  id TEXT PRIMARY KEY,
+  payroll_employee_id TEXT,
+  kind TEXT,              -- income|deduction|contrib_employee|contrib_employer
+  label TEXT,
+  amount NUMERIC(12,2)
+);
+
+
+Snapshot shape (disimpan dalam payroll_employees.snapshot):
+
+{
+  "company": { "name": "...", "regNo": "...", "address": "...", "logoUrl": "..." },
+  "employee": { "fullName": "...", "ic": "...", "position": "...", "employeeNo": "..." },
+  "period": { "month": "June", "year": 2025 },
+  "income": {
+    "basic": 3500,
+    "items": [ { "label": "FIXED ALLOWENCE", "amount": 500 } ],
+    "totalGross": 4000
+  },
+  "deduction": {
+    "epfEmp": 440.00, "socsoEmp": 19.75, "eisEmp": 8.00, "pcb": 450.00,
+    "items": [], "total": 917.75
+  },
+  "contribEmployer": { "epf": 420.00, "socso": 61.25, "eis": 7.00 },
+  "ytd": {
+    "employee": { "epf": 431, "socso": 47.2, "eis": 9.4, "pcb": 837.4 },
+    "employer": { "epf": 716.8, "socso": 107.8, "eis": 18.8 }
+  },
+  "generated_at": "2025-06-08T15:05:00Z"
+}
+
+3) Aliran “Run Payment” (agent)
+
+Trigger: butang Run Payment → Generate Payment.
+
+Pseudo-code (TypeScript/Node, transactional):
+
+type RunPaymentInput = {
+  companyId: string;
+  year: number;
+  month: number;                    // boleh pilih Jun walaupun sekarang Ogos
+  employeeIds?: string[];           // kalau tak bagi, ambil all active
+  include: { financial: boolean; overtime: boolean; unpaidLeave: boolean; lateness: boolean };
+  remarks?: string;
+};
+
+async function runPayment(input: RunPaymentInput, db: DB) {
+  return db.tx(async (trx) => {
+    // 1) Dapat / cipta batch period
+    let batch = await trx.payroll_batches.findUnique({ company_id: input.companyId, year: input.year, month: input.month });
+    if (!batch) {
+      batch = await trx.payroll_batches.insert({
+        id: uid(), company_id: input.companyId, year: input.year, month: input.month,
+        status: "in_progress", remarks: input.remarks
+      });
+    }
+    if (batch.status === "paid") throw new Error("Period sudah dibayar dan dikunci.");
+
+    // 2) Senarai pekerja
+    const employees = input.employeeIds?.length
+      ? await trx.employees.findMany({ ids: input.employeeIds })
+      : await trx.employees.findActiveByCompany(input.companyId);
+
+    // 3) Untuk setiap pekerja → ambil Master Salary, kira, dan SNAPSHOT
+    for (const emp of employees) {
+      const master = await trx.master_salary.getForEmployee(emp.id); // semua field seperti dalam UI Master Salary
+      const calc = calculateFromMaster(master, { year: input.year, month: input.month }, input.include);
+
+      // 4) Sediakan snapshot
+      const snapshot = buildSnapshot({
+        company: await trx.company.profile(input.companyId),
+        employee: emp,
+        period: { year: input.year, month: monthName(input.month) },
+        master, calc
+      });
+
+      // 5) Upsert payroll_employees (period ini)
+      const existing = await trx.payroll_employees.findUnique({ batch_id: batch.id, employee_id: emp.id });
+      const row = {
+        batch_id: batch.id, company_id: input.companyId, employee_id: emp.id,
+        snapshot,
+        gross: calc.gross, total_deduction: calc.totalDeduction, net: calc.net
+      };
+      if (existing) {
+        await trx.payroll_employees.update(existing.id, row);
+        await trx.payroll_items.deleteByPayroll(existing.id);
+      } else {
+        const inserted = await trx.payroll_employees.insert({ id: uid(), ...row });
+        row["id"] = inserted.id;
+      }
+
+      // (optional) simpan item baris jika nak normalise
+      for (const it of calc.incomes) await trx.payroll_items.insert({ id: uid(), payroll_employee_id: row["id"], kind: "income", label: it.label, amount: it.amount });
+      for (const it of calc.deductions) await trx.payroll_items.insert({ id: uid(), payroll_employee_id: row["id"], kind: "deduction", label: it.label, amount: it.amount });
+      // employer contrib pun sama kalau mahu
+    }
+
+    // 6) Update status batch
+    await trx.payroll_batches.update(batch.id, { status: "in_progress", updated_at: new Date() });
+
+    return { batchId: batch.id, year: input.year, month: input.month };
+  });
+}
+
+
+Fungsi kiraan ringkas (ikut Master Salary UI):
+
+function calculateFromMaster(master: any, period: {year:number;month:number}, include: any) {
+  const toNum = (v:any)=>Number(String(v).replace(/[^\d.-]/g,""))||0;
+
+  const basic = toNum(master.basicSalary);
+  const fixedAllow = toNum(master.fixedAllowance);
+  const overtime = include.overtime ? toNum(master.overtimeThisMonth) : 0;
+
+  const additional = (master.additionalItems || [])
+    .filter((x:any)=>include.financial || !x.isFinancialClaim)
+    .map((x:any)=>({ label: x.label, amount: toNum(x.amount) }));
+
+  const incomes = [
+    { label: "Basic Salary", amount: basic },
+    ...(overtime ? [{ label:"Overtime", amount:overtime }] : []),
+    ...(fixedAllow ? [{ label:"FIXED ALLOWENCE", amount:fixedAllow }] : []),
+    ...additional
+  ];
+
+  const gross = incomes.reduce((s,i)=>s+i.amount,0);
+
+  // statutory
+  const epfEmp = master.epfEnabled ? round2(basic * toNum(master.epfRateEmployee)/100) : 0;
+  const epfEr  = master.epfEnabled ? round2(basic * toNum(master.epfRateEmployer)/100) : 0;
+  const socsoEmp = master.socsoEnabled ? toNum(master.socsoEmployee) : 0;
+  const socsoEr  = master.socsoEnabled ? toNum(master.socsoEmployer) : 0;
+  const eisEmp   = master.eisEnabled ? toNum(master.eisEmployee) : 0;
+  const eisEr    = master.eisEnabled ? toNum(master.eisEmployer) : 0;
+  const pcb      = toNum(master.pcb39 || master.pcb || 0);
+
+  const deductionItems = [
+    ...(epfEmp? [{label:"EPF Employee", amount: epfEmp}] : []),
+    ...(socsoEmp? [{label:"SOCSO Employee", amount: socsoEmp}] : []),
+    ...(eisEmp? [{label:"EIS Employee", amount: eisEmp}] : []),
+    ...(pcb? [{label:"MTD/PCB", amount: pcb}] : [])
+  ];
+
+  const totalDeduction = deductionItems.reduce((s,d)=>s+d.amount,0);
+  const net = round2(gross - totalDeduction);
+
+  const employerContrib = { epf: epfEr, socso: socsoEr, eis: eisEr };
+
+  // YTD (ambil dari jadual payroll_employees sebelum period ini, bukan dari master)
+  // diisi kemudian pada UI dengan query aggregate
+
+  return { incomes, deductions: deductionItems, employerContrib, gross, totalDeduction, net };
+}
+const round2 = (n:number)=>Math.round(n*100)/100;
+
+
+Snapshot builder (digunakan di atas):
+
+function buildSnapshot({ company, employee, period, master, calc }: any) {
+  return {
+    company: { name: company.name, regNo: company.regNo, address: company.address, logoUrl: company.logoUrl },
+    employee: { fullName: employee.name, ic: employee.icNo, position: employee.position, employeeNo: employee.employeeNo },
+    period,
+    income: {
+      basic: Number(calc.incomes.find((x:any)=>x.label==="Basic Salary")?.amount || 0),
+      items: calc.incomes.filter((x:any)=>x.label!=="Basic Salary"),
+      totalGross: calc.gross
+    },
+    deduction: {
+      epfEmp: Number(calc.deductions.find((x:any)=>x.label==="EPF Employee")?.amount || 0),
+      socsoEmp: Number(calc.deductions.find((x:any)=>x.label==="SOCSO Employee")?.amount || 0),
+      eisEmp: Number(calc.deductions.find((x:any)=>x.label==="EIS Employee")?.amount || 0),
+      pcb: Number(calc.deductions.find((x:any)=>x.label==="MTD/PCB")?.amount || 0),
+      items: calc.deductions.filter((x:any)=>!["EPF Employee","SOCSO Employee","EIS Employee","MTD/PCB"].includes(x.label)),
+      total: calc.totalDeduction
+    },
+    contribEmployer: calc.employerContrib,
+    // ytd diisi di UI dengan aggregate jika perlu
+    ytd: {},
+    generated_at: new Date().toISOString()
+  };
+}
+
+4) Payroll Details & Payslip mesti baca snapshot
+
+Payroll Details page (jadual yang anda tunjuk) → query dari payroll_employees (gross, deduction, net) dan/atau snapshot.
+
+Payslip PDF → bina templateData terus daripada snapshot:
+
+const snap = payrollEmployee.snapshot; // JSON
+const pdfProps = buildPdfPropsFromTemplateData({
+  company: snap.company,
+  employee: snap.employee,
+  period: snap.period,
+  income: { basic: snap.income.basic, items: snap.income.items, totalGross: snap.income.totalGross },
+  deduction: { epfEmp: snap.deduction.epfEmp, socsoEmp: snap.deduction.socsoEmp, eisEmp: snap.deduction.eisEmp, pcb: snap.deduction.pcb, items: snap.deduction.items, total: snap.deduction.total },
+  contributions: { epfEmployer: snap.contribEmployer.epf, socsoEmployer: snap.contribEmployer.socso, eisEmployer: snap.contribEmployer.eis },
+  ytd: snap.ytd,
+  generated_on: snap.generated_at
+});
+
+
+Ini memastikan PDF bulan 6 sentiasa menunjukkan angka masa anda Generate Payment bulan 6 — walaupun Master Salary sudah berubah pada bulan 8.
+
+5) Re-run / Regenerate untuk bulan lepas
+
+Jika batch bulan 6 wujud dan status in_progress/draft: overwrite snapshot pekerja yang dipilih.
+
+Jika status paid: tak boleh overwrite. Sediakan butang “Create Adjustment” → cipta batch_adjustments (pilihan).
+
+6) YTD yang betul
+
+Jangan ambil dari Master Salary. Kira:
+
+SELECT SUM(json_extract_path_text(snapshot,'deduction','epfEmp')::numeric)
+FROM payroll_employees pe
+JOIN payroll_batches pb ON pb.id=pe.batch_id
+WHERE pb.company_id=$1
+  AND pe.employee_id=$2
+  AND (pb.year < $year OR (pb.year=$year AND pb.month <= $month))
+  AND pb.status IN ('in_progress','pending_approval','paid');
+
+
+Buat untuk EPF/SOCSO/EIS/PCB & majikan.
+
+7) Validasi & Idempotency
+
+Unique key UNIQUE(company_id, year, month) pada payroll_batches.
+
+Unique key UNIQUE(batch_id, employee_id) pada payroll_employees.
+
+Transaksi DB meliputi semua pekerja supaya jumlah konsisten.
+
+Simpan source_master_salary_id & snapshot_hash dalam payroll_employees (optional) untuk audit.
+
+8) Apa yang Agent perlu buat (skrip tugasan)
+
+On Run Payment (Generate):
+
+Validasi period tak paid.
+
+Ambil senarai pekerja aktif.
+
+Untuk setiap pekerja, load Master Salary, calculate, snapshot, upsert payroll_employees.
+
+Update payroll_batches.status = 'in_progress'.
+
+Log ringkas: "[OK] Snapshot Maryam Sabri Jun 2025: gross=4000, deduction=917.75, net=3082.25".
+
+On Payroll Details view:
+
+Data datang dari payroll_employees (bukan Master Salary).
+
+Butang Refresh Data → regenerate snapshot untuk pekerja itu sahaja (hanya jika period belum paid).
+
+On Submit Payment (Pay & Close):
+
+Validasi semua pekerja ada snapshot.
+
+status = 'paid' dan lock.
+
+Dengan logic ni, langkah kerja anda:
+
+Edit Master Salary → Run Payment untuk bulan yang anda pilih → snapshot disimpan → Payroll Details & PDF sentiasa ikut snapshot → ubah Master Salary selepas itu takkan ubah data bulan tersebut.
