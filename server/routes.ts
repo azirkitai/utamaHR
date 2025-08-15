@@ -4882,22 +4882,26 @@ export function registerRoutes(app: Express): Server {
         const pdfBuffer = await convertHTMLToPDF(htmlContent);
         console.log('PDF generated successfully, buffer size:', pdfBuffer.length);
 
-        // Set headers for PDF inline display with iframe support
+        // Set headers for PDF download (PATCH: use attachment instead of inline for download)
         const fileName = `Payslip_${employee.fullName?.replace(/\s+/g, '_')}_${getMonthName(document.month)}_${document.year}.pdf`;
         console.log('Setting response headers for file:', fileName);
         
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
-        res.setHeader('Content-Length', pdfBuffer.length);
-        res.setHeader('Accept-Ranges', 'bytes');
-        res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        // APPLIED DROP-IN PATCH: Complete headers with proper buffer handling
+        res.set({
+          "Content-Type": "application/pdf",
+          "Content-Disposition": `attachment; filename="${fileName}"`,
+          "Cache-Control": "no-store",
+          "Content-Length": pdfBuffer.length,
+          "Accept-Ranges": "bytes",
+          "X-Frame-Options": "SAMEORIGIN",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization"
+        });
         
-        // Send buffer directly
+        // PATCH: Use res.end(buffer) instead of res.send for binary data
         console.log('Sending PDF buffer to response...');
-        res.send(pdfBuffer);
+        res.end(pdfBuffer);
         console.log('=== PDF RESPONSE SENT SUCCESSFULLY ===');
         
       } catch (error) {
