@@ -5046,7 +5046,7 @@ export function registerRoutes(app: Express): Server {
           address: companySettings ? 
             `${companySettings.address}${companySettings.postcode ? ', ' + companySettings.postcode : ''}${companySettings.city ? ', ' + companySettings.city : ''}${companySettings.state ? ', ' + companySettings.state : ''}` :
             "A2-22-3, SOHO SUITES @ KLCC, 20 JALAN PERAK, 50450 KUALA LUMPUR, WILAYAH PERSEKUTUAN",
-          phone: companySettings?.phoneNumber,
+          phone: companySettings?.phoneNumber || undefined,
           email: companySettings?.email || undefined,
           website: companySettings?.website || undefined
         },
@@ -5334,7 +5334,7 @@ export function registerRoutes(app: Express): Server {
 
       const getEmployeeBankInfo = (employeeId: string): string => {
         const employee = employeesData?.find((emp: any) => emp.id === employeeId);
-        return employee?.bankAccountNumber || 'Not Stated';
+        return employee?.bankAccount || 'Not Stated';
       };
 
       const getEmployeeStaffId = (employeeId: string): string => {
@@ -5394,7 +5394,7 @@ export function registerRoutes(app: Express): Server {
         voucher: {
           number: voucher.voucherNumber,
           date: new Date(voucher.paymentDate).toLocaleDateString('en-GB'),
-          month: monthName
+          month: monthName.toString()
         },
         employee: {
           name: claims.length > 0 ? getEmployeeName(claims[0].employeeId) : 'Employee Name',
