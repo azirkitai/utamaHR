@@ -1109,53 +1109,62 @@ export default function PayrollDetailPage() {
                                   variant="outline"
                                   size="sm"
                                   className="p-1 h-7 w-7 border-green-300 text-green-600"
-                                  onClick={async () => {
-                                    // REACT PDF TEST - using @react-pdf/renderer
+                                  onClick={() => {
+                                    // SUPER SIMPLE REACT PDF TEST
                                     try {
-                                      console.log('=== REACT PDF TEST ===');
+                                      console.log('=== SUPER SIMPLE REACT PDF TEST ===');
                                       
-                                      // Fetch data from simple endpoint
-                                      const response = await fetch(`/api/payroll/payslip/${item.employeeId}/simple-pdf?documentId=${id}`);
+                                      // Create simple test data
+                                      const testData = {
+                                        employee: {
+                                          fullName: employeeSnapshot.name || 'Test Employee',
+                                          employeeNo: '001',
+                                          ic: '123456789',
+                                          id: item.employeeId
+                                        },
+                                        document: {
+                                          month: 'August',
+                                          year: 2025,
+                                          id: id
+                                        },
+                                        payroll: {
+                                          grossPay: 3000,
+                                          totalDeductions: 500,
+                                          netPay: 2500
+                                        },
+                                        generated: new Date().toLocaleString()
+                                      };
                                       
-                                      if (!response.ok) {
-                                        throw new Error(`Server error: ${response.status}`);
-                                      }
-                                      
-                                      const data = await response.json();
-                                      
-                                      if (!data.success) {
-                                        throw new Error(data.error || 'Failed to get PDF data');
-                                      }
-                                      
-                                      console.log('PDF data received:', data);
-                                      
-                                      // Generate PDF using React PDF
-                                      const pdfDoc = await pdf(
-                                        <PayslipPDFDocument
-                                          employee={data.employee}
-                                          document={data.document}
-                                          payroll={data.payroll}
-                                          generated={data.generated}
-                                        />
-                                      ).toBlob();
-                                      
-                                      // Create download link
-                                      const url = URL.createObjectURL(pdfDoc);
+                                      // Use PDFDownloadLink approach (simpler)
                                       const link = document.createElement('a');
-                                      link.href = url;
-                                      link.download = `Payslip_${data.employee.fullName.replace(/\s+/g, '_')}_${data.document.month}_${data.document.year}.pdf`;
-                                      link.style.display = 'none';
-                                      document.body.appendChild(link);
+                                      link.href = '#';
+                                      link.innerHTML = 'Download PDF';
+                                      link.onclick = async () => {
+                                        try {
+                                          const pdfBlob = await pdf(
+                                            <PayslipPDFDocument {...testData} />
+                                          ).toBlob();
+                                          
+                                          const url = URL.createObjectURL(pdfBlob);
+                                          const downloadLink = document.createElement('a');
+                                          downloadLink.href = url;
+                                          downloadLink.download = 'test-payslip.pdf';
+                                          downloadLink.click();
+                                          URL.revokeObjectURL(url);
+                                          
+                                          alert('React PDF test berjaya!');
+                                        } catch (err: any) {
+                                          console.error('PDF generation error:', err);
+                                          alert('PDF error: ' + err.message);
+                                        }
+                                      };
+                                      
+                                      // Trigger the download
                                       link.click();
-                                      document.body.removeChild(link);
-                                      URL.revokeObjectURL(url);
                                       
-                                      console.log('React PDF generated successfully');
-                                      alert('PDF slip gaji berjaya dimuat turun menggunakan React PDF!');
-                                      
-                                    } catch (e) {
+                                    } catch (e: any) {
                                       console.error('React PDF test gagal:', e);
-                                      alert('React PDF test gagal: ' + e.message);
+                                      alert('React PDF test gagal: ' + (e?.message || 'Unknown error'));
                                     }
                                   }}
                                   data-testid={`button-simple-pdf-${item.employeeId}`}
