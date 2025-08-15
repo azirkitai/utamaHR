@@ -933,7 +933,8 @@ export function registerRoutes(app: Express): Server {
       const currentUser = req.user!;
       
       // Only admin roles can create new staff user accounts
-      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      // FIXED: Include all valid admin roles used in production
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC', 'Finance/Account'];
       console.log("Authorization check - Current user role:", currentUser.role);
       console.log("Valid admin roles:", adminRoles);
       console.log("Role check result:", adminRoles.includes(currentUser.role));
@@ -969,12 +970,26 @@ export function registerRoutes(app: Express): Server {
         });
       }
       
-      // Check if username already exists
+      // Check if username already exists (case-insensitive)
       const existingUser = await storage.getUserByUsername(username);
       if (existingUser) {
+        // Suggest alternative usernames
+        const baseName = username.toLowerCase().replace(/\s+/g, '');
+        const suggestions = [
+          `${baseName}1`,
+          `${baseName}2`,
+          `${baseName}_new`,
+          `${baseName}_staff`
+        ];
+        
         return res.status(400).json({ 
           error: "Username sudah wujud",
-          username
+          username,
+          suggestions,
+          existingUser: {
+            username: existingUser.username,
+            role: existingUser.role
+          }
         });
       }
       

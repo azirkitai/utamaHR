@@ -130,9 +130,22 @@ export default function ManageEmployeePage() {
       setIsAddEmployeeOpen(false);
     },
     onError: (error: Error) => {
+      console.log("Error details:", error);
+      let errorMessage = error.message;
+      
+      // Try to parse error response for detailed info
+      try {
+        const errorData = JSON.parse(error.message.split(': ').slice(1).join(': '));
+        if (errorData.error === "Username sudah wujud" && errorData.suggestions) {
+          errorMessage = `Username "${errorData.username}" sudah wujud. Cadangan username: ${errorData.suggestions.join(', ')}`;
+        }
+      } catch {
+        // Use original error message if parsing fails
+      }
+      
       toast({
         title: "Ralat",
-        description: `Gagal menambah staff: ${error.message}`,
+        description: `Gagal menambah staff: ${errorMessage}`,
         variant: "destructive",
       });
     },
