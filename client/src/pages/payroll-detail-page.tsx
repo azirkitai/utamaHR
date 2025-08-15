@@ -35,6 +35,8 @@ function SalaryPayrollApprovalCard({ payrollDocument, currentUser }: { payrollDo
   // Fetch current user's employee data
   const { data: currentUserEmployee } = useQuery({
     queryKey: ["/api/user/employee"],
+    retry: false, // Don't retry on 404 - user might not have employee record
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
   // Fetch approval employee details

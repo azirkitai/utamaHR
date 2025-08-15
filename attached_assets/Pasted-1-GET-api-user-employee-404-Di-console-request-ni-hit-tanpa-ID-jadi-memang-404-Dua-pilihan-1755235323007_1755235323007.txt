@@ -1,0 +1,87 @@
+1) GET /api/user/employee → 404
+
+Di console, request ni “hit” tanpa ID, jadi memang 404. Dua pilihan:
+
+A. Betulkan route (pastikan ada ID)
+
+// sebelum
+await fetch(`/api/user/employee`);
+
+// selepas
+if (employeeId) {
+  await fetch(`/api/user/employee/${encodeURIComponent(employeeId)}`);
+}
+
+
+B. Atau guard di UI
+
+if (!employeeId) {
+  console.warn("Skip fetch employee: no id");
+} else {
+  const r = await fetch(`/api/user/employee/${employeeId}`);
+  // handle r.json()...
+}
+
+
+Kalau route sebenar anda guna query (/api/user/employee?id=), samakan di front-end.
+
+2) Amaran sandbox pada <iframe> preview
+
+Amaran: “An iframe which has both allow-scripts and allow-same-origin can escape its sandboxing.”
+Untuk preview slip (static HTML), kita tak perlukan script pun. Jadi buang allow-scripts dan guna srcDoc:
+
+// React – safer preview
+<iframe
+  ref={iframeRef}
+  title="Payslip Preview"
+  sandbox="allow-same-origin"   // buang allow-scripts
+  style={{width:'100%', height: '1000px', border: 0, background: '#fff'}}
+  srcDoc={sanitizedHtml}        // HTML yang anda render untuk preview
+/>
+
+
+Jika anda embed URL luaran, cukup sandbox="" (no tokens) atau sandbox="allow-same-origin" jika perlu load font/css dari domain yang sama. Yang penting jangan gabung allow-scripts + allow-same-origin untuk elak amaran & risiko.
+
+Confirm flow “Download PDF” (production)
+
+Pastikan butang download panggil API yang pulangkan buffer, bukan path fail:
+
+Server (Express)
+
+const browser = await puppeteer.launch({
+  headless: true,
+  args: ["--no-sandbox", "--disable-setuid-sandbox"], // penting di Replit
+});
+const pdf = await page.pdf({ format:'A4', printBackground:true, margin:{top:'10mm', right:'10mm', bottom:'10mm', left:'10mm'} });
+
+res.set({
+  "Content-Type": "application/pdf",
+  "Content-Disposition": `attachment; filename="Payslip_${id}.pdf"`,
+  "Cache-Control": "no-store",
+  "Content-Length": pdf.length
+});
+res.end(pdf);
+
+
+Front-end
+
+async function downloadPayslip(id){
+  const r = await fetch(`/api/payslip/${id}`);
+  if(!r.ok) throw new Error('Download failed');
+  const blob = await r.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `Payslip_${id}.pdf`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+Checklist cepat (kalau masih ada kes tertentu tak turun)
+
+Network tab: response ada Content-Type: application/pdf dan Content-Disposition: attachment.
+
+Tiada mixed-content (semua HTTPS).
+
+Tiada window.open() (boleh kena block).
+
+Jika guna link vendor (PDFMonkey), proxy melalui server anda (client jangan hit link terus—boleh expired / CORS).
