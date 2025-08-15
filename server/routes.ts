@@ -4706,40 +4706,7 @@ export function registerRoutes(app: Express): Server {
         };
       }
 
-      // YTD calculation helper function (from preview logic)
-      const getYTDBreakdown = async (employeeId: string) => {
-        const monthNumber = parseInt(document.month);
-        const year = parseInt(document.year);
-        
-        const ytdPayrollItems = await storage.getYearToDatePayrollItems(employeeId, year, monthNumber);
-        
-        let ytdData = {
-          ytdEpfEmployee: 0,
-          ytdSocsoEmployee: 0,
-          ytdEisEmployee: 0,
-          ytdPcbEmployee: 0,
-          ytdEpfEmployer: 0,
-          ytdSocsoEmployer: 0,
-          ytdEisEmployer: 0
-        };
-
-        for (const item of ytdPayrollItems) {
-          const itemDeductions = JSON.parse(item.deductions);
-          const itemContributions = JSON.parse(item.contributions);
-
-          ytdData.ytdEpfEmployee += parseFloat(itemDeductions.epfEmployee || 0);
-          ytdData.ytdSocsoEmployee += parseFloat(itemDeductions.socsoEmployee || 0);
-          ytdData.ytdEisEmployee += parseFloat(itemDeductions.eisEmployee || 0);
-          ytdData.ytdPcbEmployee += parseFloat(itemDeductions.pcb38 || itemDeductions.pcb39 || 0);
-          
-          ytdData.ytdEpfEmployer += parseFloat(itemContributions.epfEmployer || 0);
-          ytdData.ytdSocsoEmployer += parseFloat(itemContributions.socsoEmployer || 0);
-          ytdData.ytdEisEmployer += parseFloat(itemContributions.eisEmployer || 0);
-        }
-
-        return ytdData;
-      };
-
+      // Use the existing getYTDBreakdown function from the file
       const ytdData = await getYTDBreakdown(employeeId);
 
       // Build templateData (same structure as preview)
@@ -4796,13 +4763,13 @@ export function registerRoutes(app: Express): Server {
         netIncome: parseFloat(salary.gross || 0) - Object.values(deductions).reduce((sum, val) => sum + parseFloat(val || 0), 0),
         ytd: {
           breakdown: {
-            epfEmployee: ytdData.ytdEpfEmployee,
-            socsoEmployee: ytdData.ytdSocsoEmployee,
-            eisEmployee: ytdData.ytdEisEmployee,
-            pcb: ytdData.ytdPcbEmployee,
-            epfEmployer: ytdData.ytdEpfEmployer,
-            socsoEmployer: ytdData.ytdSocsoEmployer,
-            eisEmployer: ytdData.ytdEisEmployer
+            epfEmployee: parseFloat(ytdData.ytdEpfEmployee),
+            socsoEmployee: parseFloat(ytdData.ytdSocsoEmployee),
+            eisEmployee: parseFloat(ytdData.ytdEisEmployee),
+            pcb: parseFloat(ytdData.ytdPcbEmployee),
+            epfEmployer: parseFloat(ytdData.ytdEpfEmployer),
+            socsoEmployer: parseFloat(ytdData.ytdSocsoEmployer),
+            eisEmployer: parseFloat(ytdData.ytdEisEmployer)
           }
         }
       };
