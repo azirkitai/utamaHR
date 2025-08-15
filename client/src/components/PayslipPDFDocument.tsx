@@ -146,10 +146,10 @@ export function buildPdfPropsFromTemplateData(templateData: any): PayslipPDFProp
       additional: additionalIncomeItems,
     },
     deductions: {
-      epfEmployee: parseAmount(templateData.deduction?.epfEmp || 0),
-      socsoEmployee: parseAmount(templateData.deduction?.socsoEmp || 0),
-      eisEmployee: parseAmount(templateData.deduction?.eisEmp || 0),
-      pcb: parseAmount(templateData.deduction?.pcb || templateData.deduction?.other || 0),
+      epfEmployee: parseAmount(templateData.deduction?.epfEmp || templateData.deductions?.epfEmployee || 0),
+      socsoEmployee: parseAmount(templateData.deduction?.socsoEmp || templateData.deductions?.socsoEmployee || 0),
+      eisEmployee: parseAmount(templateData.deduction?.eisEmp || templateData.deductions?.eisEmployee || 0),
+      pcb: parseAmount(templateData.deductions?.pcb || templateData.deduction?.pcb || templateData.deduction?.other || 0),
       additional: additionalDeductionItems,
     },
     contributions: {
