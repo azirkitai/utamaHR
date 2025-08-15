@@ -4825,6 +4825,9 @@ export function registerRoutes(app: Express): Server {
         total: parseFloat(finalDeductions.epfEmployee || 0) + parseFloat(finalDeductions.socsoEmployee || 0) + parseFloat(finalDeductions.eisEmployee || 0) + parseFloat(finalDeductions.other || 0)
       });
       console.log('Template data generated for PDF:', Object.keys(templateData));
+      console.log('=== FINAL TEMPLATE DATA DEDUCTIONS DEBUG ===');
+      console.log('templateData.deductions:', JSON.stringify(templateData.deductions));
+      console.log('templateData.deductions.pcb value:', templateData.deductions.pcb);
       
       // Return templateData as JSON
       res.json(templateData);
