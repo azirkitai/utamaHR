@@ -20,9 +20,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-// Import jsPDF dynamically to avoid SSR issues
-import jsPDF from "jspdf";
-// Using multiple PDF generation approaches including jsPDF client-side
+// Import React PDF components
+import { PDFDownloadLink, pdf } from '@react-pdf/renderer';
+import { PayslipPDFDocument } from '@/components/PayslipPDFDocument';
+// Using @react-pdf/renderer for professional PDF generation
 
 // Salary Payroll Approval Card Component
 function SalaryPayrollApprovalCard({ payrollDocument, currentUser }: { payrollDocument: any; currentUser: any }) {
@@ -1108,22 +1109,57 @@ export default function PayrollDetailPage() {
                                   variant="outline"
                                   size="sm"
                                   className="p-1 h-7 w-7 border-green-300 text-green-600"
-                                  onClick={() => {
-                                    // SUPER BASIC TEST - just create empty PDF
+                                  onClick={async () => {
+                                    // REACT PDF TEST - using @react-pdf/renderer
                                     try {
-                                      console.log('=== BASIC PDF TEST ===');
-                                      const doc = new jsPDF();
-                                      doc.text('Hello World!', 20, 20);
-                                      doc.text('This is a test PDF', 20, 30);
-                                      doc.save('test.pdf');
-                                      alert('Basic PDF test berjaya!');
+                                      console.log('=== REACT PDF TEST ===');
+                                      
+                                      // Fetch data from simple endpoint
+                                      const response = await fetch(`/api/payroll/payslip/${item.employeeId}/simple-pdf?documentId=${id}`);
+                                      
+                                      if (!response.ok) {
+                                        throw new Error(`Server error: ${response.status}`);
+                                      }
+                                      
+                                      const data = await response.json();
+                                      
+                                      if (!data.success) {
+                                        throw new Error(data.error || 'Failed to get PDF data');
+                                      }
+                                      
+                                      console.log('PDF data received:', data);
+                                      
+                                      // Generate PDF using React PDF
+                                      const pdfDoc = await pdf(
+                                        <PayslipPDFDocument
+                                          employee={data.employee}
+                                          document={data.document}
+                                          payroll={data.payroll}
+                                          generated={data.generated}
+                                        />
+                                      ).toBlob();
+                                      
+                                      // Create download link
+                                      const url = URL.createObjectURL(pdfDoc);
+                                      const link = document.createElement('a');
+                                      link.href = url;
+                                      link.download = `Payslip_${data.employee.fullName.replace(/\s+/g, '_')}_${data.document.month}_${data.document.year}.pdf`;
+                                      link.style.display = 'none';
+                                      document.body.appendChild(link);
+                                      link.click();
+                                      document.body.removeChild(link);
+                                      URL.revokeObjectURL(url);
+                                      
+                                      console.log('React PDF generated successfully');
+                                      alert('PDF slip gaji berjaya dimuat turun menggunakan React PDF!');
+                                      
                                     } catch (e) {
-                                      console.error('Basic PDF test gagal:', e);
-                                      alert('Basic PDF test gagal: ' + e.message);
+                                      console.error('React PDF test gagal:', e);
+                                      alert('React PDF test gagal: ' + e.message);
                                     }
                                   }}
                                   data-testid={`button-simple-pdf-${item.employeeId}`}
-                                  title="Basic PDF Test"
+                                  title="React PDF Test"
                                 >
                                   <Download className="w-3 h-3" />
                                 </Button>
