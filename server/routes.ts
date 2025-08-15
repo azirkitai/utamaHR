@@ -1024,14 +1024,25 @@ export function registerRoutes(app: Express): Server {
       const currentUser = req.user!;
       let employees;
       
+      console.log("=== GET EMPLOYEES DEBUG ===");
+      console.log("Current user:", { id: currentUser.id, username: currentUser.username, role: currentUser.role });
+      
       // Role-based access control for new role system
       const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      console.log("Admin roles:", adminRoles);
+      console.log("User has admin access:", adminRoles.includes(currentUser.role));
+      
       if (adminRoles.includes(currentUser.role)) {
         // Admin roles can see all employees with details
+        console.log("Fetching all employees with details for admin user...");
         employees = await storage.getAllEmployeesWithDetails();
+        console.log("Employees fetched:", employees?.length || 0);
+        console.log("First employee sample:", employees?.[0] ? JSON.stringify(employees[0], null, 2) : "No employees");
       } else {
         // Regular employees can only see their own employee record
+        console.log("Fetching employee record for regular user...");
         const employee = await storage.getEmployeeByUserId(currentUser.id);
+        console.log("Employee found for user:", !!employee);
         if (employee) {
           const employmentData = await storage.getEmploymentByEmployeeId(employee.id);
           const contactData = await storage.getContactByEmployeeId(employee.id);
@@ -1045,6 +1056,7 @@ export function registerRoutes(app: Express): Server {
         }
       }
       
+      console.log("Final employees result count:", employees?.length || 0);
       res.json(employees);
     } catch (error) {
       console.error("Get employees error:", error);
@@ -1114,6 +1126,9 @@ export function registerRoutes(app: Express): Server {
       
       // Only admin roles can create new employee records
       const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      console.log("=== EMPLOYEE CREATION DEBUG ===");
+      console.log("Current user:", JSON.stringify(currentUser, null, 2));
+      console.log("Request body:", JSON.stringify(req.body, null, 2));
       console.log("Employee creation authorization check - Current user role:", currentUser.role);
       console.log("Valid admin roles:", adminRoles);
       console.log("Role check result:", adminRoles.includes(currentUser.role));
