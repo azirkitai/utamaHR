@@ -4682,32 +4682,61 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).json({ error: "Data payroll tidak dijumpai" });
       }
 
-      // Parse payroll item data (same as preview)
+      // Parse payroll item data (same as preview) - Add debug logging
       const employeeSnapshot = JSON.parse(payrollItem.employeeSnapshot);
       const salary = JSON.parse(payrollItem.salary);
-      const storedDeductions = JSON.parse(payrollItem.deductions);
-      const contributions = JSON.parse(payrollItem.contributions);
+      
+      console.log('Raw payroll item deductions:', payrollItem.deductions);
+      const storedDeductions = JSON.parse(payrollItem.deductions || '{}');
+      const contributions = JSON.parse(payrollItem.contributions || '{}');
+      console.log('Parsed stored deductions:', storedDeductions);
 
-      // Get current Master Salary Configuration for accurate deduction values
+      // Get current Master Salary to use as fallback for missing deduction values
       const currentMasterSalary = await storage.getEmployeeSalaryByEmployeeId(employeeId);
-      let deductions = storedDeductions;
+      let finalDeductions = storedDeductions;
+      
+      console.log('Current master salary found:', !!currentMasterSalary);
+      console.log('Stored other deduction:', storedDeductions.other);
       
       if (currentMasterSalary) {
         const masterDeductions = currentMasterSalary.deductions ? JSON.parse(currentMasterSalary.deductions) : {};
+        console.log('Master deductions parsed:', JSON.stringify(masterDeductions));
         
-        // Override with current master salary deductions for accuracy
-        deductions = {
-          ...storedDeductions,
-          epfEmployee: masterDeductions.epfEmployee || storedDeductions.epfEmployee,
-          socsoEmployee: masterDeductions.socsoEmployee || storedDeductions.socsoEmployee,
-          eisEmployee: masterDeductions.eisEmployee || storedDeductions.eisEmployee,
-          pcb38: masterDeductions.pcb38 || storedDeductions.pcb38,
-          pcb39: masterDeductions.pcb39 || storedDeductions.pcb39,
-        };
+        // If stored deductions are missing 'other', use master salary value
+        // Check for empty array [] or null/undefined  
+        const isEmptyOther = !storedDeductions.other || (Array.isArray(storedDeductions.other) && storedDeductions.other.length === 0);
+        const hasMasterOther = masterDeductions.other && parseFloat(masterDeductions.other) > 0;
+        
+        console.log('Replace other condition:', { isEmptyOther, hasMasterOther });
+        
+        if (isEmptyOther && hasMasterOther) {
+          finalDeductions = {
+            ...storedDeductions,
+            other: masterDeductions.other
+          };
+          console.log('✅ Using master salary other deduction value:', masterDeductions.other);
+        } else {
+          console.log('❌ Keeping stored deductions - other:', storedDeductions.other);
+        }
+      } else {
+        console.log('No master salary found for employee:', employeeId);
       }
 
       // Use the existing getYTDBreakdown function from the file
       const ytdData = await getYTDBreakdown(employeeId);
+
+      console.log('About to create safeDeductions...');
+      console.log('Final deductions object:', JSON.stringify(finalDeductions));
+      
+      // Ensure finalDeductions has required fields with fallbacks
+      const safeDeductions = {
+        epfEmployee: finalDeductions?.epfEmployee || 0,
+        socsoEmployee: finalDeductions?.socsoEmployee || 0,
+        eisEmployee: finalDeductions?.eisEmployee || 0,
+        other: finalDeductions?.other || 0
+      };
+      
+      console.log('safeDeductions created successfully:', JSON.stringify(safeDeductions));
 
       // Build templateData (same structure as preview)
       const templateData = {
@@ -4747,20 +4776,22 @@ export function registerRoutes(app: Express): Server {
           ]
         },
         deduction: {
-          epfEmp: parseFloat(deductions.epfEmployee || 0),
-          socsoEmp: parseFloat(deductions.socsoEmployee || 0),
-          eisEmp: parseFloat(deductions.eisEmployee || 0),
-          pcb: parseFloat(deductions.pcb38 || deductions.pcb39 || 0),
-          other: parseFloat(deductions.other || 0),
-          total: parseFloat(deductions.epfEmployee || 0) + parseFloat(deductions.socsoEmployee || 0) + parseFloat(deductions.eisEmployee || 0) + parseFloat(deductions.pcb38 || deductions.pcb39 || 0) + parseFloat(deductions.other || 0),
-          items: []
+          epfEmp: parseFloat(safeDeductions.epfEmployee),
+          socsoEmp: parseFloat(safeDeductions.socsoEmployee),
+          eisEmp: parseFloat(safeDeductions.eisEmployee),
+          pcb: parseFloat(safeDeductions.other), // MTD/PCB is stored in 'other' field
+          other: parseFloat(safeDeductions.other),
+          total: parseFloat(safeDeductions.epfEmployee) + parseFloat(safeDeductions.socsoEmployee) + parseFloat(safeDeductions.eisEmployee) + parseFloat(safeDeductions.other),
+          items: [
+            ...(parseFloat(safeDeductions.other) > 0 ? [{ label: "MTD/PCB", amount: parseFloat(safeDeductions.other) }] : [])
+          ]
         },
         employerContrib: {
           epfEr: parseFloat(contributions.epfEmployer || 0),
           socsoEr: parseFloat(contributions.socsoEmployer || 0),
           eisEr: parseFloat(contributions.eisEmployer || 0)
         },
-        netIncome: parseFloat(salary.gross || 0) - (parseFloat(deductions.epfEmployee || 0) + parseFloat(deductions.socsoEmployee || 0) + parseFloat(deductions.eisEmployee || 0) + parseFloat(deductions.pcb38 || deductions.pcb39 || 0) + parseFloat(deductions.other || 0)),
+        netIncome: parseFloat(salary.gross || 0) - (parseFloat(safeDeductions.epfEmployee) + parseFloat(safeDeductions.socsoEmployee) + parseFloat(safeDeductions.eisEmployee) + parseFloat(safeDeductions.other)),
         ytd: {
           breakdown: {
             epfEmployee: parseFloat(ytdData.ytdEpfEmployee),
@@ -4774,6 +4805,19 @@ export function registerRoutes(app: Express): Server {
         }
       };
 
+      console.log('=== DEDUCTIONS DEBUG FOR TEMPLATE ===');
+      console.log('Stored deductions from payroll item:', JSON.stringify(storedDeductions));
+      if (currentMasterSalary) {
+        const masterDeductions = currentMasterSalary.deductions ? JSON.parse(currentMasterSalary.deductions) : {};
+        console.log('Current master salary deductions:', JSON.stringify(masterDeductions));
+      }
+      console.log('Final template deductions:', {
+        epfEmp: parseFloat(finalDeductions.epfEmployee || 0),
+        socsoEmp: parseFloat(finalDeductions.socsoEmployee || 0),
+        eisEmp: parseFloat(finalDeductions.eisEmployee || 0),
+        other: parseFloat(finalDeductions.other || 0),
+        total: parseFloat(finalDeductions.epfEmployee || 0) + parseFloat(finalDeductions.socsoEmployee || 0) + parseFloat(finalDeductions.eisEmployee || 0) + parseFloat(finalDeductions.other || 0)
+      });
       console.log('Template data generated for PDF:', Object.keys(templateData));
       
       // Return templateData as JSON
