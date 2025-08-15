@@ -4657,6 +4657,167 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Template Data endpoint for PDF generation (returns JSON templateData)
+  app.get("/api/payroll/payslip/:employeeId/template-data", authenticateToken, async (req, res) => {
+    try {
+      const { employeeId } = req.params;
+      const { documentId } = req.query;
+
+      if (!documentId) {
+        return res.status(400).json({ error: "ID dokumen payroll diperlukan" });
+      }
+
+      console.log('=== TEMPLATE DATA REQUEST ===');
+      console.log('Employee ID:', employeeId);
+      console.log('Document ID:', documentId);
+
+      // Reuse same logic as preview endpoint but return templateData only
+      const document = await storage.getPayrollDocument(documentId as string);
+      const payrollItem = await storage.getPayrollItemByDocumentAndEmployee(documentId as string, employeeId);
+      const employee = await storage.getEmployee(employeeId);
+      const employment = await storage.getEmploymentByEmployeeId(employeeId);
+      const companySettings = await storage.getCompanySettings();
+
+      if (!document || !payrollItem || !employee) {
+        return res.status(404).json({ error: "Data payroll tidak dijumpai" });
+      }
+
+      // Parse payroll item data (same as preview)
+      const employeeSnapshot = JSON.parse(payrollItem.employeeSnapshot);
+      const salary = JSON.parse(payrollItem.salary);
+      const storedDeductions = JSON.parse(payrollItem.deductions);
+      const contributions = JSON.parse(payrollItem.contributions);
+
+      // Get current Master Salary Configuration for accurate deduction values
+      const currentMasterSalary = await storage.getEmployeeSalaryByEmployeeId(employeeId);
+      let deductions = storedDeductions;
+      
+      if (currentMasterSalary) {
+        const masterDeductions = currentMasterSalary.deductions ? JSON.parse(currentMasterSalary.deductions) : {};
+        
+        // Override with current master salary deductions for accuracy
+        deductions = {
+          ...storedDeductions,
+          epfEmployee: masterDeductions.epfEmployee || storedDeductions.epfEmployee,
+          socsoEmployee: masterDeductions.socsoEmployee || storedDeductions.socsoEmployee,
+          eisEmployee: masterDeductions.eisEmployee || storedDeductions.eisEmployee,
+          pcb38: masterDeductions.pcb38 || storedDeductions.pcb38,
+          pcb39: masterDeductions.pcb39 || storedDeductions.pcb39,
+        };
+      }
+
+      // YTD calculation helper function (from preview logic)
+      const getYTDBreakdown = async (employeeId: string) => {
+        const monthNumber = parseInt(document.month);
+        const year = parseInt(document.year);
+        
+        const ytdPayrollItems = await storage.getYearToDatePayrollItems(employeeId, year, monthNumber);
+        
+        let ytdData = {
+          ytdEpfEmployee: 0,
+          ytdSocsoEmployee: 0,
+          ytdEisEmployee: 0,
+          ytdPcbEmployee: 0,
+          ytdEpfEmployer: 0,
+          ytdSocsoEmployer: 0,
+          ytdEisEmployer: 0
+        };
+
+        for (const item of ytdPayrollItems) {
+          const itemDeductions = JSON.parse(item.deductions);
+          const itemContributions = JSON.parse(item.contributions);
+
+          ytdData.ytdEpfEmployee += parseFloat(itemDeductions.epfEmployee || 0);
+          ytdData.ytdSocsoEmployee += parseFloat(itemDeductions.socsoEmployee || 0);
+          ytdData.ytdEisEmployee += parseFloat(itemDeductions.eisEmployee || 0);
+          ytdData.ytdPcbEmployee += parseFloat(itemDeductions.pcb38 || itemDeductions.pcb39 || 0);
+          
+          ytdData.ytdEpfEmployer += parseFloat(itemContributions.epfEmployer || 0);
+          ytdData.ytdSocsoEmployer += parseFloat(itemContributions.socsoEmployer || 0);
+          ytdData.ytdEisEmployer += parseFloat(itemContributions.eisEmployer || 0);
+        }
+
+        return ytdData;
+      };
+
+      const ytdData = await getYTDBreakdown(employeeId);
+
+      // Build templateData (same structure as preview)
+      const templateData = {
+        employee: {
+          name: employeeSnapshot.name,
+          icNo: employeeSnapshot.icNo,
+          position: employment?.position || employeeSnapshot.position || "Employee"
+        },
+        period: {
+          month: getMonthName(parseInt(document.month)),
+          year: document.year
+        },
+        company: {
+          name: companySettings?.companyName || "UTAMA MEDGROUP SDN BHD",
+          regNo: companySettings?.registrationNumber || "202201033996(1479693-H)",
+          address: companySettings?.address || "A2-22-3, SOHO SUITES @ KLCC, 20 JALAN PERAK, 50450 KUALA LUMPUR",
+          logoUrl: companySettings?.logoUrl || "",
+          confidentialityText: "STRICTLY PRIVATE & CONFIDENTIAL"
+        },
+        salary: {
+          basic: parseFloat(salary.basic || 0),
+          basicSalary: parseFloat(salary.basic || 0), // Include both versions for compatibility
+          fixedAllowance: parseFloat(salary.fixedAllowance || 0),
+          gross: parseFloat(salary.gross || 0),
+          additional: salary.additional || []
+        },
+        income: {
+          basic: parseFloat(salary.basic || 0),
+          overtime: parseFloat(salary.overtime || 0),
+          fixedAllowance: parseFloat(salary.fixedAllowance || 0),
+          totalGross: parseFloat(salary.gross || 0),
+          items: [
+            ...(salary.additional || []).map((item: any) => ({
+              label: item.label,
+              amount: parseFloat(item.amount || 0)
+            }))
+          ]
+        },
+        deduction: {
+          epfEmp: parseFloat(deductions.epfEmployee || 0),
+          socsoEmp: parseFloat(deductions.socsoEmployee || 0),
+          eisEmp: parseFloat(deductions.eisEmployee || 0),
+          pcb: parseFloat(deductions.pcb38 || deductions.pcb39 || 0),
+          other: parseFloat(deductions.pcb38 || deductions.pcb39 || 0),
+          total: Object.values(deductions).reduce((sum, val) => sum + parseFloat(val || 0), 0),
+          items: []
+        },
+        employerContrib: {
+          epfEr: parseFloat(contributions.epfEmployer || 0),
+          socsoEr: parseFloat(contributions.socsoEmployer || 0),
+          eisEr: parseFloat(contributions.eisEmployer || 0)
+        },
+        netIncome: parseFloat(salary.gross || 0) - Object.values(deductions).reduce((sum, val) => sum + parseFloat(val || 0), 0),
+        ytd: {
+          breakdown: {
+            epfEmployee: ytdData.ytdEpfEmployee,
+            socsoEmployee: ytdData.ytdSocsoEmployee,
+            eisEmployee: ytdData.ytdEisEmployee,
+            pcb: ytdData.ytdPcbEmployee,
+            epfEmployer: ytdData.ytdEpfEmployer,
+            socsoEmployer: ytdData.ytdSocsoEmployer,
+            eisEmployer: ytdData.ytdEisEmployer
+          }
+        }
+      };
+
+      console.log('Template data generated for PDF:', Object.keys(templateData));
+      
+      // Return templateData as JSON
+      res.json(templateData);
+      
+    } catch (error) {
+      console.error("Template data error:", error);
+      res.status(500).json({ error: "Gagal mendapatkan data template slip gaji" });
+    }
+  });
+
   // SUPER SIMPLE PDF route - return JSON data for client-side jsPDF
   app.get("/api/payroll/payslip/:employeeId/simple-pdf", async (req, res) => {
     try {

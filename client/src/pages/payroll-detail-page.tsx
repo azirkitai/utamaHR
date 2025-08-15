@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 // Import React PDF components
 import { PDFDownloadLink, pdf } from '@react-pdf/renderer';
-import { PayslipPDFDocument } from '@/components/PayslipPDFDocument';
+import { PayslipPDFDocument, buildPdfPropsFromTemplateData } from '@/components/PayslipPDFDocument';
 // Using @react-pdf/renderer for professional PDF generation
 
 // Salary Payroll Approval Card Component
@@ -1106,62 +1106,53 @@ export default function PayrollDetailPage() {
                                   variant="outline"
                                   size="sm"
                                   className="p-1 h-7 w-7 border-green-300 text-green-600"
-                                  onClick={() => {
-                                    // SUPER SIMPLE REACT PDF TEST
+                                  onClick={async () => {
+                                    // REACT PDF WITH AUTHENTIC DATA & MAPPER
                                     try {
                                       console.log('=== SUPER SIMPLE REACT PDF TEST ===');
                                       
-                                      // Create simple test data
-                                      const testData = {
-                                        employee: {
-                                          fullName: employeeSnapshot.name || 'Test Employee',
-                                          employeeNo: '001',
-                                          ic: '123456789',
-                                          id: item.employeeId
-                                        },
-                                        document: {
-                                          month: 'August',
-                                          year: 2025,
-                                          id: id
-                                        },
-                                        payroll: {
-                                          grossPay: 3000,
-                                          totalDeductions: 500,
-                                          netPay: 2500
-                                        },
-                                        generated: new Date().toLocaleString()
-                                      };
-                                      
-                                      // Use PDFDownloadLink approach (simpler)
-                                      const link = document.createElement('a');
-                                      link.href = '#';
-                                      link.innerHTML = 'Download PDF';
-                                      link.onclick = async () => {
-                                        try {
-                                          const pdfBlob = await pdf(
-                                            <PayslipPDFDocument {...testData} />
-                                          ).toBlob();
-                                          
-                                          const url = URL.createObjectURL(pdfBlob);
-                                          const downloadLink = document.createElement('a');
-                                          downloadLink.href = url;
-                                          downloadLink.download = 'test-payslip.pdf';
-                                          downloadLink.click();
-                                          URL.revokeObjectURL(url);
-                                          
-                                          alert('React PDF test berjaya!');
-                                        } catch (err: any) {
-                                          console.error('PDF generation error:', err);
-                                          alert('PDF error: ' + err.message);
+                                      // Fetch authentic templateData from preview endpoint
+                                      const token = localStorage.getItem('utamahr_token');
+                                      const templateResponse = await fetch(
+                                        `/api/payroll/payslip/${item.employeeId}/template-data?documentId=${id}`, 
+                                        {
+                                          headers: {
+                                            'Authorization': `Bearer ${token}`
+                                          }
                                         }
-                                      };
+                                      );
                                       
-                                      // Trigger the download
-                                      link.click();
+                                      if (!templateResponse.ok) {
+                                        throw new Error(`Failed to fetch template data: ${templateResponse.status}`);
+                                      }
+                                      
+                                      const templateData = await templateResponse.json();
+                                      console.log('Template data fetched:', templateData);
+                                      
+                                      // Use mapper to build PDF props from authentic templateData
+                                      const pdfProps = buildPdfPropsFromTemplateData(templateData);
+                                      console.log('PDF props from mapper:', pdfProps);
+                                      
+                                      // Generate PDF with authentic data
+                                      const pdfBlob = await pdf(
+                                        <PayslipPDFDocument {...pdfProps} />
+                                      ).toBlob();
+                                      
+                                      console.log('PDF blob size:', pdfBlob.size, 'bytes');
+                                      
+                                      // Download PDF
+                                      const url = URL.createObjectURL(pdfBlob);
+                                      const downloadLink = document.createElement('a');
+                                      downloadLink.href = url;
+                                      downloadLink.download = `Payslip_${pdfProps.employee.fullName}_${pdfProps.document.month}_${pdfProps.document.year}.pdf`;
+                                      downloadLink.click();
+                                      URL.revokeObjectURL(url);
+                                      
+                                      console.log('PDF downloaded successfully');
                                       
                                     } catch (e: any) {
-                                      console.error('React PDF test gagal:', e);
-                                      alert('React PDF test gagal: ' + (e?.message || 'Unknown error'));
+                                      console.error('PDF generation error:', e);
+                                      alert('PDF generation failed: ' + (e?.message || 'Unknown error'));
                                     }
                                   }}
                                   data-testid={`button-simple-pdf-${item.employeeId}`}

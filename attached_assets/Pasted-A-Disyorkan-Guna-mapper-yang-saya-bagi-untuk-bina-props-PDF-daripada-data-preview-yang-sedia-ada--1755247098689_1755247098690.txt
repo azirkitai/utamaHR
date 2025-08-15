@@ -1,0 +1,57 @@
+A) (Disyorkan) Guna mapper yang saya bagi untuk bina props PDF daripada data preview yang sedia ada
+
+Pastikan anda TIDAK mem-pass props satu-satu. Guna buildPdfPropsFromTemplateData(...) (yang dah ada dalam file kita) dan pass hasilnya.
+
+// contoh di page butang “Download PDF”
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import { PayslipPDFDocument, buildPdfPropsFromTemplateData } from '@/components/PayslipPDFDocument';
+
+// templateData = objek yang anda guna untuk PREVIEW (yang ada salary.basic, salary.gross, income.items, deduction, ytd, dll.)
+const pdfProps = buildPdfPropsFromTemplateData(templateData);
+
+<PDFDownloadLink
+  document={<PayslipPDFDocument {...pdfProps} />}
+  fileName={`Payslip_${pdfProps.employee.fullName}_${pdfProps.document.month}_${pdfProps.document.year}.pdf`}
+/>
+
+
+Mapper ini akan cari basic daripada td.income.basic atau td.salary.basic/basicSalary, dan akan parse string “3,500.00” → number. Jadi Basic Salary takkan 0 lagi.
+
+B) (Extra safeguard) – fallback dalam komponen: kalau basicSalary tiada, derive dari GROSS
+
+Saya tambah 3 baris logik supaya Basic Salary di-compute dari grossPay jika tiada nilai. Letak patch ini dalam komponen PayslipPDFDocument (yang anda sudah paste):
+
+// ===== di awal function component, selepas 'const conf = ...' =====
+const sumAdditional = (arr?: Array<{amount: any}>) =>
+  (arr || []).reduce((s, a) => s + toNum(a?.amount), 0);
+
+const incomeOthers =
+  toNum(income?.overtime) +
+  toNum(income?.fixedAllowance) +
+  sumAdditional(income?.additional);
+
+// jika basicSalary tiada/0, kita derive: gross - (overtime + fixed + additional)
+const basicForDisplay =
+  toNum(income?.basicSalary) || Math.max(0, toNum(payroll?.grossPay) - incomeOthers);
+
+
+Kemudian, ganti satu baris yang memaparkan Basic Salary:
+
+// sebelum
+<Text style={styles.itemAmount}>{formatRM(income?.basicSalary)}</Text>
+
+// selepas
+<Text style={styles.itemAmount}>{formatRM(basicForDisplay)}</Text>
+
+
+Dengan fallback ni, kalau anda hanya pass grossPay=3000 dan tak pass income.basicSalary, PDF tetap tunjuk Basic Salary = RM 3000.00 (kecuali ada item income lain, ia akan kira beza yang betul).
+
+Kenapa ini berlaku tadi?
+
+Di preview, anda push “Basic Salary” ke income.items dan format kepada string.
+
+Di PDF, anda pass payroll.grossPay, totalDeductions, netPay, tetapi tidak pass income.basicSalary.
+
+Komponen membaca income.basicSalary → undefined → dipaparkan 0.
+
+Dengan A (mapper), props akan lengkap secara automatik. Dengan B (fallback), komponen tetap paparkan angka betul walaupun basicSalary tidak dihantar.

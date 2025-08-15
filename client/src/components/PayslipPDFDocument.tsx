@@ -1,524 +1,471 @@
-import React from 'react';
-import { 
-  Document, 
-  Page, 
-  Text, 
-  View, 
-  StyleSheet, 
-  Font 
-} from '@react-pdf/renderer';
+// PayslipPDFDocument.tsx
+import React from "react";
+import {
+  Document,
+  Page,
+  Text,
+  View,
+  StyleSheet,
+  Image,
+} from "@react-pdf/renderer";
 
-// Define styles for PDF matching the exact template format
-const styles = StyleSheet.create({
-  page: {
-    flexDirection: 'column',
-    backgroundColor: '#ffffff',
-    padding: 20,
-    fontSize: 11,
-  },
-  headerSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 20,
-    paddingBottom: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#cccccc',
-  },
-  leftHeader: {
-    flexDirection: 'column',
-    flex: 1,
-  },
-  companyName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  regNumber: {
-    fontSize: 12,
-    marginBottom: 5,
-  },
-  address: {
-    fontSize: 10,
-    lineHeight: 1.3,
-  },
-  rightHeader: {
-    textAlign: 'right',
-    fontSize: 10,
-    color: '#666',
-  },
-  employeeSection: {
-    backgroundColor: '#f8f9fa',
-    padding: 15,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-  },
-  employeeRow: {
-    flexDirection: 'row',
-    marginBottom: 8,
-  },
-  employeeLabel: {
-    width: '25%',
-    fontSize: 11,
-    fontWeight: 'bold',
-    color: '#666',
-  },
-  employeeValue: {
-    width: '25%',
-    fontSize: 11,
-    fontWeight: 'bold',
-  },
-  monthLabel: {
-    width: '20%',
-    fontSize: 11,
-    fontWeight: 'bold',
-    color: '#666',
-  },
-  monthValue: {
-    width: '30%',
-    fontSize: 11,
-    fontWeight: 'bold',
-  },
-  payrollSection: {
-    flexDirection: 'row',
-    marginBottom: 20,
-  },
-  incomeBox: {
-    flex: 1,
-    marginRight: 10,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-    padding: 15,
-  },
-  deductionBox: {
-    flex: 1,
-    marginLeft: 10,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-    padding: 15,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    textTransform: 'uppercase',
-  },
-  itemRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-    paddingVertical: 3,
-  },
-  itemLabel: {
-    fontSize: 11,
-  },
-  itemAmount: {
-    fontSize: 11,
-    fontWeight: 'bold',
-  },
-  totalRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 10,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#dee2e6',
-  },
-  totalLabel: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-  },
-  totalAmount: {
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  netPaySection: {
-    backgroundColor: '#d4edda',
-    borderWidth: 2,
-    borderColor: '#28a745',
-    borderRadius: 5,
-    padding: 15,
-    marginBottom: 20,
-  },
-  netPayRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  netPayLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-  },
-  netPayAmount: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  contributionSection: {
-    marginBottom: 20,
-  },
-  contributionTitle: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#666',
-    marginBottom: 10,
-    textTransform: 'uppercase',
-  },
-  contributionRow: {
-    flexDirection: 'row',
-    marginBottom: 15,
-  },
-  contributionBox: {
-    flex: 1,
-    marginHorizontal: 5,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-    padding: 12,
-    backgroundColor: '#f8f9fa',
-  },
-  contributionBoxTitle: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    textTransform: 'uppercase',
-  },
-  contributionAmount: {
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  ytdSection: {
-    marginBottom: 20,
-  },
-  ytdTitle: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#666',
-    marginBottom: 10,
-    textTransform: 'uppercase',
-  },
-  ytdRow: {
-    flexDirection: 'row',
-    marginBottom: 15,
-  },
-  ytdBox: {
-    flex: 1,
-    marginHorizontal: 5,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-    padding: 12,
-  },
-  ytdBoxTitle: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    textTransform: 'uppercase',
-  },
-  ytdItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 5,
-  },
-  ytdItemLabel: {
-    fontSize: 10,
-  },
-  ytdItemAmount: {
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  footer: {
-    marginTop: 30,
-    textAlign: 'center',
-    fontSize: 9,
-    color: '#666666',
-    borderTopWidth: 1,
-    borderTopColor: '#e9ecef',
-    paddingTop: 15,
-  },
-});
+/* ===================== Utils (parse & format) ===================== */
+const toNum = (v: unknown): number => {
+  if (v === null || v === undefined) return 0;
+  if (typeof v === "number") return v;
+  const n = Number(String(v).replace(/[^\d.-]/g, ""));
+  return Number.isFinite(n) ? n : 0;
+};
+const toFixed2 = (v: unknown) => toNum(v).toFixed(2);
+const formatRM = (v: unknown) => `RM ${toFixed2(v)}`;
 
-// Payslip PDF Document Component
-interface PayslipPDFProps {
+/* ============================ Types =============================== */
+type AmountItem = { label: string; amount: number | string };
+
+export interface PayslipPDFProps {
   employee: {
     fullName: string;
-    employeeNo: string;
-    ic: string;
-    id: string;
+    employeeNo?: string;
+    ic?: string;
+    id?: string;
     position?: string;
   };
   document: {
     month: string;
-    year: number;
-    id: string;
-  };
-  payroll: {
-    grossPay: number;
-    totalDeductions: number;
-    netPay: number;
+    year: number | string;
+    id?: string;
   };
   company?: {
     name?: string;
     regNumber?: string;
     address?: string;
+    logoUrl?: string;
+    confidentialityText?: string;
+  };
+  payroll: {
+    grossPay: number | string;
+    totalDeductions: number | string;
+    netPay: number | string;
   };
   income?: {
-    basicSalary?: number;
-    overtime?: number;
-    fixedAllowance?: number;
-    additional?: Array<{label: string; amount: number}>;
+    basicSalary?: number | string;
+    overtime?: number | string;
+    fixedAllowance?: number | string;
+    additional?: Array<{ label: string; amount: number | string }>;
   };
   deductions?: {
-    epfEmployee?: number;
-    socsoEmployee?: number;
-    eisEmployee?: number;
-    pcb?: number;
-    additional?: Array<{label: string; amount: number}>;
+    epfEmployee?: number | string;
+    socsoEmployee?: number | string;
+    eisEmployee?: number | string;
+    pcb?: number | string;
+    additional?: Array<{ label: string; amount: number | string }>;
   };
   contributions?: {
-    epfEmployer?: number;
-    socsoEmployer?: number;
-    eisEmployer?: number;
+    epfEmployer?: number | string;
+    socsoEmployer?: number | string;
+    eisEmployer?: number | string;
   };
   ytd?: {
-    employee?: {
-      epf?: number;
-      socso?: number;
-      eis?: number;
-      pcb?: number;
-    };
-    employer?: {
-      epf?: number;
-      socso?: number;
-      eis?: number;
-    };
+    employee?: { epf?: number | string; socso?: number | string; eis?: number | string; pcb?: number | string };
+    employer?: { epf?: number | string; socso?: number | string; eis?: number | string };
   };
   generated: string;
 }
 
+/* ===== Mapper: templateData/DB  →  props komponen ===== */
+export function buildPdfPropsFromTemplateData(templateData: any): PayslipPDFProps {
+  // Helper to parse amounts from template data (handles "3,500.00" strings)
+  const parseAmount = (value: any): number => {
+    if (typeof value === 'string') {
+      return parseFloat(value.replace(/,/g, '')) || 0;
+    }
+    return parseFloat(value) || 0;
+  };
+
+  // Extract basic salary from various possible locations
+  const basicSalary = parseAmount(
+    templateData.income?.basic || 
+    templateData.salary?.basic || 
+    templateData.salary?.basicSalary || 
+    0
+  );
+
+  // Parse additional income items
+  const additionalIncomeItems = (templateData.income?.items || [])
+    .filter((item: any) => item.label !== 'Basic Salary') // Exclude Basic Salary from additional items
+    .map((item: any) => ({
+      label: item.label,
+      amount: parseAmount(item.amount)
+    }));
+
+  // Parse additional deduction items  
+  const additionalDeductionItems = (templateData.deduction?.items || [])
+    .map((item: any) => ({
+      label: item.label,
+      amount: parseAmount(item.amount)
+    }));
+
+  return {
+    employee: {
+      fullName: templateData.employee?.name || '',
+      ic: templateData.employee?.icNo || '',
+      position: templateData.employee?.position || '',
+    },
+    document: {
+      month: templateData.period?.month || '',
+      year: templateData.period?.year || new Date().getFullYear(),
+    },
+    company: {
+      name: templateData.company?.name || '',
+      regNumber: templateData.company?.regNo || '',
+      address: templateData.company?.address || '',
+      logoUrl: templateData.company?.logoUrl || '',
+      confidentialityText: 'STRICTLY PRIVATE & CONFIDENTIAL',
+    },
+    payroll: {
+      grossPay: parseAmount(templateData.income?.totalGross || templateData.salary?.gross || 0),
+      totalDeductions: parseAmount(templateData.deduction?.total || 0),
+      netPay: parseAmount(templateData.netIncome || 0),
+    },
+    income: {
+      basicSalary: basicSalary,
+      overtime: parseAmount(templateData.income?.overtime || 0),
+      fixedAllowance: parseAmount(templateData.income?.fixedAllowance || 0),
+      additional: additionalIncomeItems,
+    },
+    deductions: {
+      epfEmployee: parseAmount(templateData.deduction?.epfEmp || 0),
+      socsoEmployee: parseAmount(templateData.deduction?.socsoEmp || 0),
+      eisEmployee: parseAmount(templateData.deduction?.eisEmp || 0),
+      pcb: parseAmount(templateData.deduction?.pcb || templateData.deduction?.other || 0),
+      additional: additionalDeductionItems,
+    },
+    contributions: {
+      epfEmployer: parseAmount(templateData.employerContrib?.epfEr || 0),
+      socsoEmployer: parseAmount(templateData.employerContrib?.socsoEr || 0),
+      eisEmployer: parseAmount(templateData.employerContrib?.eisEr || 0),
+    },
+    ytd: {
+      employee: {
+        epf: parseAmount(templateData.ytd?.breakdown?.epfEmployee || 0),
+        socso: parseAmount(templateData.ytd?.breakdown?.socsoEmployee || 0),
+        eis: parseAmount(templateData.ytd?.breakdown?.eisEmployee || 0),
+        pcb: parseAmount(templateData.ytd?.breakdown?.pcb || 0),
+      },
+      employer: {
+        epf: parseAmount(templateData.ytd?.breakdown?.epfEmployer || 0),
+        socso: parseAmount(templateData.ytd?.breakdown?.socsoEmployer || 0),
+        eis: parseAmount(templateData.ytd?.breakdown?.eisEmployer || 0),
+      },
+    },
+    generated: new Date().toISOString(),
+  };
+}
+
+/* ============================= Styles ================================ */
+const styles = StyleSheet.create({
+  page: { flexDirection: "column", backgroundColor: "#fff", padding: 20, fontSize: 11 },
+
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+  },
+  companyWrap: { flexDirection: "row", alignItems: "flex-start" },
+  logo: { width: 42, height: 42, marginRight: 8, objectFit: "contain" },
+  companyName: { fontSize: 18, fontWeight: 700 },
+  regNo: { fontSize: 12, marginTop: 2 },
+  address: { fontSize: 10, lineHeight: 1.3, marginTop: 2, maxWidth: 360 },
+  confidential: { fontSize: 10, color: "#666" },
+
+  employeeSection: {
+    backgroundColor: "#f8f9fa",
+    padding: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#e9ecef",
+    borderRadius: 6,
+  },
+  employeeRow: { flexDirection: "row", marginBottom: 6 },
+  employeeLabel: { width: "25%", fontSize: 11, fontWeight: 700, color: "#666" },
+  employeeValue: { width: "25%", fontSize: 11, fontWeight: 700 },
+  monthLabel: { width: "20%", fontSize: 11, fontWeight: 700, color: "#666" },
+  monthValue: { width: "30%", fontSize: 11, fontWeight: 700 },
+
+  boxRow: { flexDirection: "row", marginBottom: 14 },
+  box: { flex: 1, borderWidth: 1, borderColor: "#e9ecef", padding: 12, borderRadius: 6 },
+  boxLeft: { marginRight: 6 },
+  boxRight: { marginLeft: 6 },
+  sectionTitle: { fontSize: 13, fontWeight: 700, marginBottom: 10, textTransform: "uppercase" },
+  itemRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 6, paddingVertical: 3 },
+  itemLabel: { fontSize: 11 },
+  itemAmount: { fontSize: 11, fontWeight: 700 },
+  totalRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: "#dee2e6" },
+  totalLabel: { fontSize: 12, fontWeight: 700, textTransform: "uppercase" },
+  totalAmount: { fontSize: 12, fontWeight: 700 },
+
+  netPaySection: { backgroundColor: "#d4edda", borderWidth: 2, borderColor: "#28a745", borderRadius: 6, padding: 12, marginBottom: 14 },
+  netRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  netLabel: { fontSize: 16, fontWeight: 700, textTransform: "uppercase" },
+  netAmount: { fontSize: 18, fontWeight: 700 },
+
+  contribWrap: { marginBottom: 14 },
+  contribTitle: { fontSize: 12, fontWeight: 700, color: "#666", marginBottom: 8, textTransform: "uppercase" },
+  contribRow: { flexDirection: "row", gap: 8, marginBottom: 6 },
+  contribBox: { flex: 1, borderWidth: 1, borderColor: "#e9ecef", padding: 10, backgroundColor: "#f8f9fa", borderRadius: 6 },
+  contribHead: { fontSize: 10, fontWeight: 700, marginBottom: 6, textTransform: "uppercase" },
+  contribAmt: { fontSize: 12, fontWeight: 700 },
+
+  ytdWrap: { marginBottom: 16 },
+  ytdTitle: { fontSize: 12, fontWeight: 700, color: "#666", marginBottom: 8, textTransform: "uppercase" },
+  ytdRow: { flexDirection: "row", gap: 8 },
+  ytdBox: { flex: 1, borderWidth: 1, borderColor: "#e9ecef", padding: 10, borderRadius: 6 },
+  ytdBoxTitle: { fontSize: 11, fontWeight: 700, marginBottom: 8, textTransform: "uppercase" },
+  ytdItem: { flexDirection: "row", justifyContent: "space-between", marginBottom: 4 },
+  ytdLabel: { fontSize: 10 },
+  ytdAmt: { fontSize: 10, fontWeight: 700 },
+
+  footer: { marginTop: 16, textAlign: "center", fontSize: 9, color: "#666", borderTopWidth: 1, borderTopColor: "#e9ecef", paddingTop: 10 },
+});
+
+/* =========================== Component ============================ */
 export const PayslipPDFDocument: React.FC<PayslipPDFProps> = ({
   employee,
   document,
+  company: companyIn,
   payroll,
-  company,
   income,
   deductions,
   contributions,
   ytd,
   generated,
-}) => (
-  <Document>
-    <Page size="A4" style={styles.page}>
-      {/* Header Section */}
-      <View style={styles.headerSection}>
-        <View style={styles.leftHeader}>
-          <Text style={styles.companyName}>
-            {company?.name || 'UTAMA MEDGROUP'}
-          </Text>
-          <Text style={styles.regNumber}>
-            {company?.regNumber || '202201033996(1479693-H)'}
-          </Text>
-          <Text style={styles.address}>
-            {company?.address || 'Lot 5138S-A, Lorong 1g Mohd Amin, Jln Wan Hassan, Kg Batu 4, 43650,\nBandar Baru Bangi, Selangor'}
-          </Text>
-        </View>
-        <View style={styles.rightHeader}>
-          <Text>STRICTLY PRIVATE & CONFIDENTIAL</Text>
-        </View>
-      </View>
+}) => {
+  const conf = {
+    company: {
+      name: companyIn?.name || "UTAMA MEDGROUP SDN BHD",
+      regNumber: companyIn?.regNumber || "202201033996(1479693-H)",
+      address: companyIn?.address || "A2-22-3, SOHO SUITES @ KLCC, 20 JALAN PERAK, 50450 KUALA LUMPUR",
+      logoUrl: companyIn?.logoUrl,
+      confidentialityText: companyIn?.confidentialityText || "STRICTLY PRIVATE & CONFIDENTIAL",
+    },
+  };
 
-      {/* Employee Information Section */}
-      <View style={styles.employeeSection}>
-        <View style={styles.employeeRow}>
-          <Text style={styles.employeeLabel}>NAME:</Text>
-          <Text style={styles.employeeValue}>{employee.fullName}</Text>
-          <Text style={styles.monthLabel}>MONTH:</Text>
-          <Text style={styles.monthValue}>{document.month.toUpperCase()}</Text>
-        </View>
-        <View style={styles.employeeRow}>
-          <Text style={styles.employeeLabel}>I/C NO.:</Text>
-          <Text style={styles.employeeValue}>{employee.ic || 'N/A'}</Text>
-          <Text style={styles.monthLabel}>YEAR:</Text>
-          <Text style={styles.monthValue}>{document.year}</Text>
-        </View>
-        <View style={styles.employeeRow}>
-          <Text style={styles.employeeLabel}>POSITION:</Text>
-          <Text style={styles.employeeValue}>{employee.position || 'SENIOR MANAGER'}</Text>
-        </View>
-      </View>
+  // FALLBACK LOGIC FOR BASIC SALARY (as per user instruction B)
+  const sumAdditional = (arr?: Array<{amount: any}>) =>
+    (arr || []).reduce((s, a) => s + toNum(a?.amount), 0);
 
-      {/* Income and Deduction Sections */}
-      <View style={styles.payrollSection}>
-        {/* Income Box */}
-        <View style={styles.incomeBox}>
-          <Text style={styles.sectionTitle}>INCOME</Text>
-          
-          <View style={styles.itemRow}>
-            <Text style={styles.itemLabel}>Basic Salary</Text>
-            <Text style={styles.itemAmount}>RM {(income?.basicSalary || 0).toFixed(2)}</Text>
+  const incomeOthers =
+    toNum(income?.overtime) +
+    toNum(income?.fixedAllowance) +
+    sumAdditional(income?.additional);
+
+  // If basicSalary is missing/0, derive: gross - (overtime + fixed + additional)
+  const basicForDisplay =
+    toNum(income?.basicSalary) || Math.max(0, toNum(payroll?.grossPay) - incomeOthers);
+
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        {/* Header */}
+        <View style={styles.headerRow}>
+          <View style={styles.companyWrap}>
+            {conf.company.logoUrl && (
+              <Image src={conf.company.logoUrl} style={styles.logo} />
+            )}
+            <View>
+              <Text style={styles.companyName}>{conf.company.name}</Text>
+              <Text style={styles.regNo}>{conf.company.regNumber}</Text>
+              <Text style={styles.address}>{conf.company.address}</Text>
+            </View>
           </View>
-          
-          {income?.overtime && income.overtime > 0 && (
+          <Text style={styles.confidential}>{conf.company.confidentialityText}</Text>
+        </View>
+
+        {/* Employee Info */}
+        <View style={styles.employeeSection}>
+          <View style={styles.employeeRow}>
+            <Text style={styles.employeeLabel}>NAME:</Text>
+            <Text style={styles.employeeValue}>{employee.fullName}</Text>
+            <Text style={styles.monthLabel}>MONTH:</Text>
+            <Text style={styles.monthValue}>{document.month}</Text>
+          </View>
+          <View style={styles.employeeRow}>
+            <Text style={styles.employeeLabel}>I/C NO.:</Text>
+            <Text style={styles.employeeValue}>{employee.ic || "N/A"}</Text>
+            <Text style={styles.monthLabel}>YEAR:</Text>
+            <Text style={styles.monthValue}>{document.year}</Text>
+          </View>
+          <View style={styles.employeeRow}>
+            <Text style={styles.employeeLabel}>POSITION:</Text>
+            <Text style={styles.employeeValue}>{employee.position || "Employee"}</Text>
+          </View>
+        </View>
+
+        {/* Income vs Deductions */}
+        <View style={styles.boxRow}>
+          {/* Income Box */}
+          <View style={[styles.box, styles.boxLeft]}>
+            <Text style={styles.sectionTitle}>INCOME</Text>
+            
+            {/* Basic Salary - using fallback logic */}
             <View style={styles.itemRow}>
-              <Text style={styles.itemLabel}>Overtime</Text>
-              <Text style={styles.itemAmount}>RM {income.overtime.toFixed(2)}</Text>
+              <Text style={styles.itemLabel}>Basic Salary</Text>
+              <Text style={styles.itemAmount}>{formatRM(basicForDisplay)}</Text>
             </View>
-          )}
-          
-          {income?.fixedAllowance && income.fixedAllowance > 0 && (
-            <View style={styles.itemRow}>
-              <Text style={styles.itemLabel}>FIXED ALLOWENCE</Text>
-              <Text style={styles.itemAmount}>RM {income.fixedAllowance.toFixed(2)}</Text>
+            
+            {/* Other income items */}
+            {toNum(income?.overtime) > 0 && (
+              <View style={styles.itemRow}>
+                <Text style={styles.itemLabel}>Overtime</Text>
+                <Text style={styles.itemAmount}>{formatRM(income?.overtime)}</Text>
+              </View>
+            )}
+            
+            {toNum(income?.fixedAllowance) > 0 && (
+              <View style={styles.itemRow}>
+                <Text style={styles.itemLabel}>Fixed Allowance</Text>
+                <Text style={styles.itemAmount}>{formatRM(income?.fixedAllowance)}</Text>
+              </View>
+            )}
+            
+            {/* Additional income items */}
+            {(income?.additional || []).map((item, idx) => 
+              toNum(item.amount) > 0 && (
+                <View key={idx} style={styles.itemRow}>
+                  <Text style={styles.itemLabel}>{item.label}</Text>
+                  <Text style={styles.itemAmount}>{formatRM(item.amount)}</Text>
+                </View>
+              )
+            )}
+            
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Total Gross</Text>
+              <Text style={styles.totalAmount}>{formatRM(payroll.grossPay)}</Text>
             </View>
-          )}
+          </View>
 
-          {income?.additional?.map((item, index) => (
-            <View key={index} style={styles.itemRow}>
-              <Text style={styles.itemLabel}>{item.label}</Text>
-              <Text style={styles.itemAmount}>RM {item.amount.toFixed(2)}</Text>
+          {/* Deductions Box */}
+          <View style={[styles.box, styles.boxRight]}>
+            <Text style={styles.sectionTitle}>DEDUCTIONS</Text>
+            
+            <View style={styles.itemRow}>
+              <Text style={styles.itemLabel}>EPF</Text>
+              <Text style={styles.itemAmount}>{formatRM(deductions?.epfEmployee)}</Text>
             </View>
-          ))}
-          
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>TOTAL GROSS</Text>
-            <Text style={styles.totalAmount}>RM {payroll.grossPay.toFixed(2)}</Text>
+            
+            <View style={styles.itemRow}>
+              <Text style={styles.itemLabel}>SOCSO</Text>
+              <Text style={styles.itemAmount}>{formatRM(deductions?.socsoEmployee)}</Text>
+            </View>
+            
+            <View style={styles.itemRow}>
+              <Text style={styles.itemLabel}>EIS</Text>
+              <Text style={styles.itemAmount}>{formatRM(deductions?.eisEmployee)}</Text>
+            </View>
+            
+            {/* PCB/MTD */}
+            {toNum(deductions?.pcb) > 0 && (
+              <View style={styles.itemRow}>
+                <Text style={styles.itemLabel}>MTD/PCB</Text>
+                <Text style={styles.itemAmount}>{formatRM(deductions?.pcb)}</Text>
+              </View>
+            )}
+            
+            {/* Additional deduction items */}
+            {(deductions?.additional || []).map((item, idx) => 
+              toNum(item.amount) > 0 && (
+                <View key={idx} style={styles.itemRow}>
+                  <Text style={styles.itemLabel}>{item.label}</Text>
+                  <Text style={styles.itemAmount}>{formatRM(item.amount)}</Text>
+                </View>
+              )
+            )}
+            
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Total Deductions</Text>
+              <Text style={styles.totalAmount}>{formatRM(payroll.totalDeductions)}</Text>
+            </View>
           </View>
         </View>
 
-        {/* Deduction Box */}
-        <View style={styles.deductionBox}>
-          <Text style={styles.sectionTitle}>DEDUCTION</Text>
-          
-          {deductions?.epfEmployee && deductions.epfEmployee > 0 && (
-            <View style={styles.itemRow}>
-              <Text style={styles.itemLabel}>EPF Employee</Text>
-              <Text style={styles.itemAmount}>RM {deductions.epfEmployee.toFixed(2)}</Text>
-            </View>
-          )}
-          
-          {deductions?.socsoEmployee && deductions.socsoEmployee > 0 && (
-            <View style={styles.itemRow}>
-              <Text style={styles.itemLabel}>SOCSO Employee</Text>
-              <Text style={styles.itemAmount}>RM {deductions.socsoEmployee.toFixed(2)}</Text>
-            </View>
-          )}
-          
-          {deductions?.eisEmployee && deductions.eisEmployee > 0 && (
-            <View style={styles.itemRow}>
-              <Text style={styles.itemLabel}>EIS Employee</Text>
-              <Text style={styles.itemAmount}>RM {deductions.eisEmployee.toFixed(2)}</Text>
-            </View>
-          )}
-          
-          {deductions?.pcb && deductions.pcb > 0 && (
-            <View style={styles.itemRow}>
-              <Text style={styles.itemLabel}>MTD/PCB</Text>
-              <Text style={styles.itemAmount}>RM {deductions.pcb.toFixed(2)}</Text>
-            </View>
-          )}
-
-          {deductions?.additional?.map((item, index) => (
-            <View key={index} style={styles.itemRow}>
-              <Text style={styles.itemLabel}>{item.label}</Text>
-              <Text style={styles.itemAmount}>RM {item.amount.toFixed(2)}</Text>
-            </View>
-          ))}
-          
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>TOTAL DEDUCTION</Text>
-            <Text style={styles.totalAmount}>RM {payroll.totalDeductions.toFixed(2)}</Text>
+        {/* Net Pay */}
+        <View style={styles.netPaySection}>
+          <View style={styles.netRow}>
+            <Text style={styles.netLabel}>NET PAY</Text>
+            <Text style={styles.netAmount}>{formatRM(payroll.netPay)}</Text>
           </View>
         </View>
-      </View>
 
-      {/* Net Pay Section */}
-      <View style={styles.netPaySection}>
-        <View style={styles.netPayRow}>
-          <Text style={styles.netPayLabel}>NET PAY</Text>
-          <Text style={styles.netPayAmount}>RM {payroll.netPay.toFixed(2)}</Text>
-        </View>
-      </View>
-
-      {/* Employer Contribution Section */}
-      <View style={styles.contributionSection}>
-        <Text style={styles.contributionTitle}>EMPLOYER CONTRIBUTION</Text>
-        <View style={styles.contributionRow}>
-          <View style={styles.contributionBox}>
-            <Text style={styles.contributionBoxTitle}>EPF EMPLOYER</Text>
-            <Text style={styles.contributionAmount}>RM {(contributions?.epfEmployer || 0).toFixed(2)}</Text>
-          </View>
-          <View style={styles.contributionBox}>
-            <Text style={styles.contributionBoxTitle}>SOCSO EMPLOYER</Text>
-            <Text style={styles.contributionAmount}>RM {(contributions?.socsoEmployer || 0).toFixed(2)}</Text>
-          </View>
-          <View style={styles.contributionBox}>
-            <Text style={styles.contributionBoxTitle}>EIS EMPLOYER</Text>
-            <Text style={styles.contributionAmount}>RM {(contributions?.eisEmployer || 0).toFixed(2)}</Text>
+        {/* Employer Contributions */}
+        <View style={styles.contribWrap}>
+          <Text style={styles.contribTitle}>Current Month Employer Contribution</Text>
+          <View style={styles.contribRow}>
+            <View style={styles.contribBox}>
+              <Text style={styles.contribHead}>EPF</Text>
+              <Text style={styles.contribAmt}>{formatRM(contributions?.epfEmployer)}</Text>
+            </View>
+            <View style={styles.contribBox}>
+              <Text style={styles.contribHead}>SOCSO</Text>
+              <Text style={styles.contribAmt}>{formatRM(contributions?.socsoEmployer)}</Text>
+            </View>
+            <View style={styles.contribBox}>
+              <Text style={styles.contribHead}>EIS</Text>
+              <Text style={styles.contribAmt}>{formatRM(contributions?.eisEmployer)}</Text>
+            </View>
           </View>
         </View>
-      </View>
 
-      {/* Year to Date Summary */}
-      <View style={styles.ytdSection}>
-        <Text style={styles.ytdTitle}>YEAR TO DATE SUMMARY</Text>
-        <View style={styles.ytdRow}>
-          <View style={styles.ytdBox}>
-            <Text style={styles.ytdBoxTitle}>EMPLOYEE CONTRIBUTION YTD</Text>
-            {ytd?.employee?.epf && (
+        {/* YTD Summary */}
+        <View style={styles.ytdWrap}>
+          <Text style={styles.ytdTitle}>Year To Date (YTD) Breakdown</Text>
+          <View style={styles.ytdRow}>
+            <View style={styles.ytdBox}>
+              <Text style={styles.ytdBoxTitle}>Employee Contribution (YTD)</Text>
               <View style={styles.ytdItem}>
-                <Text style={styles.ytdItemLabel}>EPF Employee</Text>
-                <Text style={styles.ytdItemAmount}>RM {ytd.employee.epf.toFixed(2)}</Text>
+                <Text style={styles.ytdLabel}>EPF</Text>
+                <Text style={styles.ytdAmt}>{formatRM(ytd?.employee?.epf)}</Text>
               </View>
-            )}
-            {ytd?.employee?.socso && (
               <View style={styles.ytdItem}>
-                <Text style={styles.ytdItemLabel}>SOCSO Employee</Text>
-                <Text style={styles.ytdItemAmount}>RM {ytd.employee.socso.toFixed(2)}</Text>
+                <Text style={styles.ytdLabel}>SOCSO</Text>
+                <Text style={styles.ytdAmt}>{formatRM(ytd?.employee?.socso)}</Text>
               </View>
-            )}
-            {ytd?.employee?.eis && (
               <View style={styles.ytdItem}>
-                <Text style={styles.ytdItemLabel}>EIS Employee</Text>
-                <Text style={styles.ytdItemAmount}>RM {ytd.employee.eis.toFixed(2)}</Text>
+                <Text style={styles.ytdLabel}>EIS</Text>
+                <Text style={styles.ytdAmt}>{formatRM(ytd?.employee?.eis)}</Text>
               </View>
-            )}
-            {ytd?.employee?.pcb && (
               <View style={styles.ytdItem}>
-                <Text style={styles.ytdItemLabel}>PCB/MTD</Text>
-                <Text style={styles.ytdItemAmount}>RM {ytd.employee.pcb.toFixed(2)}</Text>
+                <Text style={styles.ytdLabel}>PCB/MTD</Text>
+                <Text style={styles.ytdAmt}>{formatRM(ytd?.employee?.pcb)}</Text>
               </View>
-            )}
-          </View>
-          
-          <View style={styles.ytdBox}>
-            <Text style={styles.ytdBoxTitle}>EMPLOYER CONTRIBUTION YTD</Text>
-            {ytd?.employer?.epf && (
+            </View>
+            
+            <View style={styles.ytdBox}>
+              <Text style={styles.ytdBoxTitle}>Employer Contribution (YTD)</Text>
               <View style={styles.ytdItem}>
-                <Text style={styles.ytdItemLabel}>EPF Employer</Text>
-                <Text style={styles.ytdItemAmount}>RM {ytd.employer.epf.toFixed(2)}</Text>
+                <Text style={styles.ytdLabel}>EPF</Text>
+                <Text style={styles.ytdAmt}>{formatRM(ytd?.employer?.epf)}</Text>
               </View>
-            )}
-            {ytd?.employer?.socso && (
               <View style={styles.ytdItem}>
-                <Text style={styles.ytdItemLabel}>SOCSO Employer</Text>
-                <Text style={styles.ytdItemAmount}>RM {ytd.employer.socso.toFixed(2)}</Text>
+                <Text style={styles.ytdLabel}>SOCSO</Text>
+                <Text style={styles.ytdAmt}>{formatRM(ytd?.employer?.socso)}</Text>
               </View>
-            )}
-            {ytd?.employer?.eis && (
               <View style={styles.ytdItem}>
-                <Text style={styles.ytdItemLabel}>EIS Employer</Text>
-                <Text style={styles.ytdItemAmount}>RM {ytd.employer.eis.toFixed(2)}</Text>
+                <Text style={styles.ytdLabel}>EIS</Text>
+                <Text style={styles.ytdAmt}>{formatRM(ytd?.employer?.eis)}</Text>
               </View>
-            )}
+            </View>
           </View>
         </View>
-      </View>
 
-      {/* Footer */}
-      <View style={styles.footer}>
-        <Text>Dokumen ini dijana secara automatik dan tidak memerlukan tandatangan.</Text>
-        <Text>Generated on: {generated}</Text>
-      </View>
-    </Page>
-  </Document>
-);
+        {/* Footer */}
+        <Text style={styles.footer}>
+          Generated on: {generated} | Current Month Net Pay: {formatRM(payroll.netPay)}
+        </Text>
+      </Page>
+    </Document>
+  );
+};
