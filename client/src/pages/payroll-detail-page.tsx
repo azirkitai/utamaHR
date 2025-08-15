@@ -569,34 +569,77 @@ export default function PayrollDetailPage() {
     }
   };
 
-  // SIMPLE METHOD: Direct window.open approach (most straightforward)
-  const handleGeneratePDF_Simple = (employeeId: string, employeeName: string) => {
+  // SIMPLE METHOD: Client-side jsPDF generation (no server dependencies)
+  const handleGeneratePDF_Simple = async (employeeId: string, employeeName: string) => {
     try {
-      console.log('SIMPLE METHOD: Direct window.open PDF');
-      const token = localStorage.getItem('utamahr_token');
+      console.log('SIMPLE METHOD: Client-side jsPDF generation');
       
-      // Try the simple PDF endpoint first
-      const simplePdfUrl = `/api/payroll/payslip/${employeeId}/simple-pdf?documentId=${id}`;
+      // Fetch data from simple endpoint
+      const response = await fetch(`/api/payroll/payslip/${employeeId}/simple-pdf?documentId=${id}`);
       
-      // Open PDF directly in new window
-      const newWindow = window.open(simplePdfUrl, '_blank');
-      
-      if (newWindow) {
-        console.log('PDF opened in new window');
-        alert('PDF slip gaji sedang dibuka dalam tab baru...');
-      } else {
-        // Fallback: create download link
-        const link = document.createElement('a');
-        link.href = simplePdfUrl;
-        link.download = `Payslip_${employeeName.replace(/\s+/g, '_')}.pdf`;
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        alert('PDF slip gaji sedang dimuat turun...');
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
       }
+      
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to get PDF data');
+      }
+      
+      console.log('PDF data received:', data);
+      
+      // Create PDF using jsPDF
+      const doc = new jsPDF();
+      
+      // Set font
+      doc.setFontSize(20);
+      doc.text('SLIP GAJI', 105, 20, { align: 'center' });
+      
+      doc.setFontSize(16);
+      doc.text('UtamaHR System', 105, 35, { align: 'center' });
+      
+      // Employee info
+      doc.setFontSize(12);
+      let yPos = 60;
+      
+      doc.text(`Nama Pekerja: ${data.employee.fullName}`, 20, yPos);
+      yPos += 10;
+      doc.text(`No. Pekerja: ${data.employee.employeeNo}`, 20, yPos);
+      yPos += 10;
+      doc.text(`No. IC: ${data.employee.ic}`, 20, yPos);
+      yPos += 10;
+      doc.text(`Bulan/Tahun: ${data.document.month}/${data.document.year}`, 20, yPos);
+      yPos += 20;
+      
+      // Salary details
+      doc.setFontSize(14);
+      doc.text('BUTIRAN GAJI:', 20, yPos);
+      yPos += 15;
+      
+      doc.setFontSize(12);
+      doc.text(`Jumlah Gaji Kasar: RM ${data.payroll.grossPay.toFixed(2)}`, 20, yPos);
+      yPos += 10;
+      doc.text(`Jumlah Potongan: RM ${data.payroll.totalDeductions.toFixed(2)}`, 20, yPos);
+      yPos += 10;
+      doc.text(`Gaji Bersih: RM ${data.payroll.netPay.toFixed(2)}`, 20, yPos);
+      yPos += 20;
+      
+      // Footer
+      doc.setFontSize(10);
+      doc.text(`Dihasilkan pada: ${data.generated}`, 20, yPos);
+      doc.text(`Document ID: ${data.document.id}`, 20, yPos + 10);
+      
+      // Save PDF
+      const filename = `Payslip_${data.employee.fullName.replace(/\s+/g, '_')}_${data.document.month}_${data.document.year}.pdf`;
+      doc.save(filename);
+      
+      console.log('Simple PDF generated successfully');
+      alert('PDF slip gaji berjaya dimuat turun menggunakan jsPDF!');
+      
     } catch (error) {
       console.error('Simple method error:', error);
+      alert(`Simple PDF gagal: ${error.message}`);
       throw error;
     }
   };

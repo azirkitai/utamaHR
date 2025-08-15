@@ -4634,77 +4634,51 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // SUPER SIMPLE PDF route - no auth check, uses puppeteer
+  // SUPER SIMPLE PDF route - return JSON data for client-side jsPDF
   app.get("/api/payroll/payslip/:employeeId/simple-pdf", async (req, res) => {
     try {
-      console.log('=== SUPER SIMPLE PDF REQUEST ===');
+      console.log('=== SUPER SIMPLE PDF DATA REQUEST ===');
       const { employeeId } = req.params;
       const { documentId } = req.query;
 
       if (!documentId) {
-        return res.status(400).send('Missing documentId');
+        return res.status(400).json({ error: 'Missing documentId' });
       }
 
-      // Try using puppeteer for simple PDF
-      const puppeteer = await import('puppeteer');
-      
-      // Simple HTML content for testing
-      const htmlContent = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <title>Simple Payslip</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            .header { text-align: center; margin-bottom: 30px; }
-            .info { margin: 10px 0; }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>SLIP GAJI</h1>
-            <h2>UtamaHR System</h2>
-          </div>
-          <div class="info">
-            <strong>Employee ID:</strong> ${employeeId}
-          </div>
-          <div class="info">
-            <strong>Document ID:</strong> ${documentId}
-          </div>
-          <div class="info">
-            <strong>Generated:</strong> ${new Date().toLocaleString()}
-          </div>
-          <p>This is a simple PDF test. The actual payslip data will be loaded from the database.</p>
-        </body>
-        </html>
-      `;
+      // Get simple data for PDF
+      const employee = await storage.getEmployee(employeeId);
+      const document = await storage.getPayrollDocument(documentId as string);
+      const payrollItem = await storage.getPayrollItemByDocumentAndEmployee(documentId as string, employeeId);
 
-      const browser = await puppeteer.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-      });
-      
-      const page = await browser.newPage();
-      await page.setContent(htmlContent);
-      
-      const pdfBuffer = await page.pdf({
-        format: 'A4',
-        printBackground: true,
-        margin: { top: '20px', bottom: '20px', left: '20px', right: '20px' }
-      });
-      
-      await browser.close();
+      const responseData = {
+        success: true,
+        employee: {
+          id: employeeId,
+          fullName: employee?.fullName || 'Unknown Employee',
+          employeeNo: employee?.employeeNo || 'N/A',
+          ic: employee?.ic || 'N/A'
+        },
+        document: {
+          month: document?.month || 'N/A',
+          year: document?.year || new Date().getFullYear(),
+          id: documentId
+        },
+        payroll: {
+          grossPay: payrollItem?.grossPay || 0,
+          totalDeductions: payrollItem?.totalDeductions || 0,
+          netPay: payrollItem?.netPay || 0
+        },
+        generated: new Date().toLocaleString()
+      };
 
-      // Send PDF response
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="Simple_Payslip_${employeeId}.pdf"`);
-      res.send(pdfBuffer);
-      
-      console.log('Simple PDF generated successfully with puppeteer');
+      console.log('Simple PDF data prepared:', responseData);
+      res.json(responseData);
     } catch (error) {
-      console.error('Simple PDF error:', error);
-      res.status(500).send('PDF generation failed: ' + error.message);
+      console.error('Simple PDF data error:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Failed to get PDF data: ' + error.message 
+      });
     }
   });
 
