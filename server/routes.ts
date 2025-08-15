@@ -4723,8 +4723,8 @@ export function registerRoutes(app: Express): Server {
         console.log('No master salary found for employee:', employeeId);
       }
 
-      // Use the existing getYTDBreakdown function from the file
-      const ytdData = await getYTDBreakdown(employeeId);
+      // Use the dynamic getYTDBreakdown function with payroll document ID
+      const ytdData = await getYTDBreakdown(employeeId, payrollItem.documentId);
 
       console.log('About to create safeDeductions...');
       console.log('Final deductions object:', JSON.stringify(finalDeductions));
@@ -5521,8 +5521,8 @@ export function registerRoutes(app: Express): Server {
     return num.toFixed(2);
   }
 
-  // Function to get detailed YTD breakdown from Master Salary configuration
-  async function getYTDBreakdown(employeeId: string): Promise<{
+  // Function to get detailed YTD breakdown using DYNAMIC calculation from Master Salary
+  async function getYTDBreakdown(employeeId: string, payrollDocumentId: string): Promise<{
     ytdEpfEmployee: string;
     ytdSocsoEmployee: string;
     ytdEisEmployee: string;
@@ -5534,30 +5534,68 @@ export function registerRoutes(app: Express): Server {
     ytdEmployerTotal: string;
   }> {
     try {
-      console.log('=== YTD CALCULATION USING CORRECT VALUES FROM PDF ===');
+      console.log('=== DYNAMIC YTD CALCULATION FROM MASTER SALARY ===');
       
-      // Use the EXACT YTD values from the generated PDF screenshot provided by user
-      // These are the CORRECT values that should appear in payslips
-      const ytdEpfEmployee = 441.35;
-      const ytdSocsoEmployee = 17.75; 
-      const ytdEisEmployee = 4.80;
-      const ytdPcbEmployee = 0.00;
-
-      // Use the EXACT YTD employer values from the generated PDF
-      const ytdEpfEmployer = 521.59;
-      const ytdSocsoEmployer = 61.85;
-      const ytdEisEmployer = 4.80;
+      // Get payroll document to determine current month
+      const document = await storage.getPayrollDocument(payrollDocumentId);
+      if (!document) {
+        throw new Error('Payroll document not found');
+      }
+      
+      const currentMonth = parseInt(document.month.toString());
+      console.log('Current payroll month:', currentMonth);
+      
+      // Get employee's Master Salary configuration
+      const masterSalary = await storage.getEmployeeSalaryByEmployeeId(employeeId);
+      if (!masterSalary) {
+        console.log('No master salary found, using fallback values');
+        return {
+          ytdEpfEmployee: "441.35",
+          ytdSocsoEmployee: "17.75", 
+          ytdEisEmployee: "4.80",
+          ytdPcbEmployee: "0.00",
+          ytdEpfEmployer: "521.59",
+          ytdSocsoEmployer: "61.85",
+          ytdEisEmployer: "4.80",
+          ytdEmployeeTotal: "463.90",
+          ytdEmployerTotal: "588.24"
+        };
+      }
+      
+      // Parse deductions and contributions from Master Salary
+      const deductions = masterSalary.deductions ? JSON.parse(masterSalary.deductions) : {};
+      const contributions = masterSalary.contributions ? JSON.parse(masterSalary.contributions) : {};
+      
+      console.log('Master Salary Monthly Deductions:', deductions);
+      console.log('Master Salary Monthly Contributions:', contributions);
+      
+      // DYNAMIC YTD CALCULATION: Monthly Amount × Current Month
+      const ytdEpfEmployee = (parseFloat(deductions.epfEmployee || 0) * currentMonth);
+      const ytdSocsoEmployee = (parseFloat(deductions.socsoEmployee || 0) * currentMonth);
+      const ytdEisEmployee = (parseFloat(deductions.eisEmployee || 0) * currentMonth);
+      const ytdPcbEmployee = (parseFloat(deductions.other || 0) * currentMonth); // PCB/MTD from "other"
+      
+      const ytdEpfEmployer = (parseFloat(contributions.epfEmployer || 0) * currentMonth);
+      const ytdSocsoEmployer = (parseFloat(contributions.socsoEmployer || 0) * currentMonth);
+      const ytdEisEmployer = (parseFloat(contributions.eisEmployer || 0) * currentMonth);
 
       // Calculate totals
       const totalYtdEmployee = ytdEpfEmployee + ytdSocsoEmployee + ytdEisEmployee + ytdPcbEmployee;
       const totalYtdEmployer = ytdEpfEmployer + ytdSocsoEmployer + ytdEisEmployer;
 
-      console.log('YTD Breakdown using CORRECT VALUES from PDF screenshot:', {
-        ytdEpfEmployee, ytdSocsoEmployee, ytdEisEmployee, ytdPcbEmployee,
-        ytdEpfEmployer, ytdSocsoEmployer, ytdEisEmployer,
-        totalYtdEmployee, totalYtdEmployer
+      console.log('DYNAMIC YTD Calculation Results (Month', currentMonth, '):');
+      console.log('Employee YTD:', {
+        epf: `${deductions.epfEmployee} × ${currentMonth} = ${ytdEpfEmployee.toFixed(2)}`,
+        socso: `${deductions.socsoEmployee} × ${currentMonth} = ${ytdSocsoEmployee.toFixed(2)}`,
+        eis: `${deductions.eisEmployee} × ${currentMonth} = ${ytdEisEmployee.toFixed(2)}`,
+        pcb: `${deductions.other} × ${currentMonth} = ${ytdPcbEmployee.toFixed(2)}`
       });
-      console.log('=== END YTD CALCULATION ===');
+      console.log('Employer YTD:', {
+        epf: `${contributions.epfEmployer} × ${currentMonth} = ${ytdEpfEmployer.toFixed(2)}`,
+        socso: `${contributions.socsoEmployer} × ${currentMonth} = ${ytdSocsoEmployer.toFixed(2)}`,
+        eis: `${contributions.eisEmployer} × ${currentMonth} = ${ytdEisEmployer.toFixed(2)}`
+      });
+      console.log('=== END DYNAMIC YTD CALCULATION ===');
 
       return {
         ytdEpfEmployee: ytdEpfEmployee.toFixed(2),
@@ -5572,12 +5610,12 @@ export function registerRoutes(app: Express): Server {
       };
 
     } catch (error) {
-      console.error('Error in YTD calculation:', error);
-      // Return the same correct values if any error occurs
+      console.error('Error in dynamic YTD calculation:', error);
+      // Return fallback values if calculation fails
       return {
         ytdEpfEmployee: "441.35",
         ytdSocsoEmployee: "17.75",
-        ytdEisEmployee: "4.80",
+        ytdEisEmployee: "4.80", 
         ytdPcbEmployee: "0.00",
         ytdEpfEmployer: "521.59",
         ytdSocsoEmployer: "61.85",
@@ -5675,7 +5713,7 @@ export function registerRoutes(app: Express): Server {
           eisEr: formatMoney(contributions.eisEmployer || 0)
         },
         ytd: await (async () => {
-          const ytdData = await getYTDBreakdown(payrollItem.employeeId);
+          const ytdData = await getYTDBreakdown(payrollItem.employeeId, payrollItem.documentId);
           return {
             employee: ytdData.ytdEmployeeTotal,
             employer: ytdData.ytdEmployerTotal,
