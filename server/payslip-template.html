@@ -150,8 +150,33 @@
   </div>
 
   <div class="hr"></div>
-  <div>YTD EMPLOYEE CONTRIBUTION: <b>RM {{ytd.employee}}</b> &nbsp;&nbsp;|&nbsp;&nbsp; YTD EMPLOYER CONTRIBUTION: <b>RM {{ytd.employer}}</b></div>
-  <div>MTD: <b>RM {{ytd.mtd}}</b></div>
+  
+  <!-- YTD SUMMARY BREAKDOWN -->
+  <div class="section-title">YEAR TO DATE (YTD) BREAKDOWN</div>
+  <div class="twocol">
+    <div class="tbl">
+      <div class="hd">EMPLOYEE CONTRIBUTION (YTD)</div>
+      <div class="rowi"><div>EPF</div><div class="money">RM {{ytd.breakdown.epfEmployee}}</div></div>
+      <div class="rowi"><div>SOCSO</div><div class="money">RM {{ytd.breakdown.socsoEmployee}}</div></div>
+      <div class="rowi"><div>EIS</div><div class="money">RM {{ytd.breakdown.eisEmployee}}</div></div>
+      <div class="rowi"><div>PCB/MTD</div><div class="money">RM {{ytd.breakdown.pcb}}</div></div>
+      <div class="rowi sep"><div>TOTAL (YTD)</div><div class="money">RM {{ytd.employee}}</div></div>
+    </div>
+    
+    <div class="tbl">
+      <div class="hd">EMPLOYER CONTRIBUTION (YTD)</div>
+      <div class="rowi"><div>EPF</div><div class="money">RM {{ytd.breakdown.epfEmployer}}</div></div>
+      <div class="rowi"><div>SOCSO</div><div class="money">RM {{ytd.breakdown.socsoEmployer}}</div></div>
+      <div class="rowi"><div>EIS</div><div class="money">RM {{ytd.breakdown.eisEmployer}}</div></div>
+      <div class="rowi sep"><div>TOTAL (YTD)</div><div class="money">RM {{ytd.employer}}</div></div>
+    </div>
+  </div>
+  
+  <div class="mt-2">
+    <div class="panel">
+      <div><b>CURRENT MONTH NET PAY: RM {{ytd.mtd}}</b></div>
+    </div>
+  </div>
 
 </body>
 </html>
