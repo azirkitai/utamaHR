@@ -64,6 +64,77 @@ function generateItemRows(items: Array<{ label: string; amount: string; show: bo
     .join('\n      ');
 }
 
+// Function to generate HTML content only (for preview)
+export function generatePayslipHTML(data: PayslipData): string {
+  try {
+    // Load the HTML template
+    const templatePath = join(__dirname, 'payslip-template.html');
+    let html = readFileSync(templatePath, 'utf8');
+    
+    // Generate dynamic income and deduction items
+    const incomeItems = generateItemRows(data.income.items);
+    const deductionItems = generateItemRows(data.deduction.items);
+    
+    // Replace all placeholders
+    html = html
+      // Company info
+      .replace('{{company.name}}', data.company.name)
+      .replace('{{company.regNo}}', data.company.regNo)
+      .replace('{{company.address}}', data.company.address)
+      .replace('{{company.logoHTML}}', data.company.logoHTML)
+      
+      // Employee info
+      .replace('{{employee.name}}', data.employee.name)
+      .replace('{{employee.icNo}}', data.employee.icNo || '')
+      .replace('{{employee.position}}', data.employee.position)
+      
+      // Period
+      .replace('{{period.month}}', data.period.month)
+      .replace('{{period.year}}', data.period.year.toString())
+      
+      // Income
+      .replace('{{income.basic}}', data.income.basic)
+      .replace('{{income.fixedAllowance}}', data.income.fixedAllowance)
+      .replace('{{income.totalGross}}', data.income.totalGross)
+      .replace('{{incomeItems}}', incomeItems)
+      
+      // Deductions
+      .replace('{{deduction.epfEmp}}', data.deduction.epfEmp)
+      .replace('{{deduction.socsoEmp}}', data.deduction.socsoEmp)
+      .replace('{{deduction.eisEmp}}', data.deduction.eisEmp)
+      .replace('{{deduction.total}}', data.deduction.total)
+      .replace('{{deductionItems}}', deductionItems)
+      
+      // Net income
+      .replace('{{netIncome}}', data.netIncome)
+      
+      // Employer contributions
+      .replace('{{employerContrib.epfEr}}', data.employerContrib.epfEr)
+      .replace('{{employerContrib.socsoEr}}', data.employerContrib.socsoEr)
+      .replace('{{employerContrib.eisEr}}', data.employerContrib.eisEr)
+      
+      // YTD
+      .replace('{{ytd.employee}}', data.ytd.employee)
+      .replace('{{ytd.employer}}', data.ytd.employer)
+      .replace('{{ytd.mtd}}', data.ytd.mtd)
+      // YTD Breakdown items
+      .replace('{{ytd.breakdown.epfEmployee}}', data.ytd.breakdown?.epfEmployee || '0.00')
+      .replace('{{ytd.breakdown.socsoEmployee}}', data.ytd.breakdown?.socsoEmployee || '0.00')
+      .replace('{{ytd.breakdown.eisEmployee}}', data.ytd.breakdown?.eisEmployee || '0.00')
+      .replace('{{ytd.breakdown.pcb}}', data.ytd.breakdown?.pcb || '0.00')
+      .replace('{{ytd.breakdown.epfEmployer}}', data.ytd.breakdown?.epfEmployer || '0.00')
+      .replace('{{ytd.breakdown.socsoEmployer}}', data.ytd.breakdown?.socsoEmployer || '0.00')
+      .replace('{{ytd.breakdown.eisEmployer}}', data.ytd.breakdown?.eisEmployer || '0.00');
+
+    console.log('HTML template processed for preview, employee:', data.employee.name);
+    return html;
+    
+  } catch (error) {
+    console.error('Error generating payslip HTML:', error);
+    throw error;
+  }
+}
+
 export async function generatePayslipPDF(data: PayslipData): Promise<Buffer> {
   try {
     // Load the HTML template
