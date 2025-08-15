@@ -1304,6 +1304,9 @@ export const employeeSalaries = pgTable("employee_salaries", {
   // Settings stored as JSON
   settings: text("settings"), // JSON string of salary calculation settings
   
+  // Manual YTD values stored as JSON
+  manualYtd: text("manual_ytd"), // JSON string of manual YTD values for employee and employer
+  
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -1364,6 +1367,7 @@ export const insertEmployeeSalarySchema = createInsertSchema(employeeSalaries).o
   contributions: z.string().optional(),
   taxExemptions: z.string().optional(),
   settings: z.string().optional(),
+  manualYtd: z.string().optional(),
 });
 export const updateEmployeeSalarySchema = insertEmployeeSalarySchema.partial();
 

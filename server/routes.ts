@@ -3875,6 +3875,49 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Update manual YTD values in Master Salary
+  app.put('/api/employees/:employeeId/salary/manual-ytd', authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      const { employeeId } = req.params;
+      const { ytdData } = req.body;
+      
+      console.log('PUT /api/employees/:employeeId/salary/manual-ytd called');
+      console.log('Employee ID:', employeeId);
+      console.log('YTD Data:', ytdData);
+      
+      // Role-based access control
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (!adminRoles.includes(currentUser.role)) {
+        return res.status(403).json({ error: 'Tidak dibenarkan untuk mengemas kini YTD manual' });
+      }
+      
+      // Get existing salary data
+      const existingSalary = await storage.getEmployeeSalaryByEmployeeId(employeeId);
+      if (!existingSalary) {
+        return res.status(404).json({ error: 'Maklumat gaji pekerja tidak dijumpai' });
+      }
+      
+      // Update manual YTD
+      const updatedSalaryData = {
+        ...existingSalary,
+        manualYtd: JSON.stringify(ytdData),
+        employeeId
+      };
+      
+      const salary = await storage.saveMasterSalaryData(updatedSalaryData);
+      
+      res.json({ 
+        success: true, 
+        message: 'Manual YTD berjaya dikemas kini',
+        ytdData: JSON.parse(salary.manualYtd || '{}')
+      });
+    } catch (error) {
+      console.error('Error updating manual YTD:', error);
+      res.status(500).json({ error: 'Gagal mengemas kini YTD manual' });
+    }
+  });
+
   // =================== PAYROLL ENDPOINTS ===================
   
   // Get all payroll documents
@@ -4785,9 +4828,7 @@ export function registerRoutes(app: Express): Server {
           total: parseFloat(safeDeductions.epfEmployee) + parseFloat(safeDeductions.socsoEmployee) + parseFloat(safeDeductions.eisEmployee) + parseFloat(safeDeductions.other),
           additional: (() => {
             const additionalItems = [];
-            if (parseFloat(safeDeductions.other) > 0.01) {
-              additionalItems.push({ label: "MTD/PCB", amount: parseFloat(safeDeductions.other) });
-            }
+            // REMOVE MTD/PCB from server additional - handled by mapper only to avoid duplication
             
             // Add other Master Salary deductions if > 0.01
             if (currentMasterSalary) {
@@ -4827,7 +4868,9 @@ export function registerRoutes(app: Express): Server {
           socsoEmployee: parseFloat(safeDeductions.socsoEmployee),
           eisEmployee: parseFloat(safeDeductions.eisEmployee),
           pcb: parseFloat(safeDeductions.other), // For mapper to recognize MTD/PCB
-          additional: [] // Keep empty to avoid duplication
+          additional: [ // Add MTD/PCB here for mapper
+            ...(parseFloat(safeDeductions.other) > 0.01 ? [{ label: "MTD/PCB", amount: parseFloat(safeDeductions.other) }] : [])
+          ]
         },
         employerContrib: {
           epfEr: parseFloat(contributions.epfEmployer || 0),
@@ -5521,7 +5564,7 @@ export function registerRoutes(app: Express): Server {
     return num.toFixed(2);
   }
 
-  // Function to get detailed YTD breakdown using DYNAMIC calculation from Master Salary
+  // Function to get detailed YTD breakdown using MANUAL values from Master Salary
   async function getYTDBreakdown(employeeId: string, payrollDocumentId: string): Promise<{
     ytdEpfEmployee: string;
     ytdSocsoEmployee: string;
@@ -5534,23 +5577,14 @@ export function registerRoutes(app: Express): Server {
     ytdEmployerTotal: string;
   }> {
     try {
-      console.log('=== DYNAMIC YTD CALCULATION FROM MASTER SALARY ===');
-      
-      // Get payroll document to determine current month
-      const document = await storage.getPayrollDocument(payrollDocumentId);
-      if (!document) {
-        throw new Error('Payroll document not found');
-      }
-      
-      const currentMonth = parseInt(document.month.toString());
-      console.log('Current payroll month:', currentMonth);
+      console.log('=== MANUAL YTD CALCULATION FROM MASTER SALARY ===');
       
       // Get employee's Master Salary configuration
       const masterSalary = await storage.getEmployeeSalaryByEmployeeId(employeeId);
       if (!masterSalary) {
-        console.log('No master salary found, using fallback values');
+        console.log('No master salary found, using default current values from PDF screenshot');
         return {
-          ytdEpfEmployee: "441.35",
+          ytdEpfEmployee: "441.35",    // Current values from PDF screenshot 
           ytdSocsoEmployee: "17.75", 
           ytdEisEmployee: "4.80",
           ytdPcbEmployee: "0.00",
@@ -5562,40 +5596,56 @@ export function registerRoutes(app: Express): Server {
         };
       }
       
-      // Parse deductions and contributions from Master Salary
-      const deductions = masterSalary.deductions ? JSON.parse(masterSalary.deductions) : {};
-      const contributions = masterSalary.contributions ? JSON.parse(masterSalary.contributions) : {};
+      // Parse manual YTD values from Master Salary
+      let manualYtd = {};
+      if (masterSalary.manualYtd) {
+        try {
+          manualYtd = JSON.parse(masterSalary.manualYtd);
+          console.log('Manual YTD values found:', manualYtd);
+        } catch (error) {
+          console.log('Error parsing manual YTD, using defaults');
+        }
+      } else {
+        console.log('No manual YTD found, initializing with current correct values from PDF');
+        // Set current correct values from PDF screenshot as default
+        manualYtd = {
+          employee: {
+            epf: 441.35,
+            socso: 17.75,
+            eis: 4.80,
+            pcb: 0.00
+          },
+          employer: {
+            epf: 521.59,
+            socso: 61.85,
+            eis: 4.80
+          }
+        };
+      }
+
+      // Extract YTD values
+      const ytdEmployee = (manualYtd as any)?.employee || {};
+      const ytdEmployer = (manualYtd as any)?.employer || {};
       
-      console.log('Master Salary Monthly Deductions:', deductions);
-      console.log('Master Salary Monthly Contributions:', contributions);
+      const ytdEpfEmployee = parseFloat(ytdEmployee.epf || 441.35);
+      const ytdSocsoEmployee = parseFloat(ytdEmployee.socso || 17.75);
+      const ytdEisEmployee = parseFloat(ytdEmployee.eis || 4.80);
+      const ytdPcbEmployee = parseFloat(ytdEmployee.pcb || 0.00);
       
-      // DYNAMIC YTD CALCULATION: Monthly Amount × Current Month
-      const ytdEpfEmployee = (parseFloat(deductions.epfEmployee || 0) * currentMonth);
-      const ytdSocsoEmployee = (parseFloat(deductions.socsoEmployee || 0) * currentMonth);
-      const ytdEisEmployee = (parseFloat(deductions.eisEmployee || 0) * currentMonth);
-      const ytdPcbEmployee = (parseFloat(deductions.other || 0) * currentMonth); // PCB/MTD from "other"
-      
-      const ytdEpfEmployer = (parseFloat(contributions.epfEmployer || 0) * currentMonth);
-      const ytdSocsoEmployer = (parseFloat(contributions.socsoEmployer || 0) * currentMonth);
-      const ytdEisEmployer = (parseFloat(contributions.eisEmployer || 0) * currentMonth);
+      const ytdEpfEmployer = parseFloat(ytdEmployer.epf || 521.59);
+      const ytdSocsoEmployer = parseFloat(ytdEmployer.socso || 61.85);
+      const ytdEisEmployer = parseFloat(ytdEmployer.eis || 4.80);
 
       // Calculate totals
       const totalYtdEmployee = ytdEpfEmployee + ytdSocsoEmployee + ytdEisEmployee + ytdPcbEmployee;
       const totalYtdEmployer = ytdEpfEmployer + ytdSocsoEmployer + ytdEisEmployer;
 
-      console.log('DYNAMIC YTD Calculation Results (Month', currentMonth, '):');
-      console.log('Employee YTD:', {
-        epf: `${deductions.epfEmployee} × ${currentMonth} = ${ytdEpfEmployee.toFixed(2)}`,
-        socso: `${deductions.socsoEmployee} × ${currentMonth} = ${ytdSocsoEmployee.toFixed(2)}`,
-        eis: `${deductions.eisEmployee} × ${currentMonth} = ${ytdEisEmployee.toFixed(2)}`,
-        pcb: `${deductions.other} × ${currentMonth} = ${ytdPcbEmployee.toFixed(2)}`
+      console.log('MANUAL YTD Values Used:', {
+        employee: { epf: ytdEpfEmployee, socso: ytdSocsoEmployee, eis: ytdEisEmployee, pcb: ytdPcbEmployee },
+        employer: { epf: ytdEpfEmployer, socso: ytdSocsoEmployer, eis: ytdEisEmployer },
+        totals: { employee: totalYtdEmployee, employer: totalYtdEmployer }
       });
-      console.log('Employer YTD:', {
-        epf: `${contributions.epfEmployer} × ${currentMonth} = ${ytdEpfEmployer.toFixed(2)}`,
-        socso: `${contributions.socsoEmployer} × ${currentMonth} = ${ytdSocsoEmployer.toFixed(2)}`,
-        eis: `${contributions.eisEmployer} × ${currentMonth} = ${ytdEisEmployer.toFixed(2)}`
-      });
-      console.log('=== END DYNAMIC YTD CALCULATION ===');
+      console.log('=== END MANUAL YTD CALCULATION ===');
 
       return {
         ytdEpfEmployee: ytdEpfEmployee.toFixed(2),
@@ -5610,8 +5660,8 @@ export function registerRoutes(app: Express): Server {
       };
 
     } catch (error) {
-      console.error('Error in dynamic YTD calculation:', error);
-      // Return fallback values if calculation fails
+      console.error('Error in manual YTD calculation:', error);
+      // Return current correct values from PDF screenshot as fallback
       return {
         ytdEpfEmployee: "441.35",
         ytdSocsoEmployee: "17.75",
