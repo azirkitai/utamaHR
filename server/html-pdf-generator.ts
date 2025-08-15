@@ -1,35 +1,59 @@
-import html_to_pdf from 'html-pdf-node';
+import puppeteer from 'puppeteer';
 
 export async function generatePDFFromHTML(htmlContent: string, options: any = {}): Promise<Buffer> {
+  let browser = null;
   try {
-    console.log('=== HTML-PDF-NODE GENERATION ===');
+    console.log('=== PUPPETEER HTML-PDF GENERATION ===');
     
-    const defaultOptions = {
-      format: 'A4',
+    // Launch browser with same args as existing working Puppeteer instance
+    browser = await puppeteer.launch({
+      headless: 'new',
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--disable-gpu'
+      ]
+    });
+
+    const page = await browser.newPage();
+    
+    // Set content and wait for it to load
+    await page.setContent(htmlContent, { 
+      waitUntil: 'networkidle0',
+      timeout: 30000 
+    });
+
+    // Generate PDF with proper options
+    const pdfOptions = {
+      format: 'A4' as const,
       margin: {
         top: '20px',
         right: '20px',
         bottom: '20px',
         left: '20px'
       },
-      displayHeaderFooter: false,
       printBackground: true,
       preferCSSPageSize: true,
       ...options
     };
 
-    const htmlOptions = { 
-      content: htmlContent 
-    };
-
-    console.log('Generating PDF with html-pdf-node...');
-    const pdfBuffer = await html_to_pdf.generatePdf(htmlOptions, defaultOptions);
-    console.log('PDF generated successfully with html-pdf-node');
+    console.log('Generating PDF with Puppeteer...');
+    const pdfBuffer = await page.pdf(pdfOptions);
+    console.log('PDF generated successfully with Puppeteer');
     
     return pdfBuffer;
+    
   } catch (error) {
-    console.error('HTML-PDF-NODE generation error:', error);
-    throw new Error('Failed to generate PDF with html-pdf-node: ' + error.message);
+    console.error('PUPPETEER HTML-PDF generation error:', error);
+    throw new Error('Failed to generate PDF with Puppeteer: ' + error.message);
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
   }
 }
 
