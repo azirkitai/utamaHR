@@ -348,84 +348,134 @@ export default function PayrollDetailPage() {
 
 
 
-  const handleGeneratePDF = async (employeeId: string, employeeName: string) => {
+  // METHOD 1: Simple window.open approach (most reliable)
+  const handleGeneratePDF_Method1 = (employeeId: string, employeeName: string) => {
     try {
-      console.log('Starting PDF download for employee:', employeeId, employeeName);
+      console.log('METHOD 1: Using window.open for direct download');
+      const token = localStorage.getItem('utamahr_token');
+      const pdfUrl = `/api/payroll/payslip/${employeeId}/pdf?documentId=${id}&token=${token}&download=1`;
+      
+      // Create temporary link for download
+      const link = document.createElement('a');
+      link.href = pdfUrl;
+      link.download = `Payslip_${employeeName.replace(/\s+/g, '_')}.pdf`;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      console.log('METHOD 1: PDF download initiated');
+      alert('Slip gaji PDF sedang dimuat turun...');
+    } catch (error) {
+      console.error('METHOD 1 Error:', error);
+      alert('Gagal memuat turun PDF. Cuba method lain...');
+    }
+  };
+
+  // METHOD 2: Fixed blob approach with better error handling
+  const handleGeneratePDF_Method2 = async (employeeId: string, employeeName: string) => {
+    try {
+      console.log('METHOD 2: Using improved fetch + blob approach');
       
       const response = await fetch(`/api/payroll/payslip/${employeeId}/pdf`, {
-        method: 'POST',
+        method: 'GET', // Changed to GET instead of POST
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('utamahr_token')}`
+          'Authorization': `Bearer ${localStorage.getItem('utamahr_token')}`,
         },
-        body: JSON.stringify({ documentId: id })
       });
 
-      console.log('Response status:', response.status);
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server error response:', errorText);
-        throw new Error(`Server returned ${response.status}: ${errorText}`);
-      }
-
-      // Check if response is actually a PDF
-      const contentType = response.headers.get('content-type');
-      console.log('Content-Type:', contentType);
+      console.log('METHOD 2 Response status:', response.status);
       
-      if (!contentType?.includes('application/pdf')) {
-        console.error('Response is not a PDF, content-type:', contentType);
-        const responseText = await response.text();
-        console.error('Response body:', responseText);
-        throw new Error('Server did not return a PDF file');
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
       }
 
-      // Server now returns the PDF buffer directly
+      // Convert to blob without checking content-type first
       const blob = await response.blob();
-      console.log('Blob created, size:', blob.size);
+      console.log('METHOD 2 Blob size:', blob.size, 'type:', blob.type);
       
       if (blob.size === 0) {
-        throw new Error('Empty PDF file received');
+        throw new Error('Empty file received');
       }
       
-      // Extract filename from response headers or generate dynamic filename
-      let filename = `Payslip_${employeeName.replace(/\s+/g, '_')}.pdf`;
-      const contentDisposition = response.headers.get('content-disposition');
-      if (contentDisposition) {
-        const matches = contentDisposition.match(/filename="([^"]+)"/);
-        if (matches) {
-          filename = matches[1];
-        }
-      }
-      
-      console.log('Download filename:', filename);
-      
-      // APPLIED DROP-IN PATCH: Simplified download approach
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
+      // Force download using object URL
+      const url = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+      const a = document.createElement('a');
+      a.style.display = 'none';
       a.href = url;
-      a.download = filename;
+      a.download = `Payslip_${employeeName.replace(/\s+/g, '_')}.pdf`;
+      
       document.body.appendChild(a);
       a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
       
-      console.log('PDF payslip generated and downloaded successfully');
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 100);
       
-      toast({
-        title: "Success",
-        description: "Slip gaji PDF berjaya dimuat turun",
-      });
+      console.log('METHOD 2: PDF downloaded successfully');
+      alert('Slip gaji PDF berjaya dimuat turun!');
       
     } catch (error) {
-      console.error('Error generating PDF:', error);
+      console.error('METHOD 2 Error:', error);
+      alert('METHOD 2 gagal. Cuba method 3...');
+    }
+  };
+
+  // METHOD 3: iframe approach (backup method)
+  const handleGeneratePDF_Method3 = (employeeId: string, employeeName: string) => {
+    try {
+      console.log('METHOD 3: Using iframe approach');
+      const token = localStorage.getItem('utamahr_token');
+      const pdfUrl = `/api/payroll/payslip/${employeeId}/pdf?documentId=${id}&token=${token}&download=1&method=iframe`;
       
-      toast({
-        title: "Error",
-        description: error.message || "Gagal menghasilkan slip gaji PDF. Sila cuba lagi.",
-        variant: "destructive",
-      });
+      // Create hidden iframe
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = pdfUrl;
+      document.body.appendChild(iframe);
+      
+      // Remove iframe after download
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+      }, 3000);
+      
+      console.log('METHOD 3: PDF download initiated via iframe');
+      alert('Slip gaji PDF sedang dimuat turun (method 3)...');
+    } catch (error) {
+      console.error('METHOD 3 Error:', error);
+      alert('Semua method gagal. Sila hubungi admin.');
+    }
+  };
+
+  // Main function that tries all methods
+  const handleGeneratePDF = async (employeeId: string, employeeName: string) => {
+    console.log('Starting PDF download with multi-method approach');
+    console.log('Employee ID:', employeeId, 'Name:', employeeName, 'Document ID:', id);
+    
+    // Try METHOD 1 first (most reliable)
+    try {
+      handleGeneratePDF_Method1(employeeId, employeeName);
+      return;
+    } catch (error) {
+      console.log('Method 1 failed, trying Method 2...');
+    }
+    
+    // Try METHOD 2 if Method 1 fails
+    try {
+      await handleGeneratePDF_Method2(employeeId, employeeName);
+      return;
+    } catch (error) {
+      console.log('Method 2 failed, trying Method 3...');
+    }
+    
+    // Try METHOD 3 as last resort
+    try {
+      handleGeneratePDF_Method3(employeeId, employeeName);
+    } catch (error) {
+      console.error('All PDF download methods failed:', error);
+      alert('Gagal memuat turun PDF dengan semua kaedah. Sila cuba lagi atau hubungi admin.');
     }
   };
 
