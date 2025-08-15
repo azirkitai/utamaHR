@@ -995,17 +995,33 @@ export function registerRoutes(app: Express): Server {
       
       // Create new user
       console.log("Creating user with data:", { username, role });
-      const newUser = await storage.createUser({
-        username,
-        password,
-        role,
-      });
+      console.log("=== BEFORE USER CREATION ===");
       
-      console.log("User created successfully:", newUser.id);
-      
-      // Return user without password
-      const { password: _, ...userWithoutPassword } = newUser;
-      res.status(201).json(userWithoutPassword);
+      try {
+        const newUser = await storage.createUser({
+          username,
+          password,
+          role,
+        });
+        
+        console.log("=== USER CREATION SUCCESS ===");
+        console.log("User created successfully:", newUser.id);
+        console.log("New user object:", JSON.stringify(newUser, null, 2));
+        
+        // Return user without password
+        const { password: _, ...userWithoutPassword } = newUser;
+        res.status(201).json(userWithoutPassword);
+      } catch (userCreationError) {
+        console.error("=== USER CREATION ERROR ===");
+        console.error("Error details:", userCreationError);
+        console.error("Error message:", userCreationError instanceof Error ? userCreationError.message : String(userCreationError));
+        console.error("Error stack:", userCreationError instanceof Error ? userCreationError.stack : 'No stack trace');
+        
+        return res.status(500).json({ 
+          error: "Gagal mencipta akaun staff",
+          details: userCreationError instanceof Error ? userCreationError.message : String(userCreationError)
+        });
+      }
     } catch (error) {
       console.error("Create staff user error:", error);
       
