@@ -52,15 +52,36 @@ export function mapDbToPayslipProps(db: DbSlip) {
 
   // 2) DEDUCTION
   const deductionList: DbItem[] = [];
+  console.log('=== MAPPER DEDUCTION DEBUG ===');
+  console.log('db.deductions:', JSON.stringify(db.deductions));
+  console.log('db.deductions.pcb value:', db.deductions?.pcb);
+  console.log('db.deductions.pcb type:', typeof db.deductions?.pcb);
+  
   if (db.deductionsArray?.length) {
     deductionList.push(...db.deductionsArray);
   } else if (db.deductions) {
     if (db.deductions.epfEmployee) deductionList.push({ label: "EPF Employee", amount: db.deductions.epfEmployee });
     if (db.deductions.socsoEmployee) deductionList.push({ label: "SOCSO Employee", amount: db.deductions.socsoEmployee });
     if (db.deductions.eisEmployee) deductionList.push({ label: "EIS Employee", amount: db.deductions.eisEmployee });
-    if (db.deductions.pcb !== undefined && db.deductions.pcb > 0) deductionList.push({ label: "MTD/PCB", amount: db.deductions.pcb });
+    
+    // Debug PCB condition
+    const pcbCondition1 = db.deductions.pcb !== undefined;
+    const pcbCondition2 = db.deductions.pcb > 0;
+    console.log('PCB condition 1 (not undefined):', pcbCondition1);
+    console.log('PCB condition 2 (> 0):', pcbCondition2);
+    console.log('PCB condition combined:', pcbCondition1 && pcbCondition2);
+    
+    if (db.deductions.pcb !== undefined && db.deductions.pcb > 0) {
+      console.log('✅ Adding MTD/PCB to deduction list:', db.deductions.pcb);
+      deductionList.push({ label: "MTD/PCB", amount: db.deductions.pcb });
+    } else {
+      console.log('❌ MTD/PCB NOT added to deduction list');
+    }
+    
     if (db.deductions.additional?.length) deductionList.push(...db.deductions.additional);
   }
+  console.log('Final deductionList:', JSON.stringify(deductionList));
+  console.log('=== END MAPPER DEDUCTION DEBUG ===');
 
   // 3) Employer contrib
   const employerContrib: DbItem[] = db.employerContribArray?.length
