@@ -5560,26 +5560,30 @@ export function registerRoutes(app: Express): Server {
       console.log('Master salary deductions for YTD:', masterDeductions);
       console.log('Master salary contributions for YTD:', masterContributions);
 
-      // Use actual YTD values as displayed in Master Salary Configuration UI
-      // These values match the screenshot provided by user
-      const ytdEpfEmployee = 872.35;
-      const ytdSocsoEmployee = 64.95; 
-      const ytdEisEmployee = 14.2;
-      const ytdPcbEmployee = 837.4;
+      // Calculate YTD values dynamically from Master Salary Configuration
+      // Use multiply by 9 months for September payroll (month 9)
+      const currentMonth = new Date().getMonth() + 1; // 1-based month
+      const multiplier = currentMonth; // Dynamic multiplier based on current month
+      
+      const ytdEpfEmployee = parseFloat(masterDeductions.epfEmployee || 0) * multiplier;
+      const ytdSocsoEmployee = parseFloat(masterDeductions.socsoEmployee || 0) * multiplier; 
+      const ytdEisEmployee = parseFloat(masterDeductions.eisEmployee || 0) * multiplier;
+      const ytdPcbEmployee = parseFloat(masterDeductions.other || 0) * multiplier;
 
-      // Use actual YTD employer values as displayed in Master Salary Configuration UI
-      const ytdEpfEmployer = 1238.39;
-      const ytdSocsoEmployer = 169.65;
-      const ytdEisEmployer = 23.6;
+      // Calculate YTD employer values
+      const ytdEpfEmployer = parseFloat(masterContributions.epfEmployer || 0) * multiplier;
+      const ytdSocsoEmployer = parseFloat(masterContributions.socsoEmployer || 0) * multiplier;
+      const ytdEisEmployer = parseFloat(masterContributions.eisEmployer || 0) * multiplier;
 
       // Calculate totals
       const totalYtdEmployee = ytdEpfEmployee + ytdSocsoEmployee + ytdEisEmployee + ytdPcbEmployee;
       const totalYtdEmployer = ytdEpfEmployer + ytdSocsoEmployer + ytdEisEmployer;
 
-      console.log('YTD Breakdown using CORRECTED VALUES from Master Salary UI:', {
+      console.log('YTD Breakdown using DYNAMIC CALCULATION from Master Salary (Month:', currentMonth, '):', {
         ytdEpfEmployee, ytdSocsoEmployee, ytdEisEmployee, ytdPcbEmployee,
         ytdEpfEmployer, ytdSocsoEmployer, ytdEisEmployer,
-        totalYtdEmployee, totalYtdEmployer
+        totalYtdEmployee, totalYtdEmployer,
+        multiplier
       });
       console.log('=== END YTD CALCULATION ===');
 

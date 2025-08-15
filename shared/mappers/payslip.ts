@@ -71,12 +71,9 @@ export function mapDbToPayslipProps(db: DbSlip) {
     console.log('PCB condition 2 (> 0):', pcbCondition2);
     console.log('PCB condition combined:', pcbCondition1 && pcbCondition2);
     
-    if (db.deductions.pcb !== undefined && db.deductions.pcb > 0) {
-      console.log('✅ Adding MTD/PCB to deduction list:', db.deductions.pcb);
-      deductionList.push({ label: "MTD/PCB", amount: db.deductions.pcb });
-    } else {
-      console.log('❌ MTD/PCB NOT added to deduction list');
-    }
+    // REMOVE PCB logic here to avoid duplication - handled in server side additional items
+    // MTD/PCB will be added via templateData.deduction.additional to avoid duplication
+    console.log('❌ MTD/PCB NOT added to deduction list - handled in server additional items');
     
     if (db.deductions.additional?.length) deductionList.push(...db.deductions.additional);
   }
