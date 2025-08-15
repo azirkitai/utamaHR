@@ -704,50 +704,45 @@ export default function PayrollDetailPage() {
   };
 
   // Main function - try simple methods first
+  // FIXED: Simple and reliable PDF download using drop-in patch approach
   const handleGeneratePDF = async (employeeId: string, employeeName: string) => {
-    console.log('Starting SIMPLE PDF download approach');
-    console.log('Employee ID:', employeeId, 'Name:', employeeName, 'Document ID:', id);
-    
-    // Ask user which method they prefer
-    const methodChoice = confirm(
-      'Pilih cara untuk muat turun PDF:\n\n' +
-      'OK = Buka PDF dalam tab baru (mudah)\n' +
-      'Cancel = Guna print dialog (boleh pilih Save as PDF)'
-    );
-    
-    if (methodChoice) {
-      // Try simple window.open method
-      try {
-        handleGeneratePDF_Simple(employeeId, employeeName);
-        return;
-      } catch (error) {
-        console.log('Simple method failed, trying print method...');
+    try {
+      console.log('=== DOWNLOAD PAYSLIP PDF ===');
+      console.log('Employee ID:', employeeId, 'Name:', employeeName);
+      
+      // Use fetch + blob approach as recommended in drop-in patch
+      const response = await fetch(`/api/payroll/payslip/${employeeId}/pdf?documentId=${id}`, {
+        method: "GET"
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Download failed: ${response.status}`);
       }
-    }
-    
-    // Try print method
-    try {
-      await handleGeneratePDF_Print(employeeId, employeeName);
-      return;
+      
+      // Convert response to blob
+      const blob = await response.blob();
+      console.log('PDF blob size:', blob.size, 'bytes');
+      
+      if (blob.size === 0) {
+        throw new Error('Empty PDF received');
+      }
+      
+      // Create download link (avoid window.open to prevent popup blockers)
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Payslip_${employeeName.replace(/\s+/g, '_')}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      
+      console.log('PDF downloaded successfully');
+      alert('Slip gaji PDF telah berjaya dimuat turun!');
+      
     } catch (error) {
-      console.log('Print method failed, trying fallback methods...');
-    }
-    
-    // Fallback to jsPDF method
-    try {
-      await handleGeneratePDF_Method4(employeeId, employeeName);
-      return;
-    } catch (error) {
-      console.log('jsPDF method failed, trying server methods...');
-    }
-    
-    // Try server-side methods
-    try {
-      await handleGeneratePDF_Method5(employeeId, employeeName);
-      return;
-    } catch (error) {
-      console.error('All PDF methods failed:', error);
-      alert('Gagal muat turun PDF dengan semua kaedah. Sila cuba lagi atau hubungi admin sistem.');
+      console.error('PDF download error:', error);
+      alert('Gagal memuat turun slip gaji PDF. Sila cuba lagi.');
     }
   };
 

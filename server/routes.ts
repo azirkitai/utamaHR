@@ -4740,51 +4740,171 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // GET version for direct URL access with token - MULTI-METHOD SUPPORT
+  // FIXED: DROP-IN PATCH PDF generation with proper Puppeteer config for Replit
   app.get("/api/payroll/payslip/:employeeId/pdf", async (req, res) => {
+    const { employeeId } = req.params;
+    const { documentId } = req.query;
+
     try {
-      console.log('=== GET PDF PAYSLIP REQUEST ===');
-      console.log('Params:', req.params);
-      console.log('Query:', req.query);
-      console.log('Headers:', req.headers);
-      
-      const { employeeId } = req.params;
-      const { documentId, token, download, method } = req.query;
+      console.log(`=== PUPPETEER PDF GENERATION START for Employee ${employeeId} ===`);
 
       if (!documentId) {
-        console.log('Missing documentId in query');
-        return res.status(400).json({ error: "ID dokumen payroll diperlukan" });
+        return res.status(400).json({ error: "Document ID required" });
       }
 
-      // Verify token - simple check for now
-      if (!token) {
-        console.log('Missing token in query');
-        return res.status(401).json({ error: "Token diperlukan" });
+      // Fetch payroll data
+      const document = await storage.getPayrollDocument(documentId as string);
+      const payrollItem = await storage.getPayrollItemByDocumentAndEmployee(documentId as string, employeeId);
+      const employee = await storage.getEmployee(employeeId);
+      const companySettings = await storage.getCompanySettings();
+
+      if (!document || !employee) {
+        return res.status(404).json({ error: "Payroll data not found" });
       }
 
-      // Set appropriate headers based on download method
-      if (download === '1' || method === 'iframe') {
-        console.log('Setting download headers for direct download');
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="Payslip_${employeeId}.pdf"`);
-        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-        res.setHeader('Pragma', 'no-cache');
-        res.setHeader('Expires', '0');
-      }
+      // Prepare payroll data for PDF
+      const pdfData = {
+        employee: {
+          fullName: employee.fullName || 'N/A',
+          employeeNo: employee.employeeNo || 'N/A',
+          ic: employee.ic || 'N/A',
+          id: employee.id
+        },
+        document: {
+          month: document.month || 'N/A',
+          year: document.year || new Date().getFullYear(),
+          id: document.id
+        },
+        payroll: {
+          basicSalary: payrollItem?.basicSalary || 0,
+          grossPay: payrollItem?.grossPay || 0,
+          totalDeductions: payrollItem?.totalDeductions || 0,
+          netPay: payrollItem?.netPay || 0
+        },
+        company: {
+          name: companySettings?.companyName || 'Syarikat',
+          address: companySettings?.address || '',
+          phone: companySettings?.phone || '',
+          email: companySettings?.email || ''
+        },
+        generated: new Date().toLocaleString('ms-MY')
+      };
 
-      console.log('Calling generatePayslipPDFResponse for GET...');
-      await generatePayslipPDFResponse(employeeId as string, documentId as string, res);
-      console.log('GET PDF generation completed');
-    } catch (error) {
-      console.error("=== GET PDF ERROR ===");
-      console.error("Error type:", error.constructor.name);
-      console.error("Error message:", error.message);
-      console.error("Error stack:", error.stack);
-      console.error("=== END GET ERROR ===");
-      
-      if (!res.headersSent) {
-        res.status(500).json({ error: "Gagal menjana slip gaji PDF", details: error.message });
-      }
+      // 1) LAUNCH CHROME WITH REPLIT-COMPATIBLE FLAGS
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: ["--no-sandbox", "--disable-setuid-sandbox"] // Essential for Replit
+      });
+
+      const page = await browser.newPage();
+
+      // 2) PREPARE HTML TEMPLATE
+      const html = `
+        <!DOCTYPE html>
+        <html lang="ms">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Slip Gaji</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; color: #333; }
+            .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+            .company-name { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
+            .title { font-size: 16px; font-weight: bold; margin-top: 10px; }
+            .info-row { display: flex; justify-content: space-between; margin: 8px 0; }
+            .section { margin: 15px 0; }
+            .section-title { font-weight: bold; border-bottom: 1px solid #ccc; padding: 5px 0; margin-bottom: 10px; }
+            .amount { font-weight: bold; }
+            .net-pay { font-size: 14px; font-weight: bold; background: #f0f0f0; padding: 8px; text-align: center; margin-top: 15px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="company-name">${pdfData.company.name}</div>
+            <div class="title">SLIP GAJI</div>
+          </div>
+          
+          <div class="section">
+            <div class="info-row">
+              <span>Nama Pekerja:</span>
+              <span class="amount">${pdfData.employee.fullName}</span>
+            </div>
+            <div class="info-row">
+              <span>No. Pekerja:</span>
+              <span>${pdfData.employee.employeeNo}</span>
+            </div>
+            <div class="info-row">
+              <span>No. K/P:</span>
+              <span>${pdfData.employee.ic}</span>
+            </div>
+            <div class="info-row">
+              <span>Bulan/Tahun:</span>
+              <span>${pdfData.document.month} ${pdfData.document.year}</span>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">PENDAPATAN</div>
+            <div class="info-row">
+              <span>Gaji Asas:</span>
+              <span class="amount">RM ${pdfData.payroll.basicSalary.toFixed(2)}</span>
+            </div>
+            <div class="info-row">
+              <span><strong>Jumlah Gaji Kasar:</strong></span>
+              <span class="amount"><strong>RM ${pdfData.payroll.grossPay.toFixed(2)}</strong></span>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">POTONGAN</div>
+            <div class="info-row">
+              <span><strong>Jumlah Potongan:</strong></span>
+              <span class="amount"><strong>RM ${pdfData.payroll.totalDeductions.toFixed(2)}</strong></span>
+            </div>
+          </div>
+
+          <div class="net-pay">
+            GAJI BERSIH: RM ${pdfData.payroll.netPay.toFixed(2)}
+          </div>
+
+          <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666;">
+            Dihasilkan pada: ${pdfData.generated}
+          </div>
+        </body>
+        </html>
+      `;
+
+      await page.setContent(html, { waitUntil: "networkidle0" });
+
+      // 3) GENERATE PDF BUFFER (NO FILE WRITING)
+      const pdfBuffer = await page.pdf({
+        format: "A4",
+        printBackground: true,
+        margin: { top: "10mm", right: "10mm", bottom: "10mm", left: "10mm" }
+      });
+
+      await browser.close();
+
+      // 4) SET PROPER HEADERS
+      res.set({
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="Payslip_${pdfData.employee.fullName.replace(/\s+/g, '_')}_${pdfData.document.month}_${pdfData.document.year}.pdf"`,
+        "Cache-Control": "no-store",
+        "Content-Length": pdfBuffer.length
+      });
+
+      // 5) STREAM BUFFER TO CLIENT
+      console.log(`PDF buffer size: ${pdfBuffer.length} bytes`);
+      console.log('=== PDF GENERATION SUCCESSFUL ===');
+      return res.end(pdfBuffer);
+
+    } catch (err) {
+      console.error("=== PUPPETEER PDF ERROR ===", err);
+      return res.status(500).json({ 
+        ok: false, 
+        message: "Failed to generate PDF",
+        error: err.message 
+      });
     }
   });
 
