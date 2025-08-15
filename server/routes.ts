@@ -4637,70 +4637,127 @@ export function registerRoutes(app: Express): Server {
   // GET version for direct URL access with token
   app.get("/api/payroll/payslip/:employeeId/pdf", async (req, res) => {
     try {
+      console.log('=== GET PDF PAYSLIP REQUEST ===');
+      console.log('Params:', req.params);
+      console.log('Query:', req.query);
+      console.log('Headers:', req.headers);
+      
       const { employeeId } = req.params;
       const { documentId, token } = req.query;
 
       if (!documentId) {
+        console.log('Missing documentId in query');
         return res.status(400).json({ error: "ID dokumen payroll diperlukan" });
       }
 
       // Verify token - simple check for now
       if (!token) {
+        console.log('Missing token in query');
         return res.status(401).json({ error: "Token diperlukan" });
       }
 
+      console.log('Calling generatePayslipPDFResponse for GET...');
       await generatePayslipPDFResponse(employeeId as string, documentId as string, res);
+      console.log('GET PDF generation completed');
     } catch (error) {
-      console.error("Error in GET PDF payslip:", error);
-      res.status(500).json({ error: "Gagal menjana slip gaji PDF" });
+      console.error("=== GET PDF ERROR ===");
+      console.error("Error type:", error.constructor.name);
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+      console.error("=== END GET ERROR ===");
+      
+      if (!res.headersSent) {
+        res.status(500).json({ error: "Gagal menjana slip gaji PDF", details: error.message });
+      }
     }
   });
 
   // POST version (keep for download functionality)
   app.post("/api/payroll/payslip/:employeeId/pdf", authenticateToken, async (req, res) => {
     try {
+      console.log('=== POST PDF PAYSLIP REQUEST ===');
+      console.log('Params:', req.params);
+      console.log('Body:', req.body);
+      console.log('User:', req.user?.id);
+      console.log('Headers:', req.headers);
+      
       const { employeeId } = req.params;
       const { documentId } = req.body;
 
       if (!documentId) {
+        console.log('Missing documentId in body');
         return res.status(400).json({ error: "ID dokumen payroll diperlukan" });
       }
 
+      console.log('Calling generatePayslipPDFResponse for POST...');
       await generatePayslipPDFResponse(employeeId, documentId, res);
+      console.log('POST PDF generation completed');
     } catch (error) {
-      console.error("Error in POST PDF payslip:", error);
-      res.status(500).json({ error: "Gagal menjana slip gaji PDF" });
+      console.error("=== POST PDF ERROR ===");
+      console.error("Error type:", error.constructor.name);
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+      console.error("=== END POST ERROR ===");
+      
+      if (!res.headersSent) {
+        res.status(500).json({ error: "Gagal menjana slip gaji PDF", details: error.message });
+      }
     }
   });
 
   // Shared function for PDF generation
   async function generatePayslipPDFResponse(employeeId: string, documentId: string, res: any) {
+      console.log('=== INSIDE generatePayslipPDFResponse ===');
+      console.log('Employee ID:', employeeId);
+      console.log('Document ID:', documentId);
+      console.log('Response object type:', typeof res);
 
-      // Get payroll document and item
-      const document = await storage.getPayrollDocument(documentId);
-      const payrollItem = await storage.getPayrollItemByDocumentAndEmployee(documentId, employeeId);
-      const employee = await storage.getEmployee(employeeId);
-      const employment = await storage.getEmploymentByEmployeeId(employeeId);
-      const companySettings = await storage.getCompanySettings();
+      try {
+        console.log('Fetching data from storage...');
+        
+        // Get payroll document and item
+        const document = await storage.getPayrollDocument(documentId);
+        console.log('Document fetched:', document ? 'SUCCESS' : 'FAILED');
+        
+        const payrollItem = await storage.getPayrollItemByDocumentAndEmployee(documentId, employeeId);
+        console.log('Payroll item fetched:', payrollItem ? 'SUCCESS' : 'FAILED');
+        
+        const employee = await storage.getEmployee(employeeId);
+        console.log('Employee fetched:', employee ? 'SUCCESS' : 'FAILED');
+        
+        const employment = await storage.getEmploymentByEmployeeId(employeeId);
+        console.log('Employment fetched:', employment ? 'SUCCESS' : 'FAILED');
+        
+        const companySettings = await storage.getCompanySettings();
+        console.log('Company settings fetched:', companySettings ? 'SUCCESS' : 'FAILED');
 
-      if (!document || !payrollItem || !employee) {
-        return res.status(404).json({ error: "Data payroll tidak dijumpai" });
-      }
+        if (!document || !payrollItem || !employee) {
+          console.log('Data validation failed:');
+          console.log('- Document:', !!document);
+          console.log('- PayrollItem:', !!payrollItem);
+          console.log('- Employee:', !!employee);
+          return res.status(404).json({ error: "Data payroll tidak dijumpai" });
+        }
 
-      // Parse payroll item data
-      const employeeSnapshot = JSON.parse(payrollItem.employeeSnapshot);
-      const salary = JSON.parse(payrollItem.salary);
-      const deductions = JSON.parse(payrollItem.deductions);
-      const contributions = JSON.parse(payrollItem.contributions);
+        console.log('All data fetched successfully, proceeding to process...');
 
-      // Format monetary values with proper formatting
-      const formatMoney = (value: any) => {
-        const num = parseFloat(value || "0");
-        return num.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      };
+        // Parse payroll item data
+        console.log('Parsing payroll item data...');
+        const employeeSnapshot = JSON.parse(payrollItem.employeeSnapshot);
+        const salary = JSON.parse(payrollItem.salary);
+        const deductions = JSON.parse(payrollItem.deductions);
+        const contributions = JSON.parse(payrollItem.contributions);
+        console.log('Data parsing completed');
 
-      // Prepare template data following the exact format specification
-      const templateData = {
+        // Format monetary values with proper formatting
+        const formatMoney = (value: any) => {
+          const num = parseFloat(value || "0");
+          return num.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        };
+
+        // Prepare template data following the exact format specification
+        console.log('Preparing template data...');
+        const templateData = {
         company: {
           name: companySettings?.companyName || "UTAMA MEDGROUP SDN BHD",
           regNo: companySettings?.companyRegistrationNumber || "202201033996(1479693-H)",
@@ -4799,40 +4856,61 @@ export function registerRoutes(app: Express): Server {
             }
           };
         })()
-      };
+        };
 
-      // Generate PDF using same HTML template as preview
-      console.log('Generating PDF using HTML template method...');
-      console.log('Template data:', JSON.stringify(templateData, null, 2));
-      
-      // Convert logo to base64 for PDF compatibility
-      if (templateData.company.logoHTML && companySettings?.logoUrl) {
-        const logoBase64 = await convertImageToBase64(companySettings.logoUrl);
-        if (logoBase64) {
-          templateData.company.logoHTML = `<img src="${logoBase64}" class="company-logo" alt="Company Logo" style="width:80px;height:80px;object-fit:contain;display:block;border:none;" />`;
+        // Generate PDF using same HTML template as preview
+        console.log('Generating PDF using HTML template method...');
+        console.log('Template data prepared, proceeding to PDF generation...');
+        
+        // Convert logo to base64 for PDF compatibility
+        if (templateData.company.logoHTML && companySettings?.logoUrl) {
+          console.log('Converting logo to base64...');
+          const logoBase64 = await convertImageToBase64(companySettings.logoUrl);
+          if (logoBase64) {
+            templateData.company.logoHTML = `<img src="${logoBase64}" class="company-logo" alt="Company Logo" style="width:80px;height:80px;object-fit:contain;display:block;border:none;" />`;
+            console.log('Logo converted successfully');
+          }
+        }
+
+        // Use same HTML generator as preview but without preview note for PDF
+        console.log('Generating HTML content...');
+        const htmlContent = generatePayslipHTML(templateData, false);
+        console.log('HTML content generated, length:', htmlContent.length);
+        
+        // Generate PDF from HTML using Puppeteer
+        console.log('Starting PDF generation with Puppeteer...');
+        const pdfBuffer = await convertHTMLToPDF(htmlContent);
+        console.log('PDF generated successfully, buffer size:', pdfBuffer.length);
+
+        // Set headers for PDF inline display with iframe support
+        const fileName = `Payslip_${employee.fullName?.replace(/\s+/g, '_')}_${getMonthName(document.month)}_${document.year}.pdf`;
+        console.log('Setting response headers for file:', fileName);
+        
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
+        res.setHeader('Content-Length', pdfBuffer.length);
+        res.setHeader('Accept-Ranges', 'bytes');
+        res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        
+        // Send buffer directly
+        console.log('Sending PDF buffer to response...');
+        res.send(pdfBuffer);
+        console.log('=== PDF RESPONSE SENT SUCCESSFULLY ===');
+        
+      } catch (error) {
+        console.error('=== ERROR IN generatePayslipPDFResponse ===');
+        console.error('Error type:', error.constructor.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        console.error('=== END FUNCTION ERROR ===');
+        
+        if (!res.headersSent) {
+          res.status(500).json({ error: "Gagal menjana slip gaji PDF", details: error.message });
         }
       }
-
-      // Use same HTML generator as preview but without preview note for PDF
-      const htmlContent = generatePayslipHTML(templateData, false);
-      
-      // Generate PDF from HTML using Puppeteer
-      const pdfBuffer = await convertHTMLToPDF(htmlContent);
-      console.log('PDF generated successfully, buffer size:', pdfBuffer.length);
-
-      // Set headers for PDF inline display with iframe support
-      const fileName = `Payslip_${employee.fullName?.replace(/\s+/g, '_')}_${getMonthName(document.month)}_${document.year}.pdf`;
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
-      res.setHeader('Content-Length', pdfBuffer.length);
-      res.setHeader('Accept-Ranges', 'bytes');
-      res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-      
-      // Send buffer directly
-      res.send(pdfBuffer);
   }
 
   // Helper function to convert image URL to base64
