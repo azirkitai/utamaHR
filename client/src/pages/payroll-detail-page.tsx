@@ -1175,6 +1175,37 @@ export default function PayrollDetailPage() {
                                 <Button
                                   variant="outline"
                                   size="sm"
+                                  className="p-1 h-7 w-7 border-blue-300 text-blue-600"
+                                  onClick={() => {
+                                    // HTML-PDF TEST - using html-pdf-node (like wkhtmltopdf)
+                                    try {
+                                      console.log('=== HTML-PDF TEST ===');
+                                      const htmlPdfUrl = `/api/payroll/payslip/${item.employeeId}/html-pdf?documentId=${id}`;
+                                      
+                                      // Create download link
+                                      const link = document.createElement('a');
+                                      link.href = htmlPdfUrl;
+                                      link.download = `Payslip_${employeeSnapshot.name?.replace(/\s+/g, '_')}_HTML.pdf`;
+                                      link.style.display = 'none';
+                                      document.body.appendChild(link);
+                                      link.click();
+                                      document.body.removeChild(link);
+                                      
+                                      alert('HTML-PDF download started (like wkhtmltopdf)!');
+                                      
+                                    } catch (e: any) {
+                                      console.error('HTML-PDF test gagal:', e);
+                                      alert('HTML-PDF test gagal: ' + (e?.message || 'Unknown error'));
+                                    }
+                                  }}
+                                  data-testid={`button-html-pdf-${item.employeeId}`}
+                                  title="HTML-PDF Test (like wkhtmltopdf)"
+                                >
+                                  <Download className="w-3 h-3" />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
                                   className="p-1 h-7 w-7 border-gray-300"
                                   onClick={() => handleGeneratePDF(item.employeeId, employeeSnapshot.name || 'N/A')}
                                   data-testid={`button-download-pdf-${item.employeeId}`}

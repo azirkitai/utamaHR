@@ -4682,6 +4682,64 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // HTML-PDF-NODE endpoint - generate PDF using html-pdf-node (like wkhtmltopdf)
+  app.get("/api/payroll/payslip/:employeeId/html-pdf", async (req, res) => {
+    try {
+      console.log('=== HTML-PDF GENERATION REQUEST ===');
+      const { employeeId } = req.params;
+      const { documentId } = req.query;
+
+      if (!documentId) {
+        return res.status(400).json({ error: 'Missing documentId' });
+      }
+
+      // Get data for PDF
+      const employee = await storage.getEmployee(employeeId);
+      const document = await storage.getPayrollDocument(documentId as string);
+      const payrollItem = await storage.getPayrollItemByDocumentAndEmployee(documentId as string, employeeId);
+
+      const pdfData = {
+        employee: {
+          id: employeeId,
+          fullName: employee?.fullName || 'Unknown Employee',
+          employeeNo: employee?.employeeNo || 'N/A',
+          ic: employee?.ic || 'N/A'
+        },
+        document: {
+          month: document?.month || 'N/A',
+          year: document?.year || new Date().getFullYear(),
+          id: documentId
+        },
+        payroll: {
+          grossPay: payrollItem?.grossPay || 0,
+          totalDeductions: payrollItem?.totalDeductions || 0,
+          netPay: payrollItem?.netPay || 0
+        },
+        generated: new Date().toLocaleString()
+      };
+
+      console.log('PDF data prepared for HTML generation');
+
+      // Generate HTML and convert to PDF using html-pdf-node
+      const { generatePDFFromHTML, generateSimplePayslipHTML } = await import('./html-pdf-generator');
+      const htmlContent = generateSimplePayslipHTML(pdfData);
+      const pdfBuffer = await generatePDFFromHTML(htmlContent);
+
+      // Send PDF response
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="Payslip_${pdfData.employee.fullName.replace(/\s+/g, '_')}_${pdfData.document.month}_${pdfData.document.year}.pdf"`);
+      res.send(pdfBuffer);
+      
+      console.log('HTML-PDF generation completed successfully');
+    } catch (error) {
+      console.error('HTML-PDF generation error:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Failed to generate PDF: ' + error.message 
+      });
+    }
+  });
+
   // GET version for direct URL access with token - MULTI-METHOD SUPPORT
   app.get("/api/payroll/payslip/:employeeId/pdf", async (req, res) => {
     try {
