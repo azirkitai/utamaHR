@@ -20,7 +20,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { jsPDF } from "jspdf";
+// Import jsPDF dynamically to avoid SSR issues
+import jsPDF from "jspdf";
 // Using multiple PDF generation approaches including jsPDF client-side
 
 // Salary Payroll Approval Card Component
@@ -589,8 +590,10 @@ export default function PayrollDetailPage() {
       
       console.log('PDF data received:', data);
       
-      // Create PDF using jsPDF
+      // Create PDF using jsPDF with error handling
+      console.log('Creating jsPDF instance...');
       const doc = new jsPDF();
+      console.log('jsPDF instance created successfully');
       
       // Set font
       doc.setFontSize(20);
@@ -1105,9 +1108,22 @@ export default function PayrollDetailPage() {
                                   variant="outline"
                                   size="sm"
                                   className="p-1 h-7 w-7 border-green-300 text-green-600"
-                                  onClick={() => handleGeneratePDF_Simple(item.employeeId, employeeSnapshot.name || 'N/A')}
+                                  onClick={() => {
+                                    // SUPER BASIC TEST - just create empty PDF
+                                    try {
+                                      console.log('=== BASIC PDF TEST ===');
+                                      const doc = new jsPDF();
+                                      doc.text('Hello World!', 20, 20);
+                                      doc.text('This is a test PDF', 20, 30);
+                                      doc.save('test.pdf');
+                                      alert('Basic PDF test berjaya!');
+                                    } catch (e) {
+                                      console.error('Basic PDF test gagal:', e);
+                                      alert('Basic PDF test gagal: ' + e.message);
+                                    }
+                                  }}
                                   data-testid={`button-simple-pdf-${item.employeeId}`}
-                                  title="Test Simple PDF"
+                                  title="Basic PDF Test"
                                 >
                                   <Download className="w-3 h-3" />
                                 </Button>
