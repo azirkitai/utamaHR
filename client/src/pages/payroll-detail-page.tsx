@@ -337,10 +337,12 @@ export default function PayrollDetailPage() {
   const generatePdfPreview = async (employeeId: string, employeeName: string) => {
     setIsGeneratingPreview(true);
     try {
-      // Use HTML preview instead of PDF for better browser compatibility
-      const previewUrl = `/api/payroll/payslip/${employeeId}/preview?documentId=${id}&token=${localStorage.getItem('utamahr_token')}`;
+      // Add timestamp to force refresh and prevent caching
+      const timestamp = Date.now();
+      const previewUrl = `/api/payroll/payslip/${employeeId}/preview?documentId=${id}&token=${localStorage.getItem('utamahr_token')}&t=${timestamp}`;
       setPdfPreviewUrl(previewUrl);
-      console.log('HTML preview URL set:', previewUrl);
+      console.log('HTML preview URL set with cache-busting:', previewUrl);
+      console.log('Selected Employee ID:', employeeId, 'Employee Name:', employeeName);
     } catch (error) {
       console.error('Error generating HTML preview:', error);
       alert('Gagal menghasilkan preview slip gaji. Sila cuba lagi.');
