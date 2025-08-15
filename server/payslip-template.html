@@ -113,9 +113,8 @@
     <!-- INCOME -->
     <div class="tbl">
       <div class="hd">INCOME</div>
-      <div class="rowi"><div>BASIC SALARY</div><div class="money">RM {{income.basic}}</div></div>
-
-      <!-- Optional income rows (render only if > 0, including Fixed Allowance) -->
+      
+      <!-- Dynamic income items (includes Basic Salary if > 0) -->
       {{incomeItems}}
 
       <div class="rowi sep"><div>TOTAL GROSS INCOME</div><div class="money">RM {{income.totalGross}}</div></div>
