@@ -4738,6 +4738,8 @@ export function registerRoutes(app: Express): Server {
       };
       
       console.log('safeDeductions created successfully:', JSON.stringify(safeDeductions));
+      console.log('DEBUG: safeDeductions.other type and value:', typeof safeDeductions.other, safeDeductions.other);
+      console.log('DEBUG: parseFloat result:', parseFloat(safeDeductions.other));
 
       // Build templateData (same structure as preview)
       const templateData = {
