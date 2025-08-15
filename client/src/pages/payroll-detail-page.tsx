@@ -20,7 +20,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-// Removed jsPDF - now using server-side Puppeteer for PDF generation
+import { jsPDF } from "jspdf";
+// Using multiple PDF generation approaches including jsPDF client-side
 
 // Salary Payroll Approval Card Component
 function SalaryPayrollApprovalCard({ payrollDocument, currentUser }: { payrollDocument: any; currentUser: any }) {
@@ -449,12 +450,147 @@ export default function PayrollDetailPage() {
     }
   };
 
-  // Main function that tries all methods
+  // METHOD 4: jsPDF client-side generation (ALTERNATIVE APPROACH)
+  const handleGeneratePDF_Method4 = async (employeeId: string, employeeName: string) => {
+    try {
+      console.log('METHOD 4: Using jsPDF client-side generation');
+      
+      // Fetch payroll data from server
+      const response = await fetch(`/api/payroll/payslip/${employeeId}/data?documentId=${id}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('utamahr_token')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch payroll data');
+      }
+
+      const payrollData = await response.json();
+      console.log('Payroll data fetched:', payrollData);
+
+      // Create new jsPDF instance
+      const doc = new jsPDF();
+      
+      // Add title
+      doc.setFontSize(20);
+      doc.text('SLIP GAJI', 105, 20, { align: 'center' });
+      
+      // Add employee info
+      doc.setFontSize(12);
+      let yPos = 40;
+      
+      doc.text(`Nama: ${payrollData.employee?.fullName || employeeName}`, 20, yPos);
+      yPos += 10;
+      doc.text(`No. Pekerja: ${payrollData.employee?.employeeNo || 'N/A'}`, 20, yPos);
+      yPos += 10;
+      doc.text(`Bulan/Tahun: ${payrollData.document?.month || 'N/A'}/${payrollData.document?.year || 'N/A'}`, 20, yPos);
+      yPos += 20;
+      
+      // Add salary details
+      doc.text('BUTIRAN GAJI:', 20, yPos);
+      yPos += 10;
+      
+      if (payrollData.basicSalary) {
+        doc.text(`Gaji Asas: RM ${payrollData.basicSalary.toFixed(2)}`, 20, yPos);
+        yPos += 8;
+      }
+      
+      if (payrollData.grossPay) {
+        doc.text(`Jumlah Gaji Kasar: RM ${payrollData.grossPay.toFixed(2)}`, 20, yPos);
+        yPos += 8;
+      }
+      
+      if (payrollData.totalDeductions) {
+        doc.text(`Jumlah Potongan: RM ${payrollData.totalDeductions.toFixed(2)}`, 20, yPos);
+        yPos += 8;
+      }
+      
+      if (payrollData.netPay) {
+        doc.text(`Gaji Bersih: RM ${payrollData.netPay.toFixed(2)}`, 20, yPos);
+        yPos += 8;
+      }
+      
+      // Add footer
+      yPos += 20;
+      doc.text(`Dihasilkan pada: ${new Date().toLocaleDateString('ms-MY')}`, 20, yPos);
+      
+      // Save the PDF
+      const filename = `Payslip_${employeeName.replace(/\s+/g, '_')}.pdf`;
+      doc.save(filename);
+      
+      console.log('METHOD 4: jsPDF generated successfully');
+      alert('Slip gaji PDF berjaya dimuat turun (jsPDF method)!');
+      
+    } catch (error) {
+      console.error('METHOD 4 Error:', error);
+      alert('jsPDF method gagal. Cuba method lain...');
+      throw error;
+    }
+  };
+
+  // METHOD 5: Using html-pdf-node alternative endpoint
+  const handleGeneratePDF_Method5 = async (employeeId: string, employeeName: string) => {
+    try {
+      console.log('METHOD 5: Using html-pdf-node alternative endpoint');
+      
+      const response = await fetch(`/api/payroll/payslip/${employeeId}/pdf-alternative`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('utamahr_token')}`
+        },
+        body: JSON.stringify({ documentId: id })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      if (blob.size === 0) {
+        throw new Error('Empty file received');
+      }
+      
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Payslip_${employeeName.replace(/\s+/g, '_')}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      console.log('METHOD 5: html-pdf-node success');
+      alert('Slip gaji PDF berjaya dimuat turun (html-pdf-node method)!');
+      
+    } catch (error) {
+      console.error('METHOD 5 Error:', error);
+      alert('html-pdf-node method gagal.');
+      throw error;
+    }
+  };
+
+  // Main function that tries all methods with jsPDF as primary option
   const handleGeneratePDF = async (employeeId: string, employeeName: string) => {
-    console.log('Starting PDF download with multi-method approach');
+    console.log('Starting PDF download with MULTI-METHOD approach including jsPDF');
     console.log('Employee ID:', employeeId, 'Name:', employeeName, 'Document ID:', id);
     
-    // Try METHOD 1 first (most reliable)
+    // Try METHOD 4 first (jsPDF - most reliable for downloads)
+    try {
+      await handleGeneratePDF_Method4(employeeId, employeeName);
+      return;
+    } catch (error) {
+      console.log('Method 4 (jsPDF) failed, trying Method 5...');
+    }
+    
+    // Try METHOD 5 (html-pdf-node alternative)
+    try {
+      await handleGeneratePDF_Method5(employeeId, employeeName);
+      return;
+    } catch (error) {
+      console.log('Method 5 failed, trying Method 1...');
+    }
+    
+    // Try METHOD 1 (Direct URL download)
     try {
       handleGeneratePDF_Method1(employeeId, employeeName);
       return;
@@ -462,7 +598,7 @@ export default function PayrollDetailPage() {
       console.log('Method 1 failed, trying Method 2...');
     }
     
-    // Try METHOD 2 if Method 1 fails
+    // Try METHOD 2 (Improved blob)
     try {
       await handleGeneratePDF_Method2(employeeId, employeeName);
       return;
@@ -470,12 +606,12 @@ export default function PayrollDetailPage() {
       console.log('Method 2 failed, trying Method 3...');
     }
     
-    // Try METHOD 3 as last resort
+    // Try METHOD 3 as last resort (iframe)
     try {
       handleGeneratePDF_Method3(employeeId, employeeName);
     } catch (error) {
-      console.error('All PDF download methods failed:', error);
-      alert('Gagal memuat turun PDF dengan semua kaedah. Sila cuba lagi atau hubungi admin.');
+      console.error('All 5 PDF download methods failed:', error);
+      alert('Gagal memuat turun PDF dengan semua 5 kaedah. Sila cuba lagi atau hubungi admin.');
     }
   };
 

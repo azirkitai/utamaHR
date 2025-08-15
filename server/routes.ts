@@ -4682,6 +4682,143 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // GET endpoint to fetch payroll data for jsPDF client-side generation
+  app.get("/api/payroll/payslip/:employeeId/data", authenticateToken, async (req, res) => {
+    try {
+      console.log('=== PAYROLL DATA REQUEST ===');
+      const { employeeId } = req.params;
+      const { documentId } = req.query;
+
+      if (!documentId) {
+        return res.status(400).json({ error: "ID dokumen payroll diperlukan" });
+      }
+
+      // Get data from storage
+      const document = await storage.getPayrollDocument(documentId as string);
+      const payrollItem = await storage.getPayrollItemByDocumentAndEmployee(documentId as string, employeeId);
+      const employee = await storage.getEmployee(employeeId);
+      const employment = await storage.getEmploymentByEmployeeId(employeeId);
+      const companySettings = await storage.getCompanySettings();
+
+      if (!document || !payrollItem || !employee) {
+        return res.status(404).json({ error: "Data payroll tidak dijumpai" });
+      }
+
+      // Parse payroll data
+      const parsedPayrollData = JSON.parse(payrollItem.payrollData || '{}');
+      
+      const responseData = {
+        document: {
+          month: document.month,
+          year: document.year,
+          status: document.status
+        },
+        employee: {
+          fullName: employee.fullName,
+          employeeNo: employee.employeeNo,
+          ic: employee.ic
+        },
+        employment: employment,
+        companySettings: companySettings,
+        basicSalary: parsedPayrollData.basicSalary || 0,
+        grossPay: parsedPayrollData.grossPay || payrollItem.grossPay || 0,
+        totalDeductions: parsedPayrollData.totalDeductions || payrollItem.totalDeductions || 0,
+        netPay: parsedPayrollData.netPay || payrollItem.netPay || 0,
+        allowances: parsedPayrollData.allowances || [],
+        deductions: parsedPayrollData.deductions || [],
+        epfCalculations: parsedPayrollData.epfCalculations || {},
+        socsoCalculations: parsedPayrollData.socsoCalculations || {},
+        eisCalculations: parsedPayrollData.eisCalculations || {},
+        pcbCalculations: parsedPayrollData.pcbCalculations || {}
+      };
+
+      res.json(responseData);
+    } catch (error) {
+      console.error("Error fetching payroll data:", error);
+      res.status(500).json({ error: "Gagal mengambil data payroll" });
+    }
+  });
+
+  // POST endpoint using html-pdf-node as alternative
+  app.post("/api/payroll/payslip/:employeeId/pdf-alternative", authenticateToken, async (req, res) => {
+    try {
+      console.log('=== ALTERNATIVE PDF GENERATION (html-pdf-node) ===');
+      const { employeeId } = req.params;
+      const { documentId } = req.body;
+
+      if (!documentId) {
+        return res.status(400).json({ error: "ID dokumen payroll diperlukan" });
+      }
+
+      // Import html-pdf-node
+      const htmlPdf = await import('html-pdf-node');
+      const { generatePayslipHTML } = await import('./payslip-html-generator.js');
+
+      // Get data (same as before)
+      const document = await storage.getPayrollDocument(documentId);
+      const payrollItem = await storage.getPayrollItemByDocumentAndEmployee(documentId, employeeId);
+      const employee = await storage.getEmployee(employeeId);
+      const employment = await storage.getEmploymentByEmployeeId(employeeId);
+      const companySettings = await storage.getCompanySettings();
+
+      if (!document || !payrollItem || !employee) {
+        return res.status(404).json({ error: "Data payroll tidak dijumpai" });
+      }
+
+      // Parse payroll data and create template data (same logic as existing)
+      const parsedPayrollData = JSON.parse(payrollItem.payrollData || '{}');
+      
+      const templateData = {
+        companyName: companySettings?.companyName || 'UtamaHR',
+        companyLogo: companySettings?.logoUrl || '',
+        employee: {
+          fullName: employee.fullName,
+          employeeNo: employee.employeeNo,
+          ic: employee.ic,
+          position: employment?.position || 'N/A',
+          department: employment?.department || 'N/A',
+          bankName: employment?.bankName || 'N/A',
+          bankAccountNo: employment?.bankAccountNo || 'N/A'
+        },
+        payPeriod: `${document.month}/${document.year}`,
+        basicSalary: parsedPayrollData.basicSalary || 0,
+        grossPay: parsedPayrollData.grossPay || payrollItem.grossPay || 0,
+        totalDeductions: parsedPayrollData.totalDeductions || payrollItem.totalDeductions || 0,
+        netPay: parsedPayrollData.netPay || payrollItem.netPay || 0,
+        allowances: parsedPayrollData.allowances || [],
+        deductions: parsedPayrollData.deductions || []
+      };
+
+      // Generate HTML
+      const htmlContent = generatePayslipHTML(templateData);
+
+      // Generate PDF using html-pdf-node
+      const options = {
+        format: 'A4',
+        orientation: 'portrait',
+        border: {
+          top: "0.5in",
+          right: "0.5in",
+          bottom: "0.5in",
+          left: "0.5in"
+        }
+      };
+
+      const file = { content: htmlContent };
+      const pdfBuffer = await htmlPdf.generatePdf(file, options);
+
+      // Set headers and send PDF
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="Payslip_${employee.fullName.replace(/\s+/g, '_')}.pdf"`);
+      res.send(pdfBuffer);
+
+      console.log('Alternative PDF generated successfully with html-pdf-node');
+    } catch (error) {
+      console.error("Error generating alternative PDF:", error);
+      res.status(500).json({ error: "Gagal menjana PDF alternatif" });
+    }
+  });
+
   // POST version (keep for download functionality)
   app.post("/api/payroll/payslip/:employeeId/pdf", authenticateToken, async (req, res) => {
     try {
