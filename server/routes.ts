@@ -4783,6 +4783,12 @@ export function registerRoutes(app: Express): Server {
           total: parseFloat(safeDeductions.epfEmployee) + parseFloat(safeDeductions.socsoEmployee) + parseFloat(safeDeductions.eisEmployee) + parseFloat(safeDeductions.other),
           additional: parseFloat(safeDeductions.other) > 0 ? [{ label: "MTD/PCB", amount: parseFloat(safeDeductions.other) }] : []
         },
+        deductions: {
+          epfEmployee: parseFloat(safeDeductions.epfEmployee),
+          socsoEmployee: parseFloat(safeDeductions.socsoEmployee),
+          eisEmployee: parseFloat(safeDeductions.eisEmployee),
+          additional: parseFloat(safeDeductions.other) > 0 ? [{ label: "MTD/PCB", amount: parseFloat(safeDeductions.other) }] : []
+        },
         employerContrib: {
           epfEr: parseFloat(contributions.epfEmployer || 0),
           socsoEr: parseFloat(contributions.socsoEmployer || 0),
