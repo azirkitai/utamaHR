@@ -195,8 +195,33 @@ export default function ManageEmployeePage() {
   };
 
   const handleAddEmployee = () => {
+    console.log("=== HANDLE ADD EMPLOYEE CALLED ===");
+    console.log("Form values:", {
+      firstName,
+      lastName,
+      email,
+      username,
+      password: password ? "[SET]" : "[NOT SET]",
+      confirmPassword: confirmPassword ? "[SET]" : "[NOT SET]",
+      userRole,
+      phone,
+      company,
+      designation,
+      department
+    });
+    
     // Validation
     if (!firstName || !lastName || !email || !username || !password || !userRole) {
+      console.log("=== VALIDATION FAILED: Missing required fields ===");
+      console.log("Missing fields:", {
+        firstName: !firstName,
+        lastName: !lastName,
+        email: !email,
+        username: !username,
+        password: !password,
+        userRole: !userRole
+      });
+      
       toast({
         title: "Ralat",
         description: "Sila isi semua field yang diperlukan.",
@@ -206,6 +231,9 @@ export default function ManageEmployeePage() {
     }
 
     if (password !== confirmPassword) {
+      console.log("=== VALIDATION FAILED: Password mismatch ===");
+      console.log("Password match:", password === confirmPassword);
+      
       toast({
         title: "Ralat", 
         description: "Password dan confirm password tidak sama.",
@@ -214,6 +242,8 @@ export default function ManageEmployeePage() {
       return;
     }
 
+    console.log("=== VALIDATION PASSED: Calling mutation ===");
+    
     // Call the mutation
     createStaffMutation.mutate({
       username,
