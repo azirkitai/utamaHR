@@ -4783,7 +4783,44 @@ export function registerRoutes(app: Express): Server {
           socsoEmp: parseFloat(safeDeductions.socsoEmployee),
           eisEmp: parseFloat(safeDeductions.eisEmployee),
           total: parseFloat(safeDeductions.epfEmployee) + parseFloat(safeDeductions.socsoEmployee) + parseFloat(safeDeductions.eisEmployee) + parseFloat(safeDeductions.other),
-          additional: parseFloat(safeDeductions.other) > 0 ? [{ label: "MTD/PCB", amount: parseFloat(safeDeductions.other) }] : []
+          additional: (() => {
+            const additionalItems = [];
+            if (parseFloat(safeDeductions.other) > 0.01) {
+              additionalItems.push({ label: "MTD/PCB", amount: parseFloat(safeDeductions.other) });
+            }
+            
+            // Add other Master Salary deductions if > 0.01
+            if (currentMasterSalary) {
+              const masterDeductions = currentMasterSalary.deductions ? JSON.parse(currentMasterSalary.deductions) : {};
+              
+              if (parseFloat(masterDeductions.advance || 0) > 0.01) {
+                additionalItems.push({ label: "Advance", amount: parseFloat(masterDeductions.advance) });
+              }
+              if (parseFloat(masterDeductions.unpaidLeave || 0) > 0.01) {
+                additionalItems.push({ label: "Unpaid Leave", amount: parseFloat(masterDeductions.unpaidLeave) });
+              }
+              if (parseFloat(masterDeductions.pcb38 || 0) > 0.01) {
+                additionalItems.push({ label: "PCB38", amount: parseFloat(masterDeductions.pcb38) });
+              }
+              if (parseFloat(masterDeductions.pcb39 || 0) > 0.01) {
+                additionalItems.push({ label: "PCB39", amount: parseFloat(masterDeductions.pcb39) });
+              }
+              if (parseFloat(masterDeductions.zakat || 0) > 0.01) {
+                additionalItems.push({ label: "Zakat", amount: parseFloat(masterDeductions.zakat) });
+              }
+              
+              // Add custom deduction items
+              if (masterDeductions.customItems && Array.isArray(masterDeductions.customItems)) {
+                masterDeductions.customItems.forEach((item: any) => {
+                  if (parseFloat(item.amount || 0) > 0.01) {
+                    additionalItems.push({ label: item.label, amount: parseFloat(item.amount) });
+                  }
+                });
+              }
+            }
+            
+            return additionalItems;
+          })()
         },
         deductions: {
           epfEmployee: parseFloat(safeDeductions.epfEmployee),
@@ -4795,7 +4832,30 @@ export function registerRoutes(app: Express): Server {
         employerContrib: {
           epfEr: parseFloat(contributions.epfEmployer || 0),
           socsoEr: parseFloat(contributions.socsoEmployer || 0),
-          eisEr: parseFloat(contributions.eisEmployer || 0)
+          eisEr: parseFloat(contributions.eisEmployer || 0),
+          additional: (() => {
+            const additionalContribs = [];
+            
+            // Add Master Salary contributions if > 0.01
+            if (currentMasterSalary) {
+              const masterContributions = currentMasterSalary.contributions ? JSON.parse(currentMasterSalary.contributions) : {};
+              
+              if (parseFloat(masterContributions.medicalCard || 0) > 0.01) {
+                additionalContribs.push({ label: "Medical Card", amount: parseFloat(masterContributions.medicalCard) });
+              }
+              if (parseFloat(masterContributions.groupTermLife || 0) > 0.01) {
+                additionalContribs.push({ label: "Group Term Life", amount: parseFloat(masterContributions.groupTermLife) });
+              }
+              if (parseFloat(masterContributions.medicalCompany || 0) > 0.01) {
+                additionalContribs.push({ label: "Medical Company", amount: parseFloat(masterContributions.medicalCompany) });
+              }
+              if (parseFloat(masterContributions.hrdf || 0) > 0.01) {
+                additionalContribs.push({ label: "HRDF", amount: parseFloat(masterContributions.hrdf) });
+              }
+            }
+            
+            return additionalContribs;
+          })()
         },
         netIncome: parseFloat(salary.gross || 0) - (parseFloat(safeDeductions.epfEmployee) + parseFloat(safeDeductions.socsoEmployee) + parseFloat(safeDeductions.eisEmployee) + parseFloat(safeDeductions.other)),
         ytd: {

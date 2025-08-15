@@ -98,12 +98,14 @@ export function buildPdfPropsFromTemplateData(templateData: any): PayslipPDFProp
       amount: parseAmount(item.amount)
     }));
 
-  // Parse additional deduction items  
-  const additionalDeductionItems = (templateData.deduction?.items || [])
-    .map((item: any) => ({
-      label: item.label,
-      amount: parseAmount(item.amount)
-    }));
+  // Parse additional deduction items from template data
+  const additionalDeductionItems = [
+    ...(templateData.deduction?.additional || []),
+    ...(templateData.deduction?.items || [])
+  ].map((item: any) => ({
+    label: item.label,
+    amount: parseAmount(item.amount)
+  }));
 
   return {
     employee: {
@@ -156,6 +158,10 @@ export function buildPdfPropsFromTemplateData(templateData: any): PayslipPDFProp
       epfEmployer: parseAmount(templateData.employerContrib?.epfEr || 0),
       socsoEmployer: parseAmount(templateData.employerContrib?.socsoEr || 0),
       eisEmployer: parseAmount(templateData.employerContrib?.eisEr || 0),
+      additional: (templateData.employerContrib?.additional || []).map((item: any) => ({
+        label: item.label,
+        amount: parseAmount(item.amount)
+      })),
     },
     ytd: {
       employee: {
@@ -228,6 +234,7 @@ const styles = StyleSheet.create({
   contribWrap: { marginBottom: 14 },
   contribTitle: { fontSize: 12, fontWeight: 700, color: "#666", marginBottom: 8, textTransform: "uppercase" },
   contribRow: { flexDirection: "row", gap: 8, marginBottom: 6 },
+  contribRowAdditional: { flexDirection: "row", gap: 8, marginTop: 8, flexWrap: "wrap" },
   contribBox: { flex: 1, borderWidth: 1, borderColor: "#e9ecef", padding: 10, backgroundColor: "#f8f9fa", borderRadius: 6 },
   contribHead: { fontSize: 10, fontWeight: 700, marginBottom: 6, textTransform: "uppercase" },
   contribAmt: { fontSize: 12, fontWeight: 700 },
@@ -429,6 +436,18 @@ export const PayslipPDFDocument: React.FC<PayslipPDFProps> = ({
               <Text style={styles.contribAmt}>{formatRM(contributions?.eisEmployer)}</Text>
             </View>
           </View>
+          
+          {/* Additional Employer Contributions */}
+          {contributions?.additional && contributions.additional.length > 0 && (
+            <View style={styles.contribRowAdditional}>
+              {contributions.additional.map((item, index) => (
+                <View key={index} style={styles.contribBox}>
+                  <Text style={styles.contribHead}>{item.label}</Text>
+                  <Text style={styles.contribAmt}>{formatRM(item.amount)}</Text>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* YTD Summary */}
