@@ -1,0 +1,122 @@
+Di bawah ni saya bagi “drop-in patch” untuk kedua-dua sisi (server & frontend). Ikut ini, biasanya terus jalan.
+
+SERVER (Express / Node) — guna buffer + flags Replit
+// routes/pdf.js
+import express from "express";
+import puppeteer from "puppeteer";
+
+const router = express.Router();
+
+router.get("/payslip/:id", async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    // 1) LAUNCH CHROME DENGAN FLAGS SESUAI DEPLOYMENT
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"]
+    });
+
+    const page = await browser.newPage();
+
+    // 2) SEDIAKAN HTML (boleh ganti dengan template anda)
+    const html = `<html><body><h1>Payslip ${id}</h1></body></html>`;
+    await page.setContent(html, { waitUntil: "networkidle0" });
+
+    // 3) HASILKAN BUFFER TERUS (JANGAN TULIS FAIL)
+    const pdfBuffer = await page.pdf({
+      format: "A4",
+      printBackground: true,
+      margin: { top: "10mm", right: "10mm", bottom: "10mm", left: "10mm" }
+    });
+
+    await browser.close();
+
+    // 4) HANTAR HEADER YANG BETUL
+    res.set({
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `attachment; filename="Payslip_${id}.pdf"`,
+      "Cache-Control": "no-store",
+      "Content-Length": pdfBuffer.length
+    });
+
+    // 5) STREAM BUFFER → KLIEN
+    return res.end(pdfBuffer);
+
+  } catch (err) {
+    console.error("PDF error:", err);
+    return res.status(500).json({ ok: false, message: "Failed to generate PDF" });
+  }
+});
+
+export default router;
+
+// server.js
+import express from "express";
+import pdfRoutes from "./routes/pdf.js";
+
+const app = express();
+
+// Penting: gunakan port dari env Replit
+const PORT = process.env.PORT || 3000;
+
+app.get("/healthz", (_, res) => res.send("ok"));
+app.use("/api", pdfRoutes);
+
+app.listen(PORT, () => console.log("Server listening on", PORT));
+
+
+Kenapa ini penting
+
+--no-sandbox biasanya wajib dalam container Replit.
+
+Kita tak guna res.download(path) dan tak simpan ke disk (elak isu permission).
+
+Set Content-Disposition: attachment supaya browser auto-download.
+
+Jika anda guna Next.js di Replit: pastikan route PDF anda Node runtime, bukan Edge:
+export const runtime = 'nodejs'.
+
+FRONTEND — fetch → blob → download
+async function downloadPayslip(id) {
+  const resp = await fetch(`/api/payslip/${id}`, { method: "GET" });
+  if (!resp.ok) throw new Error("Fail to fetch PDF");
+
+  const blob = await resp.blob();
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `Payslip_${id}.pdf`;   // Nama fail
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+
+Nota penting
+
+Jangan cuba buka window.open() kerana popup blocker boleh block.
+
+Jika front-end dan API domain berbeza, perlu CORS dan header yang betul; untuk download cross-origin, download attribute kadang-kadang diabaikan → sebaiknya proxy melalui domain yang sama.
+
+CHECKLIST PANTAS (Production)
+
+Logs Replit → Deployments → Logs: masa klik “Download”, pastikan server log keluarkan:
+
+status 200
+
+pdfBuffer.length ≈ saiz fail (ratus KB)
+
+tiada error puppeteer seperti No usable sandbox! atau Failed to launch.
+
+Network tab (browser):
+
+Request ke /api/payslip/:id status 200
+
+Response headers ada Content-Type: application/pdf & Content-Disposition: attachment
+
+Size > 0KB
+
+Timeout: jika PDF berat/HTML load external font/gambar, elakkan URL luar yang blocked. Guna inline CSS/font jika boleh.
