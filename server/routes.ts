@@ -4634,7 +4634,7 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // GET version for direct URL access with token
+  // GET version for direct URL access with token - MULTI-METHOD SUPPORT
   app.get("/api/payroll/payslip/:employeeId/pdf", async (req, res) => {
     try {
       console.log('=== GET PDF PAYSLIP REQUEST ===');
@@ -4643,7 +4643,7 @@ export function registerRoutes(app: Express): Server {
       console.log('Headers:', req.headers);
       
       const { employeeId } = req.params;
-      const { documentId, token } = req.query;
+      const { documentId, token, download, method } = req.query;
 
       if (!documentId) {
         console.log('Missing documentId in query');
@@ -4654,6 +4654,16 @@ export function registerRoutes(app: Express): Server {
       if (!token) {
         console.log('Missing token in query');
         return res.status(401).json({ error: "Token diperlukan" });
+      }
+
+      // Set appropriate headers based on download method
+      if (download === '1' || method === 'iframe') {
+        console.log('Setting download headers for direct download');
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="Payslip_${employeeId}.pdf"`);
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
       }
 
       console.log('Calling generatePayslipPDFResponse for GET...');
