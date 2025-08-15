@@ -79,13 +79,25 @@ export default function ManageEmployeePage() {
       email: string;
     }) => {
       // Step 1: Create user account first
+      console.log("=== CLIENT: Attempting to create user ===");
+      console.log("Request data:", {
+        username: staffData.username,
+        role: staffData.role
+      });
+      
       const userResponse = await apiRequest("POST", "/api/create-staff-user", {
         username: staffData.username,
         password: staffData.password,
         role: staffData.role,
       });
       
+      console.log("=== CLIENT: User creation response ===");
+      console.log("Response status:", userResponse.status);
+      console.log("Response OK:", userResponse.ok);
+      
       const newUser = await userResponse.json();
+      console.log("=== CLIENT: New user data ===");
+      console.log("New user:", newUser);
       
       // Step 2: Create employee record linked to user
       const employeeResponse = await apiRequest("POST", "/api/employees", {
