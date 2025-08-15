@@ -58,7 +58,7 @@ export function mapDbToPayslipProps(db: DbSlip) {
     if (db.deductions.epfEmployee) deductionList.push({ label: "EPF Employee", amount: db.deductions.epfEmployee });
     if (db.deductions.socsoEmployee) deductionList.push({ label: "SOCSO Employee", amount: db.deductions.socsoEmployee });
     if (db.deductions.eisEmployee) deductionList.push({ label: "EIS Employee", amount: db.deductions.eisEmployee });
-    if (db.deductions.pcb) deductionList.push({ label: "MTD/PCB", amount: db.deductions.pcb });
+    if (db.deductions.pcb !== undefined && db.deductions.pcb > 0) deductionList.push({ label: "MTD/PCB", amount: db.deductions.pcb });
     if (db.deductions.additional?.length) deductionList.push(...db.deductions.additional);
   }
 
