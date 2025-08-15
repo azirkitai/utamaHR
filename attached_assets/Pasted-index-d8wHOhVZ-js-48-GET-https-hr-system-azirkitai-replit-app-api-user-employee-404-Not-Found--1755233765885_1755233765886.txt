@@ -1,0 +1,69 @@
+index-d8wHOhVZ.js:48  GET https://hr-system-azirkitai.replit.app/api/user/employee 404 (Not Found)
+(anonymous) @ index-d8wHOhVZ.js:48
+i @ index-d8wHOhVZ.js:48
+j @ index-d8wHOhVZ.js:48
+start @ index-d8wHOhVZ.js:48
+fetch @ index-d8wHOhVZ.js:48
+xf @ index-d8wHOhVZ.js:48
+onSubscribe @ index-d8wHOhVZ.js:48
+subscribe @ index-d8wHOhVZ.js:48
+(anonymous) @ index-d8wHOhVZ.js:48
+g9 @ index-d8wHOhVZ.js:38
+uj @ index-d8wHOhVZ.js:40
+Ou @ index-d8wHOhVZ.js:40
+tre @ index-d8wHOhVZ.js:40
+Mc @ index-d8wHOhVZ.js:40
+b4 @ index-d8wHOhVZ.js:40
+mc @ index-d8wHOhVZ.js:38
+(anonymous) @ index-d8wHOhVZ.js:40
+setTimeout
+s @ index-d8wHOhVZ.js:48
+o @ index-d8wHOhVZ.js:48
+batch @ index-d8wHOhVZ.js:48
+_o @ index-d8wHOhVZ.js:48
+setData @ index-d8wHOhVZ.js:48
+onSuccess @ index-d8wHOhVZ.js:48
+h @ index-d8wHOhVZ.js:48
+Promise.then
+j @ index-d8wHOhVZ.js:48
+start @ index-d8wHOhVZ.js:48
+fetch @ index-d8wHOhVZ.js:48
+xf @ index-d8wHOhVZ.js:48
+onSubscribe @ index-d8wHOhVZ.js:48
+subscribe @ index-d8wHOhVZ.js:48
+(anonymous) @ index-d8wHOhVZ.js:48
+g9 @ index-d8wHOhVZ.js:38
+uj @ index-d8wHOhVZ.js:40
+Ou @ index-d8wHOhVZ.js:40
+tre @ index-d8wHOhVZ.js:40
+Mc @ index-d8wHOhVZ.js:40
+b4 @ index-d8wHOhVZ.js:40
+mc @ index-d8wHOhVZ.js:38
+(anonymous) @ index-d8wHOhVZ.js:40
+setTimeout
+s @ index-d8wHOhVZ.js:48
+o @ index-d8wHOhVZ.js:48
+batch @ index-d8wHOhVZ.js:48
+_o @ index-d8wHOhVZ.js:48
+setData @ index-d8wHOhVZ.js:48
+onSuccess @ index-d8wHOhVZ.js:48
+h @ index-d8wHOhVZ.js:48
+Promise.then
+j @ index-d8wHOhVZ.js:48
+start @ index-d8wHOhVZ.js:48
+fetch @ index-d8wHOhVZ.js:48
+xf @ index-d8wHOhVZ.js:48
+onSubscribe @ index-d8wHOhVZ.js:48
+subscribe @ index-d8wHOhVZ.js:48
+(anonymous) @ index-d8wHOhVZ.js:48
+g9 @ index-d8wHOhVZ.js:38
+uj @ index-d8wHOhVZ.js:40
+Ou @ index-d8wHOhVZ.js:40
+b4 @ index-d8wHOhVZ.js:40
+mc @ index-d8wHOhVZ.js:38
+tre @ index-d8wHOhVZ.js:40
+Mc @ index-d8wHOhVZ.js:40
+G9 @ index-d8wHOhVZ.js:40
+w @ index-d8wHOhVZ.js:25
+L @ index-d8wHOhVZ.js:25Understand this error
+index-d8wHOhVZ.js:732 HTML preview URL set: /api/payroll/payslip/5e83f082-46ec-4721-879d-b91c00e33c19/preview?documentId=5daa36d3-f0c8-495f-a069-8ae6e6fd45ec&token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE2OWQ3ZmNjLTcxOGEtNDM2Ni1iNDJjLTFiNWYzZDAwMzUwOCIsInVzZXJuYW1lIjoiQXppcmtpdGFpIiwiaWF0IjoxNzU1MjI1NzY2LCJleHAiOjE3NTUzMTIxNjZ9.YAFzTz-7aA7LtXcVt48Um-_uZGMURu0eMUpY-vnwYk0
