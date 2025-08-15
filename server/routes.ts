@@ -1028,7 +1028,8 @@ export function registerRoutes(app: Express): Server {
       console.log("Current user:", { id: currentUser.id, username: currentUser.username, role: currentUser.role });
       
       // Role-based access control for new role system
-      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      // FIXED: Include all valid admin roles used in production
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC', 'Finance/Account'];
       console.log("Admin roles:", adminRoles);
       console.log("User has admin access:", adminRoles.includes(currentUser.role));
       
@@ -1102,7 +1103,8 @@ export function registerRoutes(app: Express): Server {
       }
       
       // Role-based access control for individual employee access
-      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      // FIXED: Include all valid admin roles used in production
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC', 'Finance/Account'];
       if (adminRoles.includes(currentUser.role)) {
         // Admin roles can access any employee record
         res.json(employee);
@@ -1124,8 +1126,9 @@ export function registerRoutes(app: Express): Server {
     try {
       const currentUser = req.user!;
       
-      // Only admin roles can create new employee records
-      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      // Only admin roles can create new employee records  
+      // FIXED: Include all valid admin roles used in production
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC', 'Finance/Account'];
       console.log("=== EMPLOYEE CREATION DEBUG ===");
       console.log("Current user:", JSON.stringify(currentUser, null, 2));
       console.log("Request body:", JSON.stringify(req.body, null, 2));
@@ -1154,7 +1157,7 @@ export function registerRoutes(app: Express): Server {
       }
       
       // Check if user exists
-      const targetUser = await storage.getUserById(req.body.userId);
+      const targetUser = await storage.getUser(req.body.userId);
       if (!targetUser) {
         return res.status(400).json({ 
           error: "User ID tidak dijumpai",
