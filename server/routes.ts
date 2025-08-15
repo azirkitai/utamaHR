@@ -4517,17 +4517,9 @@ export function registerRoutes(app: Express): Server {
               });
             }
             
-            if (parseFloat(deductions.other || "0") > 0) {
-              console.log('✓ Adding Other deduction:', deductions.other);
-              items.push({
-                label: "MTD/PCB",
-                amount: formatMoney(deductions.other),
-                show: true
-              });
-            }
-            
-            // Add custom deduction items from payroll snapshot data only
+            // Handle deductions.other - either single value or array, but not both
             if (deductions.other && Array.isArray(deductions.other)) {
+              // Process as array of custom items
               deductions.other.forEach((customItem: any, index: number) => {
                 if (parseFloat(customItem.amount || "0") > 0) {
                   // Try to determine proper label - prioritize name then label
@@ -4538,18 +4530,27 @@ export function registerRoutes(app: Express): Server {
                     const amount = parseFloat(customItem.amount || "0");
                     // Common PCB amounts in Malaysia are typically 100-500 range
                     if (amount >= 50 && amount <= 1000) {
-                      deductionLabel = "PCB";
+                      deductionLabel = "MTD/PCB";
                     } else {
                       deductionLabel = `Custom Deduction ${index + 1}`;
                     }
                   }
                   
+                  console.log(`✓ Adding custom deduction: ${deductionLabel} = ${customItem.amount}`);
                   items.push({
                     label: deductionLabel,
                     amount: formatMoney(customItem.amount),
                     show: true
                   });
                 }
+              });
+            } else if (parseFloat(deductions.other || "0") > 0) {
+              // Process as single MTD/PCB value (most common case)
+              console.log('✓ Adding MTD/PCB deduction:', deductions.other);
+              items.push({
+                label: "MTD/PCB",
+                amount: formatMoney(deductions.other),
+                show: true
               });
             }
             

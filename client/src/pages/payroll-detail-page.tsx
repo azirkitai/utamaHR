@@ -1081,7 +1081,7 @@ export default function PayrollDetailPage() {
                             <td className="p-3 text-center text-gray-600 bg-cyan-50">RM {parseFloat(deductionsData.socsoEmployee || '0').toFixed(2)}</td>
                             <td className="p-3 text-center text-gray-600 bg-cyan-50">RM {parseFloat(deductionsData.eisEmployee || '0').toFixed(2)}</td>
                             <td className="p-3 text-center text-gray-600 bg-cyan-50">RM {(() => {
-                              // Show MTD/PCB value - use same logic as totalDeductions calculation
+                              // Show MTD/PCB value - use EXACT same logic as totalDeductions calculation
                               let pcbAmount = 0;
                               if (Array.isArray(deductionsData.other) && deductionsData.other.length === 0) {
                                 // Empty array means use master salary value (same logic as server)
@@ -1091,9 +1091,8 @@ export default function PayrollDetailPage() {
                               } else if (typeof deductionsData.other === 'string' && deductionsData.other !== '' && deductionsData.other !== '0') {
                                 pcbAmount = parseFloat(deductionsData.other);
                               }
-                              // Also include pcb38/pcb39 if they have values
-                              pcbAmount += parseFloat(deductionsData.pcb38 || '0');
-                              pcbAmount += parseFloat(deductionsData.pcb39 || '0');
+                              // DON'T add pcb38/pcb39 here - they are separate fields in the stored data
+                              // The 'other' field already contains the MTD/PCB value from master salary
                               return pcbAmount.toFixed(2);
                             })()}</td>
                             <td className="p-3 text-center text-gray-600 bg-yellow-50">RM {parseFloat(contributionsData.epfEmployer || '0').toFixed(2)}</td>
