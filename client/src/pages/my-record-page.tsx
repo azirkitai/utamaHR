@@ -170,6 +170,57 @@ export default function MyRecordPage() {
     return `${format(filters.dateFrom, "dd/MM/yyyy")} - ${format(filters.dateTo, "dd/MM/yyyy")}`;
   };
 
+  // Handle payslip download using same logic as payroll detail page
+  const handleDownloadPayslip = async (payrollItemId: string, employeeName: string) => {
+    try {
+      console.log('=== DOWNLOAD PAYSLIP PDF FROM MY RECORD ===');
+      console.log('Payroll Item ID:', payrollItemId, 'Employee Name:', employeeName);
+      
+      // Find the payroll record to get document ID
+      const record = userPayrollRecords.find(r => r.payrollItemId === payrollItemId);
+      if (!record) {
+        throw new Error('Payroll record not found');
+      }
+      
+      // Use fetch + blob approach as recommended in payroll detail page
+      const response = await fetch(`/api/payroll/payslip/${record.employeeId}/pdf?documentId=${record.documentId}`, {
+        method: "GET",
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('utamahr_token')}`,
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Download failed: ${response.status}`);
+      }
+      
+      // Convert response to blob
+      const blob = await response.blob();
+      console.log('PDF blob size:', blob.size, 'bytes');
+      
+      if (blob.size === 0) {
+        throw new Error('Empty PDF received');
+      }
+      
+      // Create download link (avoid window.open to prevent popup blockers)
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Payslip_${employeeName.replace(/\s+/g, '_')}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      
+      console.log('PDF downloaded successfully');
+      alert('Slip gaji PDF telah berjaya dimuat turun!');
+      
+    } catch (error) {
+      console.error('PDF download error:', error);
+      alert('Gagal memuat turun slip gaji PDF. Sila cuba lagi.');
+    }
+  };
+
   const handleDateSelect = (date: Date | undefined, type: "from" | "to") => {
     if (date) {
       setFilters(prev => ({
@@ -1040,20 +1091,19 @@ export default function MyRecordPage() {
                 <TableHead>Month</TableHead>
                 <TableHead>Payroll Date</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Remarks</TableHead>
                 <TableHead>Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoadingPayroll ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">
                     Loading payroll records...
                   </TableCell>
                 </TableRow>
               ) : userPayrollRecords.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">
                     No payroll records available
                   </TableCell>
                 </TableRow>
@@ -1072,28 +1122,19 @@ export default function MyRecordPage() {
                         Processed
                       </Badge>
                     </TableCell>
-                    <TableCell>-</TableCell>
                     <TableCell>
-                      <div className="flex gap-2">
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          className="h-8 px-2"
-                          data-testid={`button-view-payroll-${record.id}`}
-                        >
-                          <Eye className="h-3 w-3 mr-1" />
-                          View
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          className="h-8 px-2"
-                          data-testid={`button-download-payroll-${record.id}`}
-                        >
-                          <File className="h-3 w-3 mr-1" />
-                          Download
-                        </Button>
-                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        className="h-8 w-8 p-0 hover:bg-blue-50"
+                        onClick={() => handleDownloadPayslip(record.payrollItemId, record.employeeName || 'Employee')}
+                        data-testid={`button-download-payroll-${record.id}`}
+                        title="Download Payslip"
+                      >
+                        <svg className="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))

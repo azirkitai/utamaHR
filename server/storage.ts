@@ -3199,11 +3199,34 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Get user payroll records for My Record page
-  async getUserPayrollRecords(userId: string): Promise<UserPayrollRecord[]> {
+  async getUserPayrollRecords(userId: string): Promise<{
+    id: string;
+    userId: string;
+    employeeId: string;
+    employeeName: string;
+    payrollItemId: string | null;
+    documentId: string | null;
+    month: number;
+    year: number;
+    submittedAt: Date;
+    createdAt: Date;
+  }[]> {
     try {
       const records = await db
-        .select()
+        .select({
+          id: userPayrollRecords.id,
+          userId: userPayrollRecords.userId,
+          employeeId: userPayrollRecords.employeeId,
+          employeeName: employees.fullName,
+          payrollItemId: userPayrollRecords.payrollItemId,
+          documentId: userPayrollRecords.documentId,
+          month: userPayrollRecords.month,
+          year: userPayrollRecords.year,
+          submittedAt: userPayrollRecords.submittedAt,
+          createdAt: userPayrollRecords.createdAt
+        })
         .from(userPayrollRecords)
+        .innerJoin(employees, eq(userPayrollRecords.employeeId, employees.id))
         .where(eq(userPayrollRecords.userId, userId))
         .orderBy(desc(userPayrollRecords.year), desc(userPayrollRecords.month));
       

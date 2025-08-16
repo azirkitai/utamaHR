@@ -1221,7 +1221,9 @@ export type PayrollItem = typeof payrollItems.$inferSelect;
 export type InsertPayrollItem = z.infer<typeof insertPayrollItemSchema>;
 export type UpdatePayrollItem = z.infer<typeof updatePayrollItemSchema>;
 
-export type UserPayrollRecord = typeof userPayrollRecords.$inferSelect;
+export type UserPayrollRecord = typeof userPayrollRecords.$inferSelect & {
+  employeeName: string;
+};
 export type InsertUserPayrollRecord = z.infer<typeof insertUserPayrollRecordSchema>;
 export type UpdateUserPayrollRecord = z.infer<typeof updateUserPayrollRecordSchema>;
 
