@@ -1038,9 +1038,16 @@ export default function PayrollDetailPage() {
                           total += parseFloat(deductionsData.pcb39 || '0');
                           total += parseFloat(deductionsData.zakat || '0');
                           
-                          // Handle 'other' deductions - parse from stored data
+                          // Handle 'other' deductions - CRITICAL: Handle empty array case
+                          // When 'other' is empty array [], it means MTD/PCB should be calculated from master salary
                           let otherAmount = 0;
-                          if (typeof deductionsData.other === 'number') {
+                          
+                          // Use the actual 'pcb' field from deductionsData if available (this contains the correct MTD/PCB value)
+                          if (deductionsData.pcb && typeof deductionsData.pcb === 'string') {
+                            otherAmount = parseFloat(deductionsData.pcb);
+                          } else if (deductionsData.pcb && typeof deductionsData.pcb === 'number') {
+                            otherAmount = deductionsData.pcb;
+                          } else if (typeof deductionsData.other === 'number') {
                             otherAmount = deductionsData.other;
                           } else if (typeof deductionsData.other === 'string' && deductionsData.other !== '' && deductionsData.other !== '0') {
                             otherAmount = parseFloat(deductionsData.other);
@@ -1071,7 +1078,16 @@ export default function PayrollDetailPage() {
                           console.log('Gross Salary:', grossSalary);
                           console.log('Total Deductions calculated:', totalDeductions);
                           console.log('Net Pay calculated:', netPay);
-                          console.log('Deductions Data:', deductionsData);
+                          console.log('FULL Deductions Data:', JSON.stringify(deductionsData, null, 2));
+                          console.log('Other Amount calculated:', (() => {
+                            let otherAmount = 0;
+                            if (deductionsData.pcb && typeof deductionsData.pcb === 'string') {
+                              otherAmount = parseFloat(deductionsData.pcb);
+                            } else if (deductionsData.pcb && typeof deductionsData.pcb === 'number') {
+                              otherAmount = deductionsData.pcb;
+                            }
+                            return otherAmount;
+                          })());
                           console.log('=== END DEBUG ===');
                         }
                         
@@ -1087,9 +1103,15 @@ export default function PayrollDetailPage() {
                             <td className="p-3 text-center text-gray-600 bg-cyan-50">RM {parseFloat(deductionsData.socsoEmployee || '0').toFixed(2)}</td>
                             <td className="p-3 text-center text-gray-600 bg-cyan-50">RM {parseFloat(deductionsData.eisEmployee || '0').toFixed(2)}</td>
                             <td className="p-3 text-center text-gray-600 bg-cyan-50">RM {(() => {
-                              // Show PCB/MTD value - use the same logic as total deductions
+                              // Show PCB/MTD value - use SAME logic as total deductions calculation
                               let pcbAmount = 0;
-                              if (typeof deductionsData.other === 'number') {
+                              
+                              // Use the actual 'pcb' field from deductionsData if available (this contains the correct MTD/PCB value)
+                              if (deductionsData.pcb && typeof deductionsData.pcb === 'string') {
+                                pcbAmount = parseFloat(deductionsData.pcb);
+                              } else if (deductionsData.pcb && typeof deductionsData.pcb === 'number') {
+                                pcbAmount = deductionsData.pcb;
+                              } else if (typeof deductionsData.other === 'number') {
                                 pcbAmount = deductionsData.other;
                               } else if (typeof deductionsData.other === 'string' && deductionsData.other !== '' && deductionsData.other !== '0') {
                                 pcbAmount = parseFloat(deductionsData.other);
