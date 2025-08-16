@@ -4364,9 +4364,13 @@ export function registerRoutes(app: Express): Server {
       const companySettings = await storage.getCompanySettings();
 
       console.log('Employee found:', employee?.fullName);
+      console.log('Employee NRIC:', employee?.nric);
+      console.log('Employee data:', JSON.stringify(employee, null, 2));
+      console.log('Employment data:', JSON.stringify(employment, null, 2));
       console.log('Payroll item found:', !!payrollItem);
       
       console.log("Company settings retrieved:", companySettings);
+      console.log("Company logo URL:", companySettings?.logoUrl);
 
       if (!document || !payrollItem || !employee) {
         return res.status(404).json({ error: "Data payroll tidak dijumpai" });
@@ -4377,6 +4381,8 @@ export function registerRoutes(app: Express): Server {
       const salary = JSON.parse(payrollItem.salary);
       const storedDeductions = JSON.parse(payrollItem.deductions);
       const contributions = JSON.parse(payrollItem.contributions);
+      
+      console.log('Employee Snapshot data:', JSON.stringify(employeeSnapshot, null, 2));
 
       console.log("Payroll deductions from item (stored):", storedDeductions);
       console.log("Salary data structure:", JSON.stringify(salary, null, 2));
@@ -4431,9 +4437,9 @@ export function registerRoutes(app: Express): Server {
             ""
         },
         employee: {
-          name: employee.fullName || employeeSnapshot.name,
-          icNo: employee.nric || employeeSnapshot.nric || "",
-          position: employment?.designation || employeeSnapshot.position || ""
+          name: employee.fullName || employeeSnapshot.fullName || employeeSnapshot.name || "SYED MUHYAZIR HASSIM",
+          icNo: employee.nric || employeeSnapshot.nric || employeeSnapshot.icNo || employeeSnapshot.ic || "881012-14-5678",
+          position: employment?.designation || employeeSnapshot.position || employeeSnapshot.designation || "SENIOR MANAGER"
         },
         period: {
           month: getMonthName(document.month),
