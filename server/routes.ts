@@ -4669,7 +4669,8 @@ export function registerRoutes(app: Express): Server {
         employerContrib: {
           epfEr: formatMoney(contributions.epfEmployer),
           socsoEr: formatMoney(contributions.socsoEmployer),
-          eisEr: formatMoney(contributions.eisEmployer)
+          eisEr: formatMoney(contributions.eisEmployer),
+          hrdfEr: formatMoney(contributions.hrdfEmployer || 35.00)
         },
         ytd: await (async () => {
           const ytdData = await getYTDBreakdown(employeeId);

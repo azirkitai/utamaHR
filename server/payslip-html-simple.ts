@@ -98,10 +98,6 @@ export function generatePayslipHTML(templateData: any, showPreviewNote: boolean 
         <!-- Income -->
         <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
             <div style="background: #f0f0f0; padding: 8px; font-weight: bold; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #ddd;">INCOME</div>
-            <div style="padding: 6px 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 10px;">
-                <span>Basic Salary</span>
-                <span style="font-weight: bold;">RM ${templateData.income.basic}</span>
-            </div>
             ${templateData.income.items.filter((item: any) => item.show).map((item: any) => `
             <div style="padding: 6px 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 10px;">
                 <span>${item.label}</span>
@@ -148,20 +144,30 @@ export function generatePayslipHTML(templateData: any, showPreviewNote: boolean 
         <span>RM ${templateData.netIncome}</span>
     </div>
 
-    <!-- Employer Contributions -->
+    <!-- Current Month Employer Contribution (3-column layout matching PDF) -->
     <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden; margin-bottom: 12px;">
-        <div style="background: #f0f0f0; padding: 8px; font-weight: bold; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #ddd;">EMPLOYER CONTRIBUTIONS</div>
-        <div style="padding: 6px 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 10px;">
-            <span>EPF</span>
-            <span style="font-weight: bold;">RM ${templateData.employerContrib.epfEr}</span>
+        <div style="background: #f0f0f0; padding: 8px; font-weight: bold; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #ddd;">CURRENT MONTH EMPLOYER CONTRIBUTION</div>
+        
+        <!-- 3-column layout: EPF, SOCSO, EIS -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; border-bottom: 1px solid #eee;">
+            <div style="padding: 6px 8px; text-align: center; border-right: 1px solid #eee;">
+                <div style="font-size: 10px; font-weight: bold;">EPF</div>
+                <div style="font-size: 10px; font-weight: bold;">RM ${templateData.employerContrib.epfEr}</div>
+            </div>
+            <div style="padding: 6px 8px; text-align: center; border-right: 1px solid #eee;">
+                <div style="font-size: 10px; font-weight: bold;">SOCSO</div>
+                <div style="font-size: 10px; font-weight: bold;">RM ${templateData.employerContrib.socsoEr}</div>
+            </div>
+            <div style="padding: 6px 8px; text-align: center;">
+                <div style="font-size: 10px; font-weight: bold;">EIS</div>
+                <div style="font-size: 10px; font-weight: bold;">RM ${templateData.employerContrib.eisEr}</div>
+            </div>
         </div>
-        <div style="padding: 6px 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 10px;">
-            <span>SOCSO</span>
-            <span style="font-weight: bold;">RM ${templateData.employerContrib.socsoEr}</span>
-        </div>
-        <div style="padding: 6px 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 10px;">
-            <span>EIS</span>
-            <span style="font-weight: bold;">RM ${templateData.employerContrib.eisEr}</span>
+        
+        <!-- HRDF as separate row below -->
+        <div style="padding: 6px 8px; text-align: center; border-top: 1px solid #eee;">
+            <div style="font-size: 10px; font-weight: bold;">HRDF</div>
+            <div style="font-size: 10px; font-weight: bold;">RM ${templateData.employerContrib.hrdfEr || '35.00'}</div>
         </div>
     </div>
 
