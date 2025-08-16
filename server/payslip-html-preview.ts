@@ -16,12 +16,12 @@ export function generatePayslipHTML(templateData: any, showPreviewNote: boolean 
         
         body {
             font-family: Arial, Helvetica, sans-serif;
-            font-size: 14px;
-            line-height: 1.5;
+            font-size: 11px;
+            line-height: 1.3;
             color: #000;
-            padding: 20px;
+            padding: 15px;
             background: white;
-            max-width: 210mm;
+            max-width: 800px;
             margin: 0 auto;
         }
         
