@@ -16,7 +16,7 @@ import { pdf } from '@react-pdf/renderer';
 import type { AttendanceRecord, LeaveApplication, UserPayrollRecord } from "@shared/schema";
 import { PayslipPDFDocument, buildPdfPropsFromTemplateData } from '@/components/PayslipPDFDocument';
 
-type TabType = "leave" | "timeoff" | "claim" | "overtime" | "attendance" | "payment";
+type TabType = "leave" | "claim" | "overtime" | "attendance" | "payment";
 
 interface FilterState {
   dateFrom: Date;
@@ -161,7 +161,7 @@ export default function MyRecordPage() {
 
   const tabs = [
     { id: "leave", label: "Leave", icon: <CalendarLucide className="w-4 h-4 text-gray-600" /> },
-    { id: "timeoff", label: "Timeoff", icon: <Clock className="w-4 h-4 text-gray-600" /> },
+
     { id: "claim", label: "Financial Claim", icon: <DollarSign className="w-4 h-4 text-gray-600" /> },
     { id: "overtime", label: "Overtime", icon: <Clock className="w-4 h-4 text-gray-600" /> },
     { id: "attendance", label: "Attendance", icon: <FileText className="w-4 h-4 text-gray-600" /> },
@@ -436,139 +436,6 @@ export default function MyRecordPage() {
             Previous
           </Button>
           <Button variant="outline" size="sm" disabled data-testid="button-next">
-            Next
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderTimeoffTab = () => (
-    <div className="space-y-6">
-      <div className="bg-gradient-to-r from-teal-500 to-blue-600 p-4 rounded-lg text-white">
-        <h2 className="text-xl font-semibold">Timeoff Record</h2>
-      </div>
-      
-      {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Date Period</label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-full justify-start text-left font-normal"
-                data-testid="button-timeoff-date-period"
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {formatDateRange()}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <div className="flex">
-                <div className="p-3 space-y-2">
-                  <h4 className="font-medium text-sm">From Date</h4>
-                  <Calendar
-                    mode="single"
-                    selected={filters.dateFrom}
-                    onSelect={(date) => handleDateSelect(date, "from")}
-                  />
-                </div>
-                <div className="p-3 space-y-2">
-                  <h4 className="font-medium text-sm">To Date</h4>
-                  <Calendar
-                    mode="single"
-                    selected={filters.dateTo}
-                    onSelect={(date) => handleDateSelect(date, "to")}
-                  />
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Timeoff Status</label>
-          <Select defaultValue="all-timeoff-status" data-testid="select-timeoff-status">
-            <SelectTrigger>
-              <SelectValue placeholder="All timeoff status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all-timeoff-status">All timeoff status</SelectItem>
-              <SelectItem value="new">New</SelectItem>
-              <SelectItem value="review">Review</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
-              <SelectItem value="deleted">Deleted</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex gap-2">
-          <Button className="bg-blue-600 hover:bg-blue-700" data-testid="button-timeoff-search">
-            <Search className="h-4 w-4 mr-2" />
-            Search
-          </Button>
-          <Button variant="outline" data-testid="button-timeoff-download">
-            <Download className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Show entries and search */}
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <span className="text-sm">Show</span>
-          <Select value="10">
-            <SelectTrigger className="w-20">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="25">25</SelectItem>
-              <SelectItem value="50">50</SelectItem>
-            </SelectContent>
-          </Select>
-          <span className="text-sm">entries</span>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <span className="text-sm">Search:</span>
-          <Input className="w-64" placeholder="Search..." data-testid="input-timeoff-search" />
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>No.</TableHead>
-              <TableHead>Applicant</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Reason</TableHead>
-              <TableHead>Total Hour</TableHead>
-              <TableHead>Date</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow>
-              <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                No data available in table
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* Pagination */}
-      <div className="flex justify-between items-center">
-        <span className="text-sm text-gray-500">Showing 0 to 0 of 0 entries</span>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" disabled data-testid="button-timeoff-previous">
-            Previous
-          </Button>
-          <Button variant="outline" size="sm" disabled data-testid="button-timeoff-next">
             Next
           </Button>
         </div>
@@ -1364,7 +1231,7 @@ export default function MyRecordPage() {
         {/* Tab Content */}
         <div className="min-h-[600px]">
           {activeTab === "leave" && renderLeaveTab()}
-          {activeTab === "timeoff" && renderTimeoffTab()}
+
           {activeTab === "claim" && renderClaimTab()}
           {activeTab === "overtime" && renderOvertimeTab()}
           {activeTab === "attendance" && renderAttendanceTab()}

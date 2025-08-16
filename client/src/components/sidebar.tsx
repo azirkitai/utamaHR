@@ -84,12 +84,7 @@ const navigationItems: { category: string; items: SidebarItem[] }[] = [
             icon: <DollarSign className="w-3 h-3" />,
             href: "/apply/claim",
           },
-          {
-            id: "apply-timeoff",
-            label: "Timeoff",
-            icon: <Clock className="w-3 h-3" />,
-            href: "/apply/timeoff",
-          },
+
         ],
       },
       {
@@ -140,12 +135,7 @@ const navigationItems: { category: string; items: SidebarItem[] }[] = [
             icon: <DollarSign className="w-3 h-3" />,
             href: "/approval/claim",
           },
-          {
-            id: "approval-timeoff",
-            label: "Timeoff",
-            icon: <Clock className="w-3 h-3" />,
-            href: "/approval/timeoff",
-          },
+
         ],
       },
       {

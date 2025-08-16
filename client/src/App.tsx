@@ -12,13 +12,13 @@ import SystemSettingPage from "@/pages/system-setting-page";
 import MyRecordPage from "@/pages/my-record-page";
 import ApplyLeavePage from "@/pages/apply-leave-page";
 import ApplyClaimPage from "@/pages/apply-claim-page";
-import ApplyTimeoffPage from "@/pages/apply-timeoff-page";
+
 import AnnouncementPage from "@/pages/announcement-page";
 import CalendarPage from "@/pages/calendar-page";
 import ManageEmployeePage from "@/pages/manage-employee-page";
 import LeaveApprovalPage from "@/pages/leave-approval-page";
 import ClaimApprovalPage from "@/pages/claim-approval-page";
-import TimeoffApprovalPage from "@/pages/timeoff-approval-page";
+
 import AttendanceTimesheetPage from "@/pages/attendance-timesheet-page";
 import ShiftCalendarPage from "@/pages/shift-calendar-page";
 import OvertimePage from "@/pages/overtime-page";
@@ -44,7 +44,7 @@ function Router() {
       <ProtectedRoute path="/my-record" component={MyRecordPage} />
       <ProtectedRoute path="/apply/leave" component={ApplyLeavePage} />
       <ProtectedRoute path="/apply/claim" component={ApplyClaimPage} />
-      <ProtectedRoute path="/apply/timeoff" component={ApplyTimeoffPage} />
+
       <ProtectedRoute path="/announcement" component={AnnouncementPage} />
       <ProtectedRoute path="/calendar" component={CalendarPage} />
       <ProtectedRoute path="/manage-employee" component={ManageEmployeePage} />
@@ -52,7 +52,7 @@ function Router() {
       <ProtectedRoute path="/approval/leave" component={LeaveApprovalPage} />
       <ProtectedRoute path="/leave-approval" component={LeaveApprovalPage} />
       <ProtectedRoute path="/approval/claim" component={ClaimApprovalPage} />
-      <ProtectedRoute path="/approval/timeoff" component={TimeoffApprovalPage} />
+
       <ProtectedRoute path="/attendance/timesheet" component={AttendanceTimesheetPage} />
       <ProtectedRoute path="/attendance/shift-calendar" component={ShiftCalendarPage} />
       <ProtectedRoute path="/attendance/overtime" component={OvertimePage} />
