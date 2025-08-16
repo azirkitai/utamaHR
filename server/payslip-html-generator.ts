@@ -196,7 +196,8 @@ export async function generatePayslipPDF(data: PayslipData): Promise<Buffer> {
       .replace('{{ytd.breakdown.pcb}}', data.ytd.breakdown?.pcb || '0.00')
       .replace('{{ytd.breakdown.epfEmployer}}', data.ytd.breakdown?.epfEmployer || '0.00')
       .replace('{{ytd.breakdown.socsoEmployer}}', data.ytd.breakdown?.socsoEmployer || '0.00')
-      .replace('{{ytd.breakdown.eisEmployer}}', data.ytd.breakdown?.eisEmployer || '0.00');
+      .replace('{{ytd.breakdown.eisEmployer}}', data.ytd.breakdown?.eisEmployer || '0.00')
+      .replace('{{ytd.breakdown.hrdfEmployer}}', data.ytd.breakdown?.hrdfEmployer || '0.00');
 
     console.log('HTML template processed, length:', html.length);
 

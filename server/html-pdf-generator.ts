@@ -182,7 +182,7 @@ export function generateSimplePayslipHTML(data: {
         }
         
         .net-pay {
-            background-color: #e8f5e8;
+            background-color: #e9ecef;
             font-size: 14px;
             font-weight: bold;
         }
