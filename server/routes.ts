@@ -5431,7 +5431,8 @@ export function registerRoutes(app: Express): Server {
               pcb: ytdData.ytdPcbEmployee,
               epfEmployer: ytdData.ytdEpfEmployer,
               socsoEmployer: ytdData.ytdSocsoEmployer,
-              eisEmployer: ytdData.ytdEisEmployer
+              eisEmployer: ytdData.ytdEisEmployer,
+              hrdfEmployer: ytdData.ytdHrdfEmployer
             }
           };
         })()
