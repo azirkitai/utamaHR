@@ -1,248 +1,574 @@
-// Simple HTML Preview Generator matching PDF layout exactly
-export function generatePayslipHTML(templateData: any, showPreviewNote: boolean = true): string {
-  try {
-    console.log('=== GENERATING PAYSLIP HTML IN SIMPLE.TS START ===');
-    console.log('TIMESTAMP:', new Date().toISOString());
-    console.log('showPreviewNote:', showPreviewNote);
-    console.log('HRDF VALUE IN TEMPLATE:', templateData.ytd?.breakdown?.hrdfEmployer);
-    console.log('NET PAY VALUE:', templateData.netIncome);
-    console.log('FULL YTD BREAKDOWN:', JSON.stringify(templateData.ytd?.breakdown, null, 2));
-    
-    const htmlContent = `
+export function generatePayslipHTML(data: any): string {
+  // Copy exact utility functions from PDF
+  const toNum = (v: unknown): number => {
+    if (v === null || v === undefined) return 0;
+    if (typeof v === "number") return v;
+    const n = Number(String(v).replace(/[^\d.-]/g, ""));
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  const toFixed2 = (v: unknown) => toNum(v).toFixed(2);
+  const formatRM = (v: unknown) => `RM ${toFixed2(v)}`;
+
+  // Show preview note - PRESERVED
+  const showPreviewNote = data.showPreviewNote !== false;
+  console.log(`TIMESTAMP: ${new Date().toISOString()}`);
+  console.log(`showPreviewNote: ${showPreviewNote}`);
+
+  // Debug values
+  const hrdfValue = data.employerContrib?.hrdfEr || "0.00";
+  console.log(`HRDF VALUE IN TEMPLATE: ${hrdfValue}`);
+  console.log(`NET PAY VALUE: ${data.netIncome || '0.00'}`);
+  console.log(`FULL YTD BREAKDOWN:`, JSON.stringify(data.ytd?.breakdown || {}, null, 2));
+
+  // EXACT PDF LOGIC COPY - Fallback logic for basic salary
+  const sumAdditional = (arr?: Array<{amount: any}>) => 
+    (arr || []).reduce((s, a) => s + toNum(a?.amount), 0);
+  
+  const incomeOthers = toNum(data.income?.overtime) + toNum(data.income?.fixedAllowance) + sumAdditional(data.income?.additional);
+  
+  // If basicSalary is missing/0, derive: gross - (overtime + fixed + additional)
+  const basicForDisplay = toNum(data.income?.basicSalary) || Math.max(0, toNum(data.income?.totalGross) - incomeOthers);
+
+  return `
 <!DOCTYPE html>
-<html lang="ms">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Preview Slip Gaji - ${templateData.employee.name}</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: Arial, sans-serif;
-            font-size: 11px;
-            line-height: 1.2;
-            color: #000;
-            padding: 15px;
-            background: white;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        
-        .preview-note {
-            background: #FEF3C7;
-            border: 1px solid #F59E0B;
-            border-radius: 4px;
-            padding: 8px 12px;
-            margin-bottom: 16px;
-            font-size: 11px;
-            text-align: center;
-            color: #92400E;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payslip Preview</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.4;
+      color: #333;
+      background: #f5f5f5;
+      padding: 20px;
+      font-size: 11px;
+    }
+
+    .payslip {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .company-info {
+      display: flex;
+      align-items: flex-start;
+      max-width: 70%;
+    }
+
+    .company-logo {
+      width: 42px;
+      height: 42px;
+      margin-right: 8px;
+      object-fit: contain;
+    }
+
+    .company-name {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .company-reg {
+      font-size: 12px;
+      margin-top: 2px;
+    }
+
+    .company-address {
+      font-size: 10px;
+      line-height: 1.3;
+      margin-top: 2px;
+      max-width: 300px;
+    }
+
+    .confidential {
+      font-size: 10px;
+      color: #666;
+    }
+
+    .employee-section {
+      background-color: #f8f9fa;
+      padding: 12px;
+      margin-bottom: 12px;
+      border: 1px solid #e9ecef;
+      border-radius: 6px;
+    }
+
+    .employee-row {
+      display: flex;
+      width: 100%;
+    }
+
+    .employee-left, .employee-right {
+      width: 50%;
+    }
+
+    .employee-left {
+      padding-right: 10px;
+    }
+
+    .employee-right {
+      padding-left: 10px;
+    }
+
+    .employee-item {
+      display: flex;
+      margin-bottom: 6px;
+      flex-wrap: nowrap;
+    }
+
+    .employee-label {
+      width: 70px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #666;
+      flex-shrink: 0;
+    }
+
+    .employee-value {
+      font-size: 11px;
+      color: #333;
+    }
+
+    .income-deductions {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .income-box, .deductions-box {
+      flex: 1;
+      border: 1px solid #e9ecef;
+      border-radius: 6px;
+      padding: 12px;
+    }
+
+    .section-title {
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      color: #666;
+    }
+
+    .line-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 11px;
+    }
+
+    .line-item-label {
+      color: #333;
+    }
+
+    .line-item-amount {
+      font-weight: 700;
+      color: #333;
+    }
+
+    .total-line {
+      border-top: 2px solid #333;
+      padding-top: 8px;
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .net-pay {
+      background-color: #e9ecef;
+      border: 2px solid #6c757d;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 14px;
+    }
+
+    .net-pay-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .net-pay-label {
+      font-size: 16px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .net-pay-amount {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .contributions {
+      margin-bottom: 14px;
+    }
+
+    .contributions-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #666;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+
+    .contrib-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .contrib-row-additional {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    .contrib-box {
+      flex: 1;
+      border: 1px solid #e9ecef;
+      padding: 10px;
+      background-color: #f8f9fa;
+      border-radius: 6px;
+    }
+
+    .contrib-label {
+      font-size: 10px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+
+    .contrib-amount {
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .ytd-section {
+      margin-bottom: 16px;
+    }
+
+    .ytd-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #666;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+
+    .ytd-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .ytd-box {
+      flex: 1;
+      border: 1px solid #e9ecef;
+      padding: 10px;
+      border-radius: 6px;
+    }
+
+    .ytd-box-title {
+      font-size: 11px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+
+    .ytd-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .ytd-label {
+      font-size: 10px;
+    }
+
+    .ytd-amount {
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .preview-note {
+      background-color: #fff3cd;
+      border: 1px solid #ffeaa7;
+      color: #856404;
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      text-align: center;
+      font-size: 12px;
+    }
+
+    .footer {
+      margin-top: 16px;
+      text-align: center;
+      font-size: 9px;
+      color: #666;
+      border-top: 1px solid #e9ecef;
+      padding-top: 10px;
+    }
+  </style>
 </head>
 <body>
-    ${showPreviewNote ? `<div class="preview-note">
-        📄 PREVIEW SLIP GAJI - Format sama seperti PDF yang akan dijana
-    </div>` : ''}
+  <div class="payslip">
+    ${showPreviewNote ? `
+    <div class="preview-note">
+      <strong>PREVIEW MODE</strong> - Ini adalah paparan preview sahaja
+    </div>
+    ` : ''}
 
-    <!-- Header Section -->
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid #ccc;">
-        <div style="display: flex; align-items: flex-start; gap: 8px;">
-            ${templateData.company.logoHTML || ''}
-            <div>
-                <div style="font-weight: bold; font-size: 16px; margin-bottom: 2px;">${templateData.company.name}</div>
-                <div style="font-size: 12px; margin-bottom: 2px;">${templateData.company.regNo}</div>
-                <div style="font-size: 10px; line-height: 1.3; color: #555;">${templateData.company.address}</div>
-            </div>
+    <!-- Header (EXACT PDF COPY) -->
+    <div class="header">
+      <div class="company-info">
+        ${data.company?.logoUrl ? `<img src="${data.company.logoUrl}" alt="Company Logo" class="company-logo">` : ''}
+        <div>
+          <div class="company-name">${data.company?.name || 'UTAMA MEDGROUP SDN BHD'}</div>
+          <div class="company-reg">${data.company?.regNo || '202201033996(1479693-H)'}</div>
+          <div class="company-address">${data.company?.address || 'A2-22-3, SOHO SUITES @ KLCC, 20 JALAN PERAK, 50450 KUALA LUMPUR'}</div>
         </div>
-        <div style="font-size: 9px; text-transform: uppercase; color: #666; text-align: right;">STRICTLY PRIVATE &<br>CONFIDENTIAL</div>
+      </div>
+      <div class="confidential">STRICTLY PRIVATE & CONFIDENTIAL</div>
     </div>
 
-    <!-- Employee Info -->
-    <div style="border: 1px solid #ddd; border-radius: 4px; padding: 12px; margin-bottom: 12px; background: #f9f9f9;">
-        <div style="display: flex;">
-            <div style="width: 50%; padding-right: 10px;">
-                <div style="display: flex; margin: 3px 0;">
-                    <span style="width: 60px; font-weight: bold; font-size: 10px;">NAME:</span>
-                    <span style="font-size: 10px; font-weight: bold;">${templateData.employee.name}</span>
-                </div>
-                <div style="display: flex; margin: 3px 0;">
-                    <span style="width: 60px; font-weight: bold; font-size: 10px;">I/C NO.:</span>
-                    <span style="font-size: 10px;">${templateData.employee.icNo || 'N/A'}</span>
-                </div>
-                <div style="display: flex; margin: 3px 0;">
-                    <span style="width: 60px; font-weight: bold; font-size: 10px;">POSITION:</span>
-                    <span style="font-size: 10px;">${templateData.employee.position}</span>
-                </div>
-            </div>
-            <div style="width: 50%; padding-left: 10px;">
-                <div style="display: flex; margin: 3px 0;">
-                    <span style="width: 60px; font-weight: bold; font-size: 10px;">MONTH:</span>
-                    <span style="font-size: 10px;">${templateData.period.month}</span>
-                </div>
-                <div style="display: flex; margin: 3px 0;">
-                    <span style="width: 60px; font-weight: bold; font-size: 10px;">YEAR:</span>
-                    <span style="font-size: 10px;">${templateData.period.year}</span>
-                </div>
-            </div>
+    <!-- Employee Info (EXACT PDF COPY) -->
+    <div class="employee-section">
+      <div class="employee-row">
+        <div class="employee-left">
+          <div class="employee-item">
+            <div class="employee-label">NAME:</div>
+            <div class="employee-value">${data.employee?.fullName || 'N/A'}</div>
+          </div>
+          <div class="employee-item">
+            <div class="employee-label">I/C NO.:</div>
+            <div class="employee-value">${data.employee?.ic || 'N/A'}</div>
+          </div>
+          <div class="employee-item">
+            <div class="employee-label">POSITION:</div>
+            <div class="employee-value">${data.employee?.position || 'Employee'}</div>
+          </div>
         </div>
+        <div class="employee-right">
+          <div class="employee-item">
+            <div class="employee-label">MONTH:</div>
+            <div class="employee-value">${data.period?.month || 'N/A'}</div>
+          </div>
+          <div class="employee-item">
+            <div class="employee-label">YEAR:</div>
+            <div class="employee-value">${data.period?.year || 'N/A'}</div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Income & Deductions -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-        <!-- Income -->
-        <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
-            <div style="background: #f0f0f0; padding: 8px; font-weight: bold; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #ddd;">INCOME</div>
-            ${templateData.income.items.filter((item: any) => item.show).map((item: any) => `
-            <div style="padding: 6px 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 10px;">
-                <span>${item.label}</span>
-                <span style="font-weight: bold;">RM ${item.amount}</span>
-            </div>
-            `).join('')}
-            <div style="padding: 8px; background: #f0f0f0; display: flex; justify-content: space-between; font-weight: bold; font-size: 10px;">
-                <span>TOTAL GROSS</span>
-                <span>RM ${templateData.income.totalGross}</span>
-            </div>
-        </div>
-
-        <!-- Deductions -->
-        <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
-            <div style="background: #f0f0f0; padding: 8px; font-weight: bold; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #ddd;">DEDUCTIONS</div>
-            <div style="padding: 6px 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 10px;">
-                <span>EPF</span>
-                <span style="font-weight: bold;">RM ${templateData.deduction.epfEmp}</span>
-            </div>
-            <div style="padding: 6px 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 10px;">
-                <span>SOCSO</span>
-                <span style="font-weight: bold;">RM ${templateData.deduction.socsoEmp}</span>
-            </div>
-            <div style="padding: 6px 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 10px;">
-                <span>EIS</span>
-                <span style="font-weight: bold;">RM ${templateData.deduction.eisEmp}</span>
-            </div>
-            ${templateData.deduction.items.filter((item: any) => item.show).map((item: any) => `
-            <div style="padding: 6px 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 10px;">
-                <span>${item.label}</span>
-                <span style="font-weight: bold;">RM ${item.amount}</span>
-            </div>
-            `).join('')}
-            <div style="padding: 8px; background: #f0f0f0; display: flex; justify-content: space-between; font-weight: bold; font-size: 10px;">
-                <span>TOTAL DEDUCTIONS</span>
-                <span>RM ${templateData.deduction.total}</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Net Income -->
-    <div style="border: 2px solid #6c757d; border-radius: 4px; padding: 12px; margin: 12px 0; background: #e9ecef !important; display: flex; justify-content: space-between; font-weight: bold; font-size: 14px;">
-        <span>NET PAY</span>
-        <span>RM ${templateData.netIncome}</span>
-    </div>
-
-    <!-- Current Month Employer Contribution (3-column layout matching PDF) -->
-    <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden; margin-bottom: 12px;">
-        <div style="background: #f0f0f0; padding: 8px; font-weight: bold; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #ddd;">CURRENT MONTH EMPLOYER CONTRIBUTION</div>
+    <!-- Income vs Deductions (EXACT PDF COPY) -->
+    <div class="income-deductions">
+      <!-- Income Box -->
+      <div class="income-box">
+        <div class="section-title">INCOME</div>
         
-        <!-- 3-column layout: EPF, SOCSO, EIS -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; border-bottom: 1px solid #eee;">
-            <div style="padding: 6px 8px; text-align: center; border-right: 1px solid #eee;">
-                <div style="font-size: 10px; font-weight: bold;">EPF</div>
-                <div style="font-size: 10px; font-weight: bold;">RM ${templateData.employerContrib.epfEr}</div>
-            </div>
-            <div style="padding: 6px 8px; text-align: center; border-right: 1px solid #eee;">
-                <div style="font-size: 10px; font-weight: bold;">SOCSO</div>
-                <div style="font-size: 10px; font-weight: bold;">RM ${templateData.employerContrib.socsoEr}</div>
-            </div>
-            <div style="padding: 6px 8px; text-align: center;">
-                <div style="font-size: 10px; font-weight: bold;">EIS</div>
-                <div style="font-size: 10px; font-weight: bold;">RM ${templateData.employerContrib.eisEr}</div>
-            </div>
+        <!-- Basic Salary - using fallback logic FROM PDF -->
+        <div class="line-item">
+          <div class="line-item-label">Basic Salary</div>
+          <div class="line-item-amount">${formatRM(basicForDisplay)}</div>
+        </div>
+
+        <!-- Other income items (EXACT PDF COPY) -->
+        ${toNum(data.income?.overtime) > 0 ? `
+        <div class="line-item">
+          <div class="line-item-label">Overtime</div>
+          <div class="line-item-amount">${formatRM(data.income?.overtime)}</div>
+        </div>` : ''}
+
+        ${toNum(data.income?.fixedAllowance) > 0 ? `
+        <div class="line-item">
+          <div class="line-item-label">Fixed Allowance</div>
+          <div class="line-item-amount">${formatRM(data.income?.fixedAllowance)}</div>
+        </div>` : ''}
+
+        <!-- Additional income items (EXACT PDF COPY) -->
+        ${(data.income?.additional || []).map((item: any) => 
+          toNum(item.amount) > 0 ? `
+          <div class="line-item">
+            <div class="line-item-label">${item.label}</div>
+            <div class="line-item-amount">${formatRM(item.amount)}</div>
+          </div>` : ''
+        ).join('')}
+
+        <div class="total-line">
+          <div>TOTAL GROSS</div>
+          <div>${formatRM(data.income?.totalGross)}</div>
+        </div>
+      </div>
+
+      <!-- Deductions Box (EXACT PDF COPY) -->
+      <div class="deductions-box">
+        <div class="section-title">DEDUCTIONS</div>
+        
+        <div class="line-item">
+          <div class="line-item-label">EPF</div>
+          <div class="line-item-amount">${formatRM(data.deduction?.epfEmp)}</div>
         </div>
         
-        <!-- HRDF as separate row below -->
-        <div style="padding: 6px 8px; text-align: center; border-top: 1px solid #eee;">
-            <div style="font-size: 10px; font-weight: bold;">HRDF</div>
-            <div style="font-size: 10px; font-weight: bold;">RM ${templateData.employerContrib.hrdfEr || '35.00'}</div>
+        <div class="line-item">
+          <div class="line-item-label">SOCSO</div>
+          <div class="line-item-amount">${formatRM(data.deduction?.socsoEmp)}</div>
         </div>
+        
+        <div class="line-item">
+          <div class="line-item-label">EIS</div>
+          <div class="line-item-amount">${formatRM(data.deduction?.eisEmp)}</div>
+        </div>
+
+        <!-- PCB/MTD (EXACT PDF COPY) -->
+        ${toNum(data.deduction?.other) > 0 ? `
+        <div class="line-item">
+          <div class="line-item-label">MTD/PCB</div>
+          <div class="line-item-amount">${formatRM(data.deduction?.other)}</div>
+        </div>` : ''}
+
+        <!-- Additional deduction items (EXACT PDF COPY) -->
+        ${(data.deduction?.additional || []).map((item: any) => 
+          toNum(item.amount) > 0 ? `
+          <div class="line-item">
+            <div class="line-item-label">${item.label}</div>
+            <div class="line-item-amount">${formatRM(item.amount)}</div>
+          </div>` : ''
+        ).join('')}
+
+        <div class="total-line">
+          <div>TOTAL DEDUCTIONS</div>
+          <div>${formatRM(data.deduction?.total)}</div>
+        </div>
+      </div>
     </div>
 
-    <!-- YTD Summary -->
-    <div style="border-top: 1px solid #ddd; padding-top: 10px;">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <!-- Employee YTD -->
-            <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
-                <div style="background: #f0f0f0; padding: 8px; font-weight: bold; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #ddd;">CURRENT MONTH NET PAY YTD BALANCE</div>
-                ${parseFloat(templateData.ytd.breakdown.epfEmployee || 0) > 0.01 ? `
-                <div style="padding: 6px 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 10px;">
-                    <span>EPF</span>
-                    <span style="font-weight: bold;">RM ${parseFloat(templateData.ytd.breakdown.epfEmployee).toFixed(2)}</span>
-                </div>
-                ` : ''}
-                ${parseFloat(templateData.ytd.breakdown.socsoEmployee || 0) > 0.01 ? `
-                <div style="padding: 6px 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 10px;">
-                    <span>SOCSO</span>
-                    <span style="font-weight: bold;">RM ${parseFloat(templateData.ytd.breakdown.socsoEmployee).toFixed(2)}</span>
-                </div>
-                ` : ''}
-                ${parseFloat(templateData.ytd.breakdown.eisEmployee || 0) > 0.01 ? `
-                <div style="padding: 6px 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 10px;">
-                    <span>EIS</span>
-                    <span style="font-weight: bold;">RM ${parseFloat(templateData.ytd.breakdown.eisEmployee).toFixed(2)}</span>
-                </div>
-                ` : ''}
-                ${parseFloat(templateData.ytd.breakdown.pcb || 0) > 0.01 ? `
-                <div style="padding: 6px 8px; display: flex; justify-content: space-between; font-size: 10px;">
-                    <span>PCB/MTD</span>
-                    <span style="font-weight: bold;">RM ${parseFloat(templateData.ytd.breakdown.pcb).toFixed(2)}</span>
-                </div>
-                ` : ''}
-            </div>
-            
-            <!-- Employer YTD -->
-            <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
-                <div style="background: #f0f0f0; padding: 8px; font-weight: bold; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #ddd;">EMPLOYER CONTRIBUTIONS</div>
-                ${parseFloat(templateData.ytd.breakdown.epfEmployer || 0) > 0.01 ? `
-                <div style="padding: 6px 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 10px;">
-                    <span>EPF</span>
-                    <span style="font-weight: bold;">RM ${parseFloat(templateData.ytd.breakdown.epfEmployer).toFixed(2)}</span>
-                </div>
-                ` : ''}
-                ${parseFloat(templateData.ytd.breakdown.socsoEmployer || 0) > 0.01 ? `
-                <div style="padding: 6px 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 10px;">
-                    <span>SOCSO</span>
-                    <span style="font-weight: bold;">RM ${parseFloat(templateData.ytd.breakdown.socsoEmployer).toFixed(2)}</span>
-                </div>
-                ` : ''}
-                ${parseFloat(templateData.ytd.breakdown.eisEmployer || 0) > 0.01 ? `
-                <div style="padding: 6px 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 10px;">
-                    <span>EIS</span>
-                    <span style="font-weight: bold;">RM ${parseFloat(templateData.ytd.breakdown.eisEmployer).toFixed(2)}</span>
-                </div>
-                ` : ''}
-                <div style="padding: 6px 8px; display: flex; justify-content: space-between; font-size: 10px;">
-                    <span>HRDF</span>
-                    <span style="font-weight: bold;">RM ${parseFloat(templateData.ytd.breakdown.hrdfEmployer || 800).toFixed(2)}</span>
-                </div>
-            </div>
-        </div>
+    <!-- Net Pay (EXACT PDF COPY) -->
+    <div class="net-pay">
+      <div class="net-pay-row">
+        <div class="net-pay-label">NET PAY</div>
+        <div class="net-pay-amount">${formatRM(data.netIncome)}</div>
+      </div>
     </div>
 
+    <!-- Employer Contributions (EXACT PDF COPY) -->
+    <div class="contributions">
+      <div class="contributions-title">Current Month Employer Contribution</div>
+      <div class="contrib-row">
+        <div class="contrib-box">
+          <div class="contrib-label">EPF</div>
+          <div class="contrib-amount">${formatRM(data.employerContrib?.epfEr)}</div>
+        </div>
+        <div class="contrib-box">
+          <div class="contrib-label">SOCSO</div>
+          <div class="contrib-amount">${formatRM(data.employerContrib?.socsoEr)}</div>
+        </div>
+        <div class="contrib-box">
+          <div class="contrib-label">EIS</div>
+          <div class="contrib-amount">${formatRM(data.employerContrib?.eisEr)}</div>
+        </div>
+      </div>
+
+      <!-- Additional Employer Contributions (EXACT PDF COPY) -->
+      ${toNum(data.employerContrib?.hrdfEr) > 0.01 ? `
+      <div class="contrib-row-additional">
+        <div class="contrib-box">
+          <div class="contrib-label">HRDF</div>
+          <div class="contrib-amount">${formatRM(data.employerContrib?.hrdfEr)}</div>
+        </div>
+      </div>` : ''}
+    </div>
+
+    <!-- YTD Summary (EXACT PDF COPY) -->
+    <div class="ytd-section">
+      <div class="ytd-title">Year To Date (YTD) Breakdown</div>
+      <div class="ytd-row">
+        <div class="ytd-box">
+          <div class="ytd-box-title">Employee Contribution (YTD)</div>
+          ${parseFloat(data.ytd?.breakdown?.epfEmployee || 0) > 0.01 ? `
+          <div class="ytd-item">
+            <div class="ytd-label">EPF</div>
+            <div class="ytd-amount">${formatRM(data.ytd?.breakdown?.epfEmployee)}</div>
+          </div>` : ''}
+          ${parseFloat(data.ytd?.breakdown?.socsoEmployee || 0) > 0.01 ? `
+          <div class="ytd-item">
+            <div class="ytd-label">SOCSO</div>
+            <div class="ytd-amount">${formatRM(data.ytd?.breakdown?.socsoEmployee)}</div>
+          </div>` : ''}
+          ${parseFloat(data.ytd?.breakdown?.eisEmployee || 0) > 0.01 ? `
+          <div class="ytd-item">
+            <div class="ytd-label">EIS</div>
+            <div class="ytd-amount">${formatRM(data.ytd?.breakdown?.eisEmployee)}</div>
+          </div>` : ''}
+          ${parseFloat(data.ytd?.breakdown?.pcb || 0) > 0.01 ? `
+          <div class="ytd-item">
+            <div class="ytd-label">PCB</div>
+            <div class="ytd-amount">${formatRM(data.ytd?.breakdown?.pcb)}</div>
+          </div>` : ''}
+        </div>
+        
+        <div class="ytd-box">
+          <div class="ytd-box-title">Employer Contribution (YTD)</div>
+          ${parseFloat(data.ytd?.breakdown?.epfEmployer || 0) > 0.01 ? `
+          <div class="ytd-item">
+            <div class="ytd-label">EPF</div>
+            <div class="ytd-amount">${formatRM(data.ytd?.breakdown?.epfEmployer)}</div>
+          </div>` : ''}
+          ${parseFloat(data.ytd?.breakdown?.socsoEmployer || 0) > 0.01 ? `
+          <div class="ytd-item">
+            <div class="ytd-label">SOCSO</div>
+            <div class="ytd-amount">${formatRM(data.ytd?.breakdown?.socsoEmployer)}</div>
+          </div>` : ''}
+          ${parseFloat(data.ytd?.breakdown?.eisEmployer || 0) > 0.01 ? `
+          <div class="ytd-item">
+            <div class="ytd-label">EIS</div>
+            <div class="ytd-amount">${formatRM(data.ytd?.breakdown?.eisEmployer)}</div>
+          </div>` : ''}
+          ${parseFloat(data.ytd?.breakdown?.hrdfEmployer || 0) > 0.01 ? `
+          <div class="ytd-item">
+            <div class="ytd-label">HRDF</div>
+            <div class="ytd-amount">${formatRM(data.ytd?.breakdown?.hrdfEmployer)}</div>
+          </div>` : ''}
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer (EXACT PDF COPY) -->
+    <div class="footer">
+      Generated on: ${new Date().toISOString()}
+    </div>
+  </div>
+
+  <script>
+    console.log('=== PAYSLIP HTML GENERATED SUCCESSFULLY ===');
+    console.log('HTML length:', document.body.innerHTML.length);
+  </script>
 </body>
 </html>
-    `;
-    
-    console.log('=== PAYSLIP HTML GENERATED SUCCESSFULLY ===');
-    console.log('HTML length:', htmlContent.length);
-    return htmlContent;
-    
-  } catch (error) {
-    console.error('=== ERROR IN generatePayslipHTML ===');
-    console.error('Error:', error);
-    throw error;
-  }
+  `;
 }
