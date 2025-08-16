@@ -176,18 +176,15 @@ export default function MyRecordPage() {
       console.log('=== DOWNLOAD PAYSLIP PDF FROM MY RECORD ===');
       console.log('Payroll Item ID:', payrollItemId, 'Employee Name:', employeeName);
       
-      // Find the payroll record to get document ID
+      // Find the payroll record to get document ID and employee ID
       const record = userPayrollRecords.find(r => r.payrollItemId === payrollItemId);
       if (!record) {
         throw new Error('Payroll record not found');
       }
       
-      // Use fetch + blob approach as recommended in payroll detail page
+      // Use EXACT same URL pattern as payroll detail page: employeeId (not payrollItemId)
       const response = await fetch(`/api/payroll/payslip/${record.employeeId}/pdf?documentId=${record.documentId}`, {
-        method: "GET",
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('utamahr_token')}`,
-        }
+        method: "GET"
       });
       
       if (!response.ok) {
