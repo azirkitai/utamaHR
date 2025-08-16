@@ -869,9 +869,6 @@ export default function PayrollDetailPage() {
               ✓
             </div>
             <span className="text-sm text-green-600 font-medium">Update & Review</span>
-            {(payrollDocument as any)?.status !== 'approved' && (
-              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">In Progress</span>
-            )}
           </div>
           
           {/* Step 2: Approval - Show based on document status */}
