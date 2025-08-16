@@ -5565,7 +5565,7 @@ export function registerRoutes(app: Express): Server {
     return num.toFixed(2);
   }
 
-  // Function to get detailed YTD breakdown using MANUAL values from Master Salary
+  // Function to get detailed YTD breakdown using CAPTURED values from Payroll Item Snapshot
   async function getYTDBreakdown(employeeId: string, payrollDocumentId: string): Promise<{
     ytdEpfEmployee: string;
     ytdSocsoEmployee: string;
@@ -5579,14 +5579,18 @@ export function registerRoutes(app: Express): Server {
     ytdEmployerTotal: string;
   }> {
     try {
-      console.log('=== MANUAL YTD CALCULATION FROM MASTER SALARY ===');
+      console.log('=== YTD CALCULATION FROM PAYROLL ITEM SNAPSHOT ===');
+      console.log('Employee ID:', employeeId);
+      console.log('Document ID:', payrollDocumentId);
       
-      // Get employee's Master Salary configuration
-      const masterSalary = await storage.getEmployeeSalaryByEmployeeId(employeeId);
-      if (!masterSalary) {
-        console.log('No master salary found, using default current values from PDF screenshot');
+      // Get payroll item for this employee and document
+      const payrollItems = await storage.getPayrollItemsByDocumentId(payrollDocumentId);
+      const payrollItem = payrollItems.find(item => item.employeeId === employeeId);
+      
+      if (!payrollItem) {
+        console.log('No payroll item found, using zero YTD values');
         return {
-          ytdEpfEmployee: "0.00",    // Default zero values as per YTD OVERHAUL requirement
+          ytdEpfEmployee: "0.00",
           ytdSocsoEmployee: "0.00", 
           ytdEisEmployee: "0.00",
           ytdPcbEmployee: "0.00",
@@ -5599,37 +5603,27 @@ export function registerRoutes(app: Express): Server {
         };
       }
       
-      // Parse manual YTD values from Master Salary
-      let manualYtd = {};
-      if (masterSalary.manualYtd) {
+      // Parse YTD values from captured snapshot in payroll item
+      let capturedYtd = {};
+      if (payrollItem.masterSalarySnapshot) {
         try {
-          manualYtd = JSON.parse(masterSalary.manualYtd);
-          console.log('Manual YTD values found:', manualYtd);
+          const masterSnapshot = JSON.parse(payrollItem.masterSalarySnapshot);
+          if (masterSnapshot.manualYtd) {
+            capturedYtd = JSON.parse(masterSnapshot.manualYtd);
+            console.log('Captured YTD values from snapshot:', capturedYtd);
+          } else {
+            console.log('No YTD data in captured snapshot, using zero values');
+          }
         } catch (error) {
-          console.log('Error parsing manual YTD, using defaults');
+          console.log('Error parsing captured YTD snapshot, using zero values');
         }
       } else {
-        console.log('No manual YTD found, initializing with ZERO values as per YTD OVERHAUL requirement');
-        // Initialize with zero values as per user requirement - NO MORE HARDCODED VALUES
-        manualYtd = {
-          employee: {
-            epf: 0.00,
-            socso: 0.00,
-            eis: 0.00,
-            pcb: 0.00
-          },
-          employer: {
-            epf: 0.00,
-            socso: 0.00,
-            eis: 0.00,
-            hrdf: 0.00
-          }
-        };
+        console.log('No master salary snapshot found, using zero YTD values');
       }
 
-      // Extract YTD values
-      const ytdEmployee = (manualYtd as any)?.employee || {};
-      const ytdEmployer = (manualYtd as any)?.employer || {};
+      // Extract YTD values from captured snapshot
+      const ytdEmployee = (capturedYtd as any)?.employee || {};
+      const ytdEmployer = (capturedYtd as any)?.employer || {};
       
       const ytdEpfEmployee = parseFloat(ytdEmployee.epf || 0.00);
       const ytdSocsoEmployee = parseFloat(ytdEmployee.socso || 0.00);
@@ -5645,12 +5639,12 @@ export function registerRoutes(app: Express): Server {
       const totalYtdEmployee = ytdEpfEmployee + ytdSocsoEmployee + ytdEisEmployee + ytdPcbEmployee;
       const totalYtdEmployer = ytdEpfEmployer + ytdSocsoEmployer + ytdEisEmployer + ytdHrdfEmployer;
 
-      console.log('MANUAL YTD Values Used:', {
+      console.log('CAPTURED YTD Values Used from Snapshot:', {
         employee: { epf: ytdEpfEmployee, socso: ytdSocsoEmployee, eis: ytdEisEmployee, pcb: ytdPcbEmployee },
         employer: { epf: ytdEpfEmployer, socso: ytdSocsoEmployer, eis: ytdEisEmployer, hrdf: ytdHrdfEmployer },
         totals: { employee: totalYtdEmployee, employer: totalYtdEmployer }
       });
-      console.log('=== END MANUAL YTD CALCULATION ===');
+      console.log('=== END CAPTURED YTD CALCULATION ===');
 
       return {
         ytdEpfEmployee: ytdEpfEmployee.toFixed(2),
