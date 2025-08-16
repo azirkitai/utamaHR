@@ -657,42 +657,58 @@ export const PayslipPDFDocument: React.FC<PayslipPDFProps> = ({
           <View style={styles.ytdRow}>
             <View style={styles.ytdBox}>
               <Text style={styles.ytdBoxTitle}>Employee Contribution (YTD)</Text>
-              <View style={styles.ytdItem}>
-                <Text style={styles.ytdLabel}>EPF</Text>
-                <Text style={styles.ytdAmt}>{formatRM(ytd?.employee?.epf)}</Text>
-              </View>
-              <View style={styles.ytdItem}>
-                <Text style={styles.ytdLabel}>SOCSO</Text>
-                <Text style={styles.ytdAmt}>{formatRM(ytd?.employee?.socso)}</Text>
-              </View>
-              <View style={styles.ytdItem}>
-                <Text style={styles.ytdLabel}>EIS</Text>
-                <Text style={styles.ytdAmt}>{formatRM(ytd?.employee?.eis)}</Text>
-              </View>
-              <View style={styles.ytdItem}>
-                <Text style={styles.ytdLabel}>PCB</Text>
-                <Text style={styles.ytdAmt}>{formatRM(ytd?.employee?.pcb)}</Text>
-              </View>
+              {parseFloat(ytd?.employee?.epf || 0) > 0.01 && (
+                <View style={styles.ytdItem}>
+                  <Text style={styles.ytdLabel}>EPF</Text>
+                  <Text style={styles.ytdAmt}>{formatRM(ytd?.employee?.epf)}</Text>
+                </View>
+              )}
+              {parseFloat(ytd?.employee?.socso || 0) > 0.01 && (
+                <View style={styles.ytdItem}>
+                  <Text style={styles.ytdLabel}>SOCSO</Text>
+                  <Text style={styles.ytdAmt}>{formatRM(ytd?.employee?.socso)}</Text>
+                </View>
+              )}
+              {parseFloat(ytd?.employee?.eis || 0) > 0.01 && (
+                <View style={styles.ytdItem}>
+                  <Text style={styles.ytdLabel}>EIS</Text>
+                  <Text style={styles.ytdAmt}>{formatRM(ytd?.employee?.eis)}</Text>
+                </View>
+              )}
+              {parseFloat(ytd?.employee?.pcb || 0) > 0.01 && (
+                <View style={styles.ytdItem}>
+                  <Text style={styles.ytdLabel}>PCB</Text>
+                  <Text style={styles.ytdAmt}>{formatRM(ytd?.employee?.pcb)}</Text>
+                </View>
+              )}
             </View>
             
             <View style={styles.ytdBox}>
               <Text style={styles.ytdBoxTitle}>Employer Contribution (YTD)</Text>
-              <View style={styles.ytdItem}>
-                <Text style={styles.ytdLabel}>EPF</Text>
-                <Text style={styles.ytdAmt}>{formatRM(ytd?.employer?.epf)}</Text>
-              </View>
-              <View style={styles.ytdItem}>
-                <Text style={styles.ytdLabel}>SOCSO</Text>
-                <Text style={styles.ytdAmt}>{formatRM(ytd?.employer?.socso)}</Text>
-              </View>
-              <View style={styles.ytdItem}>
-                <Text style={styles.ytdLabel}>EIS</Text>
-                <Text style={styles.ytdAmt}>{formatRM(ytd?.employer?.eis)}</Text>
-              </View>
-              <View style={styles.ytdItem}>
-                <Text style={styles.ytdLabel}>HRDF</Text>
-                <Text style={styles.ytdAmt}>{formatRM(ytd?.employer?.hrdf || 800)}</Text>
-              </View>
+              {parseFloat(ytd?.employer?.epf || 0) > 0.01 && (
+                <View style={styles.ytdItem}>
+                  <Text style={styles.ytdLabel}>EPF</Text>
+                  <Text style={styles.ytdAmt}>{formatRM(ytd?.employer?.epf)}</Text>
+                </View>
+              )}
+              {parseFloat(ytd?.employer?.socso || 0) > 0.01 && (
+                <View style={styles.ytdItem}>
+                  <Text style={styles.ytdLabel}>SOCSO</Text>
+                  <Text style={styles.ytdAmt}>{formatRM(ytd?.employer?.socso)}</Text>
+                </View>
+              )}
+              {parseFloat(ytd?.employer?.eis || 0) > 0.01 && (
+                <View style={styles.ytdItem}>
+                  <Text style={styles.ytdLabel}>EIS</Text>
+                  <Text style={styles.ytdAmt}>{formatRM(ytd?.employer?.eis)}</Text>
+                </View>
+              )}
+              {parseFloat(ytd?.employer?.hrdf || 0) > 0.01 && (
+                <View style={styles.ytdItem}>
+                  <Text style={styles.ytdLabel}>HRDF</Text>
+                  <Text style={styles.ytdAmt}>{formatRM(ytd?.employer?.hrdf || 800)}</Text>
+                </View>
+              )}
             </View>
           </View>
         </View>
