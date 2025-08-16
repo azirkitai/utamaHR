@@ -1300,24 +1300,14 @@ export default function PayrollDetailPage() {
                     <div className="border rounded-lg p-4">
                       <div className="flex justify-between items-center mb-4">
                         <h4 className="font-medium text-gray-900">Payslip Preview</h4>
-                        <div className="flex space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => generatePdfPreview(selectedEmployeeId, selectedEmployeeName)}
-                            disabled={isGeneratingPreview}
-                          >
-                            {isGeneratingPreview ? "Generating..." : "Refresh Preview"}
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={() => handleGeneratePDF(selectedEmployeeId, selectedEmployeeName)}
-                            className="bg-blue-900 hover:bg-blue-800 text-white"
-                          >
-                            <Download className="w-4 h-4 mr-2" />
-                            Download PDF
-                          </Button>
-                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => generatePdfPreview(selectedEmployeeId, selectedEmployeeName)}
+                          disabled={isGeneratingPreview}
+                        >
+                          {isGeneratingPreview ? "Generating..." : "Refresh Preview"}
+                        </Button>
                       </div>
 
                       {isGeneratingPreview ? (
