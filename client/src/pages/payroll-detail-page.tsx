@@ -1065,6 +1065,16 @@ export default function PayrollDetailPage() {
                         // Calculate NET PAY dynamically: Gross Income - Total Deductions
                         const netPay = grossSalary - totalDeductions;
                         
+                        // DEBUG: Log calculation for this employee
+                        if (employeeSnapshot.name === 'SITI NADIAH SABRI') {
+                          console.log('=== NET PAY DEBUG for SITI NADIAH SABRI ===');
+                          console.log('Gross Salary:', grossSalary);
+                          console.log('Total Deductions calculated:', totalDeductions);
+                          console.log('Net Pay calculated:', netPay);
+                          console.log('Deductions Data:', deductionsData);
+                          console.log('=== END DEBUG ===');
+                        }
+                        
                         return (
                           <tr key={item.id} className="border-b hover:bg-gray-50">
                             <td className="p-3 text-gray-900 font-medium">{employeeSnapshot.name || 'N/A'}</td>
