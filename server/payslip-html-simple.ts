@@ -1,6 +1,14 @@
 // Simple HTML Preview Generator matching PDF layout exactly
 export function generatePayslipHTML(templateData: any, showPreviewNote: boolean = true): string {
-  return `
+  try {
+    console.log('=== GENERATING PAYSLIP HTML IN SIMPLE.TS START ===');
+    console.log('TIMESTAMP:', new Date().toISOString());
+    console.log('showPreviewNote:', showPreviewNote);
+    console.log('HRDF VALUE IN TEMPLATE:', templateData.ytd?.breakdown?.hrdfEmployer);
+    console.log('NET PAY VALUE:', templateData.netIncome);
+    console.log('FULL YTD BREAKDOWN:', JSON.stringify(templateData.ytd?.breakdown, null, 2));
+    
+    const htmlContent = `
 <!DOCTYPE html>
 <html lang="ms">
 <head>
@@ -135,7 +143,7 @@ export function generatePayslipHTML(templateData: any, showPreviewNote: boolean 
     </div>
 
     <!-- Net Income -->
-    <div style="border: 2px solid #6c757d; border-radius: 4px; padding: 12px; margin: 12px 0; background: #e9ecef; display: flex; justify-content: space-between; font-weight: bold; font-size: 14px;">
+    <div style="border: 2px solid #6c757d; border-radius: 4px; padding: 12px; margin: 12px 0; background: #e9ecef !important; display: flex; justify-content: space-between; font-weight: bold; font-size: 14px;">
         <span>NET PAY</span>
         <span>RM ${templateData.netIncome}</span>
     </div>
@@ -212,7 +220,7 @@ export function generatePayslipHTML(templateData: any, showPreviewNote: boolean 
                 ` : ''}
                 <div style="padding: 6px 8px; display: flex; justify-content: space-between; font-size: 10px;">
                     <span>HRDF</span>
-                    <span style="font-weight: bold;">RM ${templateData.ytd.breakdown.hrdfEmployer?.toFixed(2) || "800.00"}</span>
+                    <span style="font-weight: bold;">RM ${parseFloat(templateData.ytd.breakdown.hrdfEmployer || 800).toFixed(2)}</span>
                 </div>
             </div>
         </div>
@@ -220,5 +228,15 @@ export function generatePayslipHTML(templateData: any, showPreviewNote: boolean 
 
 </body>
 </html>
-  `;
+    `;
+    
+    console.log('=== PAYSLIP HTML GENERATED SUCCESSFULLY ===');
+    console.log('HTML length:', htmlContent.length);
+    return htmlContent;
+    
+  } catch (error) {
+    console.error('=== ERROR IN generatePayslipHTML ===');
+    console.error('Error:', error);
+    throw error;
+  }
 }
