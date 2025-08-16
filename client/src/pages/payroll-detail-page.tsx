@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 // Import React PDF components
 import { PDFDownloadLink, pdf } from '@react-pdf/renderer';
-import { buildPdfPropsFromTemplateData } from '@/components/PayslipPDFDocument';
+import { PayslipPDFDocument, buildPdfPropsFromTemplateData } from '@/components/PayslipPDFDocument';
 import jsPDF from 'jspdf';
 // Using @react-pdf/renderer for professional PDF generation
 
