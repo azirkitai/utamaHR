@@ -11,6 +11,8 @@ UtamaHR is a comprehensive HR Management System built with React, TypeScript, an
 - Synchronized filter functionality across Summary and Report tabs
 - Enhanced data integrity with consistent Malaysian language formatting
 - Resolved controlled/uncontrolled input warnings in filter components
+- Fixed HRDF not capturing from Master Salary in payroll table - implemented generateContributionsFromMasterSalary function
+- Confirmed existing payroll items need regeneration to apply new HRDF capture logic
 
 # User Preferences
 Preferred communication style: Simple, everyday language.
