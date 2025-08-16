@@ -2785,7 +2785,7 @@ export class DatabaseStorage implements IStorage {
           const finalDeductions = this.generateDeductionsFromMasterSalary(basicSalary, masterSalaryData);
           const finalContributions = this.generateContributionsFromMasterSalary(basicSalary, masterSalaryData);
 
-          // Create payroll item
+          // Create payroll item with MASTER SALARY SNAPSHOT captured
           const payrollItemData: InsertPayrollItem = {
         documentId,
         employeeId: employee.id,
@@ -2795,6 +2795,7 @@ export class DatabaseStorage implements IStorage {
           staffId: employee.staffId,
           position: 'Employee' // Could be enhanced with actual position
         }),
+        masterSalarySnapshot: JSON.stringify(masterSalaryData), // CAPTURE MASTER SALARY SNAPSHOT
         salary: JSON.stringify({
           basic: basicSalary.toString(),
           computed: basicSalary.toString(),
@@ -2829,6 +2830,10 @@ export class DatabaseStorage implements IStorage {
           console.log('=== FINAL PAYROLL ITEM DATA ===');
           console.log('Employee:', employee.fullName);
           console.log('Employee Snapshot:', JSON.parse(payrollItemData.employeeSnapshot));
+          console.log('Master Salary Snapshot Captured:', payrollItemData.masterSalarySnapshot ? 'YES' : 'NO');
+          if (payrollItemData.masterSalarySnapshot) {
+            console.log('Master Salary Snapshot Content:', JSON.parse(payrollItemData.masterSalarySnapshot));
+          }
           console.log('Salary Data:', JSON.parse(payrollItemData.salary));
           console.log('Final Deductions:', finalDeductions);
           console.log('Final Contributions:', finalContributions);

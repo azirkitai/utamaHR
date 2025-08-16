@@ -58,6 +58,7 @@ function Router() {
       <ProtectedRoute path="/attendance/overtime" component={OvertimePage} />
       <ProtectedRoute path="/attendance/lateness" component={LatenessPage} />
       <ProtectedRoute path="/payment/salary-payroll" component={SalaryPayrollPage} />
+      <ProtectedRoute path="/payroll" component={SalaryPayrollPage} />
       <ProtectedRoute path="/payment/salary-payroll/view/:id" component={PayrollDetailPage} />
       <ProtectedRoute path="/employee-salary/:employeeId" component={EmployeeSalaryDetailsPage} />
 
