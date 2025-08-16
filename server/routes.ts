@@ -5586,16 +5586,16 @@ export function registerRoutes(app: Express): Server {
       if (!masterSalary) {
         console.log('No master salary found, using default current values from PDF screenshot');
         return {
-          ytdEpfEmployee: "441.35",    // Current values from PDF screenshot 
-          ytdSocsoEmployee: "17.75", 
-          ytdEisEmployee: "4.80",
+          ytdEpfEmployee: "0.00",    // Default zero values as per YTD OVERHAUL requirement
+          ytdSocsoEmployee: "0.00", 
+          ytdEisEmployee: "0.00",
           ytdPcbEmployee: "0.00",
-          ytdEpfEmployer: "521.59",
-          ytdSocsoEmployer: "61.85",
-          ytdEisEmployer: "4.80",
+          ytdEpfEmployer: "0.00",
+          ytdSocsoEmployer: "0.00",
+          ytdEisEmployer: "0.00",
           ytdHrdfEmployer: "0.00",
-          ytdEmployeeTotal: "463.90",
-          ytdEmployerTotal: "588.24"
+          ytdEmployeeTotal: "0.00",
+          ytdEmployerTotal: "0.00"
         };
       }
       
@@ -5609,19 +5609,19 @@ export function registerRoutes(app: Express): Server {
           console.log('Error parsing manual YTD, using defaults');
         }
       } else {
-        console.log('No manual YTD found, initializing with current correct values from PDF');
-        // Set current correct values from PDF screenshot as default
+        console.log('No manual YTD found, initializing with ZERO values as per YTD OVERHAUL requirement');
+        // Initialize with zero values as per user requirement - NO MORE HARDCODED VALUES
         manualYtd = {
           employee: {
-            epf: 441.35,
-            socso: 17.75,
-            eis: 4.80,
+            epf: 0.00,
+            socso: 0.00,
+            eis: 0.00,
             pcb: 0.00
           },
           employer: {
-            epf: 521.59,
-            socso: 61.85,
-            eis: 4.80,
+            epf: 0.00,
+            socso: 0.00,
+            eis: 0.00,
             hrdf: 0.00
           }
         };
@@ -5631,14 +5631,14 @@ export function registerRoutes(app: Express): Server {
       const ytdEmployee = (manualYtd as any)?.employee || {};
       const ytdEmployer = (manualYtd as any)?.employer || {};
       
-      const ytdEpfEmployee = parseFloat(ytdEmployee.epf || 441.35);
-      const ytdSocsoEmployee = parseFloat(ytdEmployee.socso || 17.75);
-      const ytdEisEmployee = parseFloat(ytdEmployee.eis || 4.80);
+      const ytdEpfEmployee = parseFloat(ytdEmployee.epf || 0.00);
+      const ytdSocsoEmployee = parseFloat(ytdEmployee.socso || 0.00);
+      const ytdEisEmployee = parseFloat(ytdEmployee.eis || 0.00);
       const ytdPcbEmployee = parseFloat(ytdEmployee.pcb || 0.00);
       
-      const ytdEpfEmployer = parseFloat(ytdEmployer.epf || 521.59);
-      const ytdSocsoEmployer = parseFloat(ytdEmployer.socso || 61.85);
-      const ytdEisEmployer = parseFloat(ytdEmployer.eis || 4.80);
+      const ytdEpfEmployer = parseFloat(ytdEmployer.epf || 0.00);
+      const ytdSocsoEmployer = parseFloat(ytdEmployer.socso || 0.00);
+      const ytdEisEmployer = parseFloat(ytdEmployer.eis || 0.00);
       const ytdHrdfEmployer = parseFloat(ytdEmployer.hrdf || 0.00);
 
       // Calculate totals
@@ -5669,16 +5669,16 @@ export function registerRoutes(app: Express): Server {
       console.error('Error in manual YTD calculation:', error);
       // Return current correct values from PDF screenshot as fallback
       return {
-        ytdEpfEmployee: "441.35",
-        ytdSocsoEmployee: "17.75",
-        ytdEisEmployee: "4.80", 
+        ytdEpfEmployee: "0.00",
+        ytdSocsoEmployee: "0.00",
+        ytdEisEmployee: "0.00", 
         ytdPcbEmployee: "0.00",
-        ytdEpfEmployer: "521.59",
-        ytdSocsoEmployer: "61.85",
-        ytdEisEmployer: "4.80",
+        ytdEpfEmployer: "0.00",
+        ytdSocsoEmployer: "0.00",
+        ytdEisEmployer: "0.00",
         ytdHrdfEmployer: "0.00",
-        ytdEmployeeTotal: "463.90",
-        ytdEmployerTotal: "588.24"
+        ytdEmployeeTotal: "0.00",
+        ytdEmployerTotal: "0.00"
       };
     }
   }
