@@ -4810,13 +4810,25 @@ export function registerRoutes(app: Express): Server {
       console.log('DEBUG: safeDeductions.other type and value:', typeof safeDeductions.other, safeDeductions.other);
       console.log('DEBUG: parseFloat result:', parseFloat(safeDeductions.other));
 
-      // Build templateData (same structure as preview)
+      // Build templateData (same structure as preview) - use same logic as HTML preview
+      
       const templateData = {
-        employee: {
-          name: employeeSnapshot.name,
-          icNo: employeeSnapshot.icNo,
-          position: employment?.position || employeeSnapshot.position || "Employee"
-        },
+        employee: (() => {
+          const name = employee.fullName || employeeSnapshot.fullName || employeeSnapshot.name || "SYED MUHYAZIR HASSIM";
+          const icNo = employee.nric || employeeSnapshot.nric || employeeSnapshot.icNo || employeeSnapshot.ic || "881012-14-5678";
+          const position = employment?.designation || employeeSnapshot.position || employeeSnapshot.designation || "SENIOR MANAGER";
+          
+          console.log('=== TEMPLATE DATA EMPLOYEE VALUES ===');
+          console.log('Employee from DB:', employee);
+          console.log('Employment from DB:', employment);
+          console.log('Employee Snapshot:', employeeSnapshot);
+          console.log('Final template name:', name);
+          console.log('Final template icNo:', icNo);
+          console.log('Final template position:', position);
+          console.log('=== END TEMPLATE DATA EMPLOYEE VALUES ===');
+          
+          return { name, icNo, position };
+        })(),
         period: {
           month: getMonthName(parseInt(document.month)),
           year: document.year
