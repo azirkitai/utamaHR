@@ -2783,16 +2783,7 @@ export class DatabaseStorage implements IStorage {
 
           // Calculate the deductions and contributions from master salary data
           const finalDeductions = this.generateDeductionsFromMasterSalary(basicSalary, masterSalaryData);
-          const finalContributions = {
-            epfEmployer: this.calculateEPFEmployer(basicSalary.toString()),
-            socsoEmployer: this.calculateSOCSO(basicSalary.toString(), 'employer'),
-            eisEmployer: this.calculateEIS(basicSalary.toString(), 'employer'),
-            hrdf: '0',
-            other: Object.entries(contributions || {}).map(([name, amount]) => ({
-              name,
-              amount: amount?.toString() || '0'
-            }))
-          };
+          const finalContributions = this.generateContributionsFromMasterSalary(basicSalary, masterSalaryData);
 
           // Create payroll item
           const payrollItemData: InsertPayrollItem = {
@@ -2915,6 +2906,45 @@ export class DatabaseStorage implements IStorage {
     };
 
     console.log('Generated deductions from Master Salary:', result);
+    return result;
+  }
+
+  private generateContributionsFromMasterSalary(basicSalary: number, masterSalaryData: any): any {
+    console.log('=== GENERATE CONTRIBUTIONS FROM MASTER SALARY ===');
+    console.log('Basic Salary:', basicSalary);
+    console.log('Master Salary Data:', masterSalaryData);
+
+    // Default calculations if no Master Salary data
+    if (!masterSalaryData || !masterSalaryData.contributions) {
+      console.log('No Master Salary contributions found, using defaults');
+      return {
+        epfEmployer: this.calculateEPFEmployer(basicSalary.toString()),
+        socsoEmployer: this.calculateSOCSO(basicSalary.toString(), 'employer'),
+        eisEmployer: this.calculateEIS(basicSalary.toString(), 'employer'),
+        hrdf: '0',
+        other: []
+      };
+    }
+
+    // Use Master Salary Configuration contributions
+    const contributions = masterSalaryData.contributions;
+    console.log('Using Master Salary contributions:', contributions);
+    
+    // Build contributions object from master salary data
+    const result = {
+      epfEmployer: contributions.epfEmployer?.toString() || this.calculateEPFEmployer(basicSalary.toString()),
+      socsoEmployer: contributions.socsoEmployer?.toString() || this.calculateSOCSO(basicSalary.toString(), 'employer'),
+      eisEmployer: contributions.eisEmployer?.toString() || this.calculateEIS(basicSalary.toString(), 'employer'),
+      hrdf: contributions.hrdf?.toString() || '0', // Capture HRDF from Master Salary
+      other: (contributions.customItems || []).map((item: any) => ({
+        name: item.name || item.label || 'Other Contribution',
+        amount: item.amount?.toString() || '0'
+      }))
+    };
+
+    console.log('Generated contributions from Master Salary:', result);
+    console.log('HRDF value captured:', result.hrdf);
+    console.log('=== END GENERATE CONTRIBUTIONS ===');
     return result;
   }
 
