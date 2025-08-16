@@ -74,6 +74,7 @@ export interface PayslipPDFProps {
       epf?: number | string;
       socso?: number | string;
       eis?: number | string;
+      hrdf?: number | string;
     };
   };
   generated: string;
@@ -185,6 +186,7 @@ export function buildPdfPropsFromTemplateData(templateData: any): PayslipPDFProp
         epf: parseAmount(templateData.ytd?.breakdown?.epfEmployer || 0),
         socso: parseAmount(templateData.ytd?.breakdown?.socsoEmployer || 0),
         eis: parseAmount(templateData.ytd?.breakdown?.eisEmployer || 0),
+        hrdf: parseAmount(templateData.ytd?.breakdown?.hrdfEmployer || 0),
       },
     },
     generated: new Date().toISOString(),
@@ -706,7 +708,7 @@ export const PayslipPDFDocument: React.FC<PayslipPDFProps> = ({
               {parseFloat(ytd?.employer?.hrdf || 0) > 0.01 && (
                 <View style={styles.ytdItem}>
                   <Text style={styles.ytdLabel}>HRDF</Text>
-                  <Text style={styles.ytdAmt}>{formatRM(ytd?.employer?.hrdf || 800)}</Text>
+                  <Text style={styles.ytdAmt}>{formatRM(ytd?.employer?.hrdf)}</Text>
                 </View>
               )}
             </View>
