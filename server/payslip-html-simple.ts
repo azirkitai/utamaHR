@@ -21,14 +21,12 @@ export function generatePayslipHTML(data: any): string {
   console.log(`NET PAY VALUE: ${data.netIncome || '0.00'}`);
   console.log(`FULL YTD BREAKDOWN:`, JSON.stringify(data.ytd?.breakdown || {}, null, 2));
 
-  // EXACT PDF LOGIC COPY - Fallback logic for basic salary
-  const sumAdditional = (arr?: Array<{amount: any}>) => 
-    (arr || []).reduce((s, a) => s + toNum(a?.amount), 0);
-  
-  const incomeOthers = toNum(data.income?.overtime) + toNum(data.income?.fixedAllowance) + sumAdditional(data.income?.additional);
-  
-  // If basicSalary is missing/0, derive: gross - (overtime + fixed + additional)
-  const basicForDisplay = toNum(data.income?.basicSalary) || Math.max(0, toNum(data.income?.totalGross) - incomeOthers);
+  // Debug template data structure  
+  console.log('=== TEMPLATE DATA STRUCTURE DEBUG ===');
+  console.log('data.income structure:', JSON.stringify(data.income, null, 2));
+  console.log('data.deduction structure:', JSON.stringify(data.deduction, null, 2));
+  console.log('data.employerContrib structure:', JSON.stringify(data.employerContrib, null, 2));
+  console.log('=== END TEMPLATE DATA STRUCTURE DEBUG ===');
 
   return `
 <!DOCTYPE html>
@@ -392,31 +390,12 @@ export function generatePayslipHTML(data: any): string {
       <div class="income-box">
         <div class="section-title">INCOME</div>
         
-        <!-- Basic Salary - using fallback logic FROM PDF -->
-        <div class="line-item">
-          <div class="line-item-label">Basic Salary</div>
-          <div class="line-item-amount">${formatRM(basicForDisplay)}</div>
-        </div>
-
-        <!-- Other income items (EXACT PDF COPY) -->
-        ${toNum(data.income?.overtime) > 0 ? `
-        <div class="line-item">
-          <div class="line-item-label">Overtime</div>
-          <div class="line-item-amount">${formatRM(data.income?.overtime)}</div>
-        </div>` : ''}
-
-        ${toNum(data.income?.fixedAllowance) > 0 ? `
-        <div class="line-item">
-          <div class="line-item-label">Fixed Allowance</div>
-          <div class="line-item-amount">${formatRM(data.income?.fixedAllowance)}</div>
-        </div>` : ''}
-
-        <!-- Additional income items (EXACT PDF COPY) -->
-        ${(data.income?.additional || []).map((item: any) => 
-          toNum(item.amount) > 0 ? `
+        <!-- Income Items from Server Data Structure -->
+        ${(data.income?.items || []).map((item: any) => 
+          item.show ? `
           <div class="line-item">
             <div class="line-item-label">${item.label}</div>
-            <div class="line-item-amount">${formatRM(item.amount)}</div>
+            <div class="line-item-amount">RM ${item.amount}</div>
           </div>` : ''
         ).join('')}
 
@@ -445,19 +424,12 @@ export function generatePayslipHTML(data: any): string {
           <div class="line-item-amount">${formatRM(data.deduction?.eisEmp)}</div>
         </div>
 
-        <!-- PCB/MTD (EXACT PDF COPY) -->
-        ${toNum(data.deduction?.other) > 0 ? `
-        <div class="line-item">
-          <div class="line-item-label">MTD/PCB</div>
-          <div class="line-item-amount">${formatRM(data.deduction?.other)}</div>
-        </div>` : ''}
-
-        <!-- Additional deduction items (EXACT PDF COPY) -->
-        ${(data.deduction?.additional || []).map((item: any) => 
-          toNum(item.amount) > 0 ? `
+        <!-- Additional deduction items from Server Data Structure -->
+        ${(data.deduction?.items || []).map((item: any) => 
+          item.show ? `
           <div class="line-item">
             <div class="line-item-label">${item.label}</div>
-            <div class="line-item-amount">${formatRM(item.amount)}</div>
+            <div class="line-item-amount">RM ${item.amount}</div>
           </div>` : ''
         ).join('')}
 
