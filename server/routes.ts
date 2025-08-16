@@ -291,6 +291,19 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Get current user's payroll records for My Record page
+  app.get("/api/user/payroll-records", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      const payrollRecords = await storage.getUserPayrollRecords(currentUser.id);
+      
+      res.json(payrollRecords);
+    } catch (error) {
+      console.error("Get user payroll records error:", error);
+      res.status(500).json({ error: "Gagal mendapatkan rekod gaji pengguna" });
+    }
+  });
+
   // Announcements endpoints
   app.get("/api/announcements", authenticateToken, async (req, res) => {
     try {

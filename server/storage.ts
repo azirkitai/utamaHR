@@ -164,12 +164,16 @@ import {
   // Payroll types
   payrollDocuments,
   payrollItems,
+  userPayrollRecords,
   type PayrollDocument,
   type InsertPayrollDocument,
   type UpdatePayrollDocument,
   type PayrollItem,
   type InsertPayrollItem,
   type UpdatePayrollItem,
+  type UserPayrollRecord,
+  type InsertUserPayrollRecord,
+  type UpdateUserPayrollRecord,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, sql, asc, ilike, or, gte, lte, inArray, not } from "drizzle-orm";
@@ -3138,16 +3142,76 @@ export class DatabaseStorage implements IStorage {
 
   // Submit payment for payroll document (set status to "sent")
   async submitPaymentPayrollDocument(documentId: string, submitterId: string): Promise<boolean> {
-    const [updatedDocument] = await db
-      .update(payrollDocuments)
-      .set({
-        status: 'sent',
-        updatedAt: new Date()
-      })
-      .where(eq(payrollDocuments.id, documentId))
-      .returning();
+    try {
+      // Update document status
+      const [updatedDocument] = await db
+        .update(payrollDocuments)
+        .set({
+          status: 'sent',
+          updatedAt: new Date()
+        })
+        .where(eq(payrollDocuments.id, documentId))
+        .returning();
 
-    return !!updatedDocument;
+      if (!updatedDocument) {
+        return false;
+      }
+
+      // Get all payroll items for this document
+      const payrollItemsData = await db
+        .select({
+          payrollItem: payrollItems,
+          employee: employees,
+          user: users
+        })
+        .from(payrollItems)
+        .innerJoin(employees, eq(payrollItems.employeeId, employees.id))
+        .innerJoin(users, eq(employees.userId, users.id))
+        .where(eq(payrollItems.documentId, documentId));
+
+      // Create user payroll records for each employee
+      const userRecords = payrollItemsData.map(({ payrollItem, employee, user }) => ({
+        userId: user.id,
+        employeeId: employee.id,
+        year: updatedDocument.year,
+        month: updatedDocument.month,
+        payrollDate: updatedDocument.payrollDate,
+        status: 'sent' as const,
+        remarks: `Payroll submitted on ${new Date().toLocaleDateString('en-MY')}`,
+        documentId: documentId,
+        payrollItemId: payrollItem.id,
+        submittedBy: submitterId
+      }));
+
+      // Insert user records (ignore conflicts if already exist)
+      if (userRecords.length > 0) {
+        await db
+          .insert(userPayrollRecords)
+          .values(userRecords)
+          .onConflictDoNothing();
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error submitting payment:', error);
+      return false;
+    }
+  }
+
+  // Get user payroll records for My Record page
+  async getUserPayrollRecords(userId: string): Promise<UserPayrollRecord[]> {
+    try {
+      const records = await db
+        .select()
+        .from(userPayrollRecords)
+        .where(eq(userPayrollRecords.userId, userId))
+        .orderBy(desc(userPayrollRecords.year), desc(userPayrollRecords.month));
+      
+      return records;
+    } catch (error) {
+      console.error('Error fetching user payroll records:', error);
+      return [];
+    }
   }
 
   // =================== COMPANY SETTINGS METHODS ===================

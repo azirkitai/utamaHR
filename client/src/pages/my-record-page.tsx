@@ -12,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { format, addDays, subDays } from "date-fns";
 import { CalendarIcon, Download, Filter, Search, ChevronLeft, ChevronRight, Calendar as CalendarLucide, Clock, FileText, CreditCard, Users, DollarSign, Image, StickyNote, Eye, File, Share } from "lucide-react";
-import type { AttendanceRecord, LeaveApplication } from "@shared/schema";
+import type { AttendanceRecord, LeaveApplication, UserPayrollRecord } from "@shared/schema";
 
 type TabType = "leave" | "timeoff" | "claim" | "overtime" | "attendance" | "payment";
 
@@ -116,12 +116,45 @@ export default function MyRecordPage() {
     enabled: !!user && activeTab === 'leave'
   });
 
+  // Fetch user payroll records for My Record page
+  const { data: userPayrollRecords = [], isLoading: isLoadingPayroll, error: payrollError } = useQuery({
+    queryKey: ['/api/user/payroll-records'],
+    queryFn: async () => {
+      // Get JWT token from localStorage  
+      const token = localStorage.getItem('utamahr_token');
+      if (!token) {
+        console.error('No JWT token found in localStorage');
+        throw new Error('No authentication token found - please login again');
+      }
+      
+      const response = await fetch(`/api/user/payroll-records`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('User payroll records API error:', errorData);
+        throw new Error(errorData.error || 'Failed to fetch user payroll records');
+      }
+      
+      const data = await response.json();
+      return data as UserPayrollRecord[];
+    },
+    enabled: !!user && activeTab === 'payment'
+  });
+
   // Log errors for debugging
   if (attendanceError) {
     console.error('Attendance query error:', attendanceError);
   }
   if (leaveError) {
     console.error('Leave applications query error:', leaveError);
+  }
+  if (payrollError) {
+    console.error('User payroll records query error:', payrollError);
   }
 
   const tabs = [
@@ -1012,16 +1045,66 @@ export default function MyRecordPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                  No data available in table
-                </TableCell>
-              </TableRow>
+              {isLoadingPayroll ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                    Loading payroll records...
+                  </TableCell>
+                </TableRow>
+              ) : userPayrollRecords.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                    No payroll records available
+                  </TableCell>
+                </TableRow>
+              ) : (
+                userPayrollRecords.map((record, index) => (
+                  <TableRow key={record.id}>
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>{record.year}</TableCell>
+                    <TableCell>{record.month}</TableCell>
+                    <TableCell>{format(new Date(record.submittedAt), 'dd/MM/yyyy')}</TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant="default" 
+                        className="bg-green-100 text-green-800 hover:bg-green-200"
+                      >
+                        Processed
+                      </Badge>
+                    </TableCell>
+                    <TableCell>-</TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          className="h-8 px-2"
+                          data-testid={`button-view-payroll-${record.id}`}
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
+                          View
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          className="h-8 px-2"
+                          data-testid={`button-download-payroll-${record.id}`}
+                        >
+                          <File className="h-3 w-3 mr-1" />
+                          Download
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </div>
 
-        <div className="text-sm text-gray-500">Showing 0 to 0 of 0 entries</div>
+        <div className="text-sm text-gray-500">
+          Showing {userPayrollRecords.length > 0 ? '1' : '0'} to {userPayrollRecords.length} of {userPayrollRecords.length} entries
+        </div>
       </div>
     );
 

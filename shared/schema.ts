@@ -646,6 +646,36 @@ export const payrollItems = pgTable('payroll_items', {
   uniqueDocumentEmployee: unique('payroll_items_document_employee_unique').on(table.documentId, table.employeeId),
 }));
 
+// User Payroll Records Table (records for individual users in My Record page)
+export const userPayrollRecords = pgTable('user_payroll_records', {
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar('user_id').notNull().references(() => users.id),
+  employeeId: varchar('employee_id').notNull().references(() => employees.id),
+  
+  // Payroll period
+  year: integer('year').notNull(),
+  month: integer('month').notNull(),
+  payrollDate: timestamp('payroll_date').notNull(),
+  
+  // Status tracking
+  status: text('status').notNull().default('sent'), // sent, completed, cancelled
+  remarks: text('remarks'),
+  
+  // Reference to original payroll document and item
+  documentId: varchar('document_id').references(() => payrollDocuments.id),
+  payrollItemId: varchar('payroll_item_id').references(() => payrollItems.id),
+  
+  // Submitted info
+  submittedBy: varchar('submitted_by').notNull().references(() => users.id),
+  submittedAt: timestamp('submitted_at').defaultNow().notNull(),
+  
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  // Unique constraint: one record per user per year/month
+  uniqueUserYearMonth: unique('user_payroll_records_user_year_month_unique').on(table.userId, table.year, table.month),
+}));
+
 // Claim Applications Table (for Financial and Overtime claims)
 export const claimApplications = pgTable('claim_applications', {
   id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
@@ -1032,6 +1062,21 @@ export const insertPayrollItemSchema = createInsertSchema(payrollItems).omit({
 });
 export const updatePayrollItemSchema = insertPayrollItemSchema.partial();
 
+// User Payroll Records schemas
+export const insertUserPayrollRecordSchema = createInsertSchema(userPayrollRecords).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  submittedAt: true,
+}).extend({
+  // Handle date fields to accept strings and convert to Date objects
+  payrollDate: z.preprocess(
+    (val) => val ? new Date(val as string | Date) : new Date(),
+    z.date()
+  ),
+});
+export const updateUserPayrollRecordSchema = insertUserPayrollRecordSchema.partial();
+
 // Claim Application schemas
 export const insertClaimApplicationSchema = createInsertSchema(claimApplications).omit({
   id: true,
@@ -1175,6 +1220,10 @@ export type UpdatePayrollDocument = z.infer<typeof updatePayrollDocumentSchema>;
 export type PayrollItem = typeof payrollItems.$inferSelect;
 export type InsertPayrollItem = z.infer<typeof insertPayrollItemSchema>;
 export type UpdatePayrollItem = z.infer<typeof updatePayrollItemSchema>;
+
+export type UserPayrollRecord = typeof userPayrollRecords.$inferSelect;
+export type InsertUserPayrollRecord = z.infer<typeof insertUserPayrollRecordSchema>;
+export type UpdateUserPayrollRecord = z.infer<typeof updateUserPayrollRecordSchema>;
 
 // Claim Application types
 export type ClaimApplication = typeof claimApplications.$inferSelect;
