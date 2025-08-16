@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
   logo: {
     width: 42,
     height: 42,
-    marginRight: 2,
+    marginRight: 8,
     objectFit: "contain"
   },
   companyName: {
@@ -253,27 +253,27 @@ const styles = StyleSheet.create({
     flexWrap: "nowrap"
   },
   employeeLabel: {
-    width: "20%",
+    width: 80,
     fontSize: 11,
     fontWeight: 700,
     color: "#666",
     flexShrink: 0
   },
   employeeValue: {
-    width: "30%",
+    width: 120,
     fontSize: 11,
     fontWeight: 700,
     flexShrink: 0
   },
   monthLabel: {
-    width: "15%",
+    width: 60,
     fontSize: 11,
     fontWeight: 700,
     color: "#666",
     flexShrink: 0
   },
   monthValue: {
-    width: "35%",
+    width: 100,
     fontSize: 11,
     fontWeight: 700,
     flexShrink: 0
