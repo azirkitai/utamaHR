@@ -247,6 +247,18 @@ const styles = StyleSheet.create({
     borderColor: "#e9ecef",
     borderRadius: 6,
   },
+  employeeMainRow: {
+    flexDirection: "row",
+    width: "100%"
+  },
+  employeeLeftSection: {
+    width: "50%",
+    paddingRight: 10
+  },
+  employeeRightSection: {
+    width: "50%",
+    paddingLeft: 10
+  },
   employeeRow: {
     flexDirection: "row",
     marginBottom: 6,
@@ -260,20 +272,7 @@ const styles = StyleSheet.create({
     flexShrink: 0
   },
   employeeValue: {
-    width: 150,
-    fontSize: 11,
-    fontWeight: 700,
-    flexShrink: 0
-  },
-  monthLabel: {
-    width: 55,
-    fontSize: 11,
-    fontWeight: 700,
-    color: "#666",
-    flexShrink: 0
-  },
-  monthValue: {
-    width: 110,
+    flex: 1,
     fontSize: 11,
     fontWeight: 700,
     flexShrink: 0
@@ -495,21 +494,34 @@ export const PayslipPDFDocument: React.FC<PayslipPDFProps> = ({
 
         {/* Employee Info */}
         <View style={styles.employeeSection}>
-          <View style={styles.employeeRow}>
-            <Text style={styles.employeeLabel}>NAME:</Text>
-            <Text style={styles.employeeValue}>{employee.fullName}</Text>
-            <Text style={styles.monthLabel}>MONTH:</Text>
-            <Text style={styles.monthValue}>{document.month}</Text>
-          </View>
-          <View style={styles.employeeRow}>
-            <Text style={styles.employeeLabel}>I/C NO.:</Text>
-            <Text style={styles.employeeValue}>{employee.ic || "N/A"}</Text>
-            <Text style={styles.monthLabel}>YEAR:</Text>
-            <Text style={styles.monthValue}>{document.year}</Text>
-          </View>
-          <View style={styles.employeeRow}>
-            <Text style={styles.employeeLabel}>POSITION:</Text>
-            <Text style={styles.employeeValue}>{employee.position || "Employee"}</Text>
+          <View style={styles.employeeMainRow}>
+            {/* Left Section: Employee Info */}
+            <View style={styles.employeeLeftSection}>
+              <View style={styles.employeeRow}>
+                <Text style={styles.employeeLabel}>NAME:</Text>
+                <Text style={styles.employeeValue}>{employee.fullName}</Text>
+              </View>
+              <View style={styles.employeeRow}>
+                <Text style={styles.employeeLabel}>I/C NO.:</Text>
+                <Text style={styles.employeeValue}>{employee.ic || "N/A"}</Text>
+              </View>
+              <View style={styles.employeeRow}>
+                <Text style={styles.employeeLabel}>POSITION:</Text>
+                <Text style={styles.employeeValue}>{employee.position || "Employee"}</Text>
+              </View>
+            </View>
+            
+            {/* Right Section: Period Info */}
+            <View style={styles.employeeRightSection}>
+              <View style={styles.employeeRow}>
+                <Text style={styles.employeeLabel}>MONTH:</Text>
+                <Text style={styles.employeeValue}>{document.month}</Text>
+              </View>
+              <View style={styles.employeeRow}>
+                <Text style={styles.employeeLabel}>YEAR:</Text>
+                <Text style={styles.employeeValue}>{document.year}</Text>
+              </View>
+            </View>
           </View>
         </View>
 
