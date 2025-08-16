@@ -875,23 +875,36 @@ export default function PayrollDetailPage() {
           </div>
           
           {/* Step 2: Approval - Show based on document status */}
-          <div className="flex items-center space-x-2">
+          <div className={`flex items-center space-x-2 ${
+            (payrollDocument as any)?.status === 'Approved' ? 'bg-green-50 rounded-lg px-3 py-2 border border-green-200' : ''
+          }`}>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-              (payrollDocument as any)?.status === 'approved' 
+              (payrollDocument as any)?.status === 'Approved' 
                 ? 'bg-green-500 text-white' 
+                : (payrollDocument as any)?.status === 'Rejected'
+                ? 'bg-red-500 text-white'
                 : 'bg-gray-300 text-gray-600'
             }`}>
-              {(payrollDocument as any)?.status === 'approved' ? '✓' : '2'}
+              {(payrollDocument as any)?.status === 'Approved' ? '✓' : 
+               (payrollDocument as any)?.status === 'Rejected' ? '✗' : '2'}
             </div>
             <span className={`text-sm font-medium ${
-              (payrollDocument as any)?.status === 'approved' 
+              (payrollDocument as any)?.status === 'Approved' 
                 ? 'text-green-600' 
+                : (payrollDocument as any)?.status === 'Rejected'
+                ? 'text-red-600'
                 : 'text-gray-600'
             }`}>
               Approval
             </span>
-            {(payrollDocument as any)?.status === 'approved' && (
-              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Approved</span>
+            {(payrollDocument as any)?.status === 'Approved' && (
+              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded ml-2">Approved</span>
+            )}
+            {(payrollDocument as any)?.status === 'Rejected' && (
+              <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded ml-2">Rejected</span>
+            )}
+            {!['Approved', 'Rejected'].includes((payrollDocument as any)?.status) && (
+              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded ml-2">In Progress</span>
             )}
           </div>
           
