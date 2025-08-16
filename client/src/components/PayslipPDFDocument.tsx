@@ -331,9 +331,9 @@ const styles = StyleSheet.create({
     fontWeight: 700
   },
   netPaySection: {
-    backgroundColor: "#d4edda",
+    backgroundColor: "#e9ecef",
     borderWidth: 2,
-    borderColor: "#28a745",
+    borderColor: "#6c757d",
     borderRadius: 6,
     padding: 12,
     marginBottom: 14
@@ -688,6 +688,10 @@ export const PayslipPDFDocument: React.FC<PayslipPDFProps> = ({
               <View style={styles.ytdItem}>
                 <Text style={styles.ytdLabel}>EIS</Text>
                 <Text style={styles.ytdAmt}>{formatRM(ytd?.employer?.eis)}</Text>
+              </View>
+              <View style={styles.ytdItem}>
+                <Text style={styles.ytdLabel}>HRDF</Text>
+                <Text style={styles.ytdAmt}>{formatRM(ytd?.employer?.hrdf || 800)}</Text>
               </View>
             </View>
           </View>
