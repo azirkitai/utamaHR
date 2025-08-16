@@ -36,16 +36,18 @@ export function generatePayslipHTML(templateData: any, showPreviewNote: boolean 
         .header-container {
             display: flex;
             align-items: flex-start;
-            gap: 16px;
-            margin-bottom: 20px;
+            gap: 8px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #ccc;
         }
         
         .company-logo {
-            width: 80px;
-            height: 80px;
+            width: 42px;
+            height: 42px;
             object-fit: contain;
             display: block;
-            margin: 0;
+            margin: 0 8px 0 0;
             border: none;
         }
         
@@ -55,7 +57,7 @@ export function generatePayslipHTML(templateData: any, showPreviewNote: boolean 
         
         .company-name {
             font-weight: 700;
-            font-size: 20px;
+            font-size: 18px;
             margin-bottom: 4px;
         }
         
@@ -72,9 +74,9 @@ export function generatePayslipHTML(templateData: any, showPreviewNote: boolean 
         
         .panel {
             border: 1px solid #E5E7EB;
-            border-radius: 8px;
+            border-radius: 6px;
             padding: 12px;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
             background: #F9FAFB;
         }
         
@@ -90,18 +92,21 @@ export function generatePayslipHTML(templateData: any, showPreviewNote: boolean 
         .kv {
             display: flex;
             gap: 8px;
-            margin: 2px 0;
+            margin: 6px 0;
         }
         
         .kv .k {
-            width: 90px;
-            color: #6B7280;
+            width: 70px;
+            color: #666;
             font-weight: bold;
+            font-size: 11px;
+            flex-shrink: 0;
         }
         
         .kv .v {
             flex: 1;
-            font-weight: 600;
+            font-weight: bold;
+            font-size: 11px;
         }
         
         .section-title {
@@ -122,6 +127,8 @@ export function generatePayslipHTML(templateData: any, showPreviewNote: boolean 
             background: #F9FAFB;
             padding: 10px 12px;
             font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
             border-bottom: 1px solid #E5E7EB;
         }
         
@@ -129,8 +136,9 @@ export function generatePayslipHTML(templateData: any, showPreviewNote: boolean 
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 12px;
+            padding: 6px 12px;
             border-bottom: 1px solid #F3F4F6;
+            font-size: 11px;
         }
         
         .tbl .rowi:last-child {
@@ -148,19 +156,21 @@ export function generatePayslipHTML(templateData: any, showPreviewNote: boolean 
         .money {
             text-align: right;
             min-width: 120px;
-            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 11px;
         }
         
         .net {
-            margin-top: 12px;
+            margin: 14px 0;
             padding: 12px;
-            border: 2px solid #059669;
-            border-radius: 8px;
-            font-weight: 800;
+            border: 2px solid #28a745;
+            border-radius: 6px;
+            font-weight: 700;
             font-size: 16px;
             display: flex;
             justify-content: space-between;
-            background: #F0FDF4;
+            background: #d4edda;
+            text-transform: uppercase;
         }
         
         .twocol {
