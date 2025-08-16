@@ -163,39 +163,53 @@ export function generatePayslipHTML(templateData: any, showPreviewNote: boolean 
             <!-- Employee YTD -->
             <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
                 <div style="background: #f0f0f0; padding: 8px; font-weight: bold; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #ddd;">CURRENT MONTH NET PAY YTD BALANCE</div>
+                ${parseFloat(templateData.ytd.breakdown.epfEmployee || 0) > 0.01 ? `
                 <div style="padding: 6px 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 10px;">
                     <span>EPF</span>
-                    <span style="font-weight: bold;">RM ${templateData.ytd.breakdown.epfEmployee || "0.00"}</span>
+                    <span style="font-weight: bold;">RM ${parseFloat(templateData.ytd.breakdown.epfEmployee).toFixed(2)}</span>
                 </div>
+                ` : ''}
+                ${parseFloat(templateData.ytd.breakdown.socsoEmployee || 0) > 0.01 ? `
                 <div style="padding: 6px 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 10px;">
                     <span>SOCSO</span>
-                    <span style="font-weight: bold;">RM ${templateData.ytd.breakdown.socsoEmployee || "0.00"}</span>
+                    <span style="font-weight: bold;">RM ${parseFloat(templateData.ytd.breakdown.socsoEmployee).toFixed(2)}</span>
                 </div>
+                ` : ''}
+                ${parseFloat(templateData.ytd.breakdown.eisEmployee || 0) > 0.01 ? `
                 <div style="padding: 6px 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 10px;">
                     <span>EIS</span>
-                    <span style="font-weight: bold;">RM ${templateData.ytd.breakdown.eisEmployee || "0.00"}</span>
+                    <span style="font-weight: bold;">RM ${parseFloat(templateData.ytd.breakdown.eisEmployee).toFixed(2)}</span>
                 </div>
+                ` : ''}
+                ${parseFloat(templateData.ytd.breakdown.pcb || 0) > 0.01 ? `
                 <div style="padding: 6px 8px; display: flex; justify-content: space-between; font-size: 10px;">
                     <span>PCB/MTD</span>
-                    <span style="font-weight: bold;">RM ${templateData.ytd.breakdown.pcb || "0.00"}</span>
+                    <span style="font-weight: bold;">RM ${parseFloat(templateData.ytd.breakdown.pcb).toFixed(2)}</span>
                 </div>
+                ` : ''}
             </div>
             
             <!-- Employer YTD -->
             <div style="border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
                 <div style="background: #f0f0f0; padding: 8px; font-weight: bold; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #ddd;">EMPLOYER CONTRIBUTIONS</div>
+                ${parseFloat(templateData.ytd.breakdown.epfEmployer || 0) > 0.01 ? `
                 <div style="padding: 6px 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 10px;">
                     <span>EPF</span>
-                    <span style="font-weight: bold;">RM ${templateData.ytd.breakdown.epfEmployer || "0.00"}</span>
+                    <span style="font-weight: bold;">RM ${parseFloat(templateData.ytd.breakdown.epfEmployer).toFixed(2)}</span>
                 </div>
+                ` : ''}
+                ${parseFloat(templateData.ytd.breakdown.socsoEmployer || 0) > 0.01 ? `
                 <div style="padding: 6px 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 10px;">
                     <span>SOCSO</span>
-                    <span style="font-weight: bold;">RM ${templateData.ytd.breakdown.socsoEmployer || "0.00"}</span>
+                    <span style="font-weight: bold;">RM ${parseFloat(templateData.ytd.breakdown.socsoEmployer).toFixed(2)}</span>
                 </div>
+                ` : ''}
+                ${parseFloat(templateData.ytd.breakdown.eisEmployer || 0) > 0.01 ? `
                 <div style="padding: 6px 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 10px;">
                     <span>EIS</span>
-                    <span style="font-weight: bold;">RM ${templateData.ytd.breakdown.eisEmployer || "0.00"}</span>
+                    <span style="font-weight: bold;">RM ${parseFloat(templateData.ytd.breakdown.eisEmployer).toFixed(2)}</span>
                 </div>
+                ` : ''}
                 ${parseFloat(templateData.ytd.breakdown.hrdfEmployer || 0) > 0.01 ? `
                 <div style="padding: 6px 8px; display: flex; justify-content: space-between; font-size: 10px;">
                     <span>HRDF</span>

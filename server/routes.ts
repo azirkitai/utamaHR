@@ -4929,6 +4929,11 @@ export function registerRoutes(app: Express): Server {
         other: parseFloat(finalDeductions.other || 0),
         total: parseFloat(finalDeductions.epfEmployee || 0) + parseFloat(finalDeductions.socsoEmployee || 0) + parseFloat(finalDeductions.eisEmployee || 0) + parseFloat(finalDeductions.other || 0)
       });
+      console.log('=== YTD BREAKDOWN DEBUG ===');
+      console.log('ytdData from getYTDBreakdown:', JSON.stringify(ytdData, null, 2));
+      console.log('templateData.ytd.breakdown:', JSON.stringify(templateData.ytd.breakdown, null, 2));
+      console.log('HRDF value specifically:', templateData.ytd.breakdown.hrdfEmployer);
+      console.log('=== END YTD DEBUG ===');
       console.log('Template data generated for PDF:', Object.keys(templateData));
       console.log('=== FINAL TEMPLATE DATA DEDUCTIONS DEBUG ===');
       console.log('templateData.deductions:', JSON.stringify(templateData.deductions));
