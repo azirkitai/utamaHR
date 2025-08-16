@@ -974,27 +974,54 @@ export default function MyRecordPage() {
 
     const renderSalaryPayroll = () => (
       <div className="space-y-4">
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <div className="text-center space-y-4">
-            <div className="w-16 h-16 bg-cyan-100 rounded-full flex items-center justify-center mx-auto">
-              <DollarSign className="w-8 h-8 text-cyan-600" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">Salary Payroll Records</h3>
-              <p className="text-gray-600 mt-1">
-                View and download your monthly payroll statements with full details and payment history.
-              </p>
-            </div>
-            <Button
-              onClick={() => window.location.href = '/my-record/payment/salary-payroll'}
-              className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white"
-              data-testid="button-view-salary-payroll"
-            >
-              <FileText className="w-4 h-4 mr-2" />
-              View My Payroll Records
-            </Button>
+        {/* Show entries and search */}
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <span className="text-sm">Show</span>
+            <Select value="10">
+              <SelectTrigger className="w-20">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="25">25</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+              </SelectContent>
+            </Select>
+            <span className="text-sm">entries</span>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <span className="text-sm">Search:</span>
+            <Input className="w-64" placeholder="Search..." data-testid="input-salary-search" />
           </div>
         </div>
+
+        {/* Table */}
+        <div className="border rounded-lg">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>No.</TableHead>
+                <TableHead>Year</TableHead>
+                <TableHead>Month</TableHead>
+                <TableHead>Payroll Date</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Remarks</TableHead>
+                <TableHead>Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                  No data available in table
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+
+        <div className="text-sm text-gray-500">Showing 0 to 0 of 0 entries</div>
       </div>
     );
 
