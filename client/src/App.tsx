@@ -24,6 +24,7 @@ import ShiftCalendarPage from "@/pages/shift-calendar-page";
 import OvertimePage from "@/pages/overtime-page";
 import LatenessPage from "@/pages/lateness-page";
 import SalaryPayrollPage from "@/pages/salary-payroll-page";
+import SalaryPayrollPageEmployee from "@/pages/salary-payroll-page";
 import PaymentVoucherPage from "@/pages/payment-voucher-page";
 import VoucherDetailsPage from "@/pages/voucher-details-page";
 import EmployeeSalaryDetailsPage from "@/pages/employee-salary-details-page";
@@ -42,6 +43,7 @@ function Router() {
       <ProtectedRoute path="/employees" component={EmployeesPage} />
       <ProtectedRoute path="/employee-details/:id" component={EmployeeDetailsPage} />
       <ProtectedRoute path="/my-record" component={MyRecordPage} />
+      <ProtectedRoute path="/my-record/payment/salary-payroll" component={SalaryPayrollPageEmployee} />
       <ProtectedRoute path="/apply/leave" component={ApplyLeavePage} />
       <ProtectedRoute path="/apply/claim" component={ApplyClaimPage} />
       <ProtectedRoute path="/apply/timeoff" component={ApplyTimeoffPage} />

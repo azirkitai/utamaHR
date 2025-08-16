@@ -4012,6 +4012,128 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Approve payroll document
+  app.post('/api/payroll/documents/:id/approve', authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      const { id } = req.params;
+      const { approverId } = req.body;
+      
+      if (!approverId) {
+        return res.status(400).json({ error: 'ID pelulus diperlukan' });
+      }
+
+      // Get current employee record
+      const currentEmployee = await storage.getEmployeeByUserId(currentUser.id);
+      if (!currentEmployee) {
+        return res.status(404).json({ error: 'Employee record tidak dijumpai' });
+      }
+
+      // Get payment approval settings
+      const [approvalSetting] = await db
+        .select()
+        .from(approvalSettings)
+        .where(eq(approvalSettings.type, 'payment'))
+        .limit(1);
+
+      if (!approvalSetting || !approvalSetting.enableApproval) {
+        return res.status(400).json({ error: 'Payment approval tidak diaktifkan' });
+      }
+
+      // Check if user has approval privilege
+      const hasApprovalPrivilege = 
+        approvalSetting.firstLevelApprovalId === currentEmployee.id ||
+        approvalSetting.secondLevelApprovalId === currentEmployee.id;
+
+      if (!hasApprovalPrivilege) {
+        return res.status(403).json({ error: 'Tidak dibenarkan untuk meluluskan payroll' });
+      }
+
+      const success = await storage.approvePayrollDocument(id, approverId);
+      if (!success) {
+        return res.status(404).json({ error: 'Dokumen payroll tidak dijumpai' });
+      }
+      
+      res.json({ message: 'Dokumen payroll berjaya diluluskan' });
+    } catch (error) {
+      console.error('Error approving payroll document:', error);
+      res.status(500).json({ error: 'Gagal meluluskan dokumen payroll' });
+    }
+  });
+
+  // Reject payroll document
+  app.post('/api/payroll/documents/:id/reject', authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      const { id } = req.params;
+      const { rejectorId, reason } = req.body;
+      
+      if (!rejectorId || !reason) {
+        return res.status(400).json({ error: 'ID penolak dan sebab penolakan diperlukan' });
+      }
+
+      // Get current employee record
+      const currentEmployee = await storage.getEmployeeByUserId(currentUser.id);
+      if (!currentEmployee) {
+        return res.status(404).json({ error: 'Employee record tidak dijumpai' });
+      }
+
+      // Get payment approval settings
+      const [approvalSetting] = await db
+        .select()
+        .from(approvalSettings)
+        .where(eq(approvalSettings.type, 'payment'))
+        .limit(1);
+
+      if (!approvalSetting || !approvalSetting.enableApproval) {
+        return res.status(400).json({ error: 'Payment approval tidak diaktifkan' });
+      }
+
+      // Check if user has approval privilege
+      const hasApprovalPrivilege = 
+        approvalSetting.firstLevelApprovalId === currentEmployee.id ||
+        approvalSetting.secondLevelApprovalId === currentEmployee.id;
+
+      if (!hasApprovalPrivilege) {
+        return res.status(403).json({ error: 'Tidak dibenarkan untuk menolak payroll' });
+      }
+
+      const success = await storage.rejectPayrollDocument(id, rejectorId, reason);
+      if (!success) {
+        return res.status(404).json({ error: 'Dokumen payroll tidak dijumpai' });
+      }
+      
+      res.json({ message: 'Dokumen payroll berjaya ditolak' });
+    } catch (error) {
+      console.error('Error rejecting payroll document:', error);
+      res.status(500).json({ error: 'Gagal menolak dokumen payroll' });
+    }
+  });
+
+  // Submit payment for approved payroll document
+  app.post('/api/payroll/documents/:id/submit-payment', authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      const { id } = req.params;
+      
+      // Role-based access control - high-level roles can submit payment
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (!adminRoles.includes(currentUser.role)) {
+        return res.status(403).json({ error: 'Tidak dibenarkan untuk submit payment' });
+      }
+
+      const success = await storage.submitPayrollPayment(id);
+      if (!success) {
+        return res.status(404).json({ error: 'Dokumen payroll tidak dijumpai atau belum diluluskan' });
+      }
+      
+      res.json({ message: 'Payment berjaya disubmit' });
+    } catch (error) {
+      console.error('Error submitting payment:', error);
+      res.status(500).json({ error: 'Gagal submit payment' });
+    }
+  });
+
   // DELETE /api/payroll/documents/:id - Delete payroll document and all related payroll items
   app.delete('/api/payroll/documents/:id', authenticateToken, async (req, res) => {
     try {
@@ -4150,6 +4272,51 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error('Error getting payroll item:', error);
       res.status(500).json({ error: 'Gagal mengambil slip gaji' });
+    }
+  });
+
+  // Get payroll items for specific employee (My Record)
+  app.get('/api/payroll/employee/:employeeId', authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      const { employeeId } = req.params;
+      
+      // Get current user's employee record for authorization
+      const currentEmployee = await storage.getEmployeeByUserId(currentUser.id);
+      if (!currentEmployee) {
+        return res.status(404).json({ error: 'Employee record tidak dijumpai' });
+      }
+
+      // Authorization: users can only access their own payroll OR admin roles can access any
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      const isAuthorized = adminRoles.includes(currentUser.role) || currentEmployee.id === employeeId;
+      
+      if (!isAuthorized) {
+        return res.status(403).json({ error: 'Tidak dibenarkan mengakses payroll pekerja lain' });
+      }
+
+      const payrollItems = await storage.getPayrollItemsByEmployeeId(employeeId);
+      
+      // Enrich with document status info
+      const enrichedItems = await Promise.all(
+        payrollItems.map(async (item) => {
+          const document = await storage.getPayrollDocument(item.documentId);
+          return {
+            ...item,
+            document: document ? {
+              year: document.year,
+              month: document.month,
+              status: document.status,
+              createdAt: document.createdAt
+            } : null
+          };
+        })
+      );
+      
+      res.json(enrichedItems);
+    } catch (error) {
+      console.error('Error getting employee payroll items:', error);
+      res.status(500).json({ error: 'Gagal mengambil payroll pekerja' });
     }
   });
 

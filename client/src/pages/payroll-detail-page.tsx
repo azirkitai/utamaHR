@@ -98,6 +98,28 @@ function SalaryPayrollApprovalCard({ payrollDocument, currentUser }: { payrollDo
     },
   });
 
+  // Submit payment mutation
+  const submitPaymentMutation = useMutation({
+    mutationFn: async (documentId: string) => {
+      const response = await apiRequest('POST', `/api/payroll/documents/${documentId}/submit-payment`, {});
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Payment Submitted",
+        description: "Payment telah berjaya disubmit dan dokumen telah ditutup",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/payroll/documents"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Gagal submit payment",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Check if user has approval privileges
   const hasApprovalPrivilege = () => {
     if (!currentUser?.id || !paymentApprovalSettings) return false;
@@ -149,90 +171,140 @@ function SalaryPayrollApprovalCard({ payrollDocument, currentUser }: { payrollDo
     }
   };
 
-  // Only show approval card if user has approval privilege and document is pending
-  if (!hasApprovalPrivilege() || !['pending', 'PendingApproval'].includes(payrollDocument.status)) {
+  const handleSubmitPayment = () => {
+    if (confirm("Are you sure you want to submit payment? This will close the document and lock all payroll items.")) {
+      submitPaymentMutation.mutate(payrollDocument.id);
+    }
+  };
+
+  // Check if user can submit payment (admin roles and document is approved)
+  const canSubmitPayment = () => {
+    const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+    return adminRoles.includes(currentUser?.role) && payrollDocument?.status === 'Approved';
+  };
+
+  // Show approval card if user has approval privilege and document is pending
+  // OR show submit payment option if user can submit and document is approved
+  if (!hasApprovalPrivilege() && !canSubmitPayment()) {
+    return null;
+  }
+
+  if (!['pending', 'PendingApproval', 'Approved'].includes(payrollDocument.status)) {
     return null;
   }
 
   return (
     <div className="bg-white border rounded-lg shadow-sm mt-6">
       <div className="p-4 border-b bg-gradient-to-r from-cyan-600 to-teal-600 text-white rounded-t-lg">
-        <h3 className="text-lg font-semibold">Salary Payroll Approval</h3>
+        <h3 className="text-lg font-semibold">
+          {payrollDocument.status === 'Approved' ? 'Payment Processing' : 'Salary Payroll Approval'}
+        </h3>
       </div>
       
       <div className="p-6">
         <div className="flex items-center justify-between">
-          {/* Left side - Approver profiles */}
+          {/* Left side - Approver profiles OR Status info */}
           <div className="flex items-center space-x-6">
-            {firstLevelApprover && (
+            {payrollDocument.status === 'Approved' ? (
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
-                  {(firstLevelApprover as any)?.profileImageUrl ? (
-                    <img 
-                      src={(firstLevelApprover as any)?.profileImageUrl} 
-                      alt={(firstLevelApprover as any)?.fullName}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-cyan-500 flex items-center justify-center text-white font-semibold">
-                      {(firstLevelApprover as any)?.fullName?.charAt(0)?.toUpperCase() || 'A'}
-                    </div>
-                  )}
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                  <Check className="w-6 h-6 text-green-600" />
                 </div>
                 <div>
-                  <p className="font-medium text-gray-900">{(firstLevelApprover as any)?.fullName}</p>
-                  <p className="text-sm text-gray-600">{(firstLevelApprover as any)?.role}</p>
-                  <p className="text-xs text-gray-500">First Level Approver</p>
+                  <p className="font-medium text-gray-900">Document Approved</p>
+                  <p className="text-sm text-gray-600">Ready for payment submission</p>
+                  <p className="text-xs text-gray-500">Approved at: {payrollDocument.approvedAt ? new Date(payrollDocument.approvedAt).toLocaleString() : 'N/A'}</p>
                 </div>
               </div>
-            )}
+            ) : (
+              <>
+                {firstLevelApprover && (
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                      {(firstLevelApprover as any)?.profileImageUrl ? (
+                        <img 
+                          src={(firstLevelApprover as any)?.profileImageUrl} 
+                          alt={(firstLevelApprover as any)?.fullName}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-cyan-500 flex items-center justify-center text-white font-semibold">
+                          {(firstLevelApprover as any)?.fullName?.charAt(0)?.toUpperCase() || 'A'}
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">{(firstLevelApprover as any)?.fullName}</p>
+                      <p className="text-sm text-gray-600">{(firstLevelApprover as any)?.role}</p>
+                      <p className="text-xs text-gray-500">First Level Approver</p>
+                    </div>
+                  </div>
+                )}
 
-            {secondLevelApprover && (
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
-                  {(secondLevelApprover as any)?.profileImageUrl ? (
-                    <img 
-                      src={(secondLevelApprover as any)?.profileImageUrl} 
-                      alt={(secondLevelApprover as any)?.fullName}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-cyan-500 flex items-center justify-center text-white font-semibold">
-                      {(secondLevelApprover as any)?.fullName?.charAt(0)?.toUpperCase() || 'A'}
+                {secondLevelApprover && (
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                      {(secondLevelApprover as any)?.profileImageUrl ? (
+                        <img 
+                          src={(secondLevelApprover as any)?.profileImageUrl} 
+                          alt={(secondLevelApprover as any)?.fullName}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-cyan-500 flex items-center justify-center text-white font-semibold">
+                          {(secondLevelApprover as any)?.fullName?.charAt(0)?.toUpperCase() || 'A'}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">{(secondLevelApprover as any)?.fullName}</p>
-                  <p className="text-sm text-gray-600">{(secondLevelApprover as any)?.role}</p>
-                  <p className="text-xs text-gray-500">Second Level Approver</p>
-                </div>
-              </div>
+                    <div>
+                      <p className="font-medium text-gray-900">{(secondLevelApprover as any)?.fullName}</p>
+                      <p className="text-sm text-gray-600">{(secondLevelApprover as any)?.role}</p>
+                      <p className="text-xs text-gray-500">Second Level Approver</p>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
 
           {/* Right side - Action buttons */}
           <div className="flex items-center space-x-3">
-            <Button
-              onClick={handleApprove}
-              disabled={approvePayrollMutation.isPending}
-              className="bg-green-600 hover:bg-green-700 text-white px-6"
-              data-testid="button-approve-payroll"
-            >
-              <Check className="w-4 h-4 mr-2" />
-              {approvePayrollMutation.isPending ? "Approving..." : "Approve"}
-            </Button>
-            
-            <Button
-              onClick={handleReject}
-              disabled={rejectPayrollMutation.isPending}
-              variant="outline"
-              className="border-red-300 text-red-700 hover:bg-red-50 px-6"
-              data-testid="button-reject-payroll"
-            >
-              <X className="w-4 h-4 mr-2" />
-              {rejectPayrollMutation.isPending ? "Rejecting..." : "Reject"}
-            </Button>
+            {payrollDocument.status === 'Approved' && canSubmitPayment() ? (
+              <Button
+                onClick={handleSubmitPayment}
+                disabled={submitPaymentMutation.isPending}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+                data-testid="button-submit-payment"
+              >
+                <Check className="w-4 h-4 mr-2" />
+                {submitPaymentMutation.isPending ? "Submitting..." : "Submit Payment"}
+              </Button>
+            ) : (
+              hasApprovalPrivilege() && ['pending', 'PendingApproval'].includes(payrollDocument.status) && (
+                <>
+                  <Button
+                    onClick={handleApprove}
+                    disabled={approvePayrollMutation.isPending}
+                    className="bg-green-600 hover:bg-green-700 text-white px-6"
+                    data-testid="button-approve-payroll"
+                  >
+                    <Check className="w-4 h-4 mr-2" />
+                    {approvePayrollMutation.isPending ? "Approving..." : "Approve"}
+                  </Button>
+                  
+                  <Button
+                    onClick={handleReject}
+                    disabled={rejectPayrollMutation.isPending}
+                    variant="outline"
+                    className="border-red-300 text-red-700 hover:bg-red-50 px-6"
+                    data-testid="button-reject-payroll"
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    {rejectPayrollMutation.isPending ? "Rejecting..." : "Reject"}
+                  </Button>
+                </>
+              )
+            )}
           </div>
         </div>
       </div>
