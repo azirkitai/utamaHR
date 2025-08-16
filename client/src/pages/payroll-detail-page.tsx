@@ -1336,20 +1336,7 @@ export default function PayrollDetailPage() {
                       )}
                     </div>
 
-                    {/* Back to List */}
-                    <div className="flex justify-start">
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setSelectedEmployeeId(null);
-                          setSelectedEmployeeName("");
-                          setPdfPreviewUrl(null);
-                          setActiveTab("payroll-details");
-                        }}
-                      >
-                        Back to Payroll Details
-                      </Button>
-                    </div>
+                    
                   </>
                 ) : (
                   <div className="text-gray-500 text-center py-8">
