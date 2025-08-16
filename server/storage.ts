@@ -3136,12 +3136,12 @@ export class DatabaseStorage implements IStorage {
     return !!updatedDocument;
   }
 
-  // Submit payment for payroll document (set status to "sent")
+  // Submit payment for payroll document (set status to "Approved")
   async submitPaymentPayrollDocument(documentId: string, submitterId: string): Promise<boolean> {
     const [updatedDocument] = await db
       .update(payrollDocuments)
       .set({
-        status: 'sent',
+        status: 'Approved',
         updatedAt: new Date()
       })
       .where(eq(payrollDocuments.id, documentId))
