@@ -2907,10 +2907,9 @@ export class DatabaseStorage implements IStorage {
       pcb38: deductions.pcb38?.toString() || '0',
       pcb39: deductions.pcb39?.toString() || '0',
       zakat: deductions.zakat?.toString() || '0',
-      other: (deductions.customItems || []).map((item: any) => ({
-        name: item.name || item.label || 'PCB', // Default to PCB for unnamed items as per business logic
-        amount: item.amount?.toString() || '0'
-      }))
+      // CRITICAL FIX: Use the direct 'other' value from Master Salary for MTD/PCB
+      // The 'other' field contains the MTD/PCB calculation result
+      other: deductions.other?.toString() || '0'
     };
 
     console.log('Generated deductions from Master Salary:', result);

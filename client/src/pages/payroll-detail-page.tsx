@@ -1038,20 +1038,15 @@ export default function PayrollDetailPage() {
                           total += parseFloat(deductionsData.pcb39 || '0');
                           total += parseFloat(deductionsData.zakat || '0');
                           
-                          // Handle 'other' deductions - CRITICAL: Handle empty array case
-                          // When 'other' is empty array [], it means MTD/PCB should be calculated from master salary
+                          // Handle 'other' deductions - NOW FIXED: After storage fix, 'other' should contain the MTD/PCB value directly
                           let otherAmount = 0;
                           
-                          // Use the actual 'pcb' field from deductionsData if available (this contains the correct MTD/PCB value)
-                          if (deductionsData.pcb && typeof deductionsData.pcb === 'string') {
-                            otherAmount = parseFloat(deductionsData.pcb);
-                          } else if (deductionsData.pcb && typeof deductionsData.pcb === 'number') {
-                            otherAmount = deductionsData.pcb;
-                          } else if (typeof deductionsData.other === 'number') {
+                          if (typeof deductionsData.other === 'number') {
                             otherAmount = deductionsData.other;
                           } else if (typeof deductionsData.other === 'string' && deductionsData.other !== '' && deductionsData.other !== '0') {
                             otherAmount = parseFloat(deductionsData.other);
                           } else if (Array.isArray(deductionsData.other)) {
+                            // Backward compatibility for old array format
                             deductionsData.other.forEach((item: any) => {
                               if (typeof item === 'number') {
                                 otherAmount += item;
@@ -1092,16 +1087,12 @@ export default function PayrollDetailPage() {
                               // Show PCB/MTD value - use SAME logic as total deductions calculation
                               let pcbAmount = 0;
                               
-                              // Use the actual 'pcb' field from deductionsData if available (this contains the correct MTD/PCB value)
-                              if (deductionsData.pcb && typeof deductionsData.pcb === 'string') {
-                                pcbAmount = parseFloat(deductionsData.pcb);
-                              } else if (deductionsData.pcb && typeof deductionsData.pcb === 'number') {
-                                pcbAmount = deductionsData.pcb;
-                              } else if (typeof deductionsData.other === 'number') {
+                              if (typeof deductionsData.other === 'number') {
                                 pcbAmount = deductionsData.other;
                               } else if (typeof deductionsData.other === 'string' && deductionsData.other !== '' && deductionsData.other !== '0') {
                                 pcbAmount = parseFloat(deductionsData.other);
                               } else if (Array.isArray(deductionsData.other)) {
+                                // Backward compatibility for old array format
                                 deductionsData.other.forEach((item: any) => {
                                   if (typeof item === 'number') {
                                     pcbAmount += item;
