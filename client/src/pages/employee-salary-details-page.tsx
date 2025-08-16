@@ -689,19 +689,19 @@ export default function EmployeeSalaryDetailsPage() {
   const [expandedTaxExemptionSettings, setExpandedTaxExemptionSettings] = useState<Set<string>>(new Set());
 
   // YTD State Management
-  // Initialize YTD with June + July data - same values for each month for testing
+  // Initialize YTD values to 0.00 - manual input by user
   const [ytdValues, setYtdValues] = useState({
     employee: {
-      epf: 431.00, // June (215.50) + July (215.50) EPF Employee
-      socso: 47.20, // June (23.60) + July (23.60) SOCSO Employee
-      eis: 9.40,   // June (4.70) + July (4.70) EIS Employee
-      pcb: 837.40  // June (418.70) + July (418.70) PCB Employee
+      epf: 0.00,
+      socso: 0.00,
+      eis: 0.00,
+      pcb: 0.00
     },
     employer: {
-      epf: 716.80, // June (358.40) + July (358.40) EPF Employer
-      socso: 107.80, // June (53.90) + July (53.90) SOCSO Employer
-      eis: 18.80,   // June (9.40) + July (9.40) EIS Employer
-      pcb: 0       // No PCB for employer
+      epf: 0.00,
+      socso: 0.00,
+      eis: 0.00,
+      hrdf: 0.00  // New YTD HRDF field
     }
   });
 
@@ -716,28 +716,14 @@ export default function EmployeeSalaryDetailsPage() {
       epf: false,
       socso: false,
       eis: false,
-      pcb: false
+      hrdf: false  // New HRDF edit mode
     }
   });
 
   // Initialize YTD remarks with June + July data
-  const [ytdRemarks, setYtdRemarks] = useState({
-    employee: {
-      epf: 'YTD bulan 6 + 7 (data terkumpul)',
-      socso: 'YTD bulan 6 + 7 (data terkumpul)',
-      eis: 'YTD bulan 6 + 7 (data terkumpul)',
-      pcb: 'YTD bulan 6 + 7 (data terkumpul)'
-    },
-    employer: {
-      epf: 'YTD bulan 6 + 7 (data terkumpul)',
-      socso: 'YTD bulan 6 + 7 (data terkumpul)',
-      eis: 'YTD bulan 6 + 7 (data terkumpul)',
-      pcb: ''
-    }
-  });
 
-  // State to track if Auto Calculate YTD has been clicked for current month
-  const [ytdCalculatedThisMonth, setYtdCalculatedThisMonth] = useState(false);
+
+
 
   // Get all employees for dropdown
   const { data: employees = [] } = useQuery<any[]>({
@@ -1145,10 +1131,7 @@ export default function EmployeeSalaryDetailsPage() {
             contributions: updatedContributions
           };
           
-          // Auto-calculate YTD when salary data changes
-          setTimeout(() => {
-            autoCalculateYtdValues();
-          }, 100);
+
           
           return newSalaryData;
         }
@@ -1219,7 +1202,7 @@ export default function EmployeeSalaryDetailsPage() {
   };
 
   // YTD Helper Functions
-  const toggleYtdEditMode = (category: 'employee' | 'employer', field: 'epf' | 'socso' | 'eis' | 'pcb') => {
+  const toggleYtdEditMode = (category: 'employee' | 'employer', field: 'epf' | 'socso' | 'eis' | 'pcb' | 'hrdf') => {
     setYtdEditModes(prev => ({
       ...prev,
       [category]: {
@@ -1229,7 +1212,7 @@ export default function EmployeeSalaryDetailsPage() {
     }));
   };
 
-  const updateYtdValue = (category: 'employee' | 'employer', field: 'epf' | 'socso' | 'eis' | 'pcb', value: number) => {
+  const updateYtdValue = (category: 'employee' | 'employer', field: 'epf' | 'socso' | 'eis' | 'pcb' | 'hrdf', value: number) => {
     setYtdValues(prev => ({
       ...prev,
       [category]: {
@@ -1239,91 +1222,13 @@ export default function EmployeeSalaryDetailsPage() {
     }));
   };
 
-  // Auto-calculate YTD values based on current month contributions
-  const autoCalculateYtdValues = () => {
-    const currentDate = new Date();
-    const currentMonth = currentDate.getMonth() + 1; // 1-12
-    const remarkText = `YTD bulan ${currentMonth} telah dimasukkan`;
 
-    // Get current month's contribution values
-    const currentMonthEmployee = {
-      epf: salaryData.deductions.epfEmployee || 0,
-      socso: salaryData.deductions.socsoEmployee || 0,
-      eis: salaryData.deductions.eisEmployee || 0,
-      pcb: salaryData.deductions.other || 0  // Use MTD/PCB (other) instead of pcb39
-    };
 
-    const currentMonthEmployer = {
-      epf: salaryData.contributions.epfEmployer || 0,
-      socso: salaryData.contributions.socsoEmployer || 0,
-      eis: salaryData.contributions.eisEmployer || 0,
-      pcb: 0 // No PCB for employer
-    };
-
-    // Auto-calculate YTD: Previous YTD + Current Month (with proper decimal formatting)
-    setYtdValues(prev => ({
-      employee: {
-        epf: Math.round((prev.employee.epf + currentMonthEmployee.epf) * 100) / 100,
-        socso: Math.round((prev.employee.socso + currentMonthEmployee.socso) * 100) / 100,
-        eis: Math.round((prev.employee.eis + currentMonthEmployee.eis) * 100) / 100,
-        pcb: Math.round((837.40 + currentMonthEmployee.pcb) * 100) / 100  // PCB: Previous months (837.40) + Current MTD
-      },
-      employer: {
-        epf: Math.round((prev.employer.epf + currentMonthEmployer.epf) * 100) / 100,
-        socso: Math.round((prev.employer.socso + currentMonthEmployer.socso) * 100) / 100,
-        eis: Math.round((prev.employer.eis + currentMonthEmployer.eis) * 100) / 100,
-        pcb: 0 // No PCB for employer
-      }
-    }));
-
-    // Auto-generate remarks with detailed calculation for PCB
-    const newRemarks = {
-      employee: {
-        epf: currentMonthEmployee.epf > 0 ? remarkText : '',
-        socso: currentMonthEmployee.socso > 0 ? remarkText : '',
-        eis: currentMonthEmployee.eis > 0 ? remarkText : '',
-        pcb: currentMonthEmployee.pcb > 0 ? remarkText : ''
-      },
-      employer: {
-        epf: currentMonthEmployer.epf > 0 ? remarkText : '',
-        socso: currentMonthEmployer.socso > 0 ? remarkText : '',
-        eis: currentMonthEmployer.eis > 0 ? remarkText : '',
-        pcb: '' // No PCB for employer
-      }
-    };
-
-    setYtdRemarks(newRemarks);
-
-    // Mark that YTD has been calculated for this month
-    setYtdCalculatedThisMonth(true);
-
-    // Show toast notification
-    toast({
-      title: "YTD Auto-Calculated",
-      description: `YTD untuk bulan ${currentMonth} telah dikira secara automatik`,
-    });
-  };
-
-  const saveYtdValue = (category: 'employee' | 'employer', field: 'epf' | 'socso' | 'eis' | 'pcb') => {
-    // Generate remark showing which month's YTD data was entered
+  const saveYtdValue = (category: 'employee' | 'employer', field: 'epf' | 'socso' | 'eis' | 'pcb' | 'hrdf') => {
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth() + 1; // Get month number (1-12)
-    const currentYear = currentDate.getFullYear();
-    const remarkText = `YTD bulan ${currentMonth} telah dimasukkan`;
     
-    console.log('Saving YTD value:', category, field, remarkText);
-    
-    setYtdRemarks(prev => {
-      const newRemarks = {
-        ...prev,
-        [category]: {
-          ...prev[category],
-          [field]: remarkText
-        }
-      };
-      console.log('Updated YTD remarks:', newRemarks);
-      return newRemarks;
-    });
+    console.log('Saving YTD value:', category, field);
 
     // Close edit mode
     setYtdEditModes(prev => ({
@@ -3084,15 +2989,7 @@ export default function EmployeeSalaryDetailsPage() {
                         const newYtdPcb = Math.round((previousYtd + newValue) * 100) / 100;
                         updateYtdValue('employee', 'pcb', newYtdPcb);
                         
-                        // Update remarks to show calculation
-                        const newRemark = `YTD bulan 6 + 7 (RM 418.70 + RM 418.70) = RM 837.40 + Bulan 8 (RM ${newValue.toFixed(2)}) = RM ${newYtdPcb.toFixed(2)}`;
-                        setYtdRemarks(prev => ({
-                          ...prev,
-                          employee: {
-                            ...prev.employee,
-                            pcb: newRemark
-                          }
-                        }));
+
                       }}
                       className="rounded-l-none"
                       data-testid="other-deduction"
@@ -3438,22 +3335,7 @@ export default function EmployeeSalaryDetailsPage() {
             <div className="grid grid-cols-1 gap-6 mt-8">
               <Card>
                 <CardHeader>
-                  <div className="flex justify-between items-center">
-                    <CardTitle>YTD (Year-To-Date)</CardTitle>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={autoCalculateYtdValues}
-                      disabled={ytdCalculatedThisMonth}
-                      className={ytdCalculatedThisMonth 
-                        ? "bg-gray-400 text-gray-200 cursor-not-allowed" 
-                        : "bg-blue-600 text-white hover:bg-blue-700"
-                      }
-                      data-testid="btn-auto-calculate-ytd"
-                    >
-                      {ytdCalculatedThisMonth ? "YTD Sudah Dikira" : "Auto Calculate YTD"}
-                    </Button>
-                  </div>
+                  <CardTitle>YTD (Year-To-Date)</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -3484,16 +3366,14 @@ export default function EmployeeSalaryDetailsPage() {
                           <Input
                             type="number"
                             step="0.01"
-                            value={ytdValues.employee.epf}
+                            value={ytdValues.employee.epf || 0}
                             onChange={(e) => updateYtdValue('employee', 'epf', parseFloat(e.target.value) || 0)}
                             className="rounded-l-none"
                             disabled={!ytdEditModes.employee.epf}
+                            placeholder="0.00"
                             data-testid="ytd-epf-employee"
                           />
                         </div>
-                        {ytdRemarks.employee.epf && (
-                          <p className="text-xs text-gray-500">{ytdRemarks.employee.epf}</p>
-                        )}
                       </div>
 
                       {/* YTD SOCSO Employee */}
@@ -3516,16 +3396,14 @@ export default function EmployeeSalaryDetailsPage() {
                           <Input
                             type="number"
                             step="0.01"
-                            value={ytdValues.employee.socso}
+                            value={ytdValues.employee.socso || 0}
                             onChange={(e) => updateYtdValue('employee', 'socso', parseFloat(e.target.value) || 0)}
                             className="rounded-l-none"
                             disabled={!ytdEditModes.employee.socso}
+                            placeholder="0.00"
                             data-testid="ytd-socso-employee"
                           />
                         </div>
-                        {ytdRemarks.employee.socso && (
-                          <p className="text-xs text-gray-500">{ytdRemarks.employee.socso}</p>
-                        )}
                       </div>
 
                       {/* YTD EIS Employee */}
@@ -3548,16 +3426,14 @@ export default function EmployeeSalaryDetailsPage() {
                           <Input
                             type="number"
                             step="0.01"
-                            value={ytdValues.employee.eis}
+                            value={ytdValues.employee.eis || 0}
                             onChange={(e) => updateYtdValue('employee', 'eis', parseFloat(e.target.value) || 0)}
                             className="rounded-l-none"
                             disabled={!ytdEditModes.employee.eis}
+                            placeholder="0.00"
                             data-testid="ytd-eis-employee"
                           />
                         </div>
-                        {ytdRemarks.employee.eis && (
-                          <p className="text-xs text-gray-500">{ytdRemarks.employee.eis}</p>
-                        )}
                       </div>
 
                       {/* YTD PCB/MTD Employee */}
@@ -3580,16 +3456,14 @@ export default function EmployeeSalaryDetailsPage() {
                           <Input
                             type="number"
                             step="0.01"
-                            value={ytdValues.employee.pcb}
+                            value={ytdValues.employee.pcb || 0}
                             onChange={(e) => updateYtdValue('employee', 'pcb', parseFloat(e.target.value) || 0)}
                             className="rounded-l-none"
                             disabled={!ytdEditModes.employee.pcb}
+                            placeholder="0.00"
                             data-testid="ytd-pcb-employee"
                           />
                         </div>
-                        {ytdRemarks.employee.pcb && (
-                          <p className="text-xs text-gray-500">{ytdRemarks.employee.pcb}</p>
-                        )}
                       </div>
                     </div>
 
@@ -3619,16 +3493,14 @@ export default function EmployeeSalaryDetailsPage() {
                           <Input
                             type="number"
                             step="0.01"
-                            value={ytdValues.employer.epf}
+                            value={ytdValues.employer.epf || 0}
                             onChange={(e) => updateYtdValue('employer', 'epf', parseFloat(e.target.value) || 0)}
                             className="rounded-l-none"
                             disabled={!ytdEditModes.employer.epf}
+                            placeholder="0.00"
                             data-testid="ytd-epf-employer"
                           />
                         </div>
-                        {ytdRemarks.employer.epf && (
-                          <p className="text-xs text-gray-500">{ytdRemarks.employer.epf}</p>
-                        )}
                       </div>
 
                       {/* YTD SOCSO Employer */}
@@ -3651,16 +3523,14 @@ export default function EmployeeSalaryDetailsPage() {
                           <Input
                             type="number"
                             step="0.01"
-                            value={ytdValues.employer.socso}
+                            value={ytdValues.employer.socso || 0}
                             onChange={(e) => updateYtdValue('employer', 'socso', parseFloat(e.target.value) || 0)}
                             className="rounded-l-none"
                             disabled={!ytdEditModes.employer.socso}
+                            placeholder="0.00"
                             data-testid="ytd-socso-employer"
                           />
                         </div>
-                        {ytdRemarks.employer.socso && (
-                          <p className="text-xs text-gray-500">{ytdRemarks.employer.socso}</p>
-                        )}
                       </div>
 
                       {/* YTD EIS Employer */}
@@ -3683,20 +3553,45 @@ export default function EmployeeSalaryDetailsPage() {
                           <Input
                             type="number"
                             step="0.01"
-                            value={ytdValues.employer.eis}
+                            value={ytdValues.employer.eis || 0}
                             onChange={(e) => updateYtdValue('employer', 'eis', parseFloat(e.target.value) || 0)}
                             className="rounded-l-none"
                             disabled={!ytdEditModes.employer.eis}
+                            placeholder="0.00"
                             data-testid="ytd-eis-employer"
                           />
                         </div>
-                        {ytdRemarks.employer.eis && (
-                          <p className="text-xs text-gray-500">{ytdRemarks.employer.eis}</p>
-                        )}
                       </div>
 
-
-
+                      {/* YTD HRDF Employer */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="font-medium">YTD HRDF</Label>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => ytdEditModes.employer.hrdf ? saveYtdValue('employer', 'hrdf') : toggleYtdEditMode('employer', 'hrdf')}
+                            data-testid="btn-edit-ytd-hrdf-employer"
+                          >
+                            {ytdEditModes.employer.hrdf ? <Check className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
+                          </Button>
+                        </div>
+                        <div className="flex">
+                          <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
+                            <span className="text-sm font-medium">RM</span>
+                          </div>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={ytdValues.employer.hrdf || 0}
+                            onChange={(e) => updateYtdValue('employer', 'hrdf', parseFloat(e.target.value) || 0)}
+                            className="rounded-l-none"
+                            disabled={!ytdEditModes.employer.hrdf}
+                            placeholder="0.00"
+                            data-testid="ytd-hrdf-employer"
+                          />
+                        </div>
+                      </div>
                       
                     </div>
                   </div>

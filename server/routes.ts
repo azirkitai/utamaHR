@@ -5574,6 +5574,7 @@ export function registerRoutes(app: Express): Server {
     ytdEpfEmployer: string;
     ytdSocsoEmployer: string;
     ytdEisEmployer: string;
+    ytdHrdfEmployer: string;
     ytdEmployeeTotal: string;
     ytdEmployerTotal: string;
   }> {
@@ -5592,6 +5593,7 @@ export function registerRoutes(app: Express): Server {
           ytdEpfEmployer: "521.59",
           ytdSocsoEmployer: "61.85",
           ytdEisEmployer: "4.80",
+          ytdHrdfEmployer: "0.00",
           ytdEmployeeTotal: "463.90",
           ytdEmployerTotal: "588.24"
         };
@@ -5619,7 +5621,8 @@ export function registerRoutes(app: Express): Server {
           employer: {
             epf: 521.59,
             socso: 61.85,
-            eis: 4.80
+            eis: 4.80,
+            hrdf: 0.00
           }
         };
       }
@@ -5636,14 +5639,15 @@ export function registerRoutes(app: Express): Server {
       const ytdEpfEmployer = parseFloat(ytdEmployer.epf || 521.59);
       const ytdSocsoEmployer = parseFloat(ytdEmployer.socso || 61.85);
       const ytdEisEmployer = parseFloat(ytdEmployer.eis || 4.80);
+      const ytdHrdfEmployer = parseFloat(ytdEmployer.hrdf || 0.00);
 
       // Calculate totals
       const totalYtdEmployee = ytdEpfEmployee + ytdSocsoEmployee + ytdEisEmployee + ytdPcbEmployee;
-      const totalYtdEmployer = ytdEpfEmployer + ytdSocsoEmployer + ytdEisEmployer;
+      const totalYtdEmployer = ytdEpfEmployer + ytdSocsoEmployer + ytdEisEmployer + ytdHrdfEmployer;
 
       console.log('MANUAL YTD Values Used:', {
         employee: { epf: ytdEpfEmployee, socso: ytdSocsoEmployee, eis: ytdEisEmployee, pcb: ytdPcbEmployee },
-        employer: { epf: ytdEpfEmployer, socso: ytdSocsoEmployer, eis: ytdEisEmployer },
+        employer: { epf: ytdEpfEmployer, socso: ytdSocsoEmployer, eis: ytdEisEmployer, hrdf: ytdHrdfEmployer },
         totals: { employee: totalYtdEmployee, employer: totalYtdEmployer }
       });
       console.log('=== END MANUAL YTD CALCULATION ===');
@@ -5656,6 +5660,7 @@ export function registerRoutes(app: Express): Server {
         ytdEpfEmployer: ytdEpfEmployer.toFixed(2),
         ytdSocsoEmployer: ytdSocsoEmployer.toFixed(2),
         ytdEisEmployer: ytdEisEmployer.toFixed(2),
+        ytdHrdfEmployer: ytdHrdfEmployer.toFixed(2),
         ytdEmployeeTotal: totalYtdEmployee.toFixed(2),
         ytdEmployerTotal: totalYtdEmployer.toFixed(2)
       };
@@ -5671,6 +5676,7 @@ export function registerRoutes(app: Express): Server {
         ytdEpfEmployer: "521.59",
         ytdSocsoEmployer: "61.85",
         ytdEisEmployer: "4.80",
+        ytdHrdfEmployer: "0.00",
         ytdEmployeeTotal: "463.90",
         ytdEmployerTotal: "588.24"
       };

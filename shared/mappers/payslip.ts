@@ -28,7 +28,7 @@ type DbSlip = {
   };
   ytd?: {
     employee?: { epf?: number | string; socso?: number | string; eis?: number | string; pcb?: number | string };
-    employer?: { epf?: number | string; socso?: number | string; eis?: number | string };
+    employer?: { epf?: number | string; socso?: number | string; eis?: number | string; hrdf?: number | string };
   };
   // ...OR arrays (if your system stores this way)
   incomesArray?: DbItem[];
@@ -66,7 +66,7 @@ export function mapDbToPayslipProps(db: DbSlip) {
     
     // Debug PCB condition
     const pcbCondition1 = db.deductions.pcb !== undefined;
-    const pcbCondition2 = db.deductions.pcb > 0;
+    const pcbCondition2 = toNum(db.deductions.pcb || 0) > 0;
     console.log('PCB condition 1 (not undefined):', pcbCondition1);
     console.log('PCB condition 2 (> 0):', pcbCondition2);
     console.log('PCB condition combined:', pcbCondition1 && pcbCondition2);
@@ -89,22 +89,23 @@ export function mapDbToPayslipProps(db: DbSlip) {
         db.contributions?.eisEmployer !== undefined && { label: "EIS EMPLOYER", amount: db.contributions?.eisEmployer },
       ].filter(Boolean) as DbItem[];
 
-  // 4) YTD
+  // 4) YTD - Only show values > 0.01 in PDF (requirement 7)
   const ytdEmployee: DbItem[] = db.ytdEmployeeArray?.length
-    ? db.ytdEmployeeArray
+    ? db.ytdEmployeeArray.filter(item => toNum(item.amount) > 0.01)
     : [
-        db.ytd?.employee?.epf !== undefined && { label: "EPF Employee", amount: db.ytd?.employee?.epf },
-        db.ytd?.employee?.socso !== undefined && { label: "SOCSO Employee", amount: db.ytd?.employee?.socso },
-        db.ytd?.employee?.eis !== undefined && { label: "EIS Employee", amount: db.ytd?.employee?.eis },
-        db.ytd?.employee?.pcb !== undefined && { label: "PCB/MTD", amount: db.ytd?.employee?.pcb },
+        db.ytd?.employee?.epf !== undefined && toNum(db.ytd.employee.epf) > 0.01 && { label: "EPF Employee", amount: db.ytd?.employee?.epf },
+        db.ytd?.employee?.socso !== undefined && toNum(db.ytd.employee.socso) > 0.01 && { label: "SOCSO Employee", amount: db.ytd?.employee?.socso },
+        db.ytd?.employee?.eis !== undefined && toNum(db.ytd.employee.eis) > 0.01 && { label: "EIS Employee", amount: db.ytd?.employee?.eis },
+        db.ytd?.employee?.pcb !== undefined && toNum(db.ytd.employee.pcb) > 0.01 && { label: "PCB/MTD", amount: db.ytd?.employee?.pcb },
       ].filter(Boolean) as DbItem[];
 
   const ytdEmployer: DbItem[] = db.ytdEmployerArray?.length
-    ? db.ytdEmployerArray
+    ? db.ytdEmployerArray.filter(item => toNum(item.amount) > 0.01)
     : [
-        db.ytd?.employer?.epf !== undefined && { label: "EPF Employer", amount: db.ytd?.employer?.epf },
-        db.ytd?.employer?.socso !== undefined && { label: "SOCSO Employer", amount: db.ytd?.employer?.socso },
-        db.ytd?.employer?.eis !== undefined && { label: "EIS Employer", amount: db.ytd?.employer?.eis },
+        db.ytd?.employer?.epf !== undefined && toNum(db.ytd.employer.epf) > 0.01 && { label: "EPF Employer", amount: db.ytd?.employer?.epf },
+        db.ytd?.employer?.socso !== undefined && toNum(db.ytd.employer.socso) > 0.01 && { label: "SOCSO Employer", amount: db.ytd?.employer?.socso },
+        db.ytd?.employer?.eis !== undefined && toNum(db.ytd.employer.eis) > 0.01 && { label: "EIS Employer", amount: db.ytd?.employer?.eis },
+        db.ytd?.employer?.hrdf !== undefined && toNum(db.ytd.employer.hrdf) > 0.01 && { label: "HRDF Employer", amount: db.ytd?.employer?.hrdf },
       ].filter(Boolean) as DbItem[];
 
   // 5) Calculate totals if not provided
