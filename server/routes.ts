@@ -5608,14 +5608,24 @@ export function registerRoutes(app: Express): Server {
       if (payrollItem.masterSalarySnapshot) {
         try {
           const masterSnapshot = JSON.parse(payrollItem.masterSalarySnapshot);
+          console.log('=== MASTER SALARY SNAPSHOT CONTENT ===');
+          console.log('Full snapshot data:', JSON.stringify(masterSnapshot, null, 2));
+          console.log('manualYtd field exists:', !!masterSnapshot.manualYtd);
+          console.log('manualYtd field type:', typeof masterSnapshot.manualYtd);
+          console.log('manualYtd field value:', masterSnapshot.manualYtd);
+          
           if (masterSnapshot.manualYtd) {
-            capturedYtd = JSON.parse(masterSnapshot.manualYtd);
-            console.log('Captured YTD values from snapshot:', capturedYtd);
+            if (typeof masterSnapshot.manualYtd === 'string') {
+              capturedYtd = JSON.parse(masterSnapshot.manualYtd);
+            } else {
+              capturedYtd = masterSnapshot.manualYtd;
+            }
+            console.log('Parsed captured YTD values from snapshot:', capturedYtd);
           } else {
             console.log('No YTD data in captured snapshot, using zero values');
           }
         } catch (error) {
-          console.log('Error parsing captured YTD snapshot, using zero values');
+          console.log('Error parsing captured YTD snapshot:', error);
         }
       } else {
         console.log('No master salary snapshot found, using zero YTD values');

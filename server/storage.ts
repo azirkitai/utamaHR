@@ -2364,6 +2364,7 @@ export class DatabaseStorage implements IStorage {
           isCalculatedInPayment: true, isSocsoEnabled: true, isEisEnabled: true, epfCalcMethod: "PERCENT", epfEmployeeRate: 11.0, epfEmployerRate: 13.0, hrdfEmployerRate: 1.0
         },
         taxExemptions: existingSalary.taxExemptions ? JSON.parse(existingSalary.taxExemptions) : [],
+        manualYtd: existingSalary.manualYtd ? JSON.parse(existingSalary.manualYtd) : {},
         remarks: ""
       };
       return result;
@@ -2390,6 +2391,7 @@ export class DatabaseStorage implements IStorage {
       contributions: { epfEmployer: 0, socsoEmployer: 0, eisEmployer: 0, medicalCard: 0, groupTermLife: 0, medicalCompany: 0, hrdf: 0 },
       settings: { isCalculatedInPayment: true, isSocsoEnabled: true, isEisEnabled: true, epfCalcMethod: "PERCENT", epfEmployeeRate: 11.0, epfEmployerRate: 13.0, hrdfEmployerRate: 1.0 },
       taxExemptions: [],
+      manualYtd: {},
       remarks: ""
     };
   }
@@ -2402,7 +2404,7 @@ export class DatabaseStorage implements IStorage {
       data.settings.epfCalcMethod = "CUSTOM";
     }
 
-    const { employeeId, salaryType, basicSalary, additionalItems, deductions, contributions, settings, taxExemptions } = data;
+    const { employeeId, salaryType, basicSalary, additionalItems, deductions, contributions, settings, taxExemptions, manualYtd } = data;
     
     // Prepare JSON strings for database storage
     const dataToSave = {
@@ -2414,6 +2416,7 @@ export class DatabaseStorage implements IStorage {
       contributions: contributions ? JSON.stringify(contributions) : null,
       settings: settings ? JSON.stringify(settings) : null,
       taxExemptions: taxExemptions ? JSON.stringify(taxExemptions) : null,
+      manualYtd: manualYtd ? JSON.stringify(manualYtd) : null,
     };
 
     // Check if record exists
