@@ -1174,16 +1174,7 @@ export default function PayrollDetailPage() {
                                 </Button>
                                 
                                 
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="p-1 h-7 w-7 border-gray-300"
-                                  onClick={() => handleGenerateExcel(item.id, employeeSnapshot.name || 'N/A')}
-                                  data-testid={`button-download-excel-${item.employeeId}`}
-                                  title="Download Excel"
-                                >
-                                  <FileSpreadsheet className="w-3 h-3" />
-                                </Button>
+
                               </div>
                             </td>
                           </tr>
