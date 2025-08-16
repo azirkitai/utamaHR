@@ -1038,14 +1038,9 @@ export default function PayrollDetailPage() {
                           total += parseFloat(deductionsData.pcb39 || '0');
                           total += parseFloat(deductionsData.zakat || '0');
                           
-                          // CRITICAL: Handle 'other' field same as server template-data logic
-                          // If stored deductions.other is empty array [], should use master salary fallback
+                          // Handle 'other' deductions - parse from stored data
                           let otherAmount = 0;
-                          if (Array.isArray(deductionsData.other) && deductionsData.other.length === 0) {
-                            // This matches template-data server logic: empty array should use master salary value
-                            // Based on server logs, master salary 'other' = 431.7 (MTD/PCB)
-                            otherAmount = 431.7; // Use the correct MTD/PCB value from master salary
-                          } else if (typeof deductionsData.other === 'number') {
+                          if (typeof deductionsData.other === 'number') {
                             otherAmount = deductionsData.other;
                           } else if (typeof deductionsData.other === 'string' && deductionsData.other !== '' && deductionsData.other !== '0') {
                             otherAmount = parseFloat(deductionsData.other);
@@ -1082,18 +1077,21 @@ export default function PayrollDetailPage() {
                             <td className="p-3 text-center text-gray-600 bg-cyan-50">RM {parseFloat(deductionsData.socsoEmployee || '0').toFixed(2)}</td>
                             <td className="p-3 text-center text-gray-600 bg-cyan-50">RM {parseFloat(deductionsData.eisEmployee || '0').toFixed(2)}</td>
                             <td className="p-3 text-center text-gray-600 bg-cyan-50">RM {(() => {
-                              // Show MTD/PCB value - use EXACT same logic as totalDeductions calculation
+                              // Show PCB/MTD value - use the same logic as total deductions
                               let pcbAmount = 0;
-                              if (Array.isArray(deductionsData.other) && deductionsData.other.length === 0) {
-                                // Empty array means use master salary value (same logic as server)
-                                pcbAmount = 431.7;
-                              } else if (typeof deductionsData.other === 'number') {
+                              if (typeof deductionsData.other === 'number') {
                                 pcbAmount = deductionsData.other;
                               } else if (typeof deductionsData.other === 'string' && deductionsData.other !== '' && deductionsData.other !== '0') {
                                 pcbAmount = parseFloat(deductionsData.other);
+                              } else if (Array.isArray(deductionsData.other)) {
+                                deductionsData.other.forEach((item: any) => {
+                                  if (typeof item === 'number') {
+                                    pcbAmount += item;
+                                  } else if (item && typeof item.amount !== 'undefined') {
+                                    pcbAmount += parseFloat(item.amount || '0');
+                                  }
+                                });
                               }
-                              // DON'T add pcb38/pcb39 here - they are separate fields in the stored data
-                              // The 'other' field already contains the MTD/PCB value from master salary
                               return pcbAmount.toFixed(2);
                             })()}</td>
                             <td className="p-3 text-center text-gray-600 bg-yellow-50">RM {parseFloat(contributionsData.epfEmployer || '0').toFixed(2)}</td>
