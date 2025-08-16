@@ -1072,23 +1072,9 @@ export default function PayrollDetailPage() {
                         // Calculate NET PAY dynamically: Gross Income - Total Deductions
                         const netPay = grossSalary - totalDeductions;
                         
-                        // DEBUG: Log calculation for this employee
-                        if (employeeSnapshot.name === 'SITI NADIAH SABRI') {
-                          console.log('=== NET PAY DEBUG for SITI NADIAH SABRI ===');
-                          console.log('Gross Salary:', grossSalary);
-                          console.log('Total Deductions calculated:', totalDeductions);
-                          console.log('Net Pay calculated:', netPay);
-                          console.log('FULL Deductions Data:', JSON.stringify(deductionsData, null, 2));
-                          console.log('Other Amount calculated:', (() => {
-                            let otherAmount = 0;
-                            if (deductionsData.pcb && typeof deductionsData.pcb === 'string') {
-                              otherAmount = parseFloat(deductionsData.pcb);
-                            } else if (deductionsData.pcb && typeof deductionsData.pcb === 'number') {
-                              otherAmount = deductionsData.pcb;
-                            }
-                            return otherAmount;
-                          })());
-                          console.log('=== END DEBUG ===');
+                        // CRITICAL: Show warning that data needs refresh when MTD/PCB is missing
+                        if (employeeSnapshot.name === 'SITI NADIAH SABRI' && Array.isArray(deductionsData.other) && deductionsData.other.length === 0) {
+                          console.warn('❌ PAYROLL DATA INCOMPLETE: MTD/PCB missing from stored deductions. Click "Refresh Data" to fix.');
                         }
                         
                         return (
