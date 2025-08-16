@@ -3138,6 +3138,7 @@ export class DatabaseStorage implements IStorage {
 
   // Submit payment for payroll document (set status to "sent")
   async submitPaymentPayrollDocument(documentId: string, submitterId: string): Promise<boolean> {
+    // Update document status to 'sent'
     const [updatedDocument] = await db
       .update(payrollDocuments)
       .set({
@@ -3147,7 +3148,20 @@ export class DatabaseStorage implements IStorage {
       .where(eq(payrollDocuments.id, documentId))
       .returning();
 
-    return !!updatedDocument;
+    if (!updatedDocument) {
+      return false;
+    }
+
+    // Update all payroll items for this document to 'sent' status
+    await db
+      .update(payrollItems)
+      .set({
+        status: 'sent',
+        updatedAt: new Date()
+      })
+      .where(eq(payrollItems.documentId, documentId));
+
+    return true;
   }
 
   // =================== COMPANY SETTINGS METHODS ===================

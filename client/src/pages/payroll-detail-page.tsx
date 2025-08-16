@@ -796,7 +796,8 @@ export default function PayrollDetailPage() {
     const statusConfig = {
       pending: { className: "bg-yellow-100 text-yellow-800", text: "Pending" },
       approved: { className: "bg-green-100 text-green-800", text: "Approved" },
-      rejected: { className: "bg-red-100 text-red-800", text: "Rejected" }
+      rejected: { className: "bg-red-100 text-red-800", text: "Rejected" },
+      sent: { className: "bg-blue-100 text-blue-800", text: "Sent" }
     };
     
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
