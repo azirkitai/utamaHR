@@ -60,6 +60,7 @@ function Router() {
       <ProtectedRoute path="/payment/salary-payroll" component={SalaryPayrollPage} />
       <ProtectedRoute path="/payroll" component={SalaryPayrollPage} />
       <ProtectedRoute path="/payment/salary-payroll/view/:id" component={PayrollDetailPage} />
+      <ProtectedRoute path="/payroll/:employeeId" component={PayrollDetailPage} />
       <ProtectedRoute path="/employee-salary/:employeeId" component={EmployeeSalaryDetailsPage} />
 
       <ProtectedRoute path="/payment/voucher" component={PaymentVoucherPage} />

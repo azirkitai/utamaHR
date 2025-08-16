@@ -4383,6 +4383,11 @@ export function registerRoutes(app: Express): Server {
       const contributions = JSON.parse(payrollItem.contributions);
       
       console.log('Employee Snapshot data:', JSON.stringify(employeeSnapshot, null, 2));
+      console.log('=== TEMPLATE EMPLOYEE DATA DEBUG ===');
+      console.log('Employee from DB:', employee);
+      console.log('Employment from DB:', employment);  
+      console.log('Employee Snapshot:', employeeSnapshot);
+      console.log('=== END TEMPLATE EMPLOYEE DATA DEBUG ===');
 
       console.log("Payroll deductions from item (stored):", storedDeductions);
       console.log("Salary data structure:", JSON.stringify(salary, null, 2));
@@ -4436,11 +4441,23 @@ export function registerRoutes(app: Express): Server {
             `<img src="${companySettings.logoUrl}" class="company-logo" alt="Company Logo" style="width:80px;height:80px;object-fit:contain;display:block;border:none;" />` : 
             ""
         },
-        employee: {
-          name: employee.fullName || employeeSnapshot.fullName || employeeSnapshot.name || "SYED MUHYAZIR HASSIM",
-          icNo: employee.nric || employeeSnapshot.nric || employeeSnapshot.icNo || employeeSnapshot.ic || "881012-14-5678",
-          position: employment?.designation || employeeSnapshot.position || employeeSnapshot.designation || "SENIOR MANAGER"
-        },
+        employee: (() => {
+          const name = employee.fullName || employeeSnapshot.fullName || employeeSnapshot.name || "SYED MUHYAZIR HASSIM";
+          const icNo = employee.nric || employeeSnapshot.nric || employeeSnapshot.icNo || employeeSnapshot.ic || "881012-14-5678";
+          const position = employment?.designation || employeeSnapshot.position || employeeSnapshot.designation || "SENIOR MANAGER";
+          
+          console.log('=== EMPLOYEE TEMPLATE VALUES ===');
+          console.log('Final name:', name);
+          console.log('Final icNo:', icNo);
+          console.log('Final position:', position);
+          console.log('=== END EMPLOYEE TEMPLATE VALUES ===');
+          
+          return {
+            name: name,
+            icNo: icNo,
+            position: position
+          };
+        })(),
         period: {
           month: getMonthName(document.month),
           year: document.year

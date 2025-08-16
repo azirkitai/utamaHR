@@ -1,37 +1,4 @@
-export function generatePayslipHTML(data: any): string {
-  // Copy exact utility functions from PDF
-  const toNum = (v: unknown): number => {
-    if (v === null || v === undefined) return 0;
-    if (typeof v === "number") return v;
-    const n = Number(String(v).replace(/[^\d.-]/g, ""));
-    return Number.isFinite(n) ? n : 0;
-  };
 
-  const toFixed2 = (v: unknown) => toNum(v).toFixed(2);
-  const formatRM = (v: unknown) => `RM ${toFixed2(v)}`;
-
-  // Show preview note - PRESERVED
-  const showPreviewNote = data.showPreviewNote !== false;
-  console.log(`TIMESTAMP: ${new Date().toISOString()}`);
-  console.log(`showPreviewNote: ${showPreviewNote}`);
-
-  // Debug values
-  const hrdfValue = data.employerContrib?.hrdfEr || "0.00";
-  console.log(`HRDF VALUE IN TEMPLATE: ${hrdfValue}`);
-  console.log(`NET PAY VALUE: ${data.netIncome || '0.00'}`);
-  console.log(`FULL YTD BREAKDOWN:`, JSON.stringify(data.ytd?.breakdown || {}, null, 2));
-
-  // Debug template data structure  
-  console.log('=== TEMPLATE DATA STRUCTURE DEBUG ===');
-  console.log('data.income structure:', JSON.stringify(data.income, null, 2));
-  console.log('data.deduction structure:', JSON.stringify(data.deduction, null, 2));
-  console.log('data.employerContrib structure:', JSON.stringify(data.employerContrib, null, 2));
-  console.log('data.employee structure:', JSON.stringify(data.employee, null, 2));
-  console.log('data.company structure:', JSON.stringify(data.company, null, 2));
-  console.log('logoHTML field:', data.company?.logoHTML);
-  console.log('=== END TEMPLATE DATA STRUCTURE DEBUG ===');
-
-  return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -338,20 +305,20 @@ export function generatePayslipHTML(data: any): string {
 </head>
 <body>
   <div class="payslip">
-    ${showPreviewNote ? `
+    
     <div class="preview-note">
       <strong>PREVIEW MODE</strong> - Ini adalah paparan preview sahaja
     </div>
-    ` : ''}
+    
 
     <!-- Header (EXACT PDF COPY) -->
     <div class="header">
       <div class="company-info">
-        ${data.company?.logoHTML || ''}
+        
         <div>
-          <div class="company-name">${data.company?.name || 'UTAMA MEDGROUP SDN BHD'}</div>
-          <div class="company-reg">${data.company?.regNo || '202201033996(1479693-H)'}</div>
-          <div class="company-address">${data.company?.address || 'A2-22-3, SOHO SUITES @ KLCC, 20 JALAN PERAK, 50450 KUALA LUMPUR'}</div>
+          <div class="company-name">UTAMA MEDGROUP</div>
+          <div class="company-reg">202201033996(1479693-H)</div>
+          <div class="company-address">LOT 2393, Jalan 1a/3, Bandar Baru Sungai Buloh, 47000 Sungai Buloh, Selangor, 43650, Bandar Baru Bangi, Selangor</div>
         </div>
       </div>
       <div class="confidential">STRICTLY PRIVATE & CONFIDENTIAL</div>
@@ -363,25 +330,25 @@ export function generatePayslipHTML(data: any): string {
         <div class="employee-left">
           <div class="employee-item">
             <div class="employee-label">NAME:</div>
-            <div class="employee-value">${data.employee?.name || 'N/A'}</div>
+            <div class="employee-value">SYED MUHYAZIR HASSIM</div>
           </div>
           <div class="employee-item">
             <div class="employee-label">I/C NO.:</div>
-            <div class="employee-value">${data.employee?.icNo || 'N/A'}</div>
+            <div class="employee-value">881012-14-5678</div>
           </div>
           <div class="employee-item">
             <div class="employee-label">POSITION:</div>
-            <div class="employee-value">${data.employee?.position || 'Employee'}</div>
+            <div class="employee-value">SENIOR MANAGER</div>
           </div>
         </div>
         <div class="employee-right">
           <div class="employee-item">
             <div class="employee-label">MONTH:</div>
-            <div class="employee-value">${data.period?.month || 'N/A'}</div>
+            <div class="employee-value">APRIL</div>
           </div>
           <div class="employee-item">
             <div class="employee-label">YEAR:</div>
-            <div class="employee-value">${data.period?.year || 'N/A'}</div>
+            <div class="employee-value">2025</div>
           </div>
         </div>
       </div>
@@ -394,17 +361,19 @@ export function generatePayslipHTML(data: any): string {
         <div class="section-title">INCOME</div>
         
         <!-- Income Items from Server Data Structure -->
-        ${(data.income?.items || []).map((item: any) => 
-          item.show ? `
+        
           <div class="line-item">
-            <div class="line-item-label">${item.label}</div>
-            <div class="line-item-amount">RM ${item.amount}</div>
-          </div>` : ''
-        ).join('')}
+            <div class="line-item-label">Basic Salary</div>
+            <div class="line-item-amount">RM 3,500.00</div>
+          </div>
+          <div class="line-item">
+            <div class="line-item-label">FIXED ALLOWENCE</div>
+            <div class="line-item-amount">RM 500.00</div>
+          </div>
 
         <div class="total-line">
           <div>TOTAL GROSS</div>
-          <div>${formatRM(data.income?.totalGross)}</div>
+          <div>RM 4000.00</div>
         </div>
       </div>
 
@@ -414,31 +383,29 @@ export function generatePayslipHTML(data: any): string {
         
         <div class="line-item">
           <div class="line-item-label">EPF</div>
-          <div class="line-item-amount">${formatRM(data.deduction?.epfEmp)}</div>
+          <div class="line-item-amount">RM 440.00</div>
         </div>
         
         <div class="line-item">
           <div class="line-item-label">SOCSO</div>
-          <div class="line-item-amount">${formatRM(data.deduction?.socsoEmp)}</div>
+          <div class="line-item-amount">RM 17.25</div>
         </div>
         
         <div class="line-item">
           <div class="line-item-label">EIS</div>
-          <div class="line-item-amount">${formatRM(data.deduction?.eisEmp)}</div>
+          <div class="line-item-amount">RM 7.00</div>
         </div>
 
         <!-- Additional deduction items from Server Data Structure -->
-        ${(data.deduction?.items || []).map((item: any) => 
-          item.show ? `
+        
           <div class="line-item">
-            <div class="line-item-label">${item.label}</div>
-            <div class="line-item-amount">RM ${item.amount}</div>
-          </div>` : ''
-        ).join('')}
+            <div class="line-item-label">MTD/PCB</div>
+            <div class="line-item-amount">RM 431.70</div>
+          </div>
 
         <div class="total-line">
           <div>TOTAL DEDUCTIONS</div>
-          <div>${formatRM(data.deduction?.total)}</div>
+          <div>RM 895.95</div>
         </div>
       </div>
     </div>
@@ -447,7 +414,7 @@ export function generatePayslipHTML(data: any): string {
     <div class="net-pay">
       <div class="net-pay-row">
         <div class="net-pay-label">NET PAY</div>
-        <div class="net-pay-amount">${formatRM(data.netIncome)}</div>
+        <div class="net-pay-amount">RM 3104.05</div>
       </div>
     </div>
 
@@ -457,26 +424,26 @@ export function generatePayslipHTML(data: any): string {
       <div class="contrib-row">
         <div class="contrib-box">
           <div class="contrib-label">EPF</div>
-          <div class="contrib-amount">${formatRM(data.employerContrib?.epfEr)}</div>
+          <div class="contrib-amount">RM 520.00</div>
         </div>
         <div class="contrib-box">
           <div class="contrib-label">SOCSO</div>
-          <div class="contrib-amount">${formatRM(data.employerContrib?.socsoEr)}</div>
+          <div class="contrib-amount">RM 60.15</div>
         </div>
         <div class="contrib-box">
           <div class="contrib-label">EIS</div>
-          <div class="contrib-amount">${formatRM(data.employerContrib?.eisEr)}</div>
+          <div class="contrib-amount">RM 7.00</div>
         </div>
       </div>
 
       <!-- Additional Employer Contributions (EXACT PDF COPY) -->
-      ${toNum(data.employerContrib?.hrdfEr) > 0.01 ? `
+      
       <div class="contrib-row-additional">
         <div class="contrib-box">
           <div class="contrib-label">HRDF</div>
-          <div class="contrib-amount">${formatRM(data.employerContrib?.hrdfEr)}</div>
+          <div class="contrib-amount">RM 35.00</div>
         </div>
-      </div>` : ''}
+      </div>
     </div>
 
     <!-- YTD Summary (EXACT PDF COPY) -->
@@ -485,57 +452,49 @@ export function generatePayslipHTML(data: any): string {
       <div class="ytd-row">
         <div class="ytd-box">
           <div class="ytd-box-title">Employee Contribution (YTD)</div>
-          ${parseFloat(data.ytd?.breakdown?.epfEmployee || 0) > 0.01 ? `
+          
           <div class="ytd-item">
             <div class="ytd-label">EPF</div>
-            <div class="ytd-amount">${formatRM(data.ytd?.breakdown?.epfEmployee)}</div>
-          </div>` : ''}
-          ${parseFloat(data.ytd?.breakdown?.socsoEmployee || 0) > 0.01 ? `
+            <div class="ytd-amount">RM 300.00</div>
+          </div>
+          
           <div class="ytd-item">
             <div class="ytd-label">SOCSO</div>
-            <div class="ytd-amount">${formatRM(data.ytd?.breakdown?.socsoEmployee)}</div>
-          </div>` : ''}
-          ${parseFloat(data.ytd?.breakdown?.eisEmployee || 0) > 0.01 ? `
+            <div class="ytd-amount">RM 50.00</div>
+          </div>
+          
           <div class="ytd-item">
             <div class="ytd-label">EIS</div>
-            <div class="ytd-amount">${formatRM(data.ytd?.breakdown?.eisEmployee)}</div>
-          </div>` : ''}
-          ${parseFloat(data.ytd?.breakdown?.pcb || 0) > 0.01 ? `
-          <div class="ytd-item">
-            <div class="ytd-label">PCB</div>
-            <div class="ytd-amount">${formatRM(data.ytd?.breakdown?.pcb)}</div>
-          </div>` : ''}
+            <div class="ytd-amount">RM 40.00</div>
+          </div>
+          
         </div>
         
         <div class="ytd-box">
           <div class="ytd-box-title">Employer Contribution (YTD)</div>
-          ${parseFloat(data.ytd?.breakdown?.epfEmployer || 0) > 0.01 ? `
+          
           <div class="ytd-item">
             <div class="ytd-label">EPF</div>
-            <div class="ytd-amount">${formatRM(data.ytd?.breakdown?.epfEmployer)}</div>
-          </div>` : ''}
-          ${parseFloat(data.ytd?.breakdown?.socsoEmployer || 0) > 0.01 ? `
+            <div class="ytd-amount">RM 300.00</div>
+          </div>
+          
           <div class="ytd-item">
             <div class="ytd-label">SOCSO</div>
-            <div class="ytd-amount">${formatRM(data.ytd?.breakdown?.socsoEmployer)}</div>
-          </div>` : ''}
-          ${parseFloat(data.ytd?.breakdown?.eisEmployer || 0) > 0.01 ? `
-          <div class="ytd-item">
-            <div class="ytd-label">EIS</div>
-            <div class="ytd-amount">${formatRM(data.ytd?.breakdown?.eisEmployer)}</div>
-          </div>` : ''}
-          ${parseFloat(data.ytd?.breakdown?.hrdfEmployer || 0) > 0.01 ? `
+            <div class="ytd-amount">RM 700.00</div>
+          </div>
+          
+          
           <div class="ytd-item">
             <div class="ytd-label">HRDF</div>
-            <div class="ytd-amount">${formatRM(data.ytd?.breakdown?.hrdfEmployer)}</div>
-          </div>` : ''}
+            <div class="ytd-amount">RM 800.00</div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Footer (EXACT PDF COPY) -->
     <div class="footer">
-      Generated on: ${new Date().toISOString()}
+      Generated on: 2025-08-16T11:57:08.233Z
     </div>
   </div>
 
@@ -545,5 +504,4 @@ export function generatePayslipHTML(data: any): string {
   </script>
 </body>
 </html>
-  `;
-}
+  
