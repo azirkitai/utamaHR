@@ -833,6 +833,28 @@ export default function EmployeeSalaryDetailsPage() {
     }
   }, [existingSalaryData]);
 
+  // Initialize ytdValues from salaryData.manualYtd when data is loaded
+  useEffect(() => {
+    if (salaryData.manualYtd && typeof salaryData.manualYtd === 'object') {
+      console.log('Initializing ytdValues from manualYtd:', salaryData.manualYtd);
+      
+      setYtdValues(prev => ({
+        employee: {
+          epf: salaryData.manualYtd?.employee?.epf || 0.00,
+          socso: salaryData.manualYtd?.employee?.socso || 0.00,
+          eis: salaryData.manualYtd?.employee?.eis || 0.00,
+          pcb: salaryData.manualYtd?.employee?.pcb || 0.00
+        },
+        employer: {
+          epf: salaryData.manualYtd?.employer?.epf || 0.00,
+          socso: salaryData.manualYtd?.employer?.socso || 0.00,
+          eis: salaryData.manualYtd?.employer?.eis || 0.00,
+          hrdf: salaryData.manualYtd?.employer?.hrdf || 0.00
+        }
+      }));
+    }
+  }, [salaryData.manualYtd]);
+
   // Fetch overtime amount for current month
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
@@ -1228,7 +1250,22 @@ export default function EmployeeSalaryDetailsPage() {
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth() + 1; // Get month number (1-12)
     
-    console.log('Saving YTD value:', category, field);
+    console.log('Saving YTD value:', category, field, 'value:', ytdValues[category][field]);
+
+    // Update salaryData.manualYtd with the new value
+    const currentManualYtd = salaryData.manualYtd || {};
+    const updatedManualYtd = {
+      ...currentManualYtd,
+      [category]: {
+        ...currentManualYtd[category],
+        [field]: ytdValues[category][field]
+      }
+    };
+
+    console.log('Updated manualYtd:', updatedManualYtd);
+
+    // Save to salaryData
+    updateSalaryData({ manualYtd: updatedManualYtd });
 
     // Close edit mode
     setYtdEditModes(prev => ({
