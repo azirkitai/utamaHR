@@ -253,27 +253,27 @@ const styles = StyleSheet.create({
     flexWrap: "nowrap"
   },
   employeeLabel: {
-    width: 80,
+    width: 70,
     fontSize: 11,
     fontWeight: 700,
     color: "#666",
     flexShrink: 0
   },
   employeeValue: {
-    width: 120,
+    width: 150,
     fontSize: 11,
     fontWeight: 700,
     flexShrink: 0
   },
   monthLabel: {
-    width: 60,
+    width: 55,
     fontSize: 11,
     fontWeight: 700,
     color: "#666",
     flexShrink: 0
   },
   monthValue: {
-    width: 100,
+    width: 110,
     fontSize: 11,
     fontWeight: 700,
     flexShrink: 0
