@@ -4279,6 +4279,28 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Submit payment for payroll document (change status to "sent")
+  app.post('/api/payroll/documents/:id/submit-payment', authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { submitterId } = req.body;
+      
+      if (!submitterId) {
+        return res.status(400).json({ error: 'ID pelulusan diperlukan' });
+      }
+
+      const success = await storage.submitPaymentPayrollDocument(id, submitterId);
+      if (!success) {
+        return res.status(404).json({ error: 'Dokumen payroll tidak dijumpai' });
+      }
+      
+      res.json({ message: 'Pembayaran payroll berjaya dihantar' });
+    } catch (error) {
+      console.error('Error submitting payment for payroll document:', error);
+      res.status(500).json({ error: 'Gagal menghantar pembayaran payroll' });
+    }
+  });
+
   // =================== COMPANY SETTINGS ROUTES ===================
   // Get company settings
   app.get("/api/company-settings", authenticateToken, async (req, res) => {

@@ -906,11 +906,26 @@ export default function PayrollDetailPage() {
           </div>
           
           {/* Step 3: Payment & Close */}
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center text-sm font-medium">
-              3
+          <div className={`flex items-center space-x-2 ${
+            (payrollDocument as any)?.status === 'sent' ? 'bg-green-50 rounded-lg px-3 py-2 border border-green-200' : ''
+          }`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+              (payrollDocument as any)?.status === 'sent' 
+                ? 'bg-green-500 text-white' 
+                : 'bg-gray-300 text-gray-600'
+            }`}>
+              {(payrollDocument as any)?.status === 'sent' ? '✓' : '3'}
             </div>
-            <span className="text-sm text-gray-600">Payment & Close</span>
+            <span className={`text-sm font-medium ${
+              (payrollDocument as any)?.status === 'sent' 
+                ? 'text-green-600' 
+                : 'text-gray-600'
+            }`}>
+              Payment & Close
+            </span>
+            {(payrollDocument as any)?.status === 'sent' && (
+              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded ml-2">Sent</span>
+            )}
           </div>
         </div>
 
@@ -1246,13 +1261,48 @@ export default function PayrollDetailPage() {
                 
                 <Button
                   className={`text-white ${
-                    (payrollDocument as any)?.status === 'approved' 
+                    (payrollDocument as any)?.status === 'sent'
+                      ? 'bg-gray-500 cursor-not-allowed' 
+                      : (payrollDocument as any)?.status === 'Approved'
                       ? 'bg-green-600 hover:bg-green-700' 
                       : 'bg-blue-900 hover:bg-blue-800'
                   }`}
+                  disabled={(payrollDocument as any)?.status === 'sent'}
+                  onClick={async () => {
+                    try {
+                      const token = localStorage.getItem('utamahr_token');
+                      const response = await fetch(`/api/payroll/documents/${id}/submit-payment`, {
+                        method: 'POST',
+                        headers: {
+                          'Authorization': `Bearer ${token}`,
+                          'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                          submitterId: currentUser?.id
+                        })
+                      });
+                      
+                      if (response.ok) {
+                        // Refresh data to show updated status
+                        await queryClient.invalidateQueries({ queryKey: [`/api/payroll/documents/${id}`] });
+                        await queryClient.invalidateQueries({ queryKey: ['/api/payroll/documents'] });
+                        console.log('Payment submitted successfully - data refreshed');
+                      } else {
+                        const error = await response.json();
+                        alert('Gagal menghantar pembayaran: ' + error.error);
+                      }
+                    } catch (error) {
+                      console.error('Submit payment error:', error);
+                      alert('Gagal menghantar pembayaran');
+                    }
+                  }}
                   data-testid="button-submit-payroll"
                 >
-                  {(payrollDocument as any)?.status === 'approved' ? 'Payment Complete' : 'Submit Payment'}
+                  {(payrollDocument as any)?.status === 'sent' 
+                    ? 'Payment Sent' 
+                    : (payrollDocument as any)?.status === 'Approved' 
+                    ? 'Submit Payment' 
+                    : 'Submit Payment'}
                 </Button>
               </div>
 
