@@ -4673,7 +4673,7 @@ export function registerRoutes(app: Express): Server {
           hrdfEr: formatMoney(contributions.hrdfEmployer || 35.00)
         },
         ytd: await (async () => {
-          const ytdData = await getYTDBreakdown(employeeId);
+          const ytdData = await getYTDBreakdown(employeeId, documentId as string);
           return {
             employee: ytdData.ytdEmployeeTotal,
             employer: ytdData.ytdEmployerTotal,
