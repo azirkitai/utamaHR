@@ -907,24 +907,39 @@ export default function PayrollDetailPage() {
           
           {/* Step 3: Payment & Close */}
           <div className={`flex items-center space-x-2 ${
-            (payrollDocument as any)?.status === 'sent' ? 'bg-green-50 rounded-lg px-3 py-2 border border-green-200' : ''
+            (payrollDocument as any)?.status === 'sent' 
+              ? 'bg-green-50 rounded-lg px-3 py-2 border border-green-200' 
+              : (payrollDocument as any)?.status === 'Rejected'
+              ? 'bg-red-50 rounded-lg px-3 py-2 border border-red-200'
+              : ''
           }`}>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
               (payrollDocument as any)?.status === 'sent' 
                 ? 'bg-green-500 text-white' 
+                : (payrollDocument as any)?.status === 'Rejected'
+                ? 'bg-red-500 text-white'
                 : 'bg-gray-300 text-gray-600'
             }`}>
-              {(payrollDocument as any)?.status === 'sent' ? '✓' : '3'}
+              {(payrollDocument as any)?.status === 'sent' 
+                ? '✓' 
+                : (payrollDocument as any)?.status === 'Rejected'
+                ? '✗'
+                : '3'}
             </div>
             <span className={`text-sm font-medium ${
               (payrollDocument as any)?.status === 'sent' 
                 ? 'text-green-600' 
+                : (payrollDocument as any)?.status === 'Rejected'
+                ? 'text-red-600'
                 : 'text-gray-600'
             }`}>
               Payment & Close
             </span>
             {(payrollDocument as any)?.status === 'sent' && (
               <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded ml-2">Sent</span>
+            )}
+            {(payrollDocument as any)?.status === 'Rejected' && (
+              <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded ml-2">Rejected</span>
             )}
           </div>
         </div>
@@ -1263,11 +1278,13 @@ export default function PayrollDetailPage() {
                   className={`text-white ${
                     (payrollDocument as any)?.status === 'sent'
                       ? 'bg-gray-500 cursor-not-allowed' 
+                      : (payrollDocument as any)?.status === 'Rejected'
+                      ? 'bg-red-500 cursor-not-allowed'
                       : (payrollDocument as any)?.status === 'Approved'
                       ? 'bg-green-600 hover:bg-green-700' 
                       : 'bg-blue-900 hover:bg-blue-800'
                   }`}
-                  disabled={(payrollDocument as any)?.status === 'sent'}
+                  disabled={(payrollDocument as any)?.status === 'sent' || (payrollDocument as any)?.status === 'Rejected'}
                   onClick={async () => {
                     try {
                       const token = localStorage.getItem('utamahr_token');
@@ -1300,6 +1317,8 @@ export default function PayrollDetailPage() {
                 >
                   {(payrollDocument as any)?.status === 'sent' 
                     ? 'Payment Sent' 
+                    : (payrollDocument as any)?.status === 'Rejected'
+                    ? 'Payment Rejected'
                     : (payrollDocument as any)?.status === 'Approved' 
                     ? 'Submit Payment' 
                     : 'Submit Payment'}
