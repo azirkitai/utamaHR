@@ -1298,16 +1298,8 @@ export default function PayrollDetailPage() {
                   <>
                     {/* PDF Preview Section */}
                     <div className="border rounded-lg p-4">
-                      <div className="flex justify-between items-center mb-4">
+                      <div className="mb-4">
                         <h4 className="font-medium text-gray-900">Payslip Preview</h4>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => generatePdfPreview(selectedEmployeeId, selectedEmployeeName)}
-                          disabled={isGeneratingPreview}
-                        >
-                          {isGeneratingPreview ? "Generating..." : "Refresh Preview"}
-                        </Button>
                       </div>
 
                       {isGeneratingPreview ? (
@@ -1338,7 +1330,7 @@ export default function PayrollDetailPage() {
                       ) : (
                         <div className="flex justify-center items-center h-96 bg-gray-50 rounded-lg">
                           <div className="text-center">
-                            <p className="text-gray-600">Click "Refresh Preview" to generate PDF preview</p>
+                            <p className="text-gray-600">Preview will be generated automatically when an employee is selected</p>
                           </div>
                         </div>
                       )}
