@@ -2597,14 +2597,6 @@ export class DatabaseStorage implements IStorage {
       .orderBy(asc(payrollItems.employeeId));
   }
 
-  async getPayrollItemsByEmployeeId(employeeId: string): Promise<PayrollItem[]> {
-    return await db
-      .select()
-      .from(payrollItems)
-      .where(eq(payrollItems.employeeId, employeeId))
-      .orderBy(asc(payrollItems.createdAt));
-  }
-
   async getPayrollItem(id: string): Promise<PayrollItem | undefined> {
     const [item] = await db.select().from(payrollItems).where(eq(payrollItems.id, id));
     return item || undefined;
@@ -3142,43 +3134,6 @@ export class DatabaseStorage implements IStorage {
       .returning();
 
     return !!updatedDocument;
-  }
-
-  async submitPayrollPayment(documentId: string): Promise<boolean> {
-    // First check if document is approved
-    const [document] = await db
-      .select()
-      .from(payrollDocuments)
-      .where(eq(payrollDocuments.id, documentId));
-
-    if (!document || document.status !== 'Approved') {
-      return false;
-    }
-
-    // Update document status to Closed and lock all payroll items
-    const [updatedDocument] = await db
-      .update(payrollDocuments)
-      .set({
-        status: 'Closed',
-        updatedAt: new Date()
-      })
-      .where(eq(payrollDocuments.id, documentId))
-      .returning();
-
-    if (!updatedDocument) {
-      return false;
-    }
-
-    // Lock all payroll items for this document
-    await db
-      .update(payrollItems)
-      .set({
-        locked: true,
-        updatedAt: new Date()
-      })
-      .where(eq(payrollItems.documentId, documentId));
-
-    return true;
   }
 
   // =================== COMPANY SETTINGS METHODS ===================
