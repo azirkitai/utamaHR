@@ -605,6 +605,9 @@ export const payrollItems = pgTable('payroll_items', {
   // Snapshot profil pekerja (tidak berubah walaupun master data berubah)
   employeeSnapshot: text('employee_snapshot').notNull(), // JSON: {name, position, nric, etc}
   
+  // Master Salary Snapshot (captured at generation time for YTD calculations)
+  masterSalarySnapshot: text('master_salary_snapshot'), // JSON: complete Master Salary data including YTD values
+  
   // Salary components (snapshot from MasterSalary)
   salary: text('salary').notNull(), // JSON: {basic, computed, fixedAllowance, additional[], gross}
   
