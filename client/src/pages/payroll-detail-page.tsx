@@ -1150,7 +1150,7 @@ export default function PayrollDetailPage() {
                             <td className="p-3 text-center text-gray-600 bg-yellow-50">RM {parseFloat(contributionsData.hrdf || '0').toFixed(2)}</td>
                             <td className="p-3 text-center text-gray-600 font-medium">RM {netPay.toFixed(2)}</td>
                             <td className="p-3 text-center">
-                              {getStatusBadge((payrollDocument as any)?.status === 'Approved' ? 'Approved' : item.status || 'pending')}
+                              {getStatusBadge((payrollDocument as any)?.status === 'sent' ? 'sent' : item.status || 'pending')}
                             </td>
                             <td className="p-3 text-center">
                               <div className="flex items-center justify-center space-x-1">
