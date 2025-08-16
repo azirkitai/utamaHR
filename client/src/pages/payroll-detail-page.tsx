@@ -1330,7 +1330,7 @@ export default function PayrollDetailPage() {
                       ) : (
                         <div className="flex justify-center items-center h-96 bg-gray-50 rounded-lg">
                           <div className="text-center">
-                            <p className="text-gray-600">Preview will be generated automatically when an employee is selected</p>
+                            <p className="text-gray-600">Select an employee from the dropdown above to view payslip preview</p>
                           </div>
                         </div>
                       )}
