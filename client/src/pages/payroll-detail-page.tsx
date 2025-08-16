@@ -22,7 +22,8 @@ import {
 } from "@/components/ui/alert-dialog";
 // Import React PDF components
 import { PDFDownloadLink, pdf } from '@react-pdf/renderer';
-import { PayslipPDFDocument, buildPdfPropsFromTemplateData } from '@/components/PayslipPDFDocument';
+import { buildPdfPropsFromTemplateData } from '@/components/PayslipPDFDocument';
+import jsPDF from 'jspdf';
 // Using @react-pdf/renderer for professional PDF generation
 
 // Salary Payroll Approval Card Component
@@ -166,21 +167,21 @@ function SalaryPayrollApprovalCard({ payrollDocument, currentUser }: { payrollDo
             {firstLevelApprover && (
               <div className="flex items-center space-x-3">
                 <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
-                  {firstLevelApprover.profileImageUrl ? (
+                  {(firstLevelApprover as any)?.profileImageUrl ? (
                     <img 
-                      src={firstLevelApprover.profileImageUrl} 
-                      alt={firstLevelApprover.fullName}
+                      src={(firstLevelApprover as any)?.profileImageUrl} 
+                      alt={(firstLevelApprover as any)?.fullName}
                       className="w-full h-full object-cover"
                     />
                   ) : (
                     <div className="w-full h-full bg-cyan-500 flex items-center justify-center text-white font-semibold">
-                      {firstLevelApprover.fullName?.charAt(0)?.toUpperCase() || 'A'}
+                      {(firstLevelApprover as any)?.fullName?.charAt(0)?.toUpperCase() || 'A'}
                     </div>
                   )}
                 </div>
                 <div>
-                  <p className="font-medium text-gray-900">{firstLevelApprover.fullName}</p>
-                  <p className="text-sm text-gray-600">{firstLevelApprover.role}</p>
+                  <p className="font-medium text-gray-900">{(firstLevelApprover as any)?.fullName}</p>
+                  <p className="text-sm text-gray-600">{(firstLevelApprover as any)?.role}</p>
                   <p className="text-xs text-gray-500">First Level Approver</p>
                 </div>
               </div>
@@ -189,21 +190,21 @@ function SalaryPayrollApprovalCard({ payrollDocument, currentUser }: { payrollDo
             {secondLevelApprover && (
               <div className="flex items-center space-x-3">
                 <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
-                  {secondLevelApprover.profileImageUrl ? (
+                  {(secondLevelApprover as any)?.profileImageUrl ? (
                     <img 
-                      src={secondLevelApprover.profileImageUrl} 
-                      alt={secondLevelApprover.fullName}
+                      src={(secondLevelApprover as any)?.profileImageUrl} 
+                      alt={(secondLevelApprover as any)?.fullName}
                       className="w-full h-full object-cover"
                     />
                   ) : (
                     <div className="w-full h-full bg-cyan-500 flex items-center justify-center text-white font-semibold">
-                      {secondLevelApprover.fullName?.charAt(0)?.toUpperCase() || 'A'}
+                      {(secondLevelApprover as any)?.fullName?.charAt(0)?.toUpperCase() || 'A'}
                     </div>
                   )}
                 </div>
                 <div>
-                  <p className="font-medium text-gray-900">{secondLevelApprover.fullName}</p>
-                  <p className="text-sm text-gray-600">{secondLevelApprover.role}</p>
+                  <p className="font-medium text-gray-900">{(secondLevelApprover as any)?.fullName}</p>
+                  <p className="text-sm text-gray-600">{(secondLevelApprover as any)?.role}</p>
                   <p className="text-xs text-gray-500">Second Level Approver</p>
                 </div>
               </div>
@@ -645,7 +646,7 @@ export default function PayrollDetailPage() {
       
     } catch (error) {
       console.error('Simple method error:', error);
-      alert(`Simple PDF gagal: ${error.message}`);
+      alert(`Simple PDF gagal: ${(error as any)?.message || error}`);
       throw error;
     }
   };
