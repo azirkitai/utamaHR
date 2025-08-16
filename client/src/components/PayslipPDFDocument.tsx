@@ -212,12 +212,13 @@ const styles = StyleSheet.create({
   },
   companyWrap: {
     flexDirection: "row",
-    alignItems: "flex-start"
+    alignItems: "flex-start",
+    maxWidth: "70%"
   },
   logo: {
     width: 42,
     height: 42,
-    marginRight: 8,
+    marginRight: 4,
     objectFit: "contain"
   },
   companyName: {
@@ -232,7 +233,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     lineHeight: 1.3,
     marginTop: 2,
-    maxWidth: 360
+    maxWidth: 300
   },
   confidential: {
     fontSize: 10,
@@ -248,29 +249,34 @@ const styles = StyleSheet.create({
   },
   employeeRow: {
     flexDirection: "row",
-    marginBottom: 6
+    marginBottom: 6,
+    flexWrap: "nowrap"
   },
   employeeLabel: {
-    width: "25%",
-    fontSize: 11,
-    fontWeight: 700,
-    color: "#666"
-  },
-  employeeValue: {
-    width: "25%",
-    fontSize: 11,
-    fontWeight: 700
-  },
-  monthLabel: {
     width: "20%",
     fontSize: 11,
     fontWeight: 700,
-    color: "#666"
+    color: "#666",
+    flexShrink: 0
   },
-  monthValue: {
+  employeeValue: {
     width: "30%",
     fontSize: 11,
-    fontWeight: 700
+    fontWeight: 700,
+    flexShrink: 0
+  },
+  monthLabel: {
+    width: "15%",
+    fontSize: 11,
+    fontWeight: 700,
+    color: "#666",
+    flexShrink: 0
+  },
+  monthValue: {
+    width: "35%",
+    fontSize: 11,
+    fontWeight: 700,
+    flexShrink: 0
   },
   boxRow: {
     flexDirection: "row",
