@@ -14,8 +14,7 @@ import { format, addDays, subDays } from "date-fns";
 import { CalendarIcon, Download, Filter, Search, ChevronLeft, ChevronRight, Calendar as CalendarLucide, Clock, FileText, CreditCard, Users, DollarSign, Image, StickyNote, Eye, File, Share } from "lucide-react";
 import { pdf } from '@react-pdf/renderer';
 import type { AttendanceRecord, LeaveApplication, UserPayrollRecord } from "@shared/schema";
-import { PayslipPDFDocument } from '@/components/PayslipPDFDocument';
-import { mapDbToPayslipProps } from '@shared/mappers/payslip';
+import { PayslipPDFDocument, buildPdfPropsFromTemplateData } from '@/components/PayslipPDFDocument';
 
 type TabType = "leave" | "timeoff" | "claim" | "overtime" | "attendance" | "payment";
 
@@ -204,7 +203,7 @@ export default function MyRecordPage() {
       console.log('Template data fetched:', templateData);
       
       // Use mapper to build PDF props from authentic templateData - SAME AS GREEN BUTTON
-      const pdfProps = mapDbToPayslipProps(templateData);
+      const pdfProps = buildPdfPropsFromTemplateData(templateData);
       console.log('PDF props from mapper:', pdfProps);
       
       // Generate PDF with authentic data - SAME AS GREEN BUTTON
