@@ -299,6 +299,8 @@ export default function SalaryPayrollPage() {
       Preparing: { className: "bg-blue-100 text-blue-800", text: "Preparing" },
       PendingApproval: { className: "bg-yellow-100 text-yellow-800", text: "Pending Approval" },
       Approved: { className: "bg-green-100 text-green-800", text: "Approved" },
+      Rejected: { className: "bg-red-100 text-red-800", text: "Rejected" },
+      sent: { className: "bg-purple-100 text-purple-800", text: "Sent" },
       Closed: { className: "bg-gray-100 text-gray-800", text: "Closed" }
     };
     
@@ -359,7 +361,11 @@ export default function SalaryPayrollPage() {
                   <td className="p-3">
                     {getStatusBadge(document.status)}
                   </td>
-                  <td className="p-3 text-gray-600">{document.remarks}</td>
+                  <td className="p-3 text-gray-600">
+                    {document.status === 'Rejected' && document.rejectionReason 
+                      ? document.rejectionReason 
+                      : document.remarks || 'N/A'}
+                  </td>
                   <td className="p-3 text-center">
                     <div className="flex items-center justify-center space-x-1">
                       <Button
