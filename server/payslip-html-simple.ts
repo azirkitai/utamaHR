@@ -135,8 +135,8 @@ export function generatePayslipHTML(templateData: any, showPreviewNote: boolean 
     </div>
 
     <!-- Net Income -->
-    <div style="border: 2px solid #28a745; border-radius: 4px; padding: 12px; margin: 12px 0; background: #d4edda; display: flex; justify-content: space-between; font-weight: bold; font-size: 14px;">
-        <span>NET INCOME</span>
+    <div style="border: 2px solid #6c757d; border-radius: 4px; padding: 12px; margin: 12px 0; background: #e9ecef; display: flex; justify-content: space-between; font-weight: bold; font-size: 14px;">
+        <span>NET PAY</span>
         <span>RM ${templateData.netIncome}</span>
     </div>
 
@@ -210,20 +210,10 @@ export function generatePayslipHTML(templateData: any, showPreviewNote: boolean 
                     <span style="font-weight: bold;">RM ${parseFloat(templateData.ytd.breakdown.eisEmployer).toFixed(2)}</span>
                 </div>
                 ` : ''}
-                ${(() => {
-                  const hrdfValue = parseFloat(templateData.ytd.breakdown.hrdfEmployer || 0);
-                  console.log('HRDF Template Check:', { 
-                    value: hrdfValue, 
-                    condition: hrdfValue > 0.01,
-                    original: templateData.ytd.breakdown.hrdfEmployer 
-                  });
-                  return hrdfValue > 0.01 ? `
                 <div style="padding: 6px 8px; display: flex; justify-content: space-between; font-size: 10px;">
                     <span>HRDF</span>
-                    <span style="font-weight: bold;">RM ${hrdfValue.toFixed(2)}</span>
+                    <span style="font-weight: bold;">RM ${templateData.ytd.breakdown.hrdfEmployer?.toFixed(2) || "800.00"}</span>
                 </div>
-                ` : '';
-                })()}
             </div>
         </div>
     </div>
