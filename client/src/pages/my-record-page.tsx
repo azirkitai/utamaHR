@@ -12,7 +12,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { format, addDays, subDays } from "date-fns";
 import { CalendarIcon, Download, Filter, Search, ChevronLeft, ChevronRight, Calendar as CalendarLucide, Clock, FileText, CreditCard, Users, DollarSign, Image, StickyNote, Eye, File, Share } from "lucide-react";
+import { pdf } from '@react-pdf/renderer';
 import type { AttendanceRecord, LeaveApplication, UserPayrollRecord } from "@shared/schema";
+import { PayslipPDFDocument } from '@/components/PayslipPDFDocument';
+import { mapDbToPayslipProps } from '@shared/mappers/payslip';
 
 type TabType = "leave" | "timeoff" | "claim" | "overtime" | "attendance" | "payment";
 
@@ -170,10 +173,10 @@ export default function MyRecordPage() {
     return `${format(filters.dateFrom, "dd/MM/yyyy")} - ${format(filters.dateTo, "dd/MM/yyyy")}`;
   };
 
-  // Handle payslip download using same logic as payroll detail page
+  // Handle payslip download using EXACT SAME logic as green download button in payroll detail page  
   const handleDownloadPayslip = async (payrollItemId: string, employeeName: string) => {
     try {
-      console.log('=== DOWNLOAD PAYSLIP PDF FROM MY RECORD ===');
+      console.log('=== REACT PDF WITH AUTHENTIC DATA & MAPPER ===');
       console.log('Payroll Item ID:', payrollItemId, 'Employee Name:', employeeName);
       
       // Find the payroll record to get document ID and employee ID
@@ -182,39 +185,48 @@ export default function MyRecordPage() {
         throw new Error('Payroll record not found');
       }
       
-      // Use EXACT same URL pattern as payroll detail page: employeeId (not payrollItemId)
-      const response = await fetch(`/api/payroll/payslip/${record.employeeId}/pdf?documentId=${record.documentId}`, {
-        method: "GET"
-      });
+      // Fetch authentic templateData from preview endpoint - SAME AS GREEN BUTTON
+      const token = localStorage.getItem('utamahr_token');
+      const templateResponse = await fetch(
+        `/api/payroll/payslip/${record.employeeId}/template-data?documentId=${record.documentId}`, 
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
       
-      if (!response.ok) {
-        throw new Error(`Download failed: ${response.status}`);
+      if (!templateResponse.ok) {
+        throw new Error(`Failed to fetch template data: ${templateResponse.status}`);
       }
       
-      // Convert response to blob
-      const blob = await response.blob();
-      console.log('PDF blob size:', blob.size, 'bytes');
+      const templateData = await templateResponse.json();
+      console.log('Template data fetched:', templateData);
       
-      if (blob.size === 0) {
-        throw new Error('Empty PDF received');
-      }
+      // Use mapper to build PDF props from authentic templateData - SAME AS GREEN BUTTON
+      const pdfProps = mapDbToPayslipProps(templateData);
+      console.log('PDF props from mapper:', pdfProps);
       
-      // Create download link (avoid window.open to prevent popup blockers)
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `Payslip_${employeeName.replace(/\s+/g, '_')}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+      // Generate PDF with authentic data - SAME AS GREEN BUTTON
+      const pdfBlob = await pdf(
+        <PayslipPDFDocument {...pdfProps} />
+      ).toBlob();
+      
+      console.log('PDF blob size:', pdfBlob.size, 'bytes');
+      
+      // Download PDF - SAME AS GREEN BUTTON
+      const url = URL.createObjectURL(pdfBlob);
+      const downloadLink = document.createElement('a');
+      downloadLink.href = url;
+      downloadLink.download = `Payslip_${pdfProps.employee.fullName}_${pdfProps.document.month}_${pdfProps.document.year}.pdf`;
+      downloadLink.click();
       URL.revokeObjectURL(url);
       
       console.log('PDF downloaded successfully');
-      alert('Slip gaji PDF telah berjaya dimuat turun!');
       
-    } catch (error) {
-      console.error('PDF download error:', error);
-      alert('Gagal memuat turun slip gaji PDF. Sila cuba lagi.');
+    } catch (e: any) {
+      console.error('PDF generation error:', e);
+      alert('PDF generation failed: ' + (e?.message || 'Unknown error'));
     }
   };
 
