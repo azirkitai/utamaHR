@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Calculator, Save, Info, Settings, ChevronDown, ChevronUp, X, Trash2, Eye, EyeOff, Edit, Check } from "lucide-react";
+import { Plus, Calculator, Save, Info, Settings, ChevronDown, ChevronUp, X, Trash2, Eye, EyeOff, Edit, Check, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { PCB39_RELIEFS_2025 } from "@shared/pcb39-reliefs-2025";
@@ -419,6 +419,11 @@ export default function EmployeeSalaryDetailsPage() {
   
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(employeeId || "");
   const [isCalculating, setIsCalculating] = useState(false);
+  
+  // States untuk month selection feature
+  const [showOvertimeMonthDialog, setShowOvertimeMonthDialog] = useState(false);
+  const [selectedOvertimeMonth, setSelectedOvertimeMonth] = useState<number>(new Date().getMonth() + 1);
+  const [selectedOvertimeYear, setSelectedOvertimeYear] = useState<number>(new Date().getFullYear());
   const [isDirty, setIsDirty] = useState(false);
   const [showStatutoryFlags, setShowStatutoryFlags] = useState<Record<string, boolean>>({});
   const [showPCB39Modal, setShowPCB39Modal] = useState(false);
@@ -855,16 +860,12 @@ export default function EmployeeSalaryDetailsPage() {
     }
   }, [salaryData.manualYtd]);
 
-  // Fetch overtime amount for current month
-  const currentDate = new Date();
-  const currentYear = currentDate.getFullYear();
-  const currentMonth = currentDate.getMonth() + 1;
-
+  // Fetch overtime amount for selected month (instead of current month)
   const { data: overtimeData, isLoading: isLoadingOvertime, error: overtimeError } = useQuery({
-    queryKey: ["/api/employees", employeeId, "overtime-amount", currentYear, currentMonth],
+    queryKey: ["/api/employees", employeeId, "overtime-amount", selectedOvertimeYear, selectedOvertimeMonth],
     queryFn: async () => {
-      console.log(`Fetching overtime for employee: ${employeeId}, year: ${currentYear}, month: ${currentMonth}`);
-      const response = await fetch(`/api/employees/${employeeId}/overtime-amount?year=${currentYear}&month=${currentMonth}`, {
+      console.log(`Fetching overtime for employee: ${employeeId}, year: ${selectedOvertimeYear}, month: ${selectedOvertimeMonth}`);
+      const response = await fetch(`/api/employees/${employeeId}/overtime-amount?year=${selectedOvertimeYear}&month=${selectedOvertimeMonth}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('utamahr_token')}`
         }
@@ -2412,6 +2413,16 @@ export default function EmployeeSalaryDetailsPage() {
                     <Button
                       variant="ghost"
                       size="sm"
+                      onClick={() => setShowOvertimeMonthDialog(true)}
+                      className="h-6 w-6 p-0 text-green-500 hover:text-green-700"
+                      data-testid="overtime-month-selector"
+                      title="Select month for overtime calculation"
+                    >
+                      <Calendar className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={() => toggleStatutoryFlags("OVERTIME")}
                       className="h-6 w-6 p-0 text-blue-500 hover:text-blue-700"
                       data-testid="overtime-settings-toggle"
@@ -2435,7 +2446,7 @@ export default function EmployeeSalaryDetailsPage() {
                     />
                   </div>
                   <p className="text-xs text-gray-500">
-                    Auto-calculated based on approved overtime hours × hourly rate × overtime multiplier for {new Date().toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
+                    Auto-calculated based on approved overtime hours × hourly rate × overtime multiplier for selected month
                   </p>
                   
                   {/* Show statutory flags when toggled */}
@@ -4875,6 +4886,99 @@ export default function EmployeeSalaryDetailsPage() {
               data-testid="btn-close-bik-info"
             >
               Understood
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Overtime Month Selection Dialog */}
+      <Dialog open={showOvertimeMonthDialog} onOpenChange={setShowOvertimeMonthDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <Calendar className="h-5 w-5 text-green-500" />
+              <span>Select Overtime Month</span>
+            </DialogTitle>
+            <DialogDescription>
+              Choose the month and year for overtime calculation.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              {/* Month Selection */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Month</Label>
+                <Select 
+                  value={selectedOvertimeMonth.toString()}
+                  onValueChange={(value) => setSelectedOvertimeMonth(parseInt(value))}
+                >
+                  <SelectTrigger className="w-full" data-testid="overtime-month-select">
+                    <SelectValue placeholder="Select month" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">January</SelectItem>
+                    <SelectItem value="2">February</SelectItem>
+                    <SelectItem value="3">March</SelectItem>
+                    <SelectItem value="4">April</SelectItem>
+                    <SelectItem value="5">May</SelectItem>
+                    <SelectItem value="6">June</SelectItem>
+                    <SelectItem value="7">July</SelectItem>
+                    <SelectItem value="8">August</SelectItem>
+                    <SelectItem value="9">September</SelectItem>
+                    <SelectItem value="10">October</SelectItem>
+                    <SelectItem value="11">November</SelectItem>
+                    <SelectItem value="12">December</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Year Selection */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Year</Label>
+                <Select 
+                  value={selectedOvertimeYear.toString()}
+                  onValueChange={(value) => setSelectedOvertimeYear(parseInt(value))}
+                >
+                  <SelectTrigger className="w-full" data-testid="overtime-year-select">
+                    <SelectValue placeholder="Select year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2023">2023</SelectItem>
+                    <SelectItem value="2024">2024</SelectItem>
+                    <SelectItem value="2025">2025</SelectItem>
+                    <SelectItem value="2026">2026</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Current Selection Display */}
+            <div className="p-3 bg-gray-50 rounded-lg border">
+              <p className="text-sm text-gray-600">
+                <strong>Selected:</strong> {new Date(selectedOvertimeYear, selectedOvertimeMonth - 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowOvertimeMonthDialog(false)}
+              data-testid="btn-cancel-overtime-month"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                setShowOvertimeMonthDialog(false);
+                // Query will automatically refetch due to dependency on selectedOvertimeMonth/Year
+                toast({
+                  title: "Overtime Month Updated",
+                  description: `Now showing overtime for ${new Date(selectedOvertimeYear, selectedOvertimeMonth - 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}`,
+                });
+              }}
+              data-testid="btn-apply-overtime-month"
+            >
+              Apply
             </Button>
           </DialogFooter>
         </DialogContent>
