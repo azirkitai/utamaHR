@@ -192,10 +192,16 @@ export function generatePayslipHTML(templateData: any, showPreviewNote: boolean 
                     <span>SOCSO</span>
                     <span style="font-weight: bold;">RM ${templateData.ytd.breakdown.socsoEmployer || "0.00"}</span>
                 </div>
-                <div style="padding: 6px 8px; display: flex; justify-content: space-between; font-size: 10px;">
+                <div style="padding: 6px 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 10px;">
                     <span>EIS</span>
                     <span style="font-weight: bold;">RM ${templateData.ytd.breakdown.eisEmployer || "0.00"}</span>
                 </div>
+                ${parseFloat(templateData.ytd.breakdown.hrdfEmployer || 0) > 0.01 ? `
+                <div style="padding: 6px 8px; display: flex; justify-content: space-between; font-size: 10px;">
+                    <span>HRDF</span>
+                    <span style="font-weight: bold;">RM ${parseFloat(templateData.ytd.breakdown.hrdfEmployer).toFixed(2)}</span>
+                </div>
+                ` : ''}
             </div>
         </div>
     </div>

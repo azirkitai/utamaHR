@@ -4910,7 +4910,8 @@ export function registerRoutes(app: Express): Server {
             pcb: parseFloat(ytdData.ytdPcbEmployee),
             epfEmployer: parseFloat(ytdData.ytdEpfEmployer),
             socsoEmployer: parseFloat(ytdData.ytdSocsoEmployer),
-            eisEmployer: parseFloat(ytdData.ytdEisEmployer)
+            eisEmployer: parseFloat(ytdData.ytdEisEmployer),
+            hrdfEmployer: parseFloat(ytdData.ytdHrdfEmployer)  // Add HRDF for template access
           }
         }
       };
