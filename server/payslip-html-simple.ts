@@ -210,12 +210,20 @@ export function generatePayslipHTML(templateData: any, showPreviewNote: boolean 
                     <span style="font-weight: bold;">RM ${parseFloat(templateData.ytd.breakdown.eisEmployer).toFixed(2)}</span>
                 </div>
                 ` : ''}
-                ${parseFloat(templateData.ytd.breakdown.hrdfEmployer || 0) > 0.01 ? `
+                ${(() => {
+                  const hrdfValue = parseFloat(templateData.ytd.breakdown.hrdfEmployer || 0);
+                  console.log('HRDF Template Check:', { 
+                    value: hrdfValue, 
+                    condition: hrdfValue > 0.01,
+                    original: templateData.ytd.breakdown.hrdfEmployer 
+                  });
+                  return hrdfValue > 0.01 ? `
                 <div style="padding: 6px 8px; display: flex; justify-content: space-between; font-size: 10px;">
                     <span>HRDF</span>
-                    <span style="font-weight: bold;">RM ${parseFloat(templateData.ytd.breakdown.hrdfEmployer).toFixed(2)}</span>
+                    <span style="font-weight: bold;">RM ${hrdfValue.toFixed(2)}</span>
                 </div>
-                ` : ''}
+                ` : '';
+                })()}
             </div>
         </div>
     </div>
