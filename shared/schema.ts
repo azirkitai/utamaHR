@@ -746,6 +746,17 @@ export const paymentVouchers = pgTable('payment_vouchers', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+// Company Holidays Table
+export const holidays = pgTable('holidays', {
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  name: text('name').notNull(),
+  date: text('date').notNull(), // Date in DD-MM-YYYY format
+  isPublic: boolean('is_public').notNull().default(true),
+  importToCalendar: boolean('import_to_calendar').notNull().default(true),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 // =================== VALIDATION SCHEMAS ===================
 
 // Attendance record schemas
@@ -1017,6 +1028,16 @@ export const mobileClockInSchema = z.object({
   longitude: z.string().min(1, "Lokasi diperlukan"),
   selfieImageUrl: z.string().min(1, "Selfie diperlukan"),
 });
+
+// Holidays schemas
+export const insertHolidaySchema = createInsertSchema(holidays).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const updateHolidaySchema = insertHolidaySchema.partial();
+export type InsertHoliday = z.infer<typeof insertHolidaySchema>;
+export type SelectHoliday = typeof holidays.$inferSelect;
 
 // Financial Claim Policy schemas
 export const insertFinancialClaimPolicySchema = createInsertSchema(financialClaimPolicies).omit({

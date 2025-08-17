@@ -180,6 +180,10 @@ import {
   type UserPayrollRecord,
   type InsertUserPayrollRecord,
   type UpdateUserPayrollRecord,
+  // Holiday types
+  holidays,
+  type SelectHoliday,
+  type InsertHoliday,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, sql, asc, ilike, or, gte, lte, inArray, not } from "drizzle-orm";
@@ -409,6 +413,13 @@ export interface IStorage {
   deletePaymentVoucher(id: string): Promise<boolean>;
   generateVoucherNumber(): Promise<string>;
   getApprovedFinancialClaims(year: number, month: number): Promise<ClaimApplication[]>;
+  
+  // =================== HOLIDAY METHODS ===================
+  getAllHolidays(): Promise<SelectHoliday[]>;
+  getHoliday(id: string): Promise<SelectHoliday | undefined>;
+  createHoliday(holiday: InsertHoliday): Promise<SelectHoliday>;
+  updateHoliday(id: string, holiday: Partial<InsertHoliday>): Promise<SelectHoliday | undefined>;
+  deleteHoliday(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3961,6 +3972,41 @@ export class DatabaseStorage implements IStorage {
       console.error(`Error fetching claims for voucher ${voucherId}:`, error);
       throw error;
     }
+  }
+
+  // =================== HOLIDAY METHODS ===================
+  async getAllHolidays(): Promise<SelectHoliday[]> {
+    return await db.select().from(holidays).orderBy(holidays.date);
+  }
+
+  async getHoliday(id: string): Promise<SelectHoliday | undefined> {
+    const [holiday] = await db.select().from(holidays).where(eq(holidays.id, id));
+    return holiday || undefined;
+  }
+
+  async createHoliday(insertHoliday: InsertHoliday): Promise<SelectHoliday> {
+    const [holiday] = await db
+      .insert(holidays)
+      .values(insertHoliday)
+      .returning();
+    return holiday;
+  }
+
+  async updateHoliday(id: string, updateHoliday: Partial<InsertHoliday>): Promise<SelectHoliday | undefined> {
+    const [holiday] = await db
+      .update(holidays)
+      .set({
+        ...updateHoliday,
+        updatedAt: new Date()
+      })
+      .where(eq(holidays.id, id))
+      .returning();
+    return holiday || undefined;
+  }
+
+  async deleteHoliday(id: string): Promise<boolean> {
+    const result = await db.delete(holidays).where(eq(holidays.id, id));
+    return (result.rowCount ?? 0) > 0;
   }
 }
 

@@ -24,14 +24,16 @@ import {
 import { cn } from "@/lib/utils";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { useAuth } from "@/hooks/use-auth";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 
 interface Holiday {
-  id: number;
+  id: string;
   name: string;
   date: string;
   isPublic: boolean;
-  importToCalendar: boolean;
+  importToCalendar?: boolean;
 }
 
 interface Event {
@@ -135,6 +137,22 @@ export default function CalendarPage() {
     },
   });
 
+  // Fetch holidays from database
+  const { data: holidays = [], refetch: refetchHolidays } = useQuery({
+    queryKey: ["/api/holidays"],
+    queryFn: async () => {
+      const response = await fetch('/api/holidays', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('utamahr_token')}`
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch holidays');
+      }
+      return response.json();
+    },
+  });
+
   // User role is available from useAuth hook
   
   // Modal states
@@ -143,7 +161,6 @@ export default function CalendarPage() {
   const [isAddEventOpen, setIsAddEventOpen] = useState(false);
   
   // Form states
-  const [holidays, setHolidays] = useState<Holiday[]>(predefinedHolidays);
   const [events, setEvents] = useState<Event[]>([]);
   
   // Holiday form
@@ -163,7 +180,35 @@ export default function CalendarPage() {
   const [showAddHolidayRow, setShowAddHolidayRow] = useState(false);
   const [newHolidayName, setNewHolidayName] = useState("");
   const [newHolidayDate, setNewHolidayDate] = useState("");
-  const [newHolidayPublic, setNewHolidayPublic] = useState(false);
+  const [newHolidayPublic, setNewHolidayPublic] = useState(true); // All holidays are public by default
+
+  // Holiday mutations
+  const createHolidayMutation = useMutation({
+    mutationFn: async (holiday: { name: string; date: string }) => {
+      return apiRequest('/api/holidays', 'POST', holiday);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/holidays"] });
+    },
+  });
+
+  const updateHolidayMutation = useMutation({
+    mutationFn: async ({ id, isPublic }: { id: string; isPublic: boolean }) => {
+      return apiRequest(`/api/holidays/${id}`, 'PUT', { isPublic });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/holidays"] });
+    },
+  });
+
+  const deleteHolidayMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return apiRequest(`/api/holidays/${id}`, 'DELETE');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/holidays"] });
+    },
+  });
 
   // Role-based access control functions
   const canAccessHolidayButtons = () => {
@@ -305,15 +350,11 @@ export default function CalendarPage() {
   const handleAddHoliday = () => {
     if (!holidayDescription || !holidayDate) return;
     
-    const newHoliday: Holiday = {
-      id: holidays.length + 1,
+    createHolidayMutation.mutate({
       name: holidayDescription,
-      date: holidayDate,
-      isPublic: true,  // Automatically set as public holiday
-      importToCalendar: true
-    };
+      date: holidayDate
+    });
     
-    setHolidays([...holidays, newHoliday]);
     setHolidayDescription("");
     setHolidayDate("");
     setIsPublicHoliday(false);
@@ -343,16 +384,12 @@ export default function CalendarPage() {
     setIsAddEventOpen(false);
   };
 
-  const updateHolidayImport = (id: number, importToCalendar: boolean) => {
-    setHolidays(holidays.map(h => 
-      h.id === id ? { ...h, importToCalendar } : h
-    ));
+  const updateHolidayImport = (id: string, isPublic: boolean) => {
+    updateHolidayMutation.mutate({ id, isPublic });
   };
 
-  const updateHolidayPublic = (id: number, isPublic: boolean) => {
-    setHolidays(holidays.map(h => 
-      h.id === id ? { ...h, isPublic } : h
-    ));
+  const updateHolidayPublic = (id: string, isPublic: boolean) => {
+    updateHolidayMutation.mutate({ id, isPublic });
   };
 
   // Inline add holiday functions
@@ -365,14 +402,10 @@ export default function CalendarPage() {
 
   const handleSaveInlineHoliday = () => {
     if (newHolidayName && newHolidayDate) {
-      const newHoliday: Holiday = {
-        id: holidays.length + 1,
+      createHolidayMutation.mutate({
         name: newHolidayName,
-        date: newHolidayDate,
-        isPublic: true,  // Automatically set as public holiday
-        importToCalendar: true
-      };
-      setHolidays([...holidays, newHoliday]);
+        date: newHolidayDate
+      });
       setShowAddHolidayRow(false);
       setNewHolidayName("");
       setNewHolidayDate("");
@@ -380,8 +413,8 @@ export default function CalendarPage() {
     }
   };
 
-  const handleDeleteHoliday = (holidayId: number) => {
-    setHolidays(holidays.filter(holiday => holiday.id !== holidayId));
+  const handleDeleteHoliday = (holidayId: string) => {
+    deleteHolidayMutation.mutate(holidayId);
   };
 
   return (

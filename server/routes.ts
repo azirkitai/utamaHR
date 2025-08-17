@@ -6582,6 +6582,114 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // =================== HOLIDAYS API ROUTES ===================
+  
+  // Get all holidays
+  app.get("/api/holidays", authenticateToken, async (req, res) => {
+    try {
+      const holidays = await storage.getAllHolidays();
+      res.json(holidays);
+    } catch (error) {
+      console.error("Error fetching holidays:", error);
+      res.status(500).json({ error: "Gagal mendapatkan data holiday" });
+    }
+  });
+
+  // Create new holiday
+  app.post("/api/holidays", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      
+      // Check if user has admin rights to manage holidays
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (!adminRoles.includes(currentUser.role)) {
+        return res.status(403).json({ error: "Tidak dibenarkan untuk menguruskan holiday" });
+      }
+
+      const { name, date } = req.body;
+      
+      if (!name || !date) {
+        return res.status(400).json({ error: "Nama holiday dan tarikh diperlukan" });
+      }
+
+      const newHoliday = await storage.createHoliday({
+        name,
+        date,
+        isPublic: true, // All holidays are automatically public
+        importToCalendar: true
+      });
+
+      res.status(201).json({
+        success: true,
+        holiday: newHoliday,
+        message: "Holiday berjaya ditambah"
+      });
+    } catch (error) {
+      console.error("Error creating holiday:", error);
+      res.status(500).json({ error: "Gagal mencipta holiday" });
+    }
+  });
+
+  // Update holiday
+  app.put("/api/holidays/:id", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      
+      // Check if user has admin rights to manage holidays
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (!adminRoles.includes(currentUser.role)) {
+        return res.status(403).json({ error: "Tidak dibenarkan untuk menguruskan holiday" });
+      }
+
+      const { id } = req.params;
+      const { isPublic } = req.body;
+
+      const updatedHoliday = await storage.updateHoliday(id, { isPublic });
+
+      if (!updatedHoliday) {
+        return res.status(404).json({ error: "Holiday tidak dijumpai" });
+      }
+
+      res.json({
+        success: true,
+        holiday: updatedHoliday,
+        message: "Holiday berjaya dikemaskini"
+      });
+    } catch (error) {
+      console.error("Error updating holiday:", error);
+      res.status(500).json({ error: "Gagal mengemaskini holiday" });
+    }
+  });
+
+  // Delete holiday
+  app.delete("/api/holidays/:id", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      
+      // Check if user has admin rights to manage holidays
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (!adminRoles.includes(currentUser.role)) {
+        return res.status(403).json({ error: "Tidak dibenarkan untuk menguruskan holiday" });
+      }
+
+      const { id } = req.params;
+
+      const deleted = await storage.deleteHoliday(id);
+
+      if (!deleted) {
+        return res.status(404).json({ error: "Holiday tidak dijumpai" });
+      }
+
+      res.json({
+        success: true,
+        message: "Holiday berjaya dipadam"
+      });
+    } catch (error) {
+      console.error("Error deleting holiday:", error);
+      res.status(500).json({ error: "Gagal memadam holiday" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
