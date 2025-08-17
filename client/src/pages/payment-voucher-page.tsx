@@ -256,13 +256,7 @@ export default function PaymentVoucherPage() {
                     </button>
                   </td>
                   <td className="p-3 text-gray-900">
-                    {voucher.includedClaims && voucher.includedClaims.length > 0 && approvedClaims && approvedClaims.length > 0
-                      ? Array.from(new Set(voucher.includedClaims.map(claimId => {
-                          const claim = approvedClaims.find(c => c.id === claimId);
-                          return claim ? getEmployeeName(claim.employeeId) : 'Unknown';
-                        }))).join(', ')
-                      : 'Tiada data'
-                    }
+                    {voucher.requestorName || 'Unknown'}
                   </td>
                   <td className="p-3 text-gray-900">{months.find(m => m.value === voucher.month.toString())?.label || voucher.month}</td>
                   <td className="p-3 text-gray-900">{voucher.year}</td>
