@@ -658,43 +658,10 @@ export default function ApplyClaimPage() {
                     </div>
                   </div>
                   
-                  <div className="bg-white/20 p-4 rounded-lg">
-                    <div className="text-xs text-teal-100 mb-1">CLAIMS COUNT</div>
-                    <div className="text-2xl font-bold">
-                      {isLoadingTotals ? "Loading..." : 
-                       userClaimTotals?.financial ? Object.values(userClaimTotals.financial).filter((policy: any) => policy.total > 0).length : 0
-                      }
-                    </div>
-                    <div className="text-xs text-teal-100">Active Types</div>
-                    <div className="mt-2 flex justify-center">
-                      <FileText className="w-12 h-12 text-white/50" />
-                    </div>
-                  </div>
+                  
                 </div>
 
-                {/* Expanded Financial Details */}
-                {expandedSectionId === "financial-summary" && (
-                  <div className="mt-6 bg-white/10 p-4 rounded-lg">
-                    <h3 className="text-lg font-semibold mb-4">Detailed Financial Summary</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {isLoadingTotals ? (
-                        <div className="col-span-3 text-center text-white/80">Loading claim totals...</div>
-                      ) : userClaimTotals?.financial ? (
-                        Object.entries(userClaimTotals.financial).map(([policyName, data]: [string, any]) => (
-                          <div key={policyName} className="bg-white/20 p-3 rounded">
-                            <div className="text-xs text-teal-100 mb-1">{policyName}</div>
-                            <div className="text-xl font-bold">RM {data.total.toFixed(2)}</div>
-                            <div className="text-xs text-teal-100">
-                              {data.annualLimit === 'Unlimited' ? 'No Limit' : `Limit: RM ${parseFloat(data.annualLimit).toFixed(2)}`}
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="col-span-3 text-center text-white/80">No claim data available</div>
-                      )}
-                    </div>
-                  </div>
-                )}
+                
               </div>
 
               {/* Recent Claim Application */}
