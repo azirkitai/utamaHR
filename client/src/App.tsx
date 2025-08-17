@@ -32,6 +32,7 @@ import PayrollDetailPage from "@/pages/payroll-detail-page";
 import QRClockInPage from "@/pages/qr-clockin-page";
 import MobileClockInPage from "@/pages/mobile-clockin-page";
 import MobileClockOutPage from "@/pages/mobile-clockout-page";
+import PerformanceEvaluationPage from "@/pages/performance-evaluation-page";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "./lib/protected-route";
 
@@ -48,6 +49,7 @@ function Router() {
 
       <ProtectedRoute path="/announcement" component={AnnouncementPage} />
       <ProtectedRoute path="/calendar" component={CalendarPage} />
+      <ProtectedRoute path="/performance" component={PerformanceEvaluationPage} />
       <ProtectedRoute path="/manage-employee" component={ManageEmployeePage} />
       <ProtectedRoute path="/approval" component={LeaveApprovalPage} />
       <ProtectedRoute path="/approval/leave" component={LeaveApprovalPage} />
