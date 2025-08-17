@@ -753,9 +753,7 @@ export default function CalendarPage() {
                               key={index}
                               className={cn(
                                 "p-2 text-center text-sm border-b border-r min-h-[80px] flex flex-col relative",
-                                day.isCurrentMonth ? "text-gray-900" : "text-gray-400",
-                                day.number === 7 && "bg-yellow-100",
-                                day.number === 15 && "bg-yellow-100"
+                                day.isCurrentMonth ? "text-gray-900" : "text-gray-400"
                               )}
                             >
                               <div className="font-medium mb-1">{day.number}</div>
