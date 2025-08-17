@@ -636,14 +636,6 @@ export default function ApplyClaimPage() {
               <div className="bg-gradient-to-r from-teal-400 to-blue-600 text-white p-6 rounded-lg mb-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-semibold">What you have claimed so far</h2>
-                  <Button 
-                    variant="ghost" 
-                    className="text-white hover:bg-white/20"
-                    onClick={() => handleToggleExpand("financial-summary")}
-                    data-testid="button-see-more-financial"
-                  >
-                    See More <ExternalLink className="w-4 h-4 ml-2" />
-                  </Button>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
