@@ -3848,6 +3848,32 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Get user-specific claim totals by policy
+  app.get('/api/claim-applications/user-totals/:employeeId', authenticateToken, async (req, res) => {
+    try {
+      const { employeeId } = req.params;
+      const currentUser = req.user!;
+      
+      // Role-based access control
+      const privilegedRoles = ['Super Admin', 'Admin', 'HR Manager'];
+      const hasAdminAccess = privilegedRoles.includes(currentUser.role);
+      
+      // If regular user, only allow access to their own totals
+      if (!hasAdminAccess) {
+        const userEmployee = await storage.getEmployeeByUserId(currentUser.id);
+        if (!userEmployee || userEmployee.id !== employeeId) {
+          return res.status(403).json({ error: 'Tidak dibenarkan untuk mengakses jumlah tuntutan pekerja lain' });
+        }
+      }
+      
+      const claimTotals = await storage.getUserClaimTotals(employeeId);
+      res.json(claimTotals);
+    } catch (error) {
+      console.error('Error getting user claim totals:', error);
+      res.status(500).json({ error: 'Gagal mengambil jumlah tuntutan pengguna' });
+    }
+  });
+
   // Create new claim application with validation
   app.post('/api/claim-applications', authenticateToken, async (req, res) => {
     try {

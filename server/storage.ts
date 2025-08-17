@@ -3690,6 +3690,89 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
+
+  // Get user-specific claim totals aggregated by policy
+  async getUserClaimTotals(employeeId: string): Promise<any> {
+    try {
+      // Get approved financial claims for the user for the current year
+      const currentYear = new Date().getFullYear();
+      
+      const approvedClaims = await db
+        .select()
+        .from(claimApplications)
+        .where(
+          and(
+            eq(claimApplications.employeeId, employeeId),
+            eq(claimApplications.claimType, 'financial'),
+            sql`EXTRACT(YEAR FROM ${claimApplications.claimDate}) = ${currentYear}`,
+            eq(claimApplications.status, 'Approved')
+          )
+        );
+
+      // Get all financial claim policies
+      const policies = await db
+        .select()
+        .from(financialClaimPolicies)
+        .where(eq(financialClaimPolicies.enabled, true));
+
+      // Create totals mapping
+      const totals: Record<string, any> = {};
+      let totalApprovedAmount = 0;
+
+      // Initialize totals for all policies
+      policies.forEach(policy => {
+        const key = policy.claimName.toUpperCase().replace(/\s+/g, ' ');
+        totals[key] = {
+          total: 0,
+          annualLimit: policy.annualLimitUnlimited ? 'Unlimited' : policy.annualLimit
+        };
+      });
+
+      // Calculate actual totals from approved claims
+      approvedClaims.forEach(claim => {
+        if (claim.financialPolicyName) {
+          const key = claim.financialPolicyName.toUpperCase().replace(/\s+/g, ' ');
+          const amount = parseFloat(claim.amount || '0');
+          
+          if (totals[key]) {
+            totals[key].total += amount;
+          }
+          totalApprovedAmount += amount;
+        }
+      });
+
+      // Get overtime totals for current month
+      const currentMonth = new Date().getMonth() + 1;
+      const overtimeClaims = await db
+        .select()
+        .from(claimApplications)
+        .where(
+          and(
+            eq(claimApplications.employeeId, employeeId),
+            eq(claimApplications.claimType, 'overtime'),
+            sql`EXTRACT(YEAR FROM ${claimApplications.claimDate}) = ${currentYear}`,
+            sql`EXTRACT(MONTH FROM ${claimApplications.claimDate}) = ${currentMonth}`,
+            eq(claimApplications.status, 'Approved')
+          )
+        );
+
+      const totalOvertimeHours = overtimeClaims.reduce((total, claim) => {
+        return total + parseFloat(claim.totalHours || '0');
+      }, 0);
+
+      return {
+        financial: totals,
+        totalApproved: totalApprovedAmount,
+        overtime: {
+          hoursThisMonth: totalOvertimeHours,
+          daysThisMonth: overtimeClaims.length
+        }
+      };
+    } catch (error) {
+      console.error('Error fetching user claim totals:', error);
+      throw error;
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();

@@ -59,6 +59,19 @@ export default function ApplyClaimPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Get current user's employee info
+  const { data: currentUserEmployee } = useQuery({
+    queryKey: ["/api/user/employee"],
+    retry: false,
+  });
+
+  // Get current user's claim totals
+  const { data: userClaimTotals, isLoading: isLoadingTotals } = useQuery({
+    queryKey: [`/api/claim-applications/user-totals/${currentUserEmployee?.id}`],
+    enabled: !!currentUserEmployee?.id,
+    retry: false,
+  });
+
   // Create claim application mutation
   const createClaimMutation = useMutation({
     mutationFn: async (claimData: InsertClaimApplication) => {
@@ -103,6 +116,9 @@ export default function ApplyClaimPage() {
       
       // Invalidate relevant queries to refresh the data
       queryClient.invalidateQueries({ queryKey: ['/api/claim-applications'] });
+      if (currentUserEmployee?.id) {
+        queryClient.invalidateQueries({ queryKey: [`/api/claim-applications/user-totals/${currentUserEmployee.id}`] });
+      }
       queryClient.invalidateQueries({ queryKey: ['/api/claim-applications/type/financial'] });
       queryClient.invalidateQueries({ queryKey: ['/api/claim-applications/type/overtime'] });
     },
@@ -613,18 +629,24 @@ export default function ApplyClaimPage() {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-white/20 p-4 rounded-lg">
-                    <div className="text-xs text-teal-100 mb-1">FLIGHT TIX</div>
-                    <div className="text-2xl font-bold">RM 0.00</div>
-                    <div className="text-xs text-teal-100">Claim Approved</div>
+                    <div className="text-xs text-teal-100 mb-1">TOTAL APPROVED</div>
+                    <div className="text-2xl font-bold">
+                      {isLoadingTotals ? "Loading..." : `RM ${(userClaimTotals?.totalApproved || 0).toFixed(2)}`}
+                    </div>
+                    <div className="text-xs text-teal-100">This Year</div>
                     <div className="mt-2 flex justify-center">
                       <CreditCard className="w-12 h-12 text-white/50" />
                     </div>
                   </div>
                   
                   <div className="bg-white/20 p-4 rounded-lg">
-                    <div className="text-xs text-teal-100 mb-1">ANNUAL LIMIT</div>
-                    <div className="text-2xl font-bold">RM 0.00 / RM 100.00</div>
-                    <div className="text-xs text-teal-100">Annual Limit</div>
+                    <div className="text-xs text-teal-100 mb-1">CLAIMS COUNT</div>
+                    <div className="text-2xl font-bold">
+                      {isLoadingTotals ? "Loading..." : 
+                       userClaimTotals?.financial ? Object.values(userClaimTotals.financial).filter((policy: any) => policy.total > 0).length : 0
+                      }
+                    </div>
+                    <div className="text-xs text-teal-100">Active Types</div>
                     <div className="mt-2 flex justify-center">
                       <FileText className="w-12 h-12 text-white/50" />
                     </div>
@@ -636,30 +658,21 @@ export default function ApplyClaimPage() {
                   <div className="mt-6 bg-white/10 p-4 rounded-lg">
                     <h3 className="text-lg font-semibold mb-4">Detailed Financial Summary</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="bg-white/20 p-3 rounded">
-                        <div className="text-xs text-teal-100 mb-1">MEDICAL CLAIM</div>
-                        <div className="text-xl font-bold">RM 0.00</div>
-                      </div>
-                      <div className="bg-white/20 p-3 rounded">
-                        <div className="text-xs text-teal-100 mb-1">TRAVEL CLAIM</div>
-                        <div className="text-xl font-bold">RM 0.00</div>
-                      </div>
-                      <div className="bg-white/20 p-3 rounded">
-                        <div className="text-xs text-teal-100 mb-1">MEAL ALLOWANCE</div>
-                        <div className="text-xl font-bold">RM 0.00</div>
-                      </div>
-                      <div className="bg-white/20 p-3 rounded">
-                        <div className="text-xs text-teal-100 mb-1">PARKING CLAIM</div>
-                        <div className="text-xl font-bold">RM 0.00</div>
-                      </div>
-                      <div className="bg-white/20 p-3 rounded">
-                        <div className="text-xs text-teal-100 mb-1">PHONE BILL</div>
-                        <div className="text-xl font-bold">RM 0.00</div>
-                      </div>
-                      <div className="bg-white/20 p-3 rounded">
-                        <div className="text-xs text-teal-100 mb-1">TRAINING & DEV</div>
-                        <div className="text-xl font-bold">RM 0.00</div>
-                      </div>
+                      {isLoadingTotals ? (
+                        <div className="col-span-3 text-center text-white/80">Loading claim totals...</div>
+                      ) : userClaimTotals?.financial ? (
+                        Object.entries(userClaimTotals.financial).map(([policyName, data]: [string, any]) => (
+                          <div key={policyName} className="bg-white/20 p-3 rounded">
+                            <div className="text-xs text-teal-100 mb-1">{policyName}</div>
+                            <div className="text-xl font-bold">RM {data.total.toFixed(2)}</div>
+                            <div className="text-xs text-teal-100">
+                              {data.annualLimit === 'Unlimited' ? 'No Limit' : `Limit: RM ${parseFloat(data.annualLimit).toFixed(2)}`}
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="col-span-3 text-center text-white/80">No claim data available</div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -903,24 +916,33 @@ export default function ApplyClaimPage() {
                 
                 <div className="grid grid-cols-3 gap-4">
                   <div className="bg-white/20 p-4 rounded-lg text-center">
-                    <div className="text-xs text-teal-100 mb-1">DAYS TAKEN (AUG)</div>
-                    <div className="text-2xl font-bold">None</div>
+                    <div className="text-xs text-teal-100 mb-1">DAYS TAKEN (THIS MONTH)</div>
+                    <div className="text-2xl font-bold">
+                      {isLoadingTotals ? "Loading..." : userClaimTotals?.overtime?.daysThisMonth || 0}
+                    </div>
                     <div className="mt-2 flex justify-center">
                       <Calendar className="w-12 h-12 text-white/50" />
                     </div>
                   </div>
                   
                   <div className="bg-white/20 p-4 rounded-lg text-center">
-                    <div className="text-xs text-teal-100 mb-1">HOURS TAKEN (AUG)</div>
-                    <div className="text-2xl font-bold">None</div>
+                    <div className="text-xs text-teal-100 mb-1">HOURS TAKEN (THIS MONTH)</div>
+                    <div className="text-2xl font-bold">
+                      {isLoadingTotals ? "Loading..." : 
+                       userClaimTotals?.overtime?.hoursThisMonth ? 
+                       `${userClaimTotals.overtime.hoursThisMonth.toFixed(1)}h` : '0h'
+                      }
+                    </div>
                     <div className="mt-2 flex justify-center">
                       <Clock className="w-12 h-12 text-white/50" />
                     </div>
                   </div>
                   
                   <div className="bg-white/20 p-4 rounded-lg text-center">
-                    <div className="text-xs text-teal-100 mb-1">TOTAL AMOUNT</div>
-                    <div className="text-2xl font-bold">None</div>
+                    <div className="text-xs text-teal-100 mb-1">APPROVED CLAIMS</div>
+                    <div className="text-2xl font-bold">
+                      {isLoadingTotals ? "Loading..." : userClaimTotals?.overtime?.daysThisMonth || 0}
+                    </div>
                     <div className="mt-2 flex justify-center">
                       <Timer className="w-12 h-12 text-white/50" />
                     </div>
