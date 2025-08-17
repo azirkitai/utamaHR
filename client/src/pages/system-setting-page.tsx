@@ -1824,6 +1824,28 @@ export default function SystemSettingPage() {
 
   const handleSaveNewPolicy = () => {
     console.log("Save new policy:", { type: policyType, data: newPolicyForm });
+    
+    if (policyType === "financial") {
+      // Validate required fields
+      if (!newPolicyForm.claimName.trim()) {
+        alert("Sila masukkan nama claim.");
+        return;
+      }
+
+      // Prepare data for financial policy
+      const dataToSave: InsertFinancialClaimPolicy = {
+        claimName: newPolicyForm.claimName,
+        annualLimit: newPolicyForm.limitUnlimited ? null : Number(newPolicyForm.annualLimit) || 0,
+        annualLimitUnlimited: newPolicyForm.limitUnlimited,
+        limitPerApplication: newPolicyForm.limitPerAppUnlimited ? null : Number(newPolicyForm.limitPerApplication) || 0,
+        limitPerApplicationUnlimited: newPolicyForm.limitPerAppUnlimited,
+        excludedEmployeeIds: [],
+        claimRemark: newPolicyForm.claimRemark,
+      };
+
+      createFinancialPolicyMutation.mutate(dataToSave);
+    }
+    
     setShowCreatePolicyDialog(false);
   };
 
