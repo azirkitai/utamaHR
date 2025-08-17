@@ -783,10 +783,7 @@ export default function SystemSettingPage() {
   // Create financial policy mutation
   const createFinancialPolicyMutation = useMutation({
     mutationFn: async (data: InsertFinancialClaimPolicy) => {
-      return await apiRequest("/api/financial-claim-policies", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      return await apiRequest("POST", "/api/financial-claim-policies", data);
     },
     onSuccess: () => {
       toast({
@@ -808,10 +805,7 @@ export default function SystemSettingPage() {
   // Update financial policy mutation
   const updateFinancialPolicyMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<InsertFinancialClaimPolicy> }) => {
-      return await apiRequest(`/api/financial-claim-policies/${id}`, {
-        method: "PUT",
-        body: JSON.stringify(data),
-      });
+      return await apiRequest("PUT", `/api/financial-claim-policies/${id}`, data);
     },
     onSuccess: () => {
       toast({
@@ -833,11 +827,18 @@ export default function SystemSettingPage() {
   // Delete financial policy mutation
   const deleteFinancialPolicyMutation = useMutation({
     mutationFn: async (id: string) => {
-      return await apiRequest(`/api/financial-claim-policies/${id}`, {
-        method: "DELETE",
-      });
+      console.log('🔥 Starting delete mutation for ID:', id);
+      try {
+        const result = await apiRequest("DELETE", `/api/financial-claim-policies/${id}`);
+        console.log('✅ Delete API call successful:', result);
+        return result;
+      } catch (error) {
+        console.error('❌ Delete API call failed:', error);
+        throw error;
+      }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('🎉 Delete mutation successful:', data);
       toast({
         title: "Polisi claim dipadam",
         description: "Polisi claim kewangan berjaya dipadam dari sistem.",
@@ -845,11 +846,22 @@ export default function SystemSettingPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/financial-claim-policies"] });
       // Close expanded policy if it was deleted
       setExpandedFinancialPolicyId(null);
+      // Clean up form data for deleted policy
+      setFinancialPolicyForm(prev => {
+        const newForm = { ...prev };
+        Object.keys(newForm).forEach(key => {
+          if (key === data?.id || key === arguments[0]) {
+            delete newForm[key];
+          }
+        });
+        return newForm;
+      });
     },
     onError: (error) => {
+      console.error('💥 Delete mutation error:', error);
       toast({
         title: "Ralat",
-        description: "Gagal memadamkan polisi claim. Sila cuba lagi.",
+        description: `Gagal memadamkan polisi claim: ${error.message || 'Sila cuba lagi'}`,
         variant: "destructive",
       });
     },
