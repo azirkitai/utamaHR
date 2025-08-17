@@ -1,8 +1,9 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Sidebar } from "@/components/sidebar";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { 
@@ -24,6 +25,25 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, logoutMutation } = useAuth();
+
+  // Fetch current user's employee data for profile image
+  const { data: currentEmployee } = useQuery({
+    queryKey: ["/api/user/employee"],
+    queryFn: async () => {
+      const token = localStorage.getItem("utamahr_token");
+      if (!token) throw new Error("Token not found");
+      
+      const response = await fetch("/api/user/employee", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      if (!response.ok) throw new Error("Failed to fetch employee data");
+      return response.json();
+    },
+    enabled: !!user?.id,
+  });
 
   const handleToggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
@@ -138,8 +158,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 </div>
                 
                 <Avatar className="w-7 h-7 md:w-8 md:h-8">
+                  {currentEmployee?.profileImageUrl ? (
+                    <AvatarImage 
+                      src={currentEmployee.profileImageUrl} 
+                      alt={currentEmployee.fullName || user?.username || 'User'}
+                      className="object-cover"
+                    />
+                  ) : null}
                   <AvatarFallback className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white text-xs md:text-sm font-medium">
-                    {user?.username?.charAt(0).toUpperCase() || 'U'}
+                    {currentEmployee?.fullName?.charAt(0).toUpperCase() || user?.username?.charAt(0).toUpperCase() || 'U'}
                   </AvatarFallback>
                 </Avatar>
 

@@ -762,24 +762,7 @@ export default function DashboardHome() {
 
           {/* Right Sidebar */}
           <div className="space-y-6">
-            {/* Announcement */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-3">
-                <CardTitle className="text-lg text-gray-800">Announcement</CardTitle>
-                <Button variant="link" size="sm" className="text-cyan-600">See More</Button>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-2 h-2 bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 rounded-full"></div>
-                    <div>
-                      <div className="text-sm font-medium">31 Aug 2025</div>
-                      <div className="text-xs text-gray-600">WUJUD</div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            
 
             {/* Leave Calendar Widget */}
             <Card>
