@@ -120,6 +120,8 @@ export default function CalendarPage() {
   const [currentWeek, setCurrentWeek] = useState("Aug 4 – 10, 2025");
   const [selectedDateLeaves, setSelectedDateLeaves] = useState<LeaveApplication[]>([]);
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+  const [selectedHoliday, setSelectedHoliday] = useState<Holiday | null>(null);
+  const [isHolidayModalOpen, setIsHolidayModalOpen] = useState(false);
 
   // Fetch all leave applications for calendar display
   const { data: allLeaveApplications = [] } = useQuery<LeaveApplication[]>({
@@ -295,6 +297,12 @@ export default function CalendarPage() {
       setSelectedDateLeaves(leaves);
       setIsLeaveModalOpen(true);
     }
+  };
+
+  // Handle click on holiday
+  const handleHolidayClick = (holiday: Holiday) => {
+    setSelectedHoliday(holiday);
+    setIsHolidayModalOpen(true);
   };
 
   const generateCalendarDays = () => {
@@ -915,7 +923,11 @@ export default function CalendarPage() {
                                 
                                 {/* Show public holiday indicator */}
                                 {holiday && (
-                                  <div className="text-xs px-1 py-1 bg-red-100 text-red-800 rounded mb-1 truncate">
+                                  <div 
+                                    className="text-xs px-1 py-1 bg-red-100 text-red-800 rounded mb-1 truncate cursor-pointer hover:bg-red-200 transition-colors"
+                                    onClick={() => handleHolidayClick(holiday)}
+                                    title="Klik untuk melihat maklumat holiday"
+                                  >
                                     🏛️ {holiday.name}
                                   </div>
                                 )}
@@ -1020,15 +1032,80 @@ export default function CalendarPage() {
           </div>
         </div>
 
+        {/* Holiday Details Modal */}
+        <Dialog open={isHolidayModalOpen} onOpenChange={setIsHolidayModalOpen}>
+          <DialogContent className="max-w-lg" aria-describedby="holiday-details-description">
+            <DialogHeader>
+              <DialogTitle>Maklumat Cuti Umum</DialogTitle>
+            </DialogHeader>
+            <p id="holiday-details-description" className="sr-only">
+              Details about the selected public holiday.
+            </p>
+            
+            {selectedHoliday && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 p-4 bg-red-50 rounded-lg border border-red-200">
+                  <div className="text-2xl">🏛️</div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg text-red-800">{selectedHoliday.name}</h3>
+                    <p className="text-sm text-red-600">Cuti Umum</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Tarikh:</p>
+                    <p className="text-base">{selectedHoliday.date}</p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Status:</p>
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-red-100 text-red-800">
+                        Cuti Umum
+                      </Badge>
+                      {selectedHoliday.isPublic && (
+                        <Badge className="bg-green-100 text-green-800">
+                          Aktif
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <p className="text-sm text-blue-800">
+                      <strong>Nota:</strong> Ini adalah cuti umum yang ditetapkan oleh syarikat. 
+                      Semua kakitangan berhak mendapat cuti pada tarikh ini.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <DialogFooter>
+              <Button 
+                onClick={() => setIsHolidayModalOpen(false)}
+                className="bg-teal-600 hover:bg-teal-700 text-white"
+                data-testid="button-close-holiday-modal"
+              >
+                Tutup
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {/* Leave Details Modal */}
         <Dialog open={isLeaveModalOpen} onOpenChange={setIsLeaveModalOpen}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl" aria-describedby="leave-details-description">
             <DialogHeader>
               <DialogTitle>Maklumat Pengguna Yang Bercuti</DialogTitle>
-              <p className="text-sm text-gray-600">
-                Senarai pengguna yang mengambil cuti pada tarikh ini
-              </p>
             </DialogHeader>
+            <p id="leave-details-description" className="sr-only">
+              List of employees taking leave on this date.
+            </p>
+            <p className="text-sm text-gray-600">
+              Senarai pengguna yang mengambil cuti pada tarikh ini
+            </p>
             
             <div className="space-y-4 max-h-96 overflow-y-auto">
               {selectedDateLeaves.map((leave, index) => (
