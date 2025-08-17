@@ -419,9 +419,9 @@ export default function DashboardHome() {
         {/* Today Statistics - Only visible to privileged users */}
         {hasPrivilegedAccess && (
           <Card>
-            <CardHeader>
-              <CardTitle className="text-xl text-gray-800">Today Statistic</CardTitle>
-              <p className="text-sm text-gray-600">Here's your employee statistic so far.</p>
+            <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-t-lg">
+              <CardTitle className="text-xl font-semibold">Today Statistic</CardTitle>
+              <p className="text-sm text-gray-200">Here's your employee statistic so far.</p>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -556,9 +556,9 @@ export default function DashboardHome() {
         {/* Pending Approval - Only visible to privileged users */}
         {hasPrivilegedAccess && (
           <Card>
-            <CardHeader>
-            <CardTitle className="text-xl text-gray-800">Pending Approval</CardTitle>
-            <p className="text-sm text-gray-600">task(s) waiting for your action.</p>
+            <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-t-lg">
+            <CardTitle className="text-xl font-semibold">Pending Approval</CardTitle>
+            <p className="text-sm text-gray-200">task(s) waiting for your action.</p>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -672,17 +672,17 @@ export default function DashboardHome() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Team Calendar */}
           <Card className="lg:col-span-2">
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-t-lg flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="text-xl text-gray-800">Team Calendar</CardTitle>
-                <p className="text-sm text-gray-600">{currentMonthName} {currentYear}</p>
+                <CardTitle className="text-xl font-semibold">Team Calendar</CardTitle>
+                <p className="text-sm text-gray-200">{currentMonthName} {currentYear}</p>
               </div>
               <div className="flex gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => navigateMonth('prev')}
-                  className="p-2"
+                  className="p-2 border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
@@ -690,7 +690,7 @@ export default function DashboardHome() {
                   variant="outline"
                   size="sm"
                   onClick={() => navigateMonth('next')}
-                  className="p-2"
+                  className="p-2 border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </Button>
@@ -764,12 +764,12 @@ export default function DashboardHome() {
 
             {/* Leave Calendar Widget */}
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-3">
-                <CardTitle className="text-lg text-gray-800 flex items-center gap-2">
+              <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-t-lg flex flex-row items-center justify-between pb-3">
+                <CardTitle className="text-lg font-semibold flex items-center gap-2">
                   <Calendar className="w-5 h-5" />
                   Leave Calendar
                 </CardTitle>
-                <Button variant="link" size="sm" className="text-cyan-600">See More</Button>
+                <Button variant="link" size="sm" className="text-gray-200 hover:text-white">See More</Button>
               </CardHeader>
               <CardContent className="space-y-3">
                 {getUpcomingLeaveDates().length === 0 ? (
