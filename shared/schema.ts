@@ -567,6 +567,14 @@ export const overtimeSettings = pgTable('overtime_settings', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+// Financial Settings Table
+export const financialSettings = pgTable('financial_settings', {
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  cutoffDate: integer('cutoff_date').default(25).notNull(), // Day of month for claim submission cutoff
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 // Payroll Document Table (dokumen bulanan - level syarikat)
 export const payrollDocuments = pgTable('payroll_documents', {
   id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
@@ -1042,6 +1050,14 @@ export const insertOvertimeSettingSchema = createInsertSchema(overtimeSettings).
 });
 export const updateOvertimeSettingSchema = insertOvertimeSettingSchema.partial();
 
+// Financial Settings schemas
+export const insertFinancialSettingsSchema = createInsertSchema(financialSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const updateFinancialSettingsSchema = insertFinancialSettingsSchema.partial();
+
 // Payroll Document schemas
 export const insertPayrollDocumentSchema = createInsertSchema(payrollDocuments).omit({
   id: true,
@@ -1213,6 +1229,11 @@ export type UpdateOvertimePolicy = z.infer<typeof updateOvertimePolicySchema>;
 export type OvertimeSetting = typeof overtimeSettings.$inferSelect;
 export type InsertOvertimeSetting = z.infer<typeof insertOvertimeSettingSchema>;
 export type UpdateOvertimeSetting = z.infer<typeof updateOvertimeSettingSchema>;
+
+// Financial Settings types
+export type FinancialSetting = typeof financialSettings.$inferSelect;
+export type InsertFinancialSetting = z.infer<typeof insertFinancialSettingsSchema>;
+export type UpdateFinancialSetting = z.infer<typeof updateFinancialSettingsSchema>;
 
 // Payroll Document types
 export type PayrollDocument = typeof payrollDocuments.$inferSelect;

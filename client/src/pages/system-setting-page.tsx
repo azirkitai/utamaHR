@@ -1701,8 +1701,39 @@ export default function SystemSettingPage() {
 
 
 
-  const handleSaveFinancialSettings = () => {
+  const handleSaveFinancialSettings = async () => {
     console.log("Save financial settings:", financialSettings);
+    
+    try {
+      const token = localStorage.getItem("utamahr_token");
+      const response = await fetch("/api/financial-settings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          cutoffDate: parseInt(financialSettings.cutoffDate)
+        }),
+      });
+      
+      if (response.ok) {
+        toast({
+          title: "Tetapan kewangan disimpan",
+          description: `Tarikh tutup claim ditetapkan pada hari ke-${financialSettings.cutoffDate} setiap bulan.`,
+        });
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to save financial settings");
+      }
+    } catch (error) {
+      console.error("Error saving financial settings:", error);
+      toast({
+        title: "Ralat",
+        description: "Gagal menyimpan tetapan kewangan. Sila cuba lagi.",
+        variant: "destructive",
+      });
+    }
   };
 
 

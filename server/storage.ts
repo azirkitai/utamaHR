@@ -162,6 +162,11 @@ import {
   overtimeSettings,
   overtimePolicies,
   overtimeApprovalSettings,
+  // Financial Settings
+  financialSettings,
+  type FinancialSetting,
+  type InsertFinancialSetting,
+  type UpdateFinancialSetting,
   // Payroll types
   payrollDocuments,
   payrollItems,
@@ -1969,6 +1974,34 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // =================== FINANCIAL SETTINGS METHODS ===================
+  async getFinancialSettings(): Promise<FinancialSetting | undefined> {
+    const [settings] = await db.select().from(financialSettings).limit(1);
+    return settings || undefined;
+  }
+
+  async createOrUpdateFinancialSettings(data: InsertFinancialSetting): Promise<FinancialSetting> {
+    // Check if settings exist
+    const existing = await this.getFinancialSettings();
+    
+    if (existing) {
+      // Update existing
+      const [updated] = await db
+        .update(financialSettings)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(financialSettings.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      // Create new
+      const [created] = await db
+        .insert(financialSettings)
+        .values(data)
+        .returning();
+      return created;
+    }
+  }
+
   // =================== FINANCIAL CLAIM POLICY METHODS ===================
   async getAllFinancialClaimPolicies(): Promise<FinancialClaimPolicy[]> {
     return await db.select().from(financialClaimPolicies).where(eq(financialClaimPolicies.enabled, true));
@@ -2083,6 +2116,64 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Helper function to check if claim should move to next month based on cutoff date
+  private async shouldMoveToNextMonth(claimDate: Date): Promise<{ shouldMove: boolean; targetMonth: number; targetYear: number }> {
+    try {
+      // Get financial settings (cutoff date)
+      const financialSettings = await this.getFinancialSettings();
+      const cutoffDate = financialSettings?.cutoffDate || 25; // Default to 25th if not set
+      
+      const claimDay = claimDate.getDate();
+      const claimMonth = claimDate.getMonth(); // 0-based (Jan = 0)
+      const claimYear = claimDate.getFullYear();
+      
+      console.log(`=== CUT-OFF DATE CHECK ===`);
+      console.log(`Claim date: ${claimDate.toISOString()}`);
+      console.log(`Claim day: ${claimDay}`);
+      console.log(`Cut-off date setting: ${cutoffDate}`);
+      
+      if (claimDay > cutoffDate) {
+        // Move to next month's payment cycle
+        let targetMonth = claimMonth + 1;
+        let targetYear = claimYear;
+        
+        // Handle year rollover
+        if (targetMonth > 11) {
+          targetMonth = 0; // January
+          targetYear += 1;
+        }
+        
+        console.log(`Claim submitted after cutoff (${cutoffDate}). Moving to payment cycle: ${targetMonth + 1}/${targetYear}`);
+        console.log(`=== END CUT-OFF CHECK ===`);
+        
+        return {
+          shouldMove: true,
+          targetMonth: targetMonth + 1, // Convert back to 1-based for display
+          targetYear
+        };
+      }
+      
+      console.log(`Claim submitted before/on cutoff (${cutoffDate}). Current payment cycle: ${claimMonth + 1}/${claimYear}`);
+      console.log(`=== END CUT-OFF CHECK ===`);
+      
+      return {
+        shouldMove: false,
+        targetMonth: claimMonth + 1, // Convert to 1-based for display
+        targetYear: claimYear
+      };
+    } catch (error) {
+      console.error('Error checking cutoff date:', error);
+      // Default behavior if error: don't move to next month
+      const claimMonth = claimDate.getMonth();
+      const claimYear = claimDate.getFullYear();
+      return {
+        shouldMove: false,
+        targetMonth: claimMonth + 1,
+        targetYear: claimYear
+      };
+    }
+  }
+
   async createClaimApplication(application: InsertClaimApplication): Promise<ClaimApplication> {
     // If this is an overtime application, calculate the amount automatically
     if (application.claimCategory === 'overtime' && application.totalHours && application.employeeId) {
@@ -2091,9 +2182,27 @@ export class DatabaseStorage implements IStorage {
       application.calculatedAmount = calculatedAmount;
     }
 
+    // Check cutoff date logic and set appropriate payment cycle
+    const claimDate = new Date(application.claimDate);
+    const cutoffResult = await this.shouldMoveToNextMonth(claimDate);
+    
+    // Add payment cycle information to application remarks/notes
+    let updatedParticulars = application.particulars || '';
+    if (cutoffResult.shouldMove) {
+      updatedParticulars += `\n[SISTEM: Claim ini akan dibayar dalam kitaran pembayaran ${cutoffResult.targetMonth}/${cutoffResult.targetYear} kerana tarikh hantar melebihi cut-off.]`;
+    } else {
+      updatedParticulars += `\n[SISTEM: Claim ini akan dibayar dalam kitaran pembayaran semasa ${cutoffResult.targetMonth}/${cutoffResult.targetYear}.]`;
+    }
+
+    // Update the application with payment cycle info
+    const finalApplication = {
+      ...application,
+      particulars: updatedParticulars
+    };
+
     const [claimApp] = await db
       .insert(claimApplications)
-      .values(application)
+      .values(finalApplication)
       .returning();
     return claimApp;
   }

@@ -50,6 +50,8 @@ import {
   updateOvertimePolicySchema,
   insertOvertimeSettingSchema,
   updateOvertimeSettingSchema,
+  insertFinancialSettingsSchema,
+  updateFinancialSettingsSchema,
   insertPayrollDocumentSchema,
   updatePayrollDocumentSchema,
   insertPayrollItemSchema,
@@ -4555,6 +4557,29 @@ export function registerRoutes(app: Express): Server {
   });
 
   // =================== COMPANY SETTINGS ROUTES ===================
+  // Get financial settings
+  app.get("/api/financial-settings", authenticateToken, async (req, res) => {
+    try {
+      const settings = await storage.getFinancialSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching financial settings:", error);
+      res.status(500).json({ error: "Gagal mendapatkan tetapan kewangan" });
+    }
+  });
+
+  // Create or update financial settings (upsert)
+  app.post("/api/financial-settings", authenticateToken, async (req, res) => {
+    try {
+      const validatedData = insertFinancialSettingsSchema.parse(req.body);
+      const settings = await storage.createOrUpdateFinancialSettings(validatedData);
+      res.json(settings);
+    } catch (error) {
+      console.error("Error saving financial settings:", error);
+      res.status(500).json({ error: "Gagal menyimpan tetapan kewangan" });
+    }
+  });
+
   // Get company settings
   app.get("/api/company-settings", authenticateToken, async (req, res) => {
     try {
