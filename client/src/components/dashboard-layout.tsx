@@ -150,7 +150,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
               {/* User Menu */}
               <div className="flex items-center space-x-2 md:space-x-3 border-l border-gray-200 pl-2 md:pl-4">
-                <div className="text-right hidden md:block">
+                <div 
+                  className="text-right hidden md:block cursor-pointer hover:bg-gray-50 rounded px-2 py-1 transition-colors"
+                  onClick={() => {
+                    if (currentEmployee?.id) {
+                      window.location.href = `/employee-details/${currentEmployee.id}`;
+                    }
+                  }}
+                  data-testid="link-header-user-profile"
+                >
                   <div className="text-sm font-medium text-gray-900" data-testid="text-header-username">
                     {currentEmployee?.fullName || user?.username || 'UTAMA HR'}
                   </div>
@@ -159,7 +167,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   </div>
                 </div>
                 
-                <Avatar className="w-7 h-7 md:w-8 md:h-8">
+                <Avatar 
+                  className="w-7 h-7 md:w-8 md:h-8 cursor-pointer hover:ring-2 hover:ring-gray-300 transition-all"
+                  onClick={() => {
+                    if (currentEmployee?.id) {
+                      window.location.href = `/employee-details/${currentEmployee.id}`;
+                    }
+                  }}
+                  data-testid="avatar-header-user-profile"
+                >
                   {currentEmployee?.profileImageUrl ? (
                     <AvatarImage 
                       src={currentEmployee.profileImageUrl} 
