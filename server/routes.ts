@@ -2165,17 +2165,15 @@ export function registerRoutes(app: Express): Server {
       
       let claims;
       if (targetEmployeeId === undefined) {
-        // Fetch all claims for admin users
+        // Fetch all FINANCIAL claims for admin users (no month/year filter)
         claims = await storage.getAllClaimApplicationsWithDetails({
-          month: month ? Number(month) : undefined,
-          year: year ? Number(year) : undefined,
+          claimType: 'financial', // Force financial claims only
           status: status as string | undefined
         });
       } else {
-        // Fetch specific employee claims
+        // Fetch specific employee FINANCIAL claims (no month/year filter)
         claims = await storage.getClaimApplicationsByEmployee(targetEmployeeId, {
-          month: month ? Number(month) : undefined,
-          year: year ? Number(year) : undefined,
+          claimType: 'financial', // Force financial claims only
           status: status as string | undefined
         });
       }

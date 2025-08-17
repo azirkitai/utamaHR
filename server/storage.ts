@@ -3404,14 +3404,9 @@ export class DatabaseStorage implements IStorage {
 
   async getClaimApplicationsByEmployee(
     employeeId: string, 
-    filters?: { month?: number; year?: number; status?: string }
-  ): Promise<ClaimApplication[]> {
+    filters?: { month?: number; year?: number; status?: string; claimType?: string }
+  ): Promise<any[]> {
     try {
-      let query = db
-        .select()
-        .from(claimApplications)
-        .where(eq(claimApplications.employeeId, employeeId));
-
       const conditions = [eq(claimApplications.employeeId, employeeId)];
 
       if (filters?.month) {
@@ -3426,11 +3421,40 @@ export class DatabaseStorage implements IStorage {
         conditions.push(eq(claimApplications.status, filters.status));
       }
 
-      const result = await db
+      if (filters?.claimType) {
+        conditions.push(eq(claimApplications.claimType, filters.claimType));
+      }
+
+      // Use same approach as getAllClaimApplicationsWithDetails with employee join
+      const query = db
         .select()
         .from(claimApplications)
+        .leftJoin(employees, eq(claimApplications.employeeId, employees.id));
+
+      const rawResult = await query
         .where(and(...conditions))
         .orderBy(desc(claimApplications.dateSubmitted));
+
+      // Map the result with proper employee name mapping
+      const result = rawResult.map((row: any) => {
+        const claimApp = row.claim_applications || row;
+        const employee = row.employees || row;
+        
+        return {
+          id: claimApp.id,
+          employeeId: claimApp.employee_id || claimApp.employeeId,
+          claimType: claimApp.claim_type || claimApp.claimType,
+          claimCategory: claimApp.claim_category || claimApp.claimCategory,
+          status: claimApp.status,
+          amount: claimApp.amount,
+          particulars: claimApp.particulars,
+          supportingDocuments: claimApp.supporting_documents || claimApp.supportingDocuments || [],
+          claimDate: claimApp.claim_date || claimApp.claimDate ? new Date(claimApp.claim_date || claimApp.claimDate).toISOString() : null,
+          dateSubmitted: claimApp.date_submitted || claimApp.dateSubmitted ? new Date(claimApp.date_submitted || claimApp.dateSubmitted).toISOString() : null,
+          requestorName: employee.full_name || employee.fullName || 'Unknown Employee',
+          financialPolicyName: claimApp.financial_policy_name || claimApp.financialPolicyName || claimApp.claim_category || claimApp.claimCategory,
+        };
+      });
 
       return result;
     } catch (error) {
@@ -3441,7 +3465,7 @@ export class DatabaseStorage implements IStorage {
 
   // Get all claim applications with employee details (for admin users)
   async getAllClaimApplicationsWithDetails(
-    filters?: { month?: number; year?: number; status?: string }
+    filters?: { month?: number; year?: number; status?: string; claimType?: string }
   ): Promise<any[]> {
     try {
       const conditions = [];
@@ -3458,9 +3482,11 @@ export class DatabaseStorage implements IStorage {
         conditions.push(eq(claimApplications.status, filters.status));
       }
 
+      if (filters?.claimType) {
+        conditions.push(eq(claimApplications.claimType, filters.claimType));
+      }
+
       // Build the query without complex select mapping first
-      // Add filter for financial claims only
-      conditions.push(eq(claimApplications.claimType, 'financial'));
       
       let query = db
         .select()
@@ -3472,8 +3498,6 @@ export class DatabaseStorage implements IStorage {
         : await query.orderBy(desc(claimApplications.dateSubmitted));
 
       // Map the result manually to avoid Drizzle select issues
-      console.log('Raw result count:', rawResult.length);
-      console.log('First raw result:', JSON.stringify(rawResult[0], null, 2));
       
       const result = rawResult.map((row: any) => {
         // Handle both snake_case (direct DB) and camelCase (Drizzle) field names
