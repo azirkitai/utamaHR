@@ -2649,10 +2649,7 @@ export default function SystemSettingPage() {
           <div className="bg-white p-6 rounded-lg border space-y-4">
             <div>
               <h4 className="font-medium text-gray-900 mb-2">Monthly Cut-off Date for Claim Submission</h4>
-              <p className="text-sm text-gray-500 mb-4">
-                Here you can set the cut-off date for claim processing. After this date, any claims made will
-                fall into the next month payroll cycle.
-              </p>
+              <p className="text-sm text-gray-500 mb-4">Here you can set the cut-off date for claim processing. After this date, any claims made will fall into the next month payment cycle.</p>
               
               <div className="flex items-center space-x-2 max-w-md">
                 <Select 
