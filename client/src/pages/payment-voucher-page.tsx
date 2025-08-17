@@ -99,20 +99,28 @@ export default function PaymentVoucherPage() {
       console.error('Error message:', error?.message);
       console.error('Error string:', error?.toString?.());
       
-      // Check if it's an empty error object (common with successful requests)
-      if (!error || Object.keys(error).length === 0 || error === null || error === undefined) {
-        console.log('Empty error object detected - likely a successful request misidentified as error');
-        return; // Don't show any error toast for empty errors
-      }
+      // Get error message safely first
+      const errorMessage = error?.message || error?.toString?.() || JSON.stringify(error) || 'Unknown error';
 
-      // Check if this is actually a successful request misidentified as error
-      if (errorMessage.includes('Cannot read properties of undefined')) {
-        console.log('JavaScript runtime error detected - not a network/API error');
-        return; // Don't show error toast for JS runtime errors during successful operations
+      // Check if this is a conflict error (has meaningful message) - ALWAYS SHOW THESE
+      if (errorMessage.includes('CONFLICT_EXISTING_VOUCHERS') || errorMessage.includes('409:')) {
+        // This is a valid conflict error - process it regardless of empty keys
+        console.log('Conflict error detected - showing to user');
+      } else {
+        // Check if it's an empty error object (common with successful requests)
+        if (!error || Object.keys(error).length === 0 || error === null || error === undefined) {
+          console.log('Empty error object detected - likely a successful request misidentified as error');
+          return; // Don't show any error toast for empty errors
+        }
+
+        // Check if this is actually a successful request misidentified as error
+        if (errorMessage.includes('Cannot read properties of undefined')) {
+          console.log('JavaScript runtime error detected - not a network/API error');
+          return; // Don't show error toast for JS runtime errors during successful operations
+        }
       }
       
-      // Get error message safely
-      const errorMessage = error?.message || error?.toString?.() || JSON.stringify(error) || 'Unknown error';
+      // Error message already extracted above
       
       // Handle conflict error (existing vouchers)
       if (errorMessage.includes('CONFLICT_EXISTING_VOUCHERS') || errorMessage.includes('409:')) {
