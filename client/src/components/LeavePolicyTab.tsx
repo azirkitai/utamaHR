@@ -30,6 +30,30 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Fetch current logged-in user data for role-based access control
+  const { data: currentUser } = useQuery({
+    queryKey: ["/api/user"],
+  });
+
+  // Fetch current user's employee data to get role
+  const { data: currentUserEmployee } = useQuery({
+    queryKey: ["/api/user/employee"],
+    enabled: !!currentUser?.id,
+  });
+
+  // Check if current logged-in user has privileged access (Super Admin, Admin, HR Manager only)
+  const hasPrivilegedAccess = () => {
+    const currentUserRole = currentUserEmployee?.role || currentUser?.role;
+    const privilegedRoles = ['Super Admin', 'Admin', 'HR Manager'];
+    const hasAccess = privilegedRoles.includes(currentUserRole);
+    
+    // Debug logging
+    console.log("Current user role (LeavePolicyTab):", currentUserRole);
+    console.log("Has privileged access (LeavePolicyTab):", hasAccess);
+    
+    return hasAccess;
+  };
+
   // Fetch leave policies data
   const { data: leavePolicies = [], isLoading } = useQuery<LeavePolicy[]>({
     queryKey: ["/api/leave-policies", employeeId],
@@ -266,11 +290,16 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
                               <Switch
                                 checked={policy.included || false}
                                 onCheckedChange={(checked) => handleStatusToggle(policy.id, checked)}
-                                disabled={updateStatusMutation.isPending || !isAccessible}
+                                disabled={updateStatusMutation.isPending || !isAccessible || !hasPrivilegedAccess()}
                                 data-testid={`switch-included-${policy.id}`}
                               />
-                              <span className={`ml-2 text-sm ${isAccessible ? 'text-gray-600' : 'text-gray-400'}`}>
-                                {isAccessible ? (policy.included ? "Yes" : "No") : "Restricted"}
+                              <span className={`ml-2 text-sm ${isAccessible && hasPrivilegedAccess() ? 'text-gray-600' : 'text-gray-400'}`}>
+                                {!hasPrivilegedAccess() 
+                                  ? "Access Restricted" 
+                                  : isAccessible 
+                                    ? (policy.included ? "Yes" : "No") 
+                                    : "Restricted"
+                                }
                               </span>
                             </div>
                           </td>
