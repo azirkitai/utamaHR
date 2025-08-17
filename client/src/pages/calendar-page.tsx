@@ -628,7 +628,7 @@ export default function CalendarPage() {
                                       onClick={handleSaveInlineHoliday}
                                       disabled={!newHolidayName || !newHolidayDate}
                                       size="sm"
-                                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                                      className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700 text-white"
                                       data-testid="button-save-inline-holiday"
                                     >
                                       <Save className="w-4 h-4" />
@@ -1236,7 +1236,7 @@ export default function CalendarPage() {
             <DialogFooter>
               <Button 
                 onClick={() => setIsHolidayModalOpen(false)}
-                className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700 text-white"
                 data-testid="button-close-holiday-modal"
               >
                 Tutup
@@ -1319,7 +1319,7 @@ export default function CalendarPage() {
             <DialogFooter>
               <Button 
                 onClick={() => setIsLeaveModalOpen(false)}
-                className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700 text-white"
               >
                 Tutup
               </Button>

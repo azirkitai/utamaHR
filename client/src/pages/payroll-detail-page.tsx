@@ -156,7 +156,7 @@ function SalaryPayrollApprovalCard({ payrollDocument, currentUser }: { payrollDo
 
   return (
     <div className="bg-white border rounded-lg shadow-sm mt-6">
-      <div className="p-4 border-b bg-gradient-to-r from-cyan-600 to-cyan-600 text-white rounded-t-lg">
+      <div className="p-4 border-b bg-gradient-to-r from-slate-900 to-cyan-800 text-white rounded-t-lg">
         <h3 className="text-lg font-semibold">Salary Payroll Approval</h3>
       </div>
       

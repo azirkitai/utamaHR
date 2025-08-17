@@ -95,7 +95,7 @@ export default function PerformanceEvaluationPage() {
                   <span>In Development</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                  <div className="w-3 h-3 bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 rounded-full"></div>
                   <span>Design Phase</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">

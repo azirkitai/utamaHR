@@ -384,7 +384,7 @@ export default function ApplyLeavePage() {
                             : "text-gray-400",
                           // Highlight start and end dates
                           isStartOrEndDate(dateInfo)
-                            ? "bg-blue-600 text-white"
+                            ? "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white"
                             : "",
                           // Highlight dates in range with lighter blue
                           isDateInRange(dateInfo) && !isStartOrEndDate(dateInfo)

@@ -89,7 +89,7 @@ export default function TimeoffApprovalPage() {
     <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6">
       <Button
         variant={activeTab === "approval" ? "default" : "ghost"}
-        className={`flex-1 ${activeTab === "approval" ? "bg-cyan-600 text-white" : "text-gray-600"}`}
+        className={`flex-1 ${activeTab === "approval" ? "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white" : "text-gray-600"}`}
         onClick={() => setActiveTab("approval")}
         data-testid="tab-timeoff-approval"
       >
@@ -97,7 +97,7 @@ export default function TimeoffApprovalPage() {
       </Button>
       <Button
         variant={activeTab === "report" ? "default" : "ghost"}
-        className={`flex-1 ${activeTab === "report" ? "bg-cyan-600 text-white" : "text-gray-600"}`}
+        className={`flex-1 ${activeTab === "report" ? "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white" : "text-gray-600"}`}
         onClick={() => setActiveTab("report")}
         data-testid="tab-timeoff-report"
       >
@@ -105,7 +105,7 @@ export default function TimeoffApprovalPage() {
       </Button>
       <Button
         variant={activeTab === "summary" ? "default" : "ghost"}
-        className={`flex-1 ${activeTab === "summary" ? "bg-cyan-600 text-white" : "text-gray-600"}`}
+        className={`flex-1 ${activeTab === "summary" ? "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white" : "text-gray-600"}`}
         onClick={() => setActiveTab("summary")}
         data-testid="tab-timeoff-summary"
       >
@@ -116,7 +116,7 @@ export default function TimeoffApprovalPage() {
 
   const renderApprovalTab = () => (
     <div className="space-y-6">
-      <div className="bg-cyan-600 text-white p-4 rounded-lg">
+      <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-4 rounded-lg">
         <h3 className="text-lg font-semibold">Timeoff Applications</h3>
       </div>
 
@@ -239,7 +239,7 @@ export default function TimeoffApprovalPage() {
 
   const renderReportTab = () => (
     <div className="space-y-6">
-      <div className="bg-cyan-600 text-white p-4 rounded-lg">
+      <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-4 rounded-lg">
         <h3 className="text-lg font-semibold">Timeoff Application Report</h3>
       </div>
 
@@ -294,7 +294,7 @@ export default function TimeoffApprovalPage() {
 
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-2">
-          <Button className="bg-blue-600 hover:bg-blue-700" data-testid="button-filter">
+          <Button className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700" data-testid="button-filter">
             <Filter className="w-4 h-4" />
           </Button>
           <Button variant="outline" data-testid="button-reset-filter">
@@ -360,7 +360,7 @@ export default function TimeoffApprovalPage() {
 
   const renderSummaryTab = () => (
     <div className="space-y-6">
-      <div className="bg-cyan-600 text-white p-4 rounded-lg">
+      <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-4 rounded-lg">
         <h3 className="text-lg font-semibold">Timeoff Application Summary</h3>
       </div>
 
@@ -380,7 +380,7 @@ export default function TimeoffApprovalPage() {
           </Select>
         </div>
         <div className="flex items-end space-x-2">
-          <Button className="bg-blue-600 hover:bg-blue-700" data-testid="button-filter-summary">
+          <Button className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700" data-testid="button-filter-summary">
             <Filter className="w-4 h-4" />
           </Button>
           <Button variant="outline" data-testid="button-reset-filter-summary">
@@ -435,7 +435,7 @@ export default function TimeoffApprovalPage() {
           <Button variant="outline" disabled data-testid="button-previous-summary">
             Previous
           </Button>
-          <Button variant="outline" className="bg-blue-600 text-white" data-testid="button-page-1">
+          <Button variant="outline" className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white" data-testid="button-page-1">
             1
           </Button>
           <Button variant="outline" disabled data-testid="button-next-summary">

@@ -440,7 +440,7 @@ export default function MyRecordPage() {
         </div>
 
         <div className="flex gap-2">
-          <Button className="bg-blue-600 hover:bg-blue-700" data-testid="button-search">
+          <Button className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700" data-testid="button-search">
             <Search className="h-4 w-4 mr-2" />
             Search
           </Button>
@@ -645,7 +645,7 @@ export default function MyRecordPage() {
         </div>
 
         <div className="flex gap-2">
-          <Button className="bg-blue-600 hover:bg-blue-700" data-testid="button-claim-search">
+          <Button className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700" data-testid="button-claim-search">
             <Search className="h-4 w-4 mr-2" />
             Search
           </Button>
@@ -858,7 +858,7 @@ export default function MyRecordPage() {
         </div>
 
         <div className="flex gap-2">
-          <Button className="bg-blue-600 hover:bg-blue-700" data-testid="button-overtime-search">
+          <Button className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700" data-testid="button-overtime-search">
             <Search className="h-4 w-4 mr-2" />
             Search
           </Button>
@@ -976,7 +976,7 @@ export default function MyRecordPage() {
 
         <div className="flex gap-2">
           <Button 
-            className="bg-blue-600 hover:bg-blue-700" 
+            className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700" 
             onClick={() => {
               // Trigger refetch with current date filter
               console.log('Search clicked - refetching with current date range');
@@ -1349,7 +1349,7 @@ export default function MyRecordPage() {
             <Button variant="outline" size="sm" disabled data-testid="button-yearly-previous">
               Previous
             </Button>
-            <Button variant="outline" size="sm" className="bg-blue-600 text-white" data-testid="button-yearly-current">
+            <Button variant="outline" size="sm" className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white" data-testid="button-yearly-current">
               1
             </Button>
             <Button variant="outline" size="sm" disabled data-testid="button-yearly-next">

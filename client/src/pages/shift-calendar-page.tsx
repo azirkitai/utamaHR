@@ -108,7 +108,7 @@ export default function ShiftCalendarPage() {
       );
     }
     return (
-      <div className="px-2 py-1 text-xs text-center bg-blue-600 text-white rounded">
+      <div className="px-2 py-1 text-xs text-center bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded">
         {shift.label}
       </div>
     );
@@ -253,7 +253,7 @@ export default function ShiftCalendarPage() {
         {/* Legend */}
         <div className="flex items-center space-x-6 text-sm">
           <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-blue-600 rounded"></div>
+            <div className="w-4 h-4 bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 rounded"></div>
             <span className="text-gray-600">Default Shift</span>
           </div>
           <div className="flex items-center space-x-2">

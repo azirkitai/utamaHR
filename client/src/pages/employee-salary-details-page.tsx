@@ -4703,7 +4703,7 @@ export default function EmployeeSalaryDetailsPage() {
                       <div className="flex gap-2">
                         <Button
                           size="sm"
-                          className="bg-blue-600 hover:bg-blue-700 text-white"
+                          className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700 text-white"
                           disabled={!selectedReliefCode || !reliefAmount}
                           onClick={handleAddReliefItem}
                           data-testid="btn-add-pcb39-relief-confirm"
@@ -4808,7 +4808,7 @@ export default function EmployeeSalaryDetailsPage() {
                       <div className="flex gap-2">
                         <Button
                           size="sm"
-                          className="bg-blue-600 hover:bg-blue-700 text-white"
+                          className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700 text-white"
                           disabled={!selectedRebateCode || !rebateAmount}
                           onClick={handleAddRebateItem}
                           data-testid="btn-add-pcb39-rebate-confirm"

@@ -313,7 +313,7 @@ export default function PaymentVoucherPage() {
             <TabsList className="grid w-auto grid-cols-1 bg-gray-100">
               <TabsTrigger 
                 value="payment-voucher-list" 
-                className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white px-4"
+                className="data-[state=active]:bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 data-[state=active]:text-white px-4"
                 data-testid="tab-payment-voucher-list"
               >
                 Payment Voucher List
@@ -333,7 +333,7 @@ export default function PaymentVoucherPage() {
 
           {/* Payment Voucher List Tab */}
           <TabsContent value="payment-voucher-list" className="space-y-6">
-            <div className="bg-gradient-to-r from-cyan-600 to-cyan-600 text-white p-4 rounded-lg">
+            <div className="bg-gradient-to-r from-slate-900 to-cyan-800 text-white p-4 rounded-lg">
               <h3 className="text-lg font-semibold">Payment Voucher List</h3>
             </div>
 

@@ -78,7 +78,7 @@ export default function AttendanceTimesheetPage() {
     <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6">
       <Button
         variant={activeTab === "today" ? "default" : "ghost"}
-        className={`flex-1 ${activeTab === "today" ? "bg-cyan-600 text-white" : "text-gray-600"}`}
+        className={`flex-1 ${activeTab === "today" ? "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white" : "text-gray-600"}`}
         onClick={() => setActiveTab("today")}
         data-testid="tab-today-attendance"
       >
@@ -86,7 +86,7 @@ export default function AttendanceTimesheetPage() {
       </Button>
       <Button
         variant={activeTab === "report" ? "default" : "ghost"}
-        className={`flex-1 ${activeTab === "report" ? "bg-cyan-600 text-white" : "text-gray-600"}`}
+        className={`flex-1 ${activeTab === "report" ? "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white" : "text-gray-600"}`}
         onClick={() => setActiveTab("report")}
         data-testid="tab-attendance-report"
       >
@@ -94,7 +94,7 @@ export default function AttendanceTimesheetPage() {
       </Button>
       <Button
         variant={activeTab === "summary" ? "default" : "ghost"}
-        className={`flex-1 ${activeTab === "summary" ? "bg-cyan-600 text-white" : "text-gray-600"}`}
+        className={`flex-1 ${activeTab === "summary" ? "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white" : "text-gray-600"}`}
         onClick={() => setActiveTab("summary")}
         data-testid="tab-attendance-summary"
       >
@@ -202,7 +202,7 @@ export default function AttendanceTimesheetPage() {
             variant={showPicture ? "default" : "outline"}
             size="sm"
             onClick={() => setShowPicture(!showPicture)}
-            className={showPicture ? "bg-blue-600 text-white" : ""}
+            className={showPicture ? "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white" : ""}
             data-testid="toggle-show-picture"
           >
             Show Picture
@@ -211,7 +211,7 @@ export default function AttendanceTimesheetPage() {
             variant={showNote ? "default" : "outline"}
             size="sm"
             onClick={() => setShowNote(!showNote)}
-            className={showNote ? "bg-blue-600 text-white" : ""}
+            className={showNote ? "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white" : ""}
             data-testid="toggle-show-note"
           >
             Show Note
@@ -270,7 +270,7 @@ export default function AttendanceTimesheetPage() {
 
   const renderReportTab = () => (
     <div className="space-y-6">
-      <div className="bg-cyan-600 text-white p-4 rounded-lg">
+      <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-4 rounded-lg">
         <h3 className="text-lg font-semibold">Attendance Report</h3>
       </div>
 
@@ -324,7 +324,7 @@ export default function AttendanceTimesheetPage() {
 
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-2">
-          <Button className="bg-blue-600 hover:bg-blue-700" data-testid="button-filter">
+          <Button className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700" data-testid="button-filter">
             <Filter className="w-4 h-4" />
           </Button>
           <Button variant="outline" data-testid="button-reset-filter">
@@ -337,7 +337,7 @@ export default function AttendanceTimesheetPage() {
             variant={showPicture ? "default" : "outline"}
             size="sm"
             onClick={() => setShowPicture(!showPicture)}
-            className={showPicture ? "bg-blue-600 text-white" : ""}
+            className={showPicture ? "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white" : ""}
             data-testid="toggle-show-picture-report"
           >
             Show Picture
@@ -346,7 +346,7 @@ export default function AttendanceTimesheetPage() {
             variant={showNote ? "default" : "outline"}
             size="sm"
             onClick={() => setShowNote(!showNote)}
-            className={showNote ? "bg-blue-600 text-white" : ""}
+            className={showNote ? "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white" : ""}
             data-testid="toggle-show-note-report"
           >
             Show Note
@@ -396,7 +396,7 @@ export default function AttendanceTimesheetPage() {
 
   const renderSummaryTab = () => (
     <div className="space-y-6">
-      <div className="bg-cyan-600 text-white p-4 rounded-lg">
+      <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-4 rounded-lg">
         <h3 className="text-lg font-semibold">Attendance Summary</h3>
       </div>
 
@@ -435,7 +435,7 @@ export default function AttendanceTimesheetPage() {
       </div>
 
       <div className="flex justify-start items-center space-x-2">
-        <Button className="bg-blue-600 hover:bg-blue-700" data-testid="button-filter-summary">
+        <Button className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700" data-testid="button-filter-summary">
           <Filter className="w-4 h-4" />
         </Button>
         <Button variant="outline" data-testid="button-reset-filter-summary">
@@ -491,7 +491,7 @@ export default function AttendanceTimesheetPage() {
           <Button variant="outline" disabled data-testid="button-previous-summary">
             Previous
           </Button>
-          <Button variant="outline" className="bg-blue-600 text-white" data-testid="button-page-1">
+          <Button variant="outline" className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white" data-testid="button-page-1">
             1
           </Button>
           <Button variant="outline" disabled data-testid="button-next-summary">
@@ -540,7 +540,7 @@ export default function AttendanceTimesheetPage() {
             <h1 className="text-3xl font-bold text-gray-900">{getPageTitle()}</h1>
           </div>
           <Button 
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700 text-white"
             data-testid="button-create-attendance"
           >
             Create Attendance

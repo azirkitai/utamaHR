@@ -708,7 +708,7 @@ export default function DashboardHome() {
                         <div className={`w-3 h-3 rounded-full ${
                           leave.status === 'Approved' ? 'bg-green-500' :
                           leave.status === 'Pending' ? 'bg-yellow-500' :
-                          leave.status === 'First Level Approved' ? 'bg-blue-500' :
+                          leave.status === 'First Level Approved' ? 'bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800' :
                           'bg-red-500'
                         }`}></div>
                         <div className="flex-1">

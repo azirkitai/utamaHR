@@ -265,7 +265,7 @@ export default function QRClockInPage() {
             <CardContent>
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                  <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-full flex items-center justify-center text-sm font-bold">
                     1
                   </div>
                   <div>
@@ -275,7 +275,7 @@ export default function QRClockInPage() {
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                  <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-full flex items-center justify-center text-sm font-bold">
                     2
                   </div>
                   <div>
@@ -285,7 +285,7 @@ export default function QRClockInPage() {
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                  <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-full flex items-center justify-center text-sm font-bold">
                     3
                   </div>
                   <div>
@@ -295,7 +295,7 @@ export default function QRClockInPage() {
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                  <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-full flex items-center justify-center text-sm font-bold">
                     4
                   </div>
                   <div>

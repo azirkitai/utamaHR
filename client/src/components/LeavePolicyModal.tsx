@@ -286,7 +286,7 @@ export function LeavePolicyModal({
               </Button>
               <Button
                 type="submit"
-                className="bg-cyan-600 hover:bg-cyan-700"
+                className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
                 disabled={saveLeavePolicyMutation.isPending}
                 data-testid="button-save-leave-policy"
               >

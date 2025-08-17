@@ -179,7 +179,7 @@ function PaymentVoucherApprovalCard({ voucher, currentUser }: { voucher: any; cu
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full bg-blue-500 flex items-center justify-center text-white font-semibold">
+                    <div className="w-full h-full bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 flex items-center justify-center text-white font-semibold">
                       {(firstLevelApprover as any)?.fullName?.charAt(0)?.toUpperCase() || 'A'}
                     </div>
                   )}
@@ -202,7 +202,7 @@ function PaymentVoucherApprovalCard({ voucher, currentUser }: { voucher: any; cu
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full bg-blue-500 flex items-center justify-center text-white font-semibold">
+                    <div className="w-full h-full bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 flex items-center justify-center text-white font-semibold">
                       {(secondLevelApprover as any)?.fullName?.charAt(0)?.toUpperCase() || 'A'}
                     </div>
                   )}
@@ -822,7 +822,7 @@ export default function VoucherDetailsPage() {
                   <Button
                     onClick={() => submitVoucherMutation.mutate(voucher.id)}
                     disabled={submitVoucherMutation.isPending || voucher.status === 'Submitted' || voucher.status === 'Approved'}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+                    className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700 text-white px-6"
                     data-testid="button-submit-voucher"
                   >
                     <Send className="w-4 h-4 mr-2" />

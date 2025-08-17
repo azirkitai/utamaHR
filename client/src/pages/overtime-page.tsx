@@ -88,7 +88,7 @@ export default function OvertimePage() {
         </div>
 
         {/* Attendance Overtime Header */}
-        <div className="bg-gradient-to-r from-cyan-600 to-cyan-600 text-white p-4 rounded-lg">
+        <div className="bg-gradient-to-r from-slate-900 to-cyan-800 text-white p-4 rounded-lg">
           <h3 className="text-lg font-semibold">Attendance Overtime</h3>
         </div>
 
@@ -169,7 +169,7 @@ export default function OvertimePage() {
             <Button 
               variant="default" 
               size="sm"
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700 text-white"
               data-testid="button-search"
             >
               <Search className="w-4 h-4" />
@@ -295,7 +295,7 @@ export default function OvertimePage() {
               <Button
                 variant="outline"
                 size="sm"
-                className={currentPage === 1 ? "bg-blue-600 text-white" : ""}
+                className={currentPage === 1 ? "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white" : ""}
                 data-testid="page-1"
               >
                 1

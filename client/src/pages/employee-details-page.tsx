@@ -598,7 +598,7 @@ export default function EmployeeDetailsPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="bg-blue-600 text-white hover:bg-blue-700"
+                className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
                 data-testid="button-print"
               >
                 <Printer className="w-4 h-4 mr-2" />
@@ -607,7 +607,7 @@ export default function EmployeeDetailsPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="bg-blue-600 text-white hover:bg-blue-700"
+                className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
                 data-testid="button-change-password"
               >
                 Change Password
@@ -1093,7 +1093,7 @@ export default function EmployeeDetailsPage() {
                           <Button
                             onClick={handleSavePersonalDetails}
                             disabled={updateEmployeeMutation.isPending}
-                            className="bg-cyan-600 hover:bg-cyan-700"
+                            className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
                             data-testid="button-save-personal"
                           >
                             {updateEmployeeMutation.isPending ? "Saving..." : "Save Changes"}
@@ -1204,7 +1204,7 @@ export default function EmployeeDetailsPage() {
                           <Button
                             onClick={handleSaveDrivingLicense}
                             disabled={updateEmployeeMutation.isPending}
-                            className="bg-cyan-600 hover:bg-cyan-700"
+                            className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
                             data-testid="button-save-driving"
                           >
                             {updateEmployeeMutation.isPending ? "Saving..." : "Save Changes"}
@@ -1291,7 +1291,7 @@ export default function EmployeeDetailsPage() {
                                 type="submit"
                                 onClick={handleAddWorkExperience}
                                 disabled={createWorkExperienceMutation.isPending}
-                                className="bg-cyan-600 hover:bg-cyan-700"
+                                className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
                               >
                                 {createWorkExperienceMutation.isPending ? "Adding..." : "Add Experience"}
                               </Button>
@@ -1595,7 +1595,7 @@ export default function EmployeeDetailsPage() {
                             Cancel
                           </Button>
                           <Button
-                            className="bg-cyan-600 hover:bg-cyan-700"
+                            className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
                             onClick={() => updateEmploymentMutation.mutate(employmentForm)}
                             disabled={updateEmploymentMutation.isPending}
                             data-testid="button-save-employment"
@@ -1820,7 +1820,7 @@ export default function EmployeeDetailsPage() {
                             Cancel
                           </Button>
                           <Button
-                            className="bg-cyan-600 hover:bg-cyan-700"
+                            className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
                             onClick={() => updateEmploymentMutation.mutate(employmentForm)}
                             disabled={updateEmploymentMutation.isPending}
                             data-testid="button-save-approval"
@@ -1889,7 +1889,7 @@ export default function EmployeeDetailsPage() {
                             Cancel
                           </Button>
                           <Button
-                            className="bg-cyan-600 hover:bg-cyan-700"
+                            className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
                             onClick={() => updateEmploymentMutation.mutate(employmentForm)}
                             disabled={updateEmploymentMutation.isPending}
                             data-testid="button-save-yearly"
@@ -2103,7 +2103,7 @@ export default function EmployeeDetailsPage() {
                           <Button
                             onClick={handleSaveContact}
                             disabled={updateContactMutation.isPending}
-                            className="bg-cyan-600 hover:bg-cyan-700"
+                            className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
                             data-testid="button-save-contact"
                           >
                             {updateContactMutation.isPending ? "Saving..." : "Save Changes"}
@@ -2293,7 +2293,7 @@ export default function EmployeeDetailsPage() {
                               <Button
                                 onClick={handleAddFamily}
                                 disabled={createFamilyMutation.isPending}
-                                className="bg-cyan-600 hover:bg-cyan-700"
+                                className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
                               >
                                 {createFamilyMutation.isPending ? "Saving..." : "Save"}
                               </Button>
@@ -2516,7 +2516,7 @@ export default function EmployeeDetailsPage() {
                             Cancel
                           </Button>
                           <Button
-                            className="bg-cyan-600 hover:bg-cyan-700"
+                            className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
                             data-testid="button-save-bank-details"
                           >
                             Save Changes
@@ -2710,7 +2710,7 @@ export default function EmployeeDetailsPage() {
                             Cancel
                           </Button>
                           <Button
-                            className="bg-cyan-600 hover:bg-cyan-700"
+                            className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
                             data-testid="button-save-statutory-details"
                           >
                             Save Changes
@@ -2877,7 +2877,7 @@ export default function EmployeeDetailsPage() {
                             Cancel
                           </Button>
                           <Button
-                            className="bg-cyan-600 hover:bg-cyan-700"
+                            className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
                             data-testid="button-save-income-tax-details"
                           >
                             Save Changes

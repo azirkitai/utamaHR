@@ -816,7 +816,7 @@ export default function ClaimApprovalPage() {
     <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6">
       <Button
         variant={activeTab === "approval" ? "default" : "ghost"}
-        className={`flex-1 ${activeTab === "approval" ? "bg-cyan-600 text-white" : "text-gray-600"}`}
+        className={`flex-1 ${activeTab === "approval" ? "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white" : "text-gray-600"}`}
         onClick={() => setActiveTab("approval")}
         data-testid="tab-claim-approval"
       >
@@ -824,7 +824,7 @@ export default function ClaimApprovalPage() {
       </Button>
       <Button
         variant={activeTab === "report" ? "default" : "ghost"}
-        className={`flex-1 ${activeTab === "report" ? "bg-cyan-600 text-white" : "text-gray-600"}`}
+        className={`flex-1 ${activeTab === "report" ? "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white" : "text-gray-600"}`}
         onClick={() => setActiveTab("report")}
         data-testid="tab-claim-report"
       >
@@ -832,7 +832,7 @@ export default function ClaimApprovalPage() {
       </Button>
       <Button
         variant={activeTab === "summary" ? "default" : "ghost"}
-        className={`flex-1 ${activeTab === "summary" ? "bg-cyan-600 text-white" : "text-gray-600"}`}
+        className={`flex-1 ${activeTab === "summary" ? "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white" : "text-gray-600"}`}
         onClick={() => setActiveTab("summary")}
         data-testid="tab-claim-summary"
       >
@@ -845,7 +845,7 @@ export default function ClaimApprovalPage() {
     
     return (
       <div className="space-y-6">
-        <div className="bg-cyan-600 text-white p-4 rounded-lg">
+        <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-4 rounded-lg">
           <h3 className="text-lg font-semibold">
             {selectedCategory === "financial" ? "Claim Applications" : "Claim Applications"}
           </h3>
@@ -1113,7 +1113,7 @@ export default function ClaimApprovalPage() {
 
   const renderReportTab = () => (
     <div className="space-y-6">
-      <div className="bg-cyan-600 text-white p-4 rounded-lg">
+      <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-4 rounded-lg">
         <h3 className="text-lg font-semibold">
           {selectedCategory === "financial" ? "Claim Application Report" : "Claim Application Report"}
         </h3>
@@ -1306,7 +1306,7 @@ export default function ClaimApprovalPage() {
             <Button variant="outline" disabled data-testid="button-previous-report">
               Previous
             </Button>
-            <Button variant="outline" className="bg-blue-600 text-white" data-testid="button-page-1">
+            <Button variant="outline" className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white" data-testid="button-page-1">
               1
             </Button>
             <Button variant="outline" disabled data-testid="button-next-report">
@@ -1320,7 +1320,7 @@ export default function ClaimApprovalPage() {
 
   const renderSummaryTab = () => (
     <div className="space-y-6">
-      <div className="bg-cyan-600 text-white p-4 rounded-lg">
+      <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-4 rounded-lg">
         <h3 className="text-lg font-semibold">
           {selectedCategory === "financial" ? "Claim Application Summary" : "Overtime Application Summary"}
         </h3>
@@ -1461,7 +1461,7 @@ export default function ClaimApprovalPage() {
             <Button variant="outline" disabled data-testid="button-previous-summary">
               Previous
             </Button>
-            <Button variant="outline" className="bg-blue-600 text-white" data-testid="button-page-1">
+            <Button variant="outline" className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white" data-testid="button-page-1">
               1
             </Button>
             <Button variant="outline" disabled data-testid="button-next-summary">

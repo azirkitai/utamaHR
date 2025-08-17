@@ -502,14 +502,14 @@ export default function SalaryPayrollPage() {
           <TabsList className="grid w-auto grid-cols-2 bg-gray-100">
             <TabsTrigger 
               value="salary-payroll-list" 
-              className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white px-4"
+              className="data-[state=active]:bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 data-[state=active]:text-white px-4"
               data-testid="tab-salary-payroll-list"
             >
               Salary Payroll List
             </TabsTrigger>
             <TabsTrigger 
               value="employee-salary-table" 
-              className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white px-4"
+              className="data-[state=active]:bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 data-[state=active]:text-white px-4"
               data-testid="tab-employee-salary-table"
             >
               Employee Salary Table
@@ -518,7 +518,7 @@ export default function SalaryPayrollPage() {
 
           {/* Salary Payroll List Tab */}
           <TabsContent value="salary-payroll-list" className="space-y-6">
-            <div className="bg-gradient-to-r from-cyan-600 to-cyan-600 text-white p-4 rounded-lg">
+            <div className="bg-gradient-to-r from-slate-900 to-cyan-800 text-white p-4 rounded-lg">
               <h3 className="text-lg font-semibold">Salary Payroll List</h3>
             </div>
 
@@ -546,7 +546,7 @@ export default function SalaryPayrollPage() {
 
           {/* Employee Salary Table Tab */}
           <TabsContent value="employee-salary-table" className="space-y-6">
-            <div className="bg-gradient-to-r from-cyan-600 to-cyan-600 text-white p-4 rounded-lg">
+            <div className="bg-gradient-to-r from-slate-900 to-cyan-800 text-white p-4 rounded-lg">
               <h3 className="text-lg font-semibold">Employee Salary List</h3>
             </div>
 
@@ -570,7 +570,7 @@ export default function SalaryPayrollPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="bg-blue-600 text-white border-blue-600"
+                  className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white border-blue-600"
                 >
                   1
                 </Button>
@@ -724,7 +724,7 @@ export default function SalaryPayrollPage() {
         {/* Salary Summary Modal */}
         <Dialog open={showSalarySummaryModal} onOpenChange={setShowSalarySummaryModal}>
           <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader className="bg-gradient-to-r from-cyan-600 to-cyan-600 text-white p-4 -m-6 mb-6 rounded-t-lg">
+            <DialogHeader className="bg-gradient-to-r from-slate-900 to-cyan-800 text-white p-4 -m-6 mb-6 rounded-t-lg">
               <DialogTitle className="text-lg font-semibold">
                 {selectedEmployeeForSummary?.name || 'Employee'} - Salary Summary
               </DialogTitle>

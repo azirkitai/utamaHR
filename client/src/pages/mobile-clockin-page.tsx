@@ -423,9 +423,9 @@ export default function MobileClockInPage() {
                 </CardDescription>
               </div>
               <div className="flex space-x-1">
-                <div className={`w-2 h-2 rounded-full ${step === "camera" ? "bg-blue-600" : "bg-gray-300"}`} />
-                <div className={`w-2 h-2 rounded-full ${step === "location" ? "bg-blue-600" : "bg-gray-300"}`} />
-                <div className={`w-2 h-2 rounded-full ${step === "uploading" ? "bg-blue-600" : "bg-gray-300"}`} />
+                <div className={`w-2 h-2 rounded-full ${step === "camera" ? "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800" : "bg-gray-300"}`} />
+                <div className={`w-2 h-2 rounded-full ${step === "location" ? "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800" : "bg-gray-300"}`} />
+                <div className={`w-2 h-2 rounded-full ${step === "uploading" ? "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800" : "bg-gray-300"}`} />
               </div>
             </div>
           </CardHeader>

@@ -154,7 +154,7 @@ export default function SettingsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button className="bg-cyan-600 hover:bg-cyan-700" data-testid="button-save-profile">
+                <Button className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700" data-testid="button-save-profile">
                   Save Changes
                 </Button>
               </CardContent>
@@ -192,7 +192,7 @@ export default function SettingsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button className="bg-cyan-600 hover:bg-cyan-700" data-testid="button-save-account">
+                <Button className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700" data-testid="button-save-account">
                   Save Changes
                 </Button>
               </CardContent>
@@ -327,7 +327,7 @@ export default function SettingsPage() {
                   />
                 </div>
                 <Button 
-                  className="bg-cyan-600 hover:bg-cyan-700" 
+                  className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700" 
                   onClick={handleSaveCompanySettings}
                   disabled={updateCompanyMutation.isPending}
                   data-testid="button-save-company"
@@ -382,7 +382,7 @@ export default function SettingsPage() {
                   </div>
                   <Switch data-testid="switch-announcement-notifications" />
                 </div>
-                <Button className="bg-cyan-600 hover:bg-cyan-700" data-testid="button-save-notifications">
+                <Button className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700" data-testid="button-save-notifications">
                   Save Preferences
                 </Button>
               </CardContent>
@@ -423,7 +423,7 @@ export default function SettingsPage() {
                   <Switch data-testid="switch-2fa" />
                 </div>
                 <div className="flex space-x-2">
-                  <Button className="bg-cyan-600 hover:bg-cyan-700" data-testid="button-change-password">
+                  <Button className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700" data-testid="button-change-password">
                     Change Password
                   </Button>
                   <Button variant="outline" data-testid="button-reset-security">
@@ -486,7 +486,7 @@ export default function SettingsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button className="bg-cyan-600 hover:bg-cyan-700" data-testid="button-save-appearance">
+                <Button className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700" data-testid="button-save-appearance">
                   Save Preferences
                 </Button>
               </CardContent>
