@@ -3367,20 +3367,46 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getApprovedFinancialClaims(year: number, month: number): Promise<ClaimApplication[]> {
+  async getApprovedFinancialClaims(year: number, month: number): Promise<any[]> {
     try {
-      return await db
+      // Get ALL approved financial claims regardless of claimDate
+      // Payment vouchers typically process all outstanding approved claims
+      const query = db
         .select()
         .from(claimApplications)
+        .leftJoin(employees, eq(claimApplications.employeeId, employees.id))
         .where(
           and(
             eq(claimApplications.claimType, 'financial'),
-            eq(claimApplications.status, 'Approved'),
-            sql`EXTRACT(YEAR FROM ${claimApplications.claimDate}) = ${year}`,
-            sql`EXTRACT(MONTH FROM ${claimApplications.claimDate}) = ${month}`
+            eq(claimApplications.status, 'Approved')
           )
         )
         .orderBy(asc(claimApplications.employeeId));
+
+      const rawResult = await query;
+
+      // Map the result with proper employee name mapping
+      const result = rawResult.map((row: any) => {
+        const claimApp = row.claim_applications || row;
+        const employee = row.employees || row;
+        
+        return {
+          id: claimApp.id,
+          employeeId: claimApp.employee_id || claimApp.employeeId,
+          claimType: claimApp.claim_type || claimApp.claimType,
+          claimCategory: claimApp.claim_category || claimApp.claimCategory,
+          status: claimApp.status,
+          amount: claimApp.amount,
+          particulars: claimApp.particulars,
+          supportingDocuments: claimApp.supporting_documents || claimApp.supportingDocuments || [],
+          claimDate: claimApp.claim_date || claimApp.claimDate ? new Date(claimApp.claim_date || claimApp.claimDate).toISOString() : null,
+          dateSubmitted: claimApp.date_submitted || claimApp.dateSubmitted ? new Date(claimApp.date_submitted || claimApp.dateSubmitted).toISOString() : null,
+          requestorName: employee.full_name || employee.fullName || 'Unknown Employee',
+          financialPolicyName: claimApp.financial_policy_name || claimApp.financialPolicyName || claimApp.claim_category || claimApp.claimCategory,
+        };
+      });
+
+      return result;
     } catch (error) {
       console.error('Error fetching approved financial claims:', error);
       throw error;
