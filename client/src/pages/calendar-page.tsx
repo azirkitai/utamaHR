@@ -114,6 +114,17 @@ const employees: Employee[] = [
 
 export default function CalendarPage() {
   const { user } = useAuth();
+
+  // Fetch current logged-in user data for role-based access control
+  const { data: currentUser } = useQuery<{ id: string; role?: string }>({
+    queryKey: ["/api/user"],
+  });
+
+  // Fetch current user's employee data to get role
+  const { data: currentUserEmployee } = useQuery<{ id: string; role?: string }>({
+    queryKey: ["/api/user/employee"],
+    enabled: !!currentUser?.id,
+  });
   const [activeTab, setActiveTab] = useState("team");
   const [calendarView, setCalendarView] = useState("month");
   const [activityTab, setActivityTab] = useState("holiday");
@@ -272,13 +283,27 @@ export default function CalendarPage() {
 
   // Role-based access control functions
   const canAccessHolidayButtons = () => {
-    const role = (user as any)?.role;
-    return role && ['Super Admin', 'Admin', 'HR Manager', 'PIC'].includes(role);
+    const currentUserRole = currentUserEmployee?.role || currentUser?.role || '';
+    const privilegedRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+    const hasAccess = privilegedRoles.includes(currentUserRole);
+    
+    // Debug logging for troubleshooting deployment issues
+    console.log("Calendar page - Current user role:", currentUserRole);
+    console.log("Calendar page - Has holiday access:", hasAccess);
+    
+    return hasAccess;
   };
 
   const canAccessAddEvent = () => {
-    const role = (user as any)?.role;
-    return role && ['Super Admin', 'Admin', 'HR Manager', 'PIC', 'Manager/Supervisor'].includes(role);
+    const currentUserRole = currentUserEmployee?.role || currentUser?.role || '';
+    const privilegedRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC', 'Manager/Supervisor'];
+    const hasAccess = privilegedRoles.includes(currentUserRole);
+    
+    // Debug logging for troubleshooting deployment issues
+    console.log("Calendar page - Current user role (events):", currentUserRole);
+    console.log("Calendar page - Has event access:", hasAccess);
+    
+    return hasAccess;
   };
 
   // Helper function to check if date has leave applications
