@@ -352,21 +352,28 @@ export default function DashboardHome() {
   const currentMonthName = monthNames[currentDate.getMonth()];
   const currentYear = currentDate.getFullYear();
 
-  // Get current user's employee data for fullName
+  // Get current user's employee data for fullName and role
   const { data: currentEmployee } = useQuery({
     queryKey: ["/api/user/employee"],
     queryFn: () => authenticatedFetch("/api/user/employee"),
     enabled: !!dashboardData?.user?.id,
   });
 
+  // Fetch current logged-in user data for role-based access control
+  const { data: currentUser } = useQuery<{ id: string; role?: string }>({
+    queryKey: ["/api/user"],
+  });
+
   const userName = currentEmployee?.fullName || dashboardData?.user?.username || 'User';
 
   // Check if user has privileged access to view Today Statistic and Pending Approval cards
-  const hasPrivilegedAccess = (dashboardData?.user as any)?.role && ['Super Admin', 'Admin', 'HR Manager', 'PIC'].includes((dashboardData?.user as any).role);
+  const currentUserRole = currentEmployee?.role || currentUser?.role || '';
+  const privilegedRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+  const hasPrivilegedAccess = privilegedRoles.includes(currentUserRole);
   
   // Debug log to check role
-  console.log('Current user role:', (dashboardData?.user as any)?.role);
-  console.log('Has privileged access:', hasPrivilegedAccess);
+  console.log('Dashboard - Current user role:', currentUserRole);
+  console.log('Dashboard - Has privileged access:', hasPrivilegedAccess);
 
   if (isDashboardLoading || isStatsLoading || isDashboardStatsLoading || isUserStatsLoading || isPendingStatsLoading) {
     return (
