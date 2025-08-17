@@ -37,13 +37,15 @@ interface Holiday {
 }
 
 interface Event {
-  id: number;
+  id: string;
   title: string;
   description: string;
-  dateStart: string;
-  dateEnd: string;
+  startDate: string;
+  endDate: string;
   time: string;
-  selectedEmployee: string;
+  assignedEmployee: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface Employee {
@@ -162,9 +164,22 @@ export default function CalendarPage() {
   const [isAddHolidayOpen, setIsAddHolidayOpen] = useState(false);
   const [isAddEventOpen, setIsAddEventOpen] = useState(false);
   
-  // Form states
-  const [events, setEvents] = useState<Event[]>([]);
-  
+  // Fetch events from database
+  const { data: events = [], refetch: refetchEvents } = useQuery({
+    queryKey: ["/api/events"],
+    queryFn: async () => {
+      const response = await fetch('/api/events', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('utamahr_token')}`
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch events');
+      }
+      return response.json();
+    },
+  });
+
   // Holiday form
   const [holidayDescription, setHolidayDescription] = useState("");
   const [holidayDate, setHolidayDate] = useState("");
@@ -218,6 +233,38 @@ export default function CalendarPage() {
     },
     onError: (error) => {
       console.error('Error deleting holiday:', error);
+    },
+  });
+
+  // Event mutations
+  const createEventMutation = useMutation({
+    mutationFn: async (event: { title: string; description: string; startDate: string; endDate: string; time: string; assignedEmployee: string }) => {
+      return apiRequest('POST', '/api/events', event);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      setEventTitle("");
+      setEventDescription("");
+      setEventDateStart("");
+      setEventDateEnd("");
+      setEventTime("");
+      setSelectedEmployee("");
+      setIsAddEventOpen(false);
+    },
+    onError: (error) => {
+      console.error('Error creating event:', error);
+    },
+  });
+
+  const deleteEventMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return apiRequest('DELETE', `/api/events/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+    },
+    onError: (error) => {
+      console.error('Error deleting event:', error);
     },
   });
 
@@ -381,24 +428,14 @@ export default function CalendarPage() {
   const handleAddEvent = () => {
     if (!eventTitle || !eventDescription || !eventDateStart) return;
     
-    const newEvent: Event = {
-      id: events.length + 1,
+    createEventMutation.mutate({
       title: eventTitle,
       description: eventDescription,
-      dateStart: eventDateStart,
-      dateEnd: eventDateEnd,
-      time: eventTime,
-      selectedEmployee: selectedEmployee || "everyone"
-    };
-    
-    setEvents([...events, newEvent]);
-    setEventTitle("");
-    setEventDescription("");
-    setEventDateStart("");
-    setEventDateEnd("");
-    setEventTime("");
-    setSelectedEmployee("");
-    setIsAddEventOpen(false);
+      startDate: eventDateStart,
+      endDate: eventDateEnd || eventDateStart, // Use start date if end date is not provided
+      time: eventTime || "00:00", // Default time if not provided
+      assignedEmployee: selectedEmployee || "everyone"
+    });
   };
 
   const updateHolidayImport = (id: string, isPublic: boolean) => {
@@ -848,34 +885,91 @@ export default function CalendarPage() {
                               <tr className="border-b">
                                 <th className="text-left py-2 text-sm font-medium text-gray-700">Date</th>
                                 <th className="text-left py-2 text-sm font-medium text-gray-700">Description</th>
+                                {activityTab === "event" && (
+                                  <th className="text-left py-2 text-sm font-medium text-gray-700">Actions</th>
+                                )}
                               </tr>
                             </thead>
                             <tbody>
-                              {holidays && holidays.length > 0 ? (
-                                holidays.map((holiday: Holiday) => (
-                                  <tr key={holiday.id} className="border-b hover:bg-gray-50">
-                                    <td className="py-3 px-4 text-sm">
-                                      {new Date(holiday.date).toLocaleDateString('en-GB')}
-                                    </td>
-                                    <td className="py-3 px-4 text-sm">
-                                      <div className="flex items-center gap-2">
-                                        <span className="text-red-600">🏛️</span>
-                                        <span>{holiday.name}</span>
-                                        {holiday.isPublic && (
-                                          <Badge className="bg-red-100 text-red-800 text-xs">
-                                            Cuti Umum
-                                          </Badge>
-                                        )}
-                                      </div>
+                              {activityTab === "holiday" ? (
+                                holidays && holidays.length > 0 ? (
+                                  holidays.map((holiday: Holiday) => (
+                                    <tr key={holiday.id} className="border-b hover:bg-gray-50">
+                                      <td className="py-3 px-4 text-sm">
+                                        {new Date(holiday.date).toLocaleDateString('en-GB')}
+                                      </td>
+                                      <td className="py-3 px-4 text-sm">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-red-600">🏛️</span>
+                                          <span>{holiday.name}</span>
+                                          {holiday.isPublic && (
+                                            <Badge className="bg-red-100 text-red-800 text-xs">
+                                              Cuti Umum
+                                            </Badge>
+                                          )}
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  ))
+                                ) : (
+                                  <tr>
+                                    <td colSpan={2} className="text-center py-8 text-gray-500">
+                                      Tiada cuti umum ditetapkan untuk tahun ini
                                     </td>
                                   </tr>
-                                ))
+                                )
                               ) : (
-                                <tr>
-                                  <td colSpan={2} className="text-center py-8 text-gray-500">
-                                    Tiada cuti umum ditetapkan untuk tahun ini
-                                  </td>
-                                </tr>
+                                events && events.length > 0 ? (
+                                  events.map((event: Event) => (
+                                    <tr key={event.id} className="border-b hover:bg-gray-50">
+                                      <td className="py-3 px-4 text-sm">
+                                        {new Date(event.startDate).toLocaleDateString('en-GB')}
+                                        {event.endDate && event.endDate !== event.startDate && 
+                                          ` - ${new Date(event.endDate).toLocaleDateString('en-GB')}`
+                                        }
+                                      </td>
+                                      <td className="py-3 px-4 text-sm">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-blue-600">📅</span>
+                                          <div>
+                                            <div className="font-medium">{event.title}</div>
+                                            <div className="text-gray-500 text-xs">{event.description}</div>
+                                            {event.time && (
+                                              <div className="text-gray-500 text-xs">
+                                                <Clock className="w-3 h-3 inline mr-1" />
+                                                {event.time}
+                                              </div>
+                                            )}
+                                            {event.assignedEmployee && event.assignedEmployee !== "everyone" && (
+                                              <Badge className="bg-blue-100 text-blue-800 text-xs mt-1">
+                                                {event.assignedEmployee}
+                                              </Badge>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </td>
+                                      <td className="py-3 px-4 text-sm">
+                                        {canAccessAddEvent() && (
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => deleteEventMutation.mutate(event.id)}
+                                            className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                                            data-testid={`button-delete-event-${event.id}`}
+                                          >
+                                            <Trash2 className="w-4 h-4" />
+                                          </Button>
+                                        )}
+                                      </td>
+                                    </tr>
+                                  ))
+                                ) : (
+                                  <tr>
+                                    <td colSpan={3} className="text-center py-8 text-gray-500">
+                                      Tiada acara ditetapkan untuk tahun ini
+                                    </td>
+                                  </tr>
+                                )
                               )}
                             </tbody>
                           </table>

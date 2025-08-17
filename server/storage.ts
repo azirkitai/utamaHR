@@ -182,8 +182,14 @@ import {
   type UpdateUserPayrollRecord,
   // Holiday types
   holidays,
-  type SelectHoliday,
+  type Holiday,
   type InsertHoliday,
+  type UpdateHoliday,
+  // Event types
+  events,
+  type Event,
+  type InsertEvent,
+  type UpdateEvent,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, sql, asc, ilike, or, gte, lte, inArray, not } from "drizzle-orm";
@@ -415,11 +421,18 @@ export interface IStorage {
   getApprovedFinancialClaims(year: number, month: number): Promise<ClaimApplication[]>;
   
   // =================== HOLIDAY METHODS ===================
-  getAllHolidays(): Promise<SelectHoliday[]>;
-  getHoliday(id: string): Promise<SelectHoliday | undefined>;
-  createHoliday(holiday: InsertHoliday): Promise<SelectHoliday>;
-  updateHoliday(id: string, holiday: Partial<InsertHoliday>): Promise<SelectHoliday | undefined>;
+  getAllHolidays(): Promise<Holiday[]>;
+  getHoliday(id: string): Promise<Holiday | undefined>;
+  createHoliday(holiday: InsertHoliday): Promise<Holiday>;
+  updateHoliday(id: string, holiday: UpdateHoliday): Promise<Holiday | undefined>;
   deleteHoliday(id: string): Promise<boolean>;
+
+  // =================== EVENT METHODS ===================
+  getAllEvents(): Promise<Event[]>;
+  getEvent(id: string): Promise<Event | undefined>;
+  createEvent(event: InsertEvent): Promise<Event>;
+  updateEvent(id: string, event: UpdateEvent): Promise<Event | undefined>;
+  deleteEvent(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3975,16 +3988,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   // =================== HOLIDAY METHODS ===================
-  async getAllHolidays(): Promise<SelectHoliday[]> {
+  async getAllHolidays(): Promise<Holiday[]> {
     return await db.select().from(holidays).orderBy(holidays.date);
   }
 
-  async getHoliday(id: string): Promise<SelectHoliday | undefined> {
+  async getHoliday(id: string): Promise<Holiday | undefined> {
     const [holiday] = await db.select().from(holidays).where(eq(holidays.id, id));
     return holiday || undefined;
   }
 
-  async createHoliday(insertHoliday: InsertHoliday): Promise<SelectHoliday> {
+  async createHoliday(insertHoliday: InsertHoliday): Promise<Holiday> {
     const [holiday] = await db
       .insert(holidays)
       .values(insertHoliday)
@@ -3992,7 +4005,7 @@ export class DatabaseStorage implements IStorage {
     return holiday;
   }
 
-  async updateHoliday(id: string, updateHoliday: Partial<InsertHoliday>): Promise<SelectHoliday | undefined> {
+  async updateHoliday(id: string, updateHoliday: UpdateHoliday): Promise<Holiday | undefined> {
     const [holiday] = await db
       .update(holidays)
       .set({
@@ -4002,6 +4015,46 @@ export class DatabaseStorage implements IStorage {
       .where(eq(holidays.id, id))
       .returning();
     return holiday || undefined;
+  }
+
+  async deleteHoliday(id: string): Promise<boolean> {
+    const result = await db.delete(holidays).where(eq(holidays.id, id));
+    return result.rowCount > 0;
+  }
+
+  // =================== EVENT METHODS ===================
+  async getAllEvents(): Promise<Event[]> {
+    return await db.select().from(events).orderBy(desc(events.createdAt));
+  }
+
+  async getEvent(id: string): Promise<Event | undefined> {
+    const [event] = await db.select().from(events).where(eq(events.id, id));
+    return event || undefined;
+  }
+
+  async createEvent(insertEvent: InsertEvent): Promise<Event> {
+    const [event] = await db
+      .insert(events)
+      .values(insertEvent)
+      .returning();
+    return event;
+  }
+
+  async updateEvent(id: string, updateEvent: UpdateEvent): Promise<Event | undefined> {
+    const [event] = await db
+      .update(events)
+      .set({
+        ...updateEvent,
+        updatedAt: new Date()
+      })
+      .where(eq(events.id, id))
+      .returning();
+    return event || undefined;
+  }
+
+  async deleteEvent(id: string): Promise<boolean> {
+    const result = await db.delete(events).where(eq(events.id, id));
+    return result.rowCount > 0;
   }
 
   async deleteHoliday(id: string): Promise<boolean> {

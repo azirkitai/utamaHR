@@ -60,6 +60,10 @@ import {
   updateCompanySettingSchema,
   insertPaymentVoucherSchema,
   updatePaymentVoucherSchema,
+  insertHolidaySchema,
+  updateHolidaySchema,
+  insertEventSchema,
+  updateEventSchema,
   type AttendanceRecord
 } from "@shared/schema";
 import { checkEnvironmentSecrets } from "./env-check";
@@ -6687,6 +6691,130 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error deleting holiday:", error);
       res.status(500).json({ error: "Gagal memadam holiday" });
+    }
+  });
+
+  // =================== EVENT ROUTES ===================
+  // Get all events
+  app.get("/api/events", authenticateToken, async (req, res) => {
+    try {
+      const events = await storage.getAllEvents();
+      res.json(events);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      res.status(500).json({ error: "Gagal mendapatkan data acara" });
+    }
+  });
+
+  // Get single event
+  app.get("/api/events/:id", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const event = await storage.getEvent(id);
+      
+      if (!event) {
+        return res.status(404).json({ error: "Acara tidak dijumpai" });
+      }
+      
+      res.json(event);
+    } catch (error) {
+      console.error("Error fetching event:", error);
+      res.status(500).json({ error: "Gagal mendapatkan data acara" });
+    }
+  });
+
+  // Create new event
+  app.post("/api/events", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      
+      // Check if user has admin rights to manage events
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (!adminRoles.includes(currentUser.role)) {
+        return res.status(403).json({ error: "Tidak dibenarkan untuk menguruskan acara" });
+      }
+
+      // Validate request data using the Event schema
+      const eventData = insertEventSchema.parse(req.body);
+      
+      const newEvent = await storage.createEvent(eventData);
+
+      res.status(201).json({
+        success: true,
+        event: newEvent,
+        message: "Acara berjaya ditambah"
+      });
+    } catch (error) {
+      console.error("Error creating event:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ error: "Data acara tidak sah", details: error.errors });
+      }
+      res.status(500).json({ error: "Gagal mencipta acara" });
+    }
+  });
+
+  // Update event
+  app.put("/api/events/:id", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      
+      // Check if user has admin rights to manage events
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (!adminRoles.includes(currentUser.role)) {
+        return res.status(403).json({ error: "Tidak dibenarkan untuk menguruskan acara" });
+      }
+
+      const { id } = req.params;
+      
+      // Validate request data using the Event schema
+      const eventData = updateEventSchema.parse(req.body);
+
+      const updatedEvent = await storage.updateEvent(id, eventData);
+
+      if (!updatedEvent) {
+        return res.status(404).json({ error: "Acara tidak dijumpai" });
+      }
+
+      res.json({
+        success: true,
+        event: updatedEvent,
+        message: "Acara berjaya dikemaskini"
+      });
+    } catch (error) {
+      console.error("Error updating event:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ error: "Data acara tidak sah", details: error.errors });
+      }
+      res.status(500).json({ error: "Gagal mengemaskini acara" });
+    }
+  });
+
+  // Delete event
+  app.delete("/api/events/:id", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      
+      // Check if user has admin rights to manage events
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (!adminRoles.includes(currentUser.role)) {
+        return res.status(403).json({ error: "Tidak dibenarkan untuk menguruskan acara" });
+      }
+
+      const { id } = req.params;
+
+      const deleted = await storage.deleteEvent(id);
+
+      if (!deleted) {
+        return res.status(404).json({ error: "Acara tidak dijumpai" });
+      }
+
+      res.json({
+        success: true,
+        message: "Acara berjaya dipadam"
+      });
+    } catch (error) {
+      console.error("Error deleting event:", error);
+      res.status(500).json({ error: "Gagal memadam acara" });
     }
   });
 

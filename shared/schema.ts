@@ -757,6 +757,20 @@ export const holidays = pgTable('holidays', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+// Company Events Table
+export const events = pgTable('events', {
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  title: text('title').notNull(),
+  description: text('description'),
+  startDate: text('start_date').notNull(), // Date in YYYY-MM-DD format
+  endDate: text('end_date'), // Optional end date in YYYY-MM-DD format
+  time: text('time'), // Time in HH:MM format
+  selectedEmployee: text('selected_employee'), // Empty string for everyone, or specific employee name
+  createdBy: varchar('created_by').notNull().references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 // =================== VALIDATION SCHEMAS ===================
 
 // Attendance record schemas
@@ -1153,6 +1167,15 @@ export const insertPaymentVoucherSchema = createInsertSchema(paymentVouchers).om
 });
 export const updatePaymentVoucherSchema = insertPaymentVoucherSchema.partial();
 
+// Event schemas
+export const insertEventSchema = createInsertSchema(events).omit({
+  id: true,
+  createdBy: true, // Set by server from authenticated user
+  createdAt: true,
+  updatedAt: true,
+});
+export const updateEventSchema = insertEventSchema.partial();
+
 // =================== TYPESCRIPT TYPES ===================
 
 // User types
@@ -1518,5 +1541,15 @@ export type UpdateSalaryDeductionItem = z.infer<typeof updateSalaryDeductionItem
 export type SalaryCompanyContribution = typeof salaryCompanyContributions.$inferSelect;
 export type InsertSalaryCompanyContribution = z.infer<typeof insertSalaryCompanyContributionSchema>;
 export type UpdateSalaryCompanyContribution = z.infer<typeof updateSalaryCompanyContributionSchema>;
+
+// Holiday types
+export type Holiday = typeof holidays.$inferSelect;
+export type InsertHoliday = z.infer<typeof insertHolidaySchema>;
+export type UpdateHoliday = z.infer<typeof updateHolidaySchema>;
+
+// Event types  
+export type Event = typeof events.$inferSelect;
+export type InsertEvent = z.infer<typeof insertEventSchema>;
+export type UpdateEvent = z.infer<typeof updateEventSchema>;
 
 
