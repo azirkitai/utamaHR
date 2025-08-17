@@ -3472,20 +3472,29 @@ export class DatabaseStorage implements IStorage {
         : await query.orderBy(desc(claimApplications.dateSubmitted));
 
       // Map the result manually to avoid Drizzle select issues
-      const result = rawResult.map((row: any) => ({
-        id: row.claim_applications?.id,
-        employeeId: row.claim_applications?.employee_id,
-        claimType: row.claim_applications?.claim_type,
-        claimCategory: row.claim_applications?.claim_category,
-        status: row.claim_applications?.status,
-        amount: row.claim_applications?.amount,
-        particulars: row.claim_applications?.particulars, // Field "claim for" - particulars filled by requestor
-        supportingDocuments: row.claim_applications?.supporting_documents || [], // Supporting documents
-        claimDate: row.claim_applications?.claim_date ? new Date(row.claim_applications.claim_date).toISOString() : null,
-        dateSubmitted: row.claim_applications?.date_submitted ? new Date(row.claim_applications.date_submitted).toISOString() : null,
-        requestorName: row.employees?.full_name || 'Unknown Employee', // Employee name
-        financialPolicyName: row.claim_applications?.financial_policy_name || row.claim_applications?.claim_category, // Financial policy name
-      }));
+      console.log('Raw result count:', rawResult.length);
+      console.log('First raw result:', JSON.stringify(rawResult[0], null, 2));
+      
+      const result = rawResult.map((row: any) => {
+        // Handle both snake_case (direct DB) and camelCase (Drizzle) field names
+        const claimApp = row.claim_applications || row;
+        const employee = row.employees || row;
+        
+        return {
+          id: claimApp.id,
+          employeeId: claimApp.employee_id || claimApp.employeeId,
+          claimType: claimApp.claim_type || claimApp.claimType,
+          claimCategory: claimApp.claim_category || claimApp.claimCategory,
+          status: claimApp.status,
+          amount: claimApp.amount,
+          particulars: claimApp.particulars,
+          supportingDocuments: claimApp.supporting_documents || claimApp.supportingDocuments || [],
+          claimDate: claimApp.claim_date || claimApp.claimDate ? new Date(claimApp.claim_date || claimApp.claimDate).toISOString() : null,
+          dateSubmitted: claimApp.date_submitted || claimApp.dateSubmitted ? new Date(claimApp.date_submitted || claimApp.dateSubmitted).toISOString() : null,
+          requestorName: employee.full_name || employee.fullName || 'Unknown Employee',
+          financialPolicyName: claimApp.financial_policy_name || claimApp.financialPolicyName || claimApp.claim_category || claimApp.claimCategory,
+        };
+      });
 
       return result;
     } catch (error) {

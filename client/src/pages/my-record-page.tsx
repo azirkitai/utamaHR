@@ -167,10 +167,8 @@ export default function MyRecordPage() {
       
       console.log('Fetching claim applications for employee:', employeeIdParam);
       
-      const params = new URLSearchParams({
-        month: (filters.dateFrom.getMonth() + 1).toString(),
-        year: filters.dateFrom.getFullYear().toString(),
-      });
+      // Remove month/year filtering to get ALL financial claims
+      const params = new URLSearchParams();
       
       const response = await fetch(`/api/claim-applications/my-record/${employeeIdParam}?${params}`, {
         headers: {
