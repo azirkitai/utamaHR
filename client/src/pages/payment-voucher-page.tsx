@@ -138,7 +138,7 @@ export default function PaymentVoucherPage() {
   };
 
   const handleGeneratePayment = () => {
-    if (!approvedClaims || !approvedClaims.length) {
+    if (!approvedClaims || !Array.isArray(approvedClaims) || approvedClaims.length === 0) {
       toast({
         title: "Warning",
         description: "No approved financial claims for this period",
@@ -148,8 +148,9 @@ export default function PaymentVoucherPage() {
     }
 
     // Group claims by requestor name (ONE VOUCHER PER REQUESTOR)
-    const claimsByRequestor = approvedClaims.reduce((acc: any, claim) => {
-      const requestorName = claim.requestorName || getEmployeeName(claim.employeeId);
+    const claimsByRequestor = (approvedClaims || []).reduce((acc: any, claim) => {
+      if (!claim || !claim.employeeId) return acc;
+      const requestorName = getEmployeeName(claim.employeeId);
       if (!acc[requestorName]) {
         acc[requestorName] = [];
       }
@@ -159,14 +160,14 @@ export default function PaymentVoucherPage() {
 
     // Prepare voucher data for EACH REQUESTOR
     const voucherDataArray = Object.entries(claimsByRequestor).map(([requestorName, claims]: [string, any]) => {
-      const totalAmount = claims.reduce((sum: number, claim: any) => sum + (parseFloat(claim.amount || '0') || 0), 0);
+      const totalAmount = (claims || []).reduce((sum: number, claim: any) => sum + (parseFloat(claim?.amount || '0') || 0), 0);
       
       return {
         year: parseInt(formData.year),
         month: parseInt(formData.month),
         paymentDate: formData.paymentDate,
         totalAmount: totalAmount.toString(),
-        includedClaims: claims.map((claim: any) => claim.id),
+        includedClaims: (claims || []).map((claim: any) => claim?.id).filter(Boolean),
         remarks: `${formData.remarks} - ${requestorName}`,
         requestorName: requestorName,
         status: 'Generated' as const
@@ -226,10 +227,10 @@ export default function PaymentVoucherPage() {
                   </td>
                   <td className="p-3 text-gray-900">
                     {voucher.includedClaims && voucher.includedClaims.length > 0 && approvedClaims && approvedClaims.length > 0
-                      ? [...new Set(voucher.includedClaims.map(claimId => {
+                      ? Array.from(new Set(voucher.includedClaims.map(claimId => {
                           const claim = approvedClaims.find(c => c.id === claimId);
                           return claim ? getEmployeeName(claim.employeeId) : 'Unknown';
-                        }))].join(', ')
+                        }))).join(', ')
                       : 'Tiada data'
                     }
                   </td>
@@ -534,8 +535,9 @@ export default function PaymentVoucherPage() {
                     <div className="space-y-3">
                       {(() => {
                         // Group claims by requestor name
-                        const claimsByRequestor = approvedClaims.reduce((acc: any, claim) => {
-                          const requestorName = claim.requestorName || getEmployeeName(claim.employeeId);
+                        const claimsByRequestor = (approvedClaims || []).reduce((acc: any, claim) => {
+                          if (!claim || !claim.employeeId) return acc;
+                          const requestorName = getEmployeeName(claim.employeeId);
                           if (!acc[requestorName]) {
                             acc[requestorName] = [];
                           }
@@ -544,7 +546,7 @@ export default function PaymentVoucherPage() {
                         }, {});
 
                         return Object.entries(claimsByRequestor).map(([requestorName, claims]: [string, any]) => {
-                          const requestorTotal = claims.reduce((sum: number, claim: any) => sum + (parseFloat(claim.amount || '0') || 0), 0);
+                          const requestorTotal = (claims || []).reduce((sum: number, claim: any) => sum + (parseFloat(claim?.amount || '0') || 0), 0);
                           
                           return (
                             <div key={requestorName} className="bg-white p-3 rounded border">
@@ -553,10 +555,10 @@ export default function PaymentVoucherPage() {
                                 <span className="font-bold text-blue-600">RM {requestorTotal.toFixed(2)}</span>
                               </div>
                               <div className="space-y-1">
-                                {claims.map((claim: any) => (
-                                  <div key={claim.id} className="flex justify-between items-center text-xs bg-gray-50 p-2 rounded">
-                                    <span className="text-gray-600">{claim.claimCategory}</span>
-                                    <span className="text-green-600 font-medium">RM {(parseFloat(claim.amount || '0') || 0).toFixed(2)}</span>
+                                {(claims || []).map((claim: any) => (
+                                  <div key={claim?.id || Math.random()} className="flex justify-between items-center text-xs bg-gray-50 p-2 rounded">
+                                    <span className="text-gray-600">{claim?.claimCategory || 'N/A'}</span>
+                                    <span className="text-green-600 font-medium">RM {(parseFloat(claim?.amount || '0') || 0).toFixed(2)}</span>
                                   </div>
                                 ))}
                               </div>
@@ -568,7 +570,7 @@ export default function PaymentVoucherPage() {
                         <div className="flex justify-between items-center text-sm font-semibold">
                           <span>Jumlah Keseluruhan:</span>
                           <span className="text-blue-600">
-                            RM {approvedClaims.reduce((sum, claim) => sum + (parseFloat(claim.amount || '0') || 0), 0).toFixed(2)}
+                            RM {(approvedClaims || []).reduce((sum, claim) => sum + (parseFloat(claim?.amount || '0') || 0), 0).toFixed(2)}
                           </span>
                         </div>
                       </div>
