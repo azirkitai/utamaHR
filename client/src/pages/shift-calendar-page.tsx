@@ -128,7 +128,7 @@ export default function ShiftCalendarPage() {
         </div>
 
         {/* Shift Calendar Header */}
-        <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
+        <div className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white p-4 rounded-lg">
           <h3 className="text-lg font-semibold">Shift Calendar</h3>
         </div>
 

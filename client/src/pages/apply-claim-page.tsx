@@ -589,7 +589,7 @@ export default function ApplyClaimPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl">
               {/* Financial Claim */}
               <Card 
-                className="cursor-pointer hover:shadow-lg transition-shadow bg-gradient-to-br from-teal-400 to-teal-500 text-white border-none"
+                className="cursor-pointer hover:shadow-lg transition-shadow bg-gradient-to-br from-cyan-400 to-cyan-500 text-white border-none"
                 onClick={() => setSelectedCategory('financial')}
                 data-testid="card-financial-claim"
               >
@@ -603,7 +603,7 @@ export default function ApplyClaimPage() {
 
               {/* Overtime Claim */}
               <Card 
-                className="cursor-pointer hover:shadow-lg transition-shadow bg-gradient-to-br from-teal-400 to-teal-500 text-white border-none"
+                className="cursor-pointer hover:shadow-lg transition-shadow bg-gradient-to-br from-cyan-400 to-blue-700 text-white border-none"
                 onClick={() => setSelectedCategory('overtime')}
                 data-testid="card-overtime-claim"
               >
@@ -633,18 +633,18 @@ export default function ApplyClaimPage() {
             {/* Main Content */}
             <div className="flex-1 p-6">
               {/* Summary Panel */}
-              <div className="bg-gradient-to-r from-teal-400 to-blue-600 text-white p-6 rounded-lg mb-6">
+              <div className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white p-6 rounded-lg mb-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-semibold">What you have claimed so far</h2>
                 </div>
                 
                 <div className="grid grid-cols-1 gap-4">
                   <div className="bg-white/20 p-6 rounded-lg">
-                    <div className="text-xs text-teal-100 mb-1">TOTAL APPROVED</div>
+                    <div className="text-xs text-cyan-100 mb-1">TOTAL APPROVED</div>
                     <div className="text-2xl font-bold">
                       {isLoadingTotals ? "Loading..." : `RM ${(userClaimTotals?.totalApproved || 0).toFixed(2)}`}
                     </div>
-                    <div className="text-xs text-teal-100">This Year</div>
+                    <div className="text-xs text-cyan-100">This Year</div>
                     <div className="mt-2 flex justify-center">
                       <CreditCard className="w-12 h-12 text-white/50" />
                     </div>
@@ -877,7 +877,7 @@ export default function ApplyClaimPage() {
             {/* Main Content */}
             <div className="flex-1 p-6">
               {/* Summary Panel */}
-              <div className="bg-gradient-to-r from-teal-400 to-blue-600 text-white p-6 rounded-lg mb-6">
+              <div className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white p-6 rounded-lg mb-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-semibold">Overtime you have taken so far</h2>
                   <Button 
@@ -892,7 +892,7 @@ export default function ApplyClaimPage() {
                 
                 <div className="grid grid-cols-3 gap-4">
                   <div className="bg-white/20 p-4 rounded-lg text-center">
-                    <div className="text-xs text-teal-100 mb-1">DAYS TAKEN (THIS MONTH)</div>
+                    <div className="text-xs text-cyan-100 mb-1">DAYS TAKEN (THIS MONTH)</div>
                     <div className="text-2xl font-bold">
                       {isLoadingTotals ? "Loading..." : userClaimTotals?.overtime?.daysThisMonth || 0}
                     </div>
@@ -902,7 +902,7 @@ export default function ApplyClaimPage() {
                   </div>
                   
                   <div className="bg-white/20 p-4 rounded-lg text-center">
-                    <div className="text-xs text-teal-100 mb-1">HOURS TAKEN (THIS MONTH)</div>
+                    <div className="text-xs text-cyan-100 mb-1">HOURS TAKEN (THIS MONTH)</div>
                     <div className="text-2xl font-bold">
                       {isLoadingTotals ? "Loading..." : 
                        userClaimTotals?.overtime?.hoursThisMonth ? 
@@ -915,7 +915,7 @@ export default function ApplyClaimPage() {
                   </div>
                   
                   <div className="bg-white/20 p-4 rounded-lg text-center">
-                    <div className="text-xs text-teal-100 mb-1">APPROVED CLAIMS</div>
+                    <div className="text-xs text-cyan-100 mb-1">APPROVED CLAIMS</div>
                     <div className="text-2xl font-bold">
                       {isLoadingTotals ? "Loading..." : userClaimTotals?.overtime?.daysThisMonth || 0}
                     </div>
@@ -931,35 +931,35 @@ export default function ApplyClaimPage() {
                     <h3 className="text-lg font-semibold mb-4">Detailed Overtime Summary</h3>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                       <div className="bg-white/20 p-3 rounded text-center">
-                        <div className="text-xs text-teal-100 mb-1">JAN 2025</div>
+                        <div className="text-xs text-cyan-100 mb-1">JAN 2025</div>
                         <div className="text-xl font-bold">0 Hours</div>
                       </div>
                       <div className="bg-white/20 p-3 rounded text-center">
-                        <div className="text-xs text-teal-100 mb-1">FEB 2025</div>
+                        <div className="text-xs text-cyan-100 mb-1">FEB 2025</div>
                         <div className="text-xl font-bold">0 Hours</div>
                       </div>
                       <div className="bg-white/20 p-3 rounded text-center">
-                        <div className="text-xs text-teal-100 mb-1">MAR 2025</div>
+                        <div className="text-xs text-cyan-100 mb-1">MAR 2025</div>
                         <div className="text-xl font-bold">0 Hours</div>
                       </div>
                       <div className="bg-white/20 p-3 rounded text-center">
-                        <div className="text-xs text-teal-100 mb-1">APR 2025</div>
+                        <div className="text-xs text-cyan-100 mb-1">APR 2025</div>
                         <div className="text-xl font-bold">0 Hours</div>
                       </div>
                       <div className="bg-white/20 p-3 rounded text-center">
-                        <div className="text-xs text-teal-100 mb-1">MAY 2025</div>
+                        <div className="text-xs text-cyan-100 mb-1">MAY 2025</div>
                         <div className="text-xl font-bold">0 Hours</div>
                       </div>
                       <div className="bg-white/20 p-3 rounded text-center">
-                        <div className="text-xs text-teal-100 mb-1">JUN 2025</div>
+                        <div className="text-xs text-cyan-100 mb-1">JUN 2025</div>
                         <div className="text-xl font-bold">0 Hours</div>
                       </div>
                       <div className="bg-white/20 p-3 rounded text-center">
-                        <div className="text-xs text-teal-100 mb-1">JUL 2025</div>
+                        <div className="text-xs text-cyan-100 mb-1">JUL 2025</div>
                         <div className="text-xl font-bold">0 Hours</div>
                       </div>
                       <div className="bg-white/20 p-3 rounded text-center">
-                        <div className="text-xs text-teal-100 mb-1">AUG 2025</div>
+                        <div className="text-xs text-cyan-100 mb-1">AUG 2025</div>
                         <div className="text-xl font-bold">0 Hours</div>
                       </div>
                     </div>

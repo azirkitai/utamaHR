@@ -100,7 +100,7 @@ export function DocumentModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="bg-gradient-to-r from-teal-500 to-green-400 bg-clip-text text-transparent">
+          <DialogTitle className="bg-gradient-to-r from-cyan-400 to-blue-700 bg-clip-text text-transparent">
             {getModalTitle()}
           </DialogTitle>
         </DialogHeader>
@@ -163,7 +163,7 @@ export function DocumentModal({
                   href={document.fileUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-teal-600 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300 underline"
+                  className="text-cyan-600 hover:text-cyan-700 dark:text-cyan-400 dark:hover:text-cyan-300 underline"
                   data-testid="link-view-file"
                 >
                   {document.fileName}
@@ -188,7 +188,7 @@ export function DocumentModal({
             <Button
               onClick={handleSave}
               disabled={loading}
-              className="bg-gradient-to-r from-teal-500 to-green-400 hover:from-teal-600 hover:to-green-500"
+              className="bg-gradient-to-r from-cyan-400 to-blue-700 hover:from-cyan-500 hover:to-blue-800"
               data-testid="button-save"
             >
               {loading ? "Menyimpan..." : "Simpan"}

@@ -163,12 +163,12 @@ export function DocumentsTab({ employeeId }: DocumentsTabProps) {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white rounded-t-lg">
+        <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white rounded-t-lg">
           <div className="flex justify-between items-center">
             <CardTitle>Dokumen</CardTitle>
             <Button
               onClick={handleAdd}
-              className="bg-white text-teal-600 hover:bg-gray-100"
+              className="bg-white text-cyan-600 hover:bg-gray-100"
               data-testid="button-add-document"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -179,7 +179,7 @@ export function DocumentsTab({ employeeId }: DocumentsTabProps) {
         <CardContent className="p-6">
           {isLoading ? (
             <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500"></div>
             </div>
           ) : documents.length === 0 ? (
             <div className="text-center py-8 text-gray-500 dark:text-gray-400">

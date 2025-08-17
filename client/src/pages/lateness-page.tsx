@@ -233,7 +233,7 @@ export default function LatenessPage() {
           {/* Attendance Lateness Tab */}
           <TabsContent value="lateness" className="space-y-6">
             {/* Attendance Lateness Header */}
-            <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
+            <div className="bg-gradient-to-r from-cyan-600 to-cyan-600 text-white p-4 rounded-lg">
               <h3 className="text-lg font-semibold">Attendance Lateness</h3>
             </div>
 
@@ -365,7 +365,7 @@ export default function LatenessPage() {
           {/* Report Tab */}
           <TabsContent value="report" className="space-y-6">
             {/* Report Header */}
-            <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
+            <div className="bg-gradient-to-r from-cyan-600 to-cyan-600 text-white p-4 rounded-lg">
               <h3 className="text-lg font-semibold">Lateness Approved Report</h3>
             </div>
 

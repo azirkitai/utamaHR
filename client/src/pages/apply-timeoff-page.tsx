@@ -80,7 +80,7 @@ export default function ApplyTimeoffPage() {
               
               <div className="grid grid-cols-3 gap-4">
                 <div className="bg-white/20 p-4 rounded-lg text-center">
-                  <div className="text-xs text-teal-100 mb-1">TOTAL APPLIED (ALL)</div>
+                  <div className="text-xs text-cyan-100 mb-1">TOTAL APPLIED (ALL)</div>
                   <div className="text-2xl font-bold">None</div>
                   <div className="mt-2 flex justify-center">
                     <Calendar className="w-12 h-12 text-white/50" />
@@ -88,7 +88,7 @@ export default function ApplyTimeoffPage() {
                 </div>
                 
                 <div className="bg-white/20 p-4 rounded-lg text-center">
-                  <div className="text-xs text-teal-100 mb-1">HOURS TAKEN (ALL)</div>
+                  <div className="text-xs text-cyan-100 mb-1">HOURS TAKEN (ALL)</div>
                   <div className="text-2xl font-bold">None</div>
                   <div className="mt-2 flex justify-center">
                     <Clock className="w-12 h-12 text-white/50" />
@@ -96,7 +96,7 @@ export default function ApplyTimeoffPage() {
                 </div>
                 
                 <div className="bg-white/20 p-4 rounded-lg text-center">
-                  <div className="text-xs text-teal-100 mb-1">HOURS TAKEN (AUG)</div>
+                  <div className="text-xs text-cyan-100 mb-1">HOURS TAKEN (AUG)</div>
                   <div className="text-2xl font-bold">None</div>
                   <div className="mt-2 flex justify-center">
                     <Timer className="w-12 h-12 text-white/50" />

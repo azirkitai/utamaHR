@@ -363,7 +363,7 @@ export default function MyRecordPage() {
 
   const renderLeaveTab = () => (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-teal-500 to-blue-600 p-4 rounded-lg text-white">
+      <div className="bg-gradient-to-r from-cyan-400 to-blue-700 p-4 rounded-lg text-white">
         <h2 className="text-xl font-semibold">Leave Record</h2>
       </div>
       
@@ -568,7 +568,7 @@ export default function MyRecordPage() {
 
   const renderClaimTab = () => (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-teal-500 to-blue-600 p-4 rounded-lg text-white">
+      <div className="bg-gradient-to-r from-cyan-400 to-blue-700 p-4 rounded-lg text-white">
         <h2 className="text-xl font-semibold">Claim Record</h2>
       </div>
       
@@ -798,7 +798,7 @@ export default function MyRecordPage() {
 
   const renderOvertimeTab = () => (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-teal-500 to-blue-600 p-4 rounded-lg text-white">
+      <div className="bg-gradient-to-r from-cyan-400 to-blue-700 p-4 rounded-lg text-white">
         <h2 className="text-xl font-semibold">Overtime Record</h2>
       </div>
       
@@ -932,7 +932,7 @@ export default function MyRecordPage() {
 
   const renderAttendanceTab = () => (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-teal-500 to-blue-600 p-4 rounded-lg text-white">
+      <div className="bg-gradient-to-r from-cyan-400 to-blue-700 p-4 rounded-lg text-white">
         <h2 className="text-xl font-semibold">Attendance Record</h2>
       </div>
       
@@ -1362,7 +1362,7 @@ export default function MyRecordPage() {
 
     return (
       <div className="space-y-6">
-        <div className="bg-gradient-to-r from-teal-500 to-blue-600 p-4 rounded-lg text-white">
+        <div className="bg-gradient-to-r from-cyan-400 to-blue-700 p-4 rounded-lg text-white">
           <h2 className="text-xl font-semibold">Payment Record</h2>
         </div>
         
@@ -1418,7 +1418,7 @@ export default function MyRecordPage() {
                 className={cn(
                   "py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2",
                   activeTab === tab.id
-                    ? "border-teal-500 text-teal-600"
+                    ? "border-cyan-500 text-cyan-600"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 )}
                 data-testid={`tab-${tab.id}`}

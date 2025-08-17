@@ -333,7 +333,7 @@ export default function PaymentVoucherPage() {
 
           {/* Payment Voucher List Tab */}
           <TabsContent value="payment-voucher-list" className="space-y-6">
-            <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
+            <div className="bg-gradient-to-r from-cyan-600 to-cyan-600 text-white p-4 rounded-lg">
               <h3 className="text-lg font-semibold">Payment Voucher List</h3>
             </div>
 

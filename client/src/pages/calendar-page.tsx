@@ -543,14 +543,14 @@ export default function CalendarPage() {
                 <TabsList className="grid w-fit grid-cols-2">
                   <TabsTrigger 
                     value="team" 
-                    className="data-[state=active]:bg-teal-500 data-[state=active]:text-white"
+                    className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white"
                     data-testid="tab-team-calendar"
                   >
                     Team Calendar
                   </TabsTrigger>
                   <TabsTrigger 
                     value="shift"
-                    className="data-[state=active]:bg-teal-500 data-[state=active]:text-white"
+                    className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white"
                     data-testid="tab-shift-calendar"
                   >
                     Shift Calendar
@@ -868,7 +868,7 @@ export default function CalendarPage() {
                             className={cn(
                               "px-4 py-2 text-sm font-medium border-b-2",
                               activityTab === "holiday" 
-                                ? "border-teal-500 text-teal-600 bg-teal-50" 
+                                ? "border-cyan-500 text-cyan-600 bg-cyan-50" 
                                 : "border-transparent text-gray-500 hover:text-gray-700"
                             )}
                             data-testid="tab-all-holiday"
@@ -880,7 +880,7 @@ export default function CalendarPage() {
                             className={cn(
                               "px-4 py-2 text-sm font-medium border-b-2",
                               activityTab === "event" 
-                                ? "border-teal-500 text-teal-600 bg-teal-50" 
+                                ? "border-cyan-500 text-cyan-600 bg-cyan-50" 
                                 : "border-transparent text-gray-500 hover:text-gray-700"
                             )}
                             data-testid="tab-all-event"
@@ -1112,7 +1112,7 @@ export default function CalendarPage() {
 
               <TabsContent value="shift">
                 <Card>
-                  <CardHeader className="bg-teal-500 text-white rounded-t-lg">
+                  <CardHeader className="bg-cyan-500 text-white rounded-t-lg">
                     <CardTitle>Shift Calendar</CardTitle>
                   </CardHeader>
                   <CardContent className="p-6">
@@ -1236,7 +1236,7 @@ export default function CalendarPage() {
             <DialogFooter>
               <Button 
                 onClick={() => setIsHolidayModalOpen(false)}
-                className="bg-teal-600 hover:bg-teal-700 text-white"
+                className="bg-cyan-600 hover:bg-cyan-700 text-white"
                 data-testid="button-close-holiday-modal"
               >
                 Tutup
@@ -1319,7 +1319,7 @@ export default function CalendarPage() {
             <DialogFooter>
               <Button 
                 onClick={() => setIsLeaveModalOpen(false)}
-                className="bg-teal-600 hover:bg-teal-700 text-white"
+                className="bg-cyan-600 hover:bg-cyan-700 text-white"
               >
                 Tutup
               </Button>

@@ -320,7 +320,7 @@ export default function ApplyLeavePage() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-semibold mb-2">Available Leave</h2>
-                <p className="text-teal-100">Track your remaining leave days</p>
+                <p className="text-cyan-100">Track your remaining leave days</p>
               </div>
               <Button variant="ghost" className="text-white hover:bg-white/20">
                 See More <ExternalLink className="w-4 h-4 ml-2" />

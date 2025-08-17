@@ -518,7 +518,7 @@ export default function SalaryPayrollPage() {
 
           {/* Salary Payroll List Tab */}
           <TabsContent value="salary-payroll-list" className="space-y-6">
-            <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
+            <div className="bg-gradient-to-r from-cyan-600 to-cyan-600 text-white p-4 rounded-lg">
               <h3 className="text-lg font-semibold">Salary Payroll List</h3>
             </div>
 
@@ -546,7 +546,7 @@ export default function SalaryPayrollPage() {
 
           {/* Employee Salary Table Tab */}
           <TabsContent value="employee-salary-table" className="space-y-6">
-            <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
+            <div className="bg-gradient-to-r from-cyan-600 to-cyan-600 text-white p-4 rounded-lg">
               <h3 className="text-lg font-semibold">Employee Salary List</h3>
             </div>
 
@@ -724,7 +724,7 @@ export default function SalaryPayrollPage() {
         {/* Salary Summary Modal */}
         <Dialog open={showSalarySummaryModal} onOpenChange={setShowSalarySummaryModal}>
           <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 -m-6 mb-6 rounded-t-lg">
+            <DialogHeader className="bg-gradient-to-r from-cyan-600 to-cyan-600 text-white p-4 -m-6 mb-6 rounded-t-lg">
               <DialogTitle className="text-lg font-semibold">
                 {selectedEmployeeForSummary?.name || 'Employee'} - Salary Summary
               </DialogTitle>

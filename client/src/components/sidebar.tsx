@@ -241,7 +241,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
   return (
     <div
       className={cn(
-        "bg-gradient-to-b from-slate-900 to-slate-800 text-white transition-all duration-300 ease-in-out flex flex-col h-full",
+        "bg-gradient-to-b from-cyan-600 to-blue-800 text-white transition-all duration-300 ease-in-out flex flex-col h-full",
         isCollapsed ? "w-16" : "w-64"
       )}
     >

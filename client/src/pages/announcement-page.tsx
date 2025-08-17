@@ -457,14 +457,14 @@ export default function AnnouncementPage() {
                 <TabsList className="grid w-fit grid-cols-2">
                   <TabsTrigger 
                     value="all" 
-                    className="data-[state=active]:bg-teal-500 data-[state=active]:text-white"
+                    className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white"
                     data-testid="tab-all-announcement"
                   >
                     All Announcement
                   </TabsTrigger>
                   <TabsTrigger 
                     value="unread"
-                    className="data-[state=active]:bg-teal-500 data-[state=active]:text-white flex items-center gap-2"
+                    className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white flex items-center gap-2"
                     data-testid="tab-unread-announcement"
                   >
                     Unread Announcement
@@ -718,7 +718,7 @@ export default function AnnouncementPage() {
                                     variant={announcement.status === "New" ? "default" : "secondary"}
                                     className={cn(
                                       announcement.status === "New" 
-                                        ? "bg-teal-500 hover:bg-teal-600" 
+                                        ? "bg-cyan-500 hover:bg-cyan-600" 
                                         : "bg-gray-500"
                                     )}
                                   >
@@ -775,7 +775,7 @@ export default function AnnouncementPage() {
 
               <TabsContent value="unread">
                 <Card>
-                  <CardHeader className="bg-teal-500 text-white rounded-t-lg">
+                  <CardHeader className="bg-cyan-500 text-white rounded-t-lg">
                     <CardTitle>Unread Announcement</CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">
@@ -807,7 +807,7 @@ export default function AnnouncementPage() {
                                 <td className="py-3 px-4">
                                   <Badge 
                                     variant="default"
-                                    className="bg-teal-500 hover:bg-teal-600"
+                                    className="bg-cyan-500 hover:bg-cyan-600"
                                   >
                                     {announcement.status}
                                   </Badge>
@@ -884,7 +884,7 @@ export default function AnnouncementPage() {
                     <label className="text-sm font-medium text-gray-700">Status</label>
                     <Badge 
                       variant="default"
-                      className="bg-teal-500 hover:bg-teal-600"
+                      className="bg-cyan-500 hover:bg-cyan-600"
                     >
                       {selectedAnnouncement.status}
                     </Badge>
@@ -951,7 +951,7 @@ export default function AnnouncementPage() {
                   setViewDialogOpen(false);
                   setSelectedAnnouncement(null);
                 }}
-                className="bg-teal-600 hover:bg-teal-700 text-white"
+                className="bg-cyan-600 hover:bg-cyan-700 text-white"
                 data-testid="button-close-view"
               >
                 Close
@@ -1012,7 +1012,7 @@ export default function AnnouncementPage() {
               <Button 
                 onClick={handleSaveEdit}
                 disabled={!editTitle.trim() || !editMessage.trim() || editAnnouncementMutation.isPending}
-                className="bg-teal-600 hover:bg-teal-700 text-white"
+                className="bg-cyan-600 hover:bg-cyan-700 text-white"
                 data-testid="button-save-edit"
               >
                 {editAnnouncementMutation.isPending ? "Saving..." : "Save Changes"}

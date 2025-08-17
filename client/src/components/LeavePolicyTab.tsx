@@ -153,7 +153,7 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
   if (isLoading) {
     return (
       <Card>
-        <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white">
+        <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
           <CardTitle>Leave Policies</CardTitle>
         </CardHeader>
         <CardContent className="p-6">
@@ -168,10 +168,10 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
   return (
     <>
       <Card>
-        <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white">
+        <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
           <div className="flex items-center justify-between">
             <CardTitle>Leave Policies</CardTitle>
-            <Badge variant="secondary" className="bg-white text-teal-600">
+            <Badge variant="secondary" className="bg-white text-cyan-600">
               System Policies
             </Badge>
           </div>

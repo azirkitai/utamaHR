@@ -1896,7 +1896,7 @@ export default function EmployeeSalaryDetailsPage() {
               
               {/* Column 1 - Basic Earning */}
               <div className="space-y-4">
-                <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-4 rounded-lg">
+                <div className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white p-4 rounded-lg">
                   <h3 className="text-lg font-semibold">Basic Earning</h3>
                 </div>
                 
@@ -3369,7 +3369,7 @@ export default function EmployeeSalaryDetailsPage() {
                     <Button
                       onClick={handleManualRecalculate}
                       disabled={isCalculating}
-                      className="bg-gradient-to-r from-green-600 to-green-700 text-white"
+                      className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white"
                       data-testid="btn-calculate-payroll"
                     >
                       Calculate Payroll
@@ -3390,7 +3390,7 @@ export default function EmployeeSalaryDetailsPage() {
                     
                     {/* YTD Employee Contribution */}
                     <div className="space-y-4">
-                      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-lg">
+                      <div className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white p-4 rounded-lg">
                         <h3 className="text-lg font-semibold">YTD EMPLOYEE CONTRIBUTION</h3>
                       </div>
                       
@@ -3517,7 +3517,7 @@ export default function EmployeeSalaryDetailsPage() {
 
                     {/* YTD Employer Contribution */}
                     <div className="space-y-4">
-                      <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-4 rounded-lg">
+                      <div className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white p-4 rounded-lg">
                         <h3 className="text-lg font-semibold">YTD EMPLOYER CONTRIBUTION</h3>
                       </div>
                       

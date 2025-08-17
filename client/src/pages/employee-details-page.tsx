@@ -628,7 +628,7 @@ export default function EmployeeDetailsPage() {
         {/* Main Content Area */}
         <div className="flex-1">
           {/* Employee Header Profile */}
-          <div className="bg-gradient-to-r from-teal-500 to-blue-600 text-white p-6 mx-6 mt-6 rounded-lg shadow-lg">
+          <div className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white p-6 mx-6 mt-6 rounded-lg shadow-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-6">
                   <div className="relative group">
@@ -637,7 +637,7 @@ export default function EmployeeDetailsPage() {
                         src={employee?.profileImageUrl || ""} 
                         className="object-cover w-full h-full"
                       />
-                      <AvatarFallback className="bg-white text-teal-600 text-2xl font-bold">
+                      <AvatarFallback className="bg-white text-cyan-600 text-2xl font-bold">
                         {employee?.fullName?.charAt(0) || "?"}
                       </AvatarFallback>
                     </Avatar>
@@ -714,7 +714,7 @@ export default function EmployeeDetailsPage() {
                           className={cn(
                             "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors",
                             activeTab === tab.id
-                              ? "bg-teal-100 text-teal-700 border-l-4 border-teal-500"
+                              ? "bg-cyan-100 text-cyan-700 border-l-4 border-cyan-500"
                               : "text-gray-700 hover:bg-gray-100"
                           )}
                           data-testid={`nav-tab-${tab.id}`}
@@ -734,7 +734,7 @@ export default function EmployeeDetailsPage() {
                 <div className="space-y-6">
                   {/* Personal Details Card */}
                   <Card>
-                    <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white">
+                    <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
                       <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
                           <UserCheck className="w-5 h-5" />
@@ -745,7 +745,7 @@ export default function EmployeeDetailsPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => setIsEditingPersonal(true)}
-                            className="bg-white text-teal-600 hover:bg-gray-50"
+                            className="bg-white text-cyan-600 hover:bg-gray-50"
                             data-testid="button-edit-personal"
                           >
                             <Edit2 className="w-4 h-4 mr-1" />
@@ -1093,7 +1093,7 @@ export default function EmployeeDetailsPage() {
                           <Button
                             onClick={handleSavePersonalDetails}
                             disabled={updateEmployeeMutation.isPending}
-                            className="bg-teal-600 hover:bg-teal-700"
+                            className="bg-cyan-600 hover:bg-cyan-700"
                             data-testid="button-save-personal"
                           >
                             {updateEmployeeMutation.isPending ? "Saving..." : "Save Changes"}
@@ -1105,7 +1105,7 @@ export default function EmployeeDetailsPage() {
 
                   {/* Driving License Details Card */}
                   <Card>
-                    <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white">
+                    <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
                       <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
                           <Car className="w-5 h-5" />
@@ -1116,7 +1116,7 @@ export default function EmployeeDetailsPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => setIsEditingDriving(true)}
-                            className="bg-white text-teal-600 hover:bg-gray-50"
+                            className="bg-white text-cyan-600 hover:bg-gray-50"
                             data-testid="button-edit-driving"
                           >
                             <Edit2 className="w-4 h-4 mr-1" />
@@ -1204,7 +1204,7 @@ export default function EmployeeDetailsPage() {
                           <Button
                             onClick={handleSaveDrivingLicense}
                             disabled={updateEmployeeMutation.isPending}
-                            className="bg-teal-600 hover:bg-teal-700"
+                            className="bg-cyan-600 hover:bg-cyan-700"
                             data-testid="button-save-driving"
                           >
                             {updateEmployeeMutation.isPending ? "Saving..." : "Save Changes"}
@@ -1216,7 +1216,7 @@ export default function EmployeeDetailsPage() {
 
                   {/* Work Experience Card */}
                   <Card>
-                    <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white">
+                    <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
                       <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
                           <Building className="w-5 h-5" />
@@ -1291,7 +1291,7 @@ export default function EmployeeDetailsPage() {
                                 type="submit"
                                 onClick={handleAddWorkExperience}
                                 disabled={createWorkExperienceMutation.isPending}
-                                className="bg-teal-600 hover:bg-teal-700"
+                                className="bg-cyan-600 hover:bg-cyan-700"
                               >
                                 {createWorkExperienceMutation.isPending ? "Adding..." : "Add Experience"}
                               </Button>
@@ -1368,7 +1368,7 @@ export default function EmployeeDetailsPage() {
                 <div className="space-y-6">
                   {/* Employment Details Card */}
                   <Card>
-                    <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white">
+                    <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
                       <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
                           <Building className="w-5 h-5" />
@@ -1379,7 +1379,7 @@ export default function EmployeeDetailsPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => setIsEditingEmployment(true)}
-                            className="bg-white text-teal-600 hover:bg-gray-50"
+                            className="bg-white text-cyan-600 hover:bg-gray-50"
                             data-testid="button-edit-employment"
                           >
                             <Edit2 className="w-4 h-4 mr-1" />
@@ -1595,7 +1595,7 @@ export default function EmployeeDetailsPage() {
                             Cancel
                           </Button>
                           <Button
-                            className="bg-teal-600 hover:bg-teal-700"
+                            className="bg-cyan-600 hover:bg-cyan-700"
                             onClick={() => updateEmploymentMutation.mutate(employmentForm)}
                             disabled={updateEmploymentMutation.isPending}
                             data-testid="button-save-employment"
@@ -1609,7 +1609,7 @@ export default function EmployeeDetailsPage() {
 
                   {/* Approval Details Card */}
                   <Card>
-                    <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white">
+                    <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
                       <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
                           <UserCheck className="w-5 h-5" />
@@ -1620,7 +1620,7 @@ export default function EmployeeDetailsPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => setIsEditingApproval(true)}
-                            className="bg-white text-teal-600 hover:bg-gray-50"
+                            className="bg-white text-cyan-600 hover:bg-gray-50"
                             data-testid="button-edit-approval"
                           >
                             <Edit2 className="w-4 h-4 mr-1" />
@@ -1820,7 +1820,7 @@ export default function EmployeeDetailsPage() {
                             Cancel
                           </Button>
                           <Button
-                            className="bg-teal-600 hover:bg-teal-700"
+                            className="bg-cyan-600 hover:bg-cyan-700"
                             onClick={() => updateEmploymentMutation.mutate(employmentForm)}
                             disabled={updateEmploymentMutation.isPending}
                             data-testid="button-save-approval"
@@ -1834,7 +1834,7 @@ export default function EmployeeDetailsPage() {
 
                   {/* Yearly Form Card */}
                   <Card>
-                    <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white">
+                    <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
                       <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
                           <FileText className="w-5 h-5" />
@@ -1845,7 +1845,7 @@ export default function EmployeeDetailsPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => setIsEditingYearly(true)}
-                            className="bg-white text-teal-600 hover:bg-gray-50"
+                            className="bg-white text-cyan-600 hover:bg-gray-50"
                             data-testid="button-edit-yearly"
                           >
                             <Edit2 className="w-4 h-4 mr-1" />
@@ -1889,7 +1889,7 @@ export default function EmployeeDetailsPage() {
                             Cancel
                           </Button>
                           <Button
-                            className="bg-teal-600 hover:bg-teal-700"
+                            className="bg-cyan-600 hover:bg-cyan-700"
                             onClick={() => updateEmploymentMutation.mutate(employmentForm)}
                             disabled={updateEmploymentMutation.isPending}
                             data-testid="button-save-yearly"
@@ -1903,7 +1903,7 @@ export default function EmployeeDetailsPage() {
 
                   {/* Company Access Card */}
                   <Card>
-                    <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white">
+                    <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
                       <CardTitle className="flex items-center gap-2">
                         <Building className="w-5 h-5" />
                         Company Access
@@ -1944,7 +1944,7 @@ export default function EmployeeDetailsPage() {
                 <div className="space-y-6">
                   {/* Contact Details Card */}
                   <Card>
-                    <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white">
+                    <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
                       <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
                           <Phone className="w-5 h-5" />
@@ -1955,7 +1955,7 @@ export default function EmployeeDetailsPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => setIsEditingContact(true)}
-                            className="bg-white text-teal-600 hover:bg-gray-50"
+                            className="bg-white text-cyan-600 hover:bg-gray-50"
                             data-testid="button-edit-contact"
                           >
                             <Edit2 className="w-4 h-4 mr-1" />
@@ -2103,7 +2103,7 @@ export default function EmployeeDetailsPage() {
                           <Button
                             onClick={handleSaveContact}
                             disabled={updateContactMutation.isPending}
-                            className="bg-teal-600 hover:bg-teal-700"
+                            className="bg-cyan-600 hover:bg-cyan-700"
                             data-testid="button-save-contact"
                           >
                             {updateContactMutation.isPending ? "Saving..." : "Save Changes"}
@@ -2119,7 +2119,7 @@ export default function EmployeeDetailsPage() {
                 <div className="space-y-6">
                   {/* Family Details Card */}
                   <Card>
-                    <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white">
+                    <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
                       <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
                           <Users className="w-5 h-5" />
@@ -2130,7 +2130,7 @@ export default function EmployeeDetailsPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="bg-white text-teal-600 hover:bg-gray-50"
+                              className="bg-white text-cyan-600 hover:bg-gray-50"
                               data-testid="button-add-family"
                             >
                               <Plus className="w-4 h-4 mr-1" />
@@ -2293,7 +2293,7 @@ export default function EmployeeDetailsPage() {
                               <Button
                                 onClick={handleAddFamily}
                                 disabled={createFamilyMutation.isPending}
-                                className="bg-teal-600 hover:bg-teal-700"
+                                className="bg-cyan-600 hover:bg-cyan-700"
                               >
                                 {createFamilyMutation.isPending ? "Saving..." : "Save"}
                               </Button>
@@ -2363,7 +2363,7 @@ export default function EmployeeDetailsPage() {
                 <div className="space-y-6">
                   {/* Bank Details Card */}
                   <Card>
-                    <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white">
+                    <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
                       <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
                           <Building className="w-5 h-5" />
@@ -2374,7 +2374,7 @@ export default function EmployeeDetailsPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => setIsEditingBankDetails(true)}
-                            className="bg-white text-teal-600 hover:bg-gray-50"
+                            className="bg-white text-cyan-600 hover:bg-gray-50"
                             data-testid="button-edit-bank-details"
                           >
                             <Edit2 className="w-4 h-4 mr-1" />
@@ -2516,7 +2516,7 @@ export default function EmployeeDetailsPage() {
                             Cancel
                           </Button>
                           <Button
-                            className="bg-teal-600 hover:bg-teal-700"
+                            className="bg-cyan-600 hover:bg-cyan-700"
                             data-testid="button-save-bank-details"
                           >
                             Save Changes
@@ -2528,7 +2528,7 @@ export default function EmployeeDetailsPage() {
 
                   {/* Statutory Details Card */}
                   <Card>
-                    <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white">
+                    <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
                       <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
                           <FileText className="w-5 h-5" />
@@ -2539,7 +2539,7 @@ export default function EmployeeDetailsPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => setIsEditingStatutoryDetails(true)}
-                            className="bg-white text-teal-600 hover:bg-gray-50"
+                            className="bg-white text-cyan-600 hover:bg-gray-50"
                             data-testid="button-edit-statutory-details"
                           >
                             <Edit2 className="w-4 h-4 mr-1" />
@@ -2710,7 +2710,7 @@ export default function EmployeeDetailsPage() {
                             Cancel
                           </Button>
                           <Button
-                            className="bg-teal-600 hover:bg-teal-700"
+                            className="bg-cyan-600 hover:bg-cyan-700"
                             data-testid="button-save-statutory-details"
                           >
                             Save Changes
@@ -2722,7 +2722,7 @@ export default function EmployeeDetailsPage() {
 
                   {/* Income Tax Details Card */}
                   <Card>
-                    <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white">
+                    <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
                       <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
                           <Calculator className="w-5 h-5" />
@@ -2733,7 +2733,7 @@ export default function EmployeeDetailsPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => setIsEditingIncomeTaxDetails(true)}
-                            className="bg-white text-teal-600 hover:bg-gray-50"
+                            className="bg-white text-cyan-600 hover:bg-gray-50"
                             data-testid="button-edit-income-tax-details"
                           >
                             <Edit2 className="w-4 h-4 mr-1" />
@@ -2877,7 +2877,7 @@ export default function EmployeeDetailsPage() {
                             Cancel
                           </Button>
                           <Button
-                            className="bg-teal-600 hover:bg-teal-700"
+                            className="bg-cyan-600 hover:bg-cyan-700"
                             data-testid="button-save-income-tax-details"
                           >
                             Save Changes
@@ -2912,7 +2912,7 @@ export default function EmployeeDetailsPage() {
               {/* Placeholder for other tabs */}
               {!["personal-details", "employment", "contact", "family-detail", "compensation", "document", "equipment", "leave-policy", "claim-policy"].includes(activeTab) && (
                 <Card>
-                  <CardHeader className="bg-gradient-to-r from-teal-500 to-emerald-500 text-white">
+                  <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
                     <CardTitle className="capitalize">
                       {activeTab.replace("-", " ")} Information
                     </CardTitle>

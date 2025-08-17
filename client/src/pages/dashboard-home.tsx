@@ -467,9 +467,9 @@ export default function DashboardHome() {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+                <Card className="bg-gradient-to-br from-cyan-50 to-blue-50 border-cyan-200">
                   <CardContent className="p-6 text-center">
-                    <div className="text-3xl font-bold text-green-600 mb-2" data-testid="total-on-leave">
+                    <div className="text-3xl font-bold text-cyan-600 mb-2" data-testid="total-on-leave">
                       {dashboardStats?.totalOnLeave || 0}
                     </div>
                     <div className="text-sm text-gray-600 mb-1">Total</div>
@@ -499,9 +499,9 @@ export default function DashboardHome() {
           </CardHeader>
           <CardContent className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 hover:shadow-md transition-shadow">
+              <Card className="bg-gradient-to-br from-cyan-50 to-blue-50 border-cyan-200 hover:shadow-md transition-shadow">
                 <CardContent className="p-6 text-center">
-                  <div className="text-3xl font-bold text-green-600 mb-2" data-testid="stat-leave-approved">
+                  <div className="text-3xl font-bold text-cyan-600 mb-2" data-testid="stat-leave-approved">
                     {userStats?.leaveApproved || 0}
                   </div>
                   <div className="text-sm text-gray-600">Leave Approved</div>

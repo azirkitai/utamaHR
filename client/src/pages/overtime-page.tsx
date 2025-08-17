@@ -88,7 +88,7 @@ export default function OvertimePage() {
         </div>
 
         {/* Attendance Overtime Header */}
-        <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
+        <div className="bg-gradient-to-r from-cyan-600 to-cyan-600 text-white p-4 rounded-lg">
           <h3 className="text-lg font-semibold">Attendance Overtime</h3>
         </div>
 

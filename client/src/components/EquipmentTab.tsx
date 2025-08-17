@@ -83,7 +83,7 @@ export function EquipmentTab({ employeeId }: EquipmentTabProps) {
   if (isLoading) {
     return (
       <Card>
-        <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white">
+        <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
           <CardTitle>Equipment Information</CardTitle>
         </CardHeader>
         <CardContent className="p-6">
@@ -98,12 +98,12 @@ export function EquipmentTab({ employeeId }: EquipmentTabProps) {
   return (
     <>
       <Card>
-        <CardHeader className="bg-gradient-to-r from-teal-500 to-green-400 text-white">
+        <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
           <div className="flex items-center justify-between">
             <CardTitle>Equipment Information</CardTitle>
             <Button
               onClick={handleAddNew}
-              className="bg-white text-teal-600 hover:bg-gray-100"
+              className="bg-white text-cyan-600 hover:bg-gray-100"
               size="sm"
               data-testid="button-add-equipment"
             >

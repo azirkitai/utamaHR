@@ -290,7 +290,7 @@ export function ClaimPolicyModal({
               </Button>
               <Button
                 type="submit"
-                className="bg-teal-600 hover:bg-teal-700"
+                className="bg-cyan-600 hover:bg-cyan-700"
                 disabled={saveClaimPolicyMutation.isPending}
                 data-testid="button-save-claim-policy"
               >

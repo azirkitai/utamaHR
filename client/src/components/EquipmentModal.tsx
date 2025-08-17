@@ -286,7 +286,7 @@ export function EquipmentModal({
               </Button>
               <Button
                 type="submit"
-                className="bg-teal-600 hover:bg-teal-700"
+                className="bg-cyan-600 hover:bg-cyan-700"
                 disabled={saveEquipmentMutation.isPending}
                 data-testid="button-save-equipment"
               >

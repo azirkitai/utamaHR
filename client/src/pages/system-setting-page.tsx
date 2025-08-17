@@ -1921,7 +1921,7 @@ export default function SystemSettingPage() {
   const renderCompanyForm = () => (
     <div className="space-y-6">
       {/* Company Details Header */}
-      <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
+      <div className="bg-gradient-to-r from-cyan-600 to-cyan-600 text-white p-4 rounded-lg">
         <h3 className="text-lg font-semibold">Company Details</h3>
       </div>
 
@@ -2166,7 +2166,7 @@ export default function SystemSettingPage() {
       </div>
 
       {/* Bank & Other Account Details */}
-      <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
+      <div className="bg-gradient-to-r from-cyan-600 to-cyan-600 text-white p-4 rounded-lg">
         <h3 className="text-lg font-semibold">Bank & Other Account Details</h3>
       </div>
 
@@ -2300,7 +2300,7 @@ export default function SystemSettingPage() {
       </div>
 
       {/* Company Subsidiary */}
-      <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
+      <div className="bg-gradient-to-r from-cyan-600 to-cyan-600 text-white p-4 rounded-lg">
         <h3 className="text-lg font-semibold">Company Subsidiary</h3>
       </div>
 
@@ -2390,7 +2390,7 @@ export default function SystemSettingPage() {
       {claimActiveTab === "financial" && (
         <>
           {/* Financial Approval */}
-          <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
+          <div className="bg-gradient-to-r from-cyan-600 to-cyan-600 text-white p-4 rounded-lg">
             <h3 className="text-lg font-semibold">Financial Approval</h3>
           </div>
 
@@ -2452,7 +2452,7 @@ export default function SystemSettingPage() {
           </div>
 
           {/* Financial Policy */}
-          <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg flex items-center justify-between">
+          <div className="bg-gradient-to-r from-cyan-600 to-cyan-600 text-white p-4 rounded-lg flex items-center justify-between">
             <h3 className="text-lg font-semibold">Financial Policy</h3>
             <Button 
               variant="secondary"
@@ -2673,7 +2673,7 @@ export default function SystemSettingPage() {
           </div>
 
           {/* Financial Setting */}
-          <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
+          <div className="bg-gradient-to-r from-cyan-600 to-cyan-600 text-white p-4 rounded-lg">
             <h3 className="text-lg font-semibold">Financial Setting</h3>
           </div>
 
@@ -2719,7 +2719,7 @@ export default function SystemSettingPage() {
       {claimActiveTab === "overtime" && (
         <>
           {/* Overtime Approval */}
-          <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
+          <div className="bg-gradient-to-r from-cyan-600 to-cyan-600 text-white p-4 rounded-lg">
             <h3 className="text-lg font-semibold">Overtime Approval</h3>
           </div>
 
@@ -2802,7 +2802,7 @@ export default function SystemSettingPage() {
           </div>
 
           {/* Overtime Policy */}
-          <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg flex items-center justify-between">
+          <div className="bg-gradient-to-r from-cyan-600 to-cyan-600 text-white p-4 rounded-lg flex items-center justify-between">
             <h3 className="text-lg font-semibold">Overtime Policy</h3>
             <Button 
               variant="secondary"
@@ -2838,7 +2838,7 @@ export default function SystemSettingPage() {
           </div>
 
           {/* Overtime Setting */}
-          <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
+          <div className="bg-gradient-to-r from-cyan-600 to-cyan-600 text-white p-4 rounded-lg">
             <h3 className="text-lg font-semibold">Overtime Setting</h3>
           </div>
 
@@ -2973,7 +2973,7 @@ export default function SystemSettingPage() {
       {activeTab === "leave" && (
         <>
           {/* Leave Approval */}
-          <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
+          <div className="bg-gradient-to-r from-cyan-600 to-cyan-600 text-white p-4 rounded-lg">
             <h3 className="text-lg font-semibold">Leave Approval</h3>
           </div>
 
@@ -3056,7 +3056,7 @@ export default function SystemSettingPage() {
           </div>
 
           {/* Leave Policy */}
-          <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg flex items-center justify-between">
+          <div className="bg-gradient-to-r from-cyan-600 to-cyan-600 text-white p-4 rounded-lg flex items-center justify-between">
             <h3 className="text-lg font-semibold">Leave Policy</h3>
             <Button 
               variant="secondary"
@@ -3361,7 +3361,7 @@ export default function SystemSettingPage() {
       {activeTab === "timeoff" && (
         <>
           {/* Timeoff Approval */}
-          <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
+          <div className="bg-gradient-to-r from-cyan-600 to-cyan-600 text-white p-4 rounded-lg">
             <h3 className="text-lg font-semibold">Timeoff Approval</h3>
           </div>
 
@@ -3423,7 +3423,7 @@ export default function SystemSettingPage() {
           </div>
 
           {/* Timeoff Settings */}
-          <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
+          <div className="bg-gradient-to-r from-cyan-600 to-cyan-600 text-white p-4 rounded-lg">
             <h3 className="text-lg font-semibold">Timeoff Setting</h3>
           </div>
 
@@ -4345,7 +4345,7 @@ export default function SystemSettingPage() {
   const renderDepartmentForm = () => (
     <div className="space-y-6">
       {/* Department Header */}
-      <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg flex items-center justify-between">
+      <div className="bg-gradient-to-r from-cyan-600 to-cyan-600 text-white p-4 rounded-lg flex items-center justify-between">
         <h3 className="text-lg font-semibold">Department</h3>
         <Button 
           variant="secondary"
@@ -4711,7 +4711,7 @@ export default function SystemSettingPage() {
 
   const renderPlaceholderContent = (section: string) => (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
+      <div className="bg-gradient-to-r from-cyan-600 to-cyan-600 text-white p-4 rounded-lg">
         <h3 className="text-lg font-semibold capitalize">{section} Settings</h3>
       </div>
       <div className="bg-white p-6 rounded-lg border">
@@ -4736,7 +4736,7 @@ export default function SystemSettingPage() {
 
           {/* Navigation Menu */}
           <div className="p-2">
-            <div className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-3 rounded-t-lg">
+            <div className="bg-gradient-to-r from-cyan-600 to-cyan-600 text-white p-3 rounded-t-lg">
               <h2 className="font-semibold">Setting</h2>
             </div>
             
@@ -4790,7 +4790,7 @@ export default function SystemSettingPage() {
       <Dialog open={showCreatePolicyDialog} onOpenChange={setShowCreatePolicyDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-lg font-semibold bg-gradient-to-r from-cyan-600 to-teal-600 bg-clip-text text-transparent">
+            <DialogTitle className="text-lg font-semibold bg-gradient-to-r from-cyan-600 to-cyan-600 bg-clip-text text-transparent">
               {policyType === "financial" ? "Financial Policy" : "Overtime Policy"}
             </DialogTitle>
             <DialogDescription>
@@ -4995,7 +4995,7 @@ export default function SystemSettingPage() {
       <Dialog open={showAddDepartmentDialog} onOpenChange={setShowAddDepartmentDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-lg font-semibold bg-gradient-to-r from-cyan-600 to-teal-600 bg-clip-text text-transparent">
+            <DialogTitle className="text-lg font-semibold bg-gradient-to-r from-cyan-600 to-cyan-600 bg-clip-text text-transparent">
               Department
             </DialogTitle>
             <DialogDescription>

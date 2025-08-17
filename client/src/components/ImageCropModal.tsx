@@ -135,7 +135,7 @@ export function ImageCropModal({ isOpen, onClose, imageSrc, onCropComplete }: Im
       <DialogContent className="max-w-2xl h-[600px] p-0">
         <DialogHeader className="p-6 pb-4">
           <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
-            <ZoomIn className="w-5 h-5 text-teal-600" />
+            <ZoomIn className="w-5 h-5 text-cyan-600" />
             Crop Gambar Profile
           </DialogTitle>
           <DialogDescription className="text-gray-600">
@@ -191,7 +191,7 @@ export function ImageCropModal({ isOpen, onClose, imageSrc, onCropComplete }: Im
             <Button
               onClick={handleUpload}
               disabled={isProcessing || !croppedAreaPixels}
-              className="bg-teal-600 hover:bg-teal-700"
+              className="bg-cyan-600 hover:bg-cyan-700"
               data-testid="button-upload-cropped"
             >
               <Upload className="w-4 h-4 mr-1" />
