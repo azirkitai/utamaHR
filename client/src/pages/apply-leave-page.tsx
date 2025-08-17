@@ -647,22 +647,7 @@ export default function ApplyLeavePage() {
             </CardContent>
           </Card>
 
-          {/* Recent Leave Application */}
-          <Card className="mt-6">
-            <CardHeader className="bg-teal-400 text-white rounded-t-lg">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm">Recent Leave Application</CardTitle>
-                <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
-                  <MoreHorizontal className="w-4 h-4" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="p-4">
-              <div className="text-center text-gray-500 text-sm py-8">
-                No recent applications
-              </div>
-            </CardContent>
-          </Card>
+          
           </div>
         </div>
       </div>
