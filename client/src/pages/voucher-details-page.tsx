@@ -414,41 +414,63 @@ export default function VoucherDetailsPage() {
     }
   };
 
+  // VOUCHER DOWNLOAD: Using improved method like payslip system
   const handleDownload = async () => {
     try {
-      const token = localStorage.getItem('utamahr_token');
-      const headers: Record<string, string> = {};
+      console.log('VOUCHER DOWNLOAD: Using improved fetch + blob approach');
       
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
-
       const response = await fetch(`/api/payment-vouchers/${voucherId}/pdf`, {
         method: 'GET',
-        headers,
-        credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('utamahr_token')}`,
+        },
       });
 
+      console.log('VOUCHER Response status:', response.status);
+      
       if (!response.ok) {
-        throw new Error('Failed to generate PDF');
+        throw new Error(`Server error: ${response.status}`);
       }
 
+      // Convert to blob without checking content-type first
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      console.log('VOUCHER Blob size:', blob.size, 'type:', blob.type);
       
-      // Create download link
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `Payment_Voucher_${voucher?.voucherNumber || voucherId}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      if (blob.size === 0) {
+        throw new Error('Empty file received');
+      }
       
-      // Clean up
-      window.URL.revokeObjectURL(url);
+      // Force download using object URL
+      const url = URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `Payment_Voucher_${voucher?.voucherNumber || voucherId}.pdf`;
+      
+      document.body.appendChild(a);
+      a.click();
+      
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 100);
+      
+      console.log('VOUCHER: PDF downloaded successfully');
+      toast({
+        title: "Berjaya",
+        description: "Payment voucher PDF berjaya dimuat turun!",
+      });
+      
     } catch (error) {
-      console.error('Error downloading voucher:', error);
-      // Fallback to browser print
+      console.error('VOUCHER Download Error:', error);
+      toast({
+        title: "Error",
+        description: "Gagal memuat turun voucher. Cuba lagi.",
+        variant: "destructive",
+      });
+      
+      // Fallback to browser print as backup
       if (activeTab !== 'voucher') {
         setActiveTab('voucher');
         setTimeout(() => window.print(), 100);
