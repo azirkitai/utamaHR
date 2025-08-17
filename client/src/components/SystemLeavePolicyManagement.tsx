@@ -196,7 +196,7 @@ export function SystemLeavePolicyManagement() {
   if (isLoading) {
     return (
       <Card>
-        <CardHeader className="bg-gradient-to-r from-[#07A3B2] to-[#D9ECC7] text-white">
+        <CardHeader className="bg-gradient-to-r from-[#1e40af] to-[#3b82f6] text-white">
           <CardTitle>Pengurusan Polisi Cuti Sistem</CardTitle>
         </CardHeader>
         <CardContent className="p-6">
@@ -211,13 +211,13 @@ export function SystemLeavePolicyManagement() {
   return (
     <>
       <Card>
-        <CardHeader className="bg-gradient-to-r from-[#07A3B2] to-[#D9ECC7] text-white">
+        <CardHeader className="bg-gradient-to-r from-[#1e40af] to-[#3b82f6] text-white">
           <div className="flex items-center justify-between">
             <CardTitle>Pengurusan Polisi Cuti Sistem</CardTitle>
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button
-                  className="bg-white text-[#07A3B2] hover:bg-gray-100"
+                  className="bg-white text-[#1e40af] hover:bg-gray-100"
                   size="sm"
                   data-testid="button-add-system-leave-policy"
                 >
@@ -294,7 +294,7 @@ export function SystemLeavePolicyManagement() {
               </div>
             ) : (
               systemPolicies.map((policy) => (
-                <Card key={policy.id} className="border-l-4 border-l-[#07A3B2]">
+                <Card key={policy.id} className="border-l-4 border-l-[#1e40af]">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="space-y-1">

@@ -181,7 +181,7 @@ export default function MobileClockOutPage() {
         <div className="mb-6">
           <div 
             className="rounded-lg p-6 shadow-sm"
-            style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}
+            style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}
           >
             <div className="flex items-center gap-3 mb-2">
               <Link href="/my-record">
@@ -232,7 +232,7 @@ export default function MobileClockOutPage() {
                 <Button
                   onClick={captureSelfie}
                   className="w-full text-gray-800 shadow-sm"
-                  style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}
+                  style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}
                   data-testid="button-capture-selfie"
                 >
                   <Camera className="mr-2 h-4 w-4" />
@@ -307,7 +307,7 @@ export default function MobileClockOutPage() {
                   <Button
                     onClick={() => navigate("/my-record")}
                     className="flex-1 text-gray-800 shadow-sm"
-                    style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}
+                    style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}
                   >
                     Lihat Rekod
                   </Button>
@@ -338,7 +338,7 @@ export default function MobileClockOutPage() {
                 <Button
                   onClick={retryProcess}
                   className="w-full text-gray-800 shadow-sm"
-                  style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}
+                  style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}
                 >
                   <RefreshCw className="mr-2 h-4 w-4" />
                   Cuba Lagi

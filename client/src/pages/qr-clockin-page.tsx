@@ -55,7 +55,7 @@ export default function QRClockInPage() {
           width: 256,
           margin: 2,
           color: {
-            dark: "#07A3B2",
+            dark: "#1e40af",
             light: "#FFFFFF"
           }
         });
@@ -146,13 +146,12 @@ export default function QRClockInPage() {
         {/* Page Header */}
         <div className="mb-8">
           <div 
-            className="rounded-lg p-6 shadow-sm"
-            style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}
+            className="rounded-lg p-6 shadow-sm bg-gradient-to-r from-cyan-400 to-blue-700"
           >
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            <h1 className="text-3xl font-bold text-white mb-2">
               Sistem QR Code Clock-In
             </h1>
-            <p className="text-gray-700 text-lg">
+            <p className="text-blue-100 text-lg">
               Sistem clock-in pekerja menggunakan QR code dengan pengesahan lokasi GPS dan selfie
             </p>
           </div>
@@ -189,8 +188,7 @@ export default function QRClockInPage() {
                   <Button
                     onClick={() => generateQrMutation.mutate()}
                     disabled={generateQrMutation.isPending}
-                    className="text-gray-800 shadow-sm px-6 py-3"
-                    style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}
+                    className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white shadow-sm px-6 py-3 hover:from-cyan-500 hover:to-blue-800"
                     data-testid="button-generate-qr"
                   >
                     {generateQrMutation.isPending ? (

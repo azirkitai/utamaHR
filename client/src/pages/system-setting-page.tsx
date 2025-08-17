@@ -3509,7 +3509,7 @@ export default function SystemSettingPage() {
     <div className="space-y-6">
       {/* Payment Setting */}
       <div className="bg-white rounded-lg border">
-        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}>
+        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}>
           <h3 className="font-semibold text-gray-800">Payment Setting</h3>
         </div>
         <div className="p-4 space-y-4">
@@ -3571,7 +3571,7 @@ export default function SystemSettingPage() {
 
       {/* Payment Approval */}
       <div className="bg-white rounded-lg border">
-        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}>
+        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}>
           <h3 className="font-semibold text-gray-800">Payment Approval</h3>
         </div>
         <div className="p-4 space-y-4">
@@ -3663,7 +3663,7 @@ export default function SystemSettingPage() {
 
       {/* Unpaid Leave Setting */}
       <div className="bg-white rounded-lg border">
-        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}>
+        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}>
           <h3 className="font-semibold text-gray-800">Unpaid Leave Setting</h3>
         </div>
         <div className="p-4 space-y-4">
@@ -3741,7 +3741,7 @@ export default function SystemSettingPage() {
 
       {/* Claim Setting */}
       <div className="bg-white rounded-lg border">
-        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}>
+        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}>
           <h3 className="font-semibold text-gray-800">Claim Setting</h3>
         </div>
         <div className="p-4 space-y-4">
@@ -3802,7 +3802,7 @@ export default function SystemSettingPage() {
 
       {/* Overtime Setting */}
       <div className="bg-white rounded-lg border">
-        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}>
+        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}>
           <h3 className="font-semibold text-gray-800">Overtime Setting</h3>
         </div>
         <div className="p-4 space-y-4">
@@ -3911,7 +3911,7 @@ export default function SystemSettingPage() {
 
       {/* Lateness Setting */}
       <div className="bg-white rounded-lg border">
-        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}>
+        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}>
           <h3 className="font-semibold text-gray-800">Lateness Setting</h3>
         </div>
         <div className="p-4 space-y-4">
@@ -3939,7 +3939,7 @@ export default function SystemSettingPage() {
 
       {/* Payslip Setting */}
       <div className="bg-white rounded-lg border">
-        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}>
+        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}>
           <h3 className="font-semibold text-gray-800">Payslip Setting</h3>
         </div>
         <div className="p-4 space-y-4">
@@ -4033,7 +4033,7 @@ export default function SystemSettingPage() {
     <div className="space-y-6">
       {/* General Shift Setting */}
       <div className="bg-white rounded-lg border">
-        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}>
+        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}>
           <h3 className="font-semibold text-gray-800">General Shift Setting</h3>
         </div>
         <div className="p-4 space-y-4">
@@ -4191,7 +4191,7 @@ export default function SystemSettingPage() {
     <div className="space-y-6">
       {/* EA Form Section */}
       <div className="bg-white rounded-lg border">
-        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}>
+        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}>
           <h3 className="font-semibold text-gray-800">EA Form</h3>
         </div>
         <div className="p-6 space-y-6">
@@ -4219,7 +4219,7 @@ export default function SystemSettingPage() {
           <div className="flex justify-end pt-4">
             <Button 
               className="text-gray-800 shadow-sm" 
-              style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}
+              style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}
               data-testid="button-save-yearly-form"
               onClick={() => {
                 // Handle save functionality
@@ -4238,7 +4238,7 @@ export default function SystemSettingPage() {
     <div className="space-y-6">
       {/* Notification Setting */}
       <div className="bg-white rounded-lg border">
-        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}>
+        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}>
           <h3 className="font-semibold text-gray-800">Notification Setting</h3>
         </div>
         <div className="p-6 space-y-6">
@@ -4402,7 +4402,7 @@ export default function SystemSettingPage() {
     return (
       <div className="space-y-6">
         <div className="bg-white rounded-lg border">
-          <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}>
+          <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}>
             <h3 className="font-semibold text-gray-800">Overtime Approval Settings</h3>
           </div>
           <div className="p-6 space-y-6">
@@ -4455,7 +4455,7 @@ export default function SystemSettingPage() {
             <div className="flex justify-end pt-4">
               <Button 
                 className="text-gray-800 shadow-sm" 
-                style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}
+                style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}
                 onClick={handleSubmitOvertimeApproval}
                 disabled={saveOvertimeApprovalMutation.isPending}
                 data-testid="button-save-overtime-approval"
@@ -4516,7 +4516,7 @@ export default function SystemSettingPage() {
     return (
       <div className="space-y-6">
         <div className="bg-white rounded-lg border">
-          <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}>
+          <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}>
             <h3 className="font-semibold text-gray-800">Overtime Rate Policies</h3>
           </div>
           <div className="p-6">
@@ -4554,7 +4554,7 @@ export default function SystemSettingPage() {
             <div className="flex justify-end pt-6">
               <Button 
                 className="text-gray-800 shadow-sm" 
-                style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}
+                style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}
                 onClick={handleSaveOvertimePolicies}
                 disabled={saveOvertimePolicyMutation.isPending}
                 data-testid="button-save-overtime-policies"
@@ -4604,7 +4604,7 @@ export default function SystemSettingPage() {
     return (
       <div className="space-y-6">
         <div className="bg-white rounded-lg border">
-          <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}>
+          <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}>
             <h3 className="font-semibold text-gray-800">Overtime Calculation Settings</h3>
           </div>
           <div className="p-6 space-y-6">
@@ -4688,7 +4688,7 @@ export default function SystemSettingPage() {
             <div className="flex justify-end pt-4">
               <Button 
                 className="text-gray-800 shadow-sm" 
-                style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}
+                style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}
                 onClick={handleSaveOvertimeSettings}
                 disabled={saveOvertimeSettingsMutation.isPending}
                 data-testid="button-save-overtime-settings"
@@ -4752,7 +4752,7 @@ export default function SystemSettingPage() {
                           : "text-gray-700"
                       )}
                       style={(currentSection === item.id || (currentSection === "company" && item.id === "company")) ? 
-                        { background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)", borderRightColor: "#07A3B2" } : 
+                        { background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)", borderRightColor: "#1e40af" } : 
                         {}
                       }
                       data-testid={`nav-setting-${item.id}`}

@@ -460,7 +460,7 @@ export default function MobileClockInPage() {
                         onClick={captureSelfie}
                         disabled={!isCameraReady}
                         className="flex-1"
-                        style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}
+                        style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}
                         data-testid="button-capture-selfie"
                       >
                         <Camera className="mr-2 h-4 w-4" />
@@ -490,7 +490,7 @@ export default function MobileClockInPage() {
                       <Button 
                         onClick={() => setStep("location")}
                         className="flex-1"
-                        style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}
+                        style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}
                       >
                         Teruskan
                       </Button>
@@ -518,7 +518,7 @@ export default function MobileClockInPage() {
                 <Button 
                   onClick={getLocation}
                   className="w-full"
-                  style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}
+                  style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}
                 >
                   <MapPin className="mr-2 h-4 w-4" />
                   Dapatkan Lokasi GPS

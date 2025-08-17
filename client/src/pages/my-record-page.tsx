@@ -1090,7 +1090,7 @@ export default function MyRecordPage() {
                         <Button 
                           size="sm" 
                           className="h-6 px-2 text-white text-xs"
-                          style={{ background: "linear-gradient(135deg, #07A3B2 0%, #D9ECC7 100%)" }}
+                          style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}
                           onClick={() => window.location.href = '/mobile-clockout'}
                           data-testid={`button-clock-out-${record.id}`}
                         >
