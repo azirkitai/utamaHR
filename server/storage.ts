@@ -3390,8 +3390,8 @@ export class DatabaseStorage implements IStorage {
 
   async getApprovedFinancialClaims(year: number, month: number): Promise<any[]> {
     try {
-      // Get ALL approved financial claims regardless of claimDate
-      // Payment vouchers typically process all outstanding approved claims
+      // Get approved financial claims filtered by the specified year and month
+      // Filter by claimDate to match the voucher month
       const query = db
         .select()
         .from(claimApplications)
@@ -3399,7 +3399,10 @@ export class DatabaseStorage implements IStorage {
         .where(
           and(
             eq(claimApplications.claimType, 'financial'),
-            eq(claimApplications.status, 'Approved')
+            eq(claimApplications.status, 'Approved'),
+            // Filter by year and month from claimDate
+            sql`EXTRACT(YEAR FROM ${claimApplications.claimDate}) = ${year}`,
+            sql`EXTRACT(MONTH FROM ${claimApplications.claimDate}) = ${month}`
           )
         )
         .orderBy(asc(claimApplications.employeeId));
