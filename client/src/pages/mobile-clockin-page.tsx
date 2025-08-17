@@ -20,16 +20,21 @@ interface QrValidation {
 
 interface ClockInResult {
   success: boolean;
-  clockInRecord: {
+  isClockOut?: boolean;
+  clockInRecord?: {
     id: string;
     clockInTime: string;
     locationStatus: string;
     distance: number;
   };
+  clockOutTime?: string;
+  locationStatus?: string;
+  totalHours?: number;
   user: {
     username: string;
   };
   message: string;
+  distance?: number;
 }
 
 export default function MobileClockInPage() {
@@ -246,6 +251,17 @@ export default function MobileClockInPage() {
       setClockInResult(result);
       setStep("success");
 
+      // Trigger refresh on main QR Clock-In/Out page
+      localStorage.setItem('mobile-clockin-completed', Date.now().toString());
+      
+      // Show success toast
+      setTimeout(() => {
+        const message = result.isClockOut 
+          ? `Clock-out berjaya! Total ${result.totalHours || 0} jam.`
+          : "Clock-in berjaya!";
+        console.log("Mobile operation completed:", message);
+      }, 500);
+
     } catch (err) {
       console.error("Clock-in error:", err);
       setError(err instanceof Error ? err.message : "Gagal melakukan clock-in");
@@ -326,7 +342,9 @@ export default function MobileClockInPage() {
             <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
               <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
-            <CardTitle className="text-green-800">Clock-In Berjaya!</CardTitle>
+            <CardTitle className="text-green-800">
+              {clockInResult.isClockOut ? "Clock-Out Berjaya!" : "Clock-In Berjaya!"}
+            </CardTitle>
             <CardDescription className="text-green-600">
               {clockInResult.message}
             </CardDescription>
@@ -340,39 +358,55 @@ export default function MobileClockInPage() {
               
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Masa:</span>
-                <span className="font-medium">{formatDateTime(clockInResult.clockInRecord.clockInTime)}</span>
+                <span className="font-medium">
+                  {clockInResult.isClockOut && clockInResult.clockOutTime 
+                    ? formatDateTime(clockInResult.clockOutTime)
+                    : clockInResult.clockInRecord?.clockInTime 
+                      ? formatDateTime(clockInResult.clockInRecord.clockInTime)
+                      : "N/A"
+                  }
+                </span>
               </div>
+              
+              {clockInResult.isClockOut && clockInResult.totalHours && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Total Jam:</span>
+                  <span className="font-medium">{clockInResult.totalHours} jam</span>
+                </div>
+              )}
               
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Status Lokasi:</span>
                 <Badge className={
-                  clockInResult.clockInRecord.locationStatus === "valid" 
+                  (clockInResult.locationStatus || clockInResult.clockInRecord?.locationStatus) === "valid" 
                     ? "bg-green-100 text-green-800 border-green-200"
                     : "bg-orange-100 text-orange-800 border-orange-200"
                 }>
-                  {clockInResult.clockInRecord.locationStatus === "valid" ? "Dalam Kawasan" : "Di Luar Kawasan"}
+                  {(clockInResult.locationStatus || clockInResult.clockInRecord?.locationStatus) === "valid" ? "Dalam Kawasan" : "Di Luar Kawasan"}
                 </Badge>
               </div>
               
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Jarak:</span>
-                <span className="font-medium">{clockInResult.clockInRecord.distance}m</span>
+                <span className="font-medium">
+                  {clockInResult.distance || clockInResult.clockInRecord?.distance || 0}m
+                </span>
               </div>
             </div>
 
-            {clockInResult.clockInRecord.locationStatus !== "valid" && (
+            {(clockInResult.locationStatus || clockInResult.clockInRecord?.locationStatus) !== "valid" && (
               <Alert className="border-orange-200 bg-orange-50">
                 <AlertTriangle className="h-4 w-4 text-orange-600" />
                 <AlertDescription className="text-orange-800">
                   Anda berada di luar kawasan pejabat yang ditetapkan (50m radius).
-                  Clock-in tetap direkod tetapi ditandakan sebagai di luar kawasan.
+                  {clockInResult.isClockOut ? "Clock-out" : "Clock-in"} tetap direkod tetapi ditandakan sebagai di luar kawasan.
                 </AlertDescription>
               </Alert>
             )}
 
             <div className="text-center pt-4">
               <p className="text-sm text-gray-500 mb-4">
-                Clock-in anda telah direkod dalam sistem
+                {clockInResult.isClockOut ? "Clock-out" : "Clock-in"} anda telah direkod dalam sistem
               </p>
               <Button 
                 onClick={() => window.close()}

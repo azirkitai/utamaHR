@@ -48,13 +48,17 @@ export default function QRClockInPage() {
   // Query for today's attendance status
   const { data: attendanceStatus, isLoading: statusLoading } = useQuery<TodayAttendanceStatus>({
     queryKey: ["/api/today-attendance-status"],
-    refetchInterval: 5000, // Refresh every 5 seconds for real-time updates
+    refetchInterval: 3000, // Refresh every 3 seconds for real-time updates
+    refetchOnWindowFocus: true, // Refresh when window gets focus
+    refetchOnMount: true, // Always refresh on mount
   });
 
   // Query for clock-in history
   const { data: clockInHistory, isLoading: historyLoading } = useQuery<{clockInRecords: ClockInRecord[]}>({
     queryKey: ["/api/clockin-history"],
-    refetchInterval: 5000, // Refresh every 5 seconds for real-time updates
+    refetchInterval: 3000, // Refresh every 3 seconds for real-time updates
+    refetchOnWindowFocus: true, // Refresh when window gets focus
+    refetchOnMount: true, // Always refresh on mount
   });
 
   // Generate QR Code mutation
@@ -151,13 +155,27 @@ export default function QRClockInPage() {
       }
     };
 
+    const handleStorageChange = (e: StorageEvent) => {
+      // Check for mobile clock-in completion trigger
+      if (e.key === 'mobile-clockin-completed' && e.newValue) {
+        console.log("Mobile clock-in/out detected, refreshing main page data");
+        queryClient.invalidateQueries({ queryKey: ["/api/today-attendance-status"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/clockin-history"] });
+        
+        // Clear the trigger
+        localStorage.removeItem('mobile-clockin-completed');
+      }
+    };
+
     // Add event listeners
     window.addEventListener('focus', handleFocus);
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('storage', handleStorageChange);
 
     return () => {
       window.removeEventListener('focus', handleFocus);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('storage', handleStorageChange);
     };
   }, [queryClient]);
 
