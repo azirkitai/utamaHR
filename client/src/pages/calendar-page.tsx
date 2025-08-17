@@ -124,6 +124,8 @@ export default function CalendarPage() {
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
   const [selectedHoliday, setSelectedHoliday] = useState<Holiday | null>(null);
   const [isHolidayModalOpen, setIsHolidayModalOpen] = useState(false);
+  const [selectedEvents, setSelectedEvents] = useState<Event[]>([]);
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
 
   // Fetch all leave applications for calendar display
   const { data: allLeaveApplications = [] } = useQuery<LeaveApplication[]>({
@@ -294,26 +296,37 @@ export default function CalendarPage() {
 
   // Helper function to check if date has events
   const getEventsForDate = (date: number) => {
-    const targetDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), date);
+    if (!events || events.length === 0) return [];
     
     const filteredEvents = events.filter(event => {
-      const startDate = new Date(event.startDate);
-      const endDate = new Date(event.endDate || event.startDate);
+      // Parse event dates as strings in YYYY-MM-DD format
+      const eventStartParts = event.startDate.split('-');
+      const eventEndParts = (event.endDate || event.startDate).split('-');
       
-      // Set time to 00:00:00 for accurate date comparison
-      const targetDateOnly = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
-      const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-      const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+      const eventStartYear = parseInt(eventStartParts[0]);
+      const eventStartMonth = parseInt(eventStartParts[1]) - 1; // Month is 0-indexed
+      const eventStartDate = parseInt(eventStartParts[2]);
       
-      return targetDateOnly >= startDateOnly && targetDateOnly <= endDateOnly;
+      const eventEndYear = parseInt(eventEndParts[0]);
+      const eventEndMonth = parseInt(eventEndParts[1]) - 1; // Month is 0-indexed
+      const eventEndDate = parseInt(eventEndParts[2]);
+      
+      // Check if the calendar date falls within the event date range
+      const calendarYear = currentDate.getFullYear();
+      const calendarMonth = currentDate.getMonth();
+      const calendarDate = date;
+      
+      // Compare year, month, and date
+      const isAfterStart = (calendarYear > eventStartYear) || 
+                          (calendarYear === eventStartYear && calendarMonth > eventStartMonth) ||
+                          (calendarYear === eventStartYear && calendarMonth === eventStartMonth && calendarDate >= eventStartDate);
+      
+      const isBeforeEnd = (calendarYear < eventEndYear) || 
+                         (calendarYear === eventEndYear && calendarMonth < eventEndMonth) ||
+                         (calendarYear === eventEndYear && calendarMonth === eventEndMonth && calendarDate <= eventEndDate);
+      
+      return isAfterStart && isBeforeEnd;
     });
-    
-    // Debug logging
-    if (date === 24 && currentDate.getMonth() === 7) { // August 24th
-      console.log('Events for Aug 24:', filteredEvents);
-      console.log('All events:', events);
-      console.log('Target date:', targetDate);
-    }
     
     return filteredEvents;
   };
@@ -376,6 +389,14 @@ export default function CalendarPage() {
   const handleHolidayClick = (holiday: Holiday) => {
     setSelectedHoliday(holiday);
     setIsHolidayModalOpen(true);
+  };
+
+  // Handle click on events
+  const handleEventClick = (events: Event[]) => {
+    if (events.length > 0) {
+      setSelectedEvents(events);
+      setIsEventModalOpen(true);
+    }
   };
 
   const generateCalendarDays = () => {
@@ -1056,7 +1077,8 @@ export default function CalendarPage() {
                                 {dayEvents?.length > 0 && (
                                   <div 
                                     className="text-xs px-1 py-1 bg-green-100 text-green-800 rounded mb-1 truncate cursor-pointer hover:bg-green-200 transition-colors"
-                                    title={`Events: ${dayEvents.map(e => e.title).join(', ')}`}
+                                    onClick={() => handleEventClick(dayEvents)}
+                                    title={`Events: ${dayEvents.map(e => e.title).join(', ')} - Klik untuk melihat maklumat lengkap`}
                                   >
                                     📅 {dayEvents.length > 1 ? `${dayEvents.length} events` : dayEvents[0].title}
                                   </div>
@@ -1298,6 +1320,74 @@ export default function CalendarPage() {
               <Button 
                 onClick={() => setIsLeaveModalOpen(false)}
                 className="bg-teal-600 hover:bg-teal-700 text-white"
+              >
+                Tutup
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Event Details Modal */}
+        <Dialog open={isEventModalOpen} onOpenChange={setIsEventModalOpen}>
+          <DialogContent className="max-w-lg" aria-describedby="event-details-description">
+            <DialogHeader>
+              <DialogTitle>Maklumat Event</DialogTitle>
+            </DialogHeader>
+            <p id="event-details-description" className="sr-only">
+              Details about the selected events.
+            </p>
+            
+            <div className="space-y-4">
+              {selectedEvents.map((event, index) => (
+                <div key={event.id} className="border rounded-lg p-4 bg-green-50 border-green-200">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="text-2xl">📅</div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg text-green-800">{event.title}</h3>
+                      <p className="text-sm text-green-600">Event {index + 1}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Keterangan:</p>
+                      <p className="text-base bg-white p-2 rounded border">{event.description}</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Tarikh Mula:</p>
+                        <p className="text-base">{new Date(event.startDate).toLocaleDateString('en-GB')}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Tarikh Tamat:</p>
+                        <p className="text-base">{new Date(event.endDate || event.startDate).toLocaleDateString('en-GB')}</p>
+                      </div>
+                    </div>
+                    
+                    {event.time && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Masa:</p>
+                        <p className="text-base">{event.time}</p>
+                      </div>
+                    )}
+                    
+                    {event.selectedEmployee && event.selectedEmployee !== "everyone" && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Kakitangan Terlibat:</p>
+                        <p className="text-base">{event.selectedEmployee}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <DialogFooter>
+              <Button 
+                onClick={() => setIsEventModalOpen(false)}
+                className="bg-green-600 hover:bg-green-700 text-white"
+                data-testid="button-close-event-modal"
               >
                 Tutup
               </Button>
