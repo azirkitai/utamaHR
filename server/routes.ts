@@ -6737,7 +6737,18 @@ export function registerRoutes(app: Express): Server {
       // Validate request data using the Event schema
       const eventData = insertEventSchema.parse(req.body);
       
-      const newEvent = await storage.createEvent(eventData);
+      console.log('Current user:', currentUser);
+      console.log('Event data before adding creator:', eventData);
+      
+      // Add the creator's user ID to the event data
+      const eventWithCreator = {
+        ...eventData,
+        createdBy: currentUser.id
+      };
+      
+      console.log('Event data with creator:', eventWithCreator);
+      
+      const newEvent = await storage.createEvent(eventWithCreator);
 
       res.status(201).json({
         success: true,
