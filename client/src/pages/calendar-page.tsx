@@ -780,28 +780,7 @@ export default function CalendarPage() {
                           />
                         </div>
                         
-                        <div>
-                          <Label className="text-sm font-medium">Selected Employee</Label>
-                          <div className="mt-1 flex items-center space-x-2">
-                            <Checkbox
-                              id="everyone"
-                              checked={selectedEmployee === ""}
-                              onCheckedChange={(checked) => setSelectedEmployee(checked ? "" : selectedEmployee)}
-                              data-testid="checkbox-everyone"
-                            />
-                            <Label htmlFor="everyone" className="text-sm">Leave empty to indicate for everyone.</Label>
-                          </div>
-                          <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
-                            <SelectTrigger className="mt-2" data-testid="select-event-employee">
-                              <SelectValue placeholder="Select employee" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {employees.map(emp => (
-                                <SelectItem key={emp.id} value={emp.name}>{emp.name}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
+                        
                       </div>
                       
                       <DialogFooter className="gap-2">
