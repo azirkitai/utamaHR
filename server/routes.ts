@@ -6126,30 +6126,66 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Create a new payment voucher
+  // Create payment vouchers (GROUP BY REQUESTOR + DUPLICATE PREVENTION)
   app.post('/api/payment-vouchers', authenticateToken, async (req, res) => {
     try {
-      const validationResult = insertPaymentVoucherSchema.safeParse(req.body);
-      if (!validationResult.success) {
-        return res.status(400).json({ 
-          error: 'Data tidak sah', 
-          details: validationResult.error.issues 
-        });
+      // Handle multiple vouchers data
+      const { vouchers } = req.body;
+      
+      if (!vouchers || !Array.isArray(vouchers)) {
+        return res.status(400).json({ error: 'Vouchers array is required' });
       }
 
-      // Generate voucher number
-      const voucherNumber = await storage.generateVoucherNumber();
-      
-      const voucherData = {
-        ...validationResult.data,
-        voucherNumber,
-        createdBy: req.user?.id || 'system'
-      };
+      const createdVouchers = [];
+      const skippedVouchers = [];
 
-      const voucher = await storage.createPaymentVoucher(voucherData);
-      res.status(201).json(voucher);
+      // Process each voucher (ONE PER REQUESTOR)
+      for (const voucherData of vouchers) {
+        const { year, month, requestorName } = voucherData;
+        
+        // DUPLICATE PREVENTION: Check if voucher exists for this requestor in this month
+        const existingVoucher = await storage.getPaymentVoucherByRequestor(requestorName, year, month);
+        
+        if (existingVoucher) {
+          // Skip if voucher already exists for this requestor this month
+          skippedVouchers.push({
+            requestorName,
+            reason: `Voucher already exists for ${requestorName} in ${month}/${year}`,
+            existingVoucherId: existingVoucher.id
+          });
+          continue;
+        }
+
+        // Generate voucher for NEW REQUESTOR only
+        const voucherNumber = await storage.generateVoucherNumber();
+        
+        const finalVoucherData = {
+          year,
+          month,
+          paymentDate: new Date(voucherData.paymentDate),
+          totalAmount: voucherData.totalAmount,
+          includedClaims: voucherData.includedClaims,
+          remarks: voucherData.remarks,
+          requestorName,
+          voucherNumber,
+          status: 'Generated',
+          createdBy: req.user?.id || 'system'
+        };
+
+        const newVoucher = await storage.createPaymentVoucher(finalVoucherData);
+        createdVouchers.push(newVoucher);
+      }
+
+      // Return results with created and skipped vouchers
+      res.status(201).json({
+        success: true,
+        created: createdVouchers,
+        skipped: skippedVouchers,
+        message: `Created ${createdVouchers.length} voucher(s), skipped ${skippedVouchers.length} duplicate(s)`
+      });
+
     } catch (error) {
-      console.error('Error creating payment voucher:', error);
+      console.error('Error creating payment vouchers:', error);
       res.status(500).json({ error: 'Gagal mencipta voucer pembayaran' });
     }
   });

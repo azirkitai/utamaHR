@@ -729,6 +729,9 @@ export const paymentVouchers = pgTable('payment_vouchers', {
   includedClaims: text('included_claims').array().default(sql`'{}'`), // Claim application IDs
   totalAmount: decimal('total_amount', { precision: 12, scale: 2 }).notNull().default('0'),
   
+  // CRITICAL: Requestor name for grouping vouchers by person (NOT by claim type)
+  requestorName: text('requestor_name').notNull().default('Unknown'), // Employee name for voucher grouping
+  
   // Audit fields
   createdBy: varchar('created_by').notNull().references(() => users.id),
   createdAt: timestamp('created_at').defaultNow().notNull(),

@@ -68,17 +68,25 @@ export default function PaymentVoucherPage() {
     queryKey: ['/api/employees'],
   });
 
-  // Create payment voucher mutation
+  // Create payment voucher mutation (GROUP BY REQUESTOR)
   const createVoucherMutation = useMutation({
     mutationFn: async (voucherData: any) => {
       return await apiRequest('POST', '/api/payment-vouchers', voucherData);
     },
-    onSuccess: () => {
+    onSuccess: (response: any) => {
       queryClient.invalidateQueries({ queryKey: ['/api/payment-vouchers'] });
+      
+      const { created, skipped, message } = response;
       toast({
         title: "Success",
-        description: "Payment voucher created successfully",
+        description: message || `Created ${created.length} voucher(s)${skipped.length > 0 ? `, skipped ${skipped.length} duplicate(s)` : ''}`,
       });
+      
+      if (skipped.length > 0) {
+        // Show additional info about skipped vouchers
+        console.log('Skipped vouchers:', skipped);
+      }
+      
       setShowNewVoucherModal(false);
       setFormData({
         year: "2025",
@@ -113,20 +121,34 @@ export default function PaymentVoucherPage() {
       return;
     }
 
-    // Calculate total amount from approved claims
-    const totalAmount = approvedClaims.reduce((sum, claim) => sum + (parseFloat(claim.amount || '0') || 0), 0);
+    // Group claims by requestor name (ONE VOUCHER PER REQUESTOR)
+    const claimsByRequestor = approvedClaims.reduce((acc: any, claim) => {
+      const requestorName = claim.requestorName || getEmployeeName(claim.employeeId);
+      if (!acc[requestorName]) {
+        acc[requestorName] = [];
+      }
+      acc[requestorName].push(claim);
+      return acc;
+    }, {});
 
-    const voucherData = {
-      year: parseInt(formData.year),
-      month: parseInt(formData.month),
-      paymentDate: formData.paymentDate, // Will be processed by schema
-      totalAmount: totalAmount.toString(),
-      includedClaims: approvedClaims.map(claim => claim.id),
-      remarks: formData.remarks,
-      status: 'Generated' as const
-    };
+    // Prepare voucher data for EACH REQUESTOR
+    const voucherDataArray = Object.entries(claimsByRequestor).map(([requestorName, claims]: [string, any]) => {
+      const totalAmount = claims.reduce((sum: number, claim: any) => sum + (parseFloat(claim.amount || '0') || 0), 0);
+      
+      return {
+        year: parseInt(formData.year),
+        month: parseInt(formData.month),
+        paymentDate: formData.paymentDate,
+        totalAmount: totalAmount.toString(),
+        includedClaims: claims.map((claim: any) => claim.id),
+        remarks: `${formData.remarks} - ${requestorName}`,
+        requestorName: requestorName,
+        status: 'Generated' as const
+      };
+    });
 
-    createVoucherMutation.mutate(voucherData);
+    // Send array of voucher data to backend for GROUP PROCESSING
+    createVoucherMutation.mutate({ vouchers: voucherDataArray });
   };
 
   // Get employee name by ID  
@@ -471,31 +493,48 @@ export default function PaymentVoucherPage() {
                 />
               </div>
 
-              {/* Approved Claims Summary */}
+              {/* Approved Claims Summary - GROUPED BY REQUESTOR */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Tuntutan Kewangan Diluluskan</Label>
+                <Label className="text-sm font-medium">Tuntutan Kewangan Diluluskan (Kumpulan mengikut Penuntut)</Label>
                 <div className="bg-gray-50 p-3 rounded-lg max-h-48 overflow-y-auto">
                   {claimsLoading ? (
                     <p className="text-sm text-gray-600">Memuatkan tuntutan...</p>
                   ) : approvedClaims.length === 0 ? (
                     <p className="text-sm text-gray-600">Tiada tuntutan kewangan diluluskan untuk tempoh ini.</p>
                   ) : (
-                    <div className="space-y-2">
-                      {approvedClaims.map((claim, index) => (
-                        <div key={claim.id} className="flex justify-between items-center text-sm bg-white p-2 rounded border">
-                          <div className="flex-1">
-                            <div className="font-medium text-gray-900">
-                              {claim.requestorName || getEmployeeName(claim.employeeId)}
+                    <div className="space-y-3">
+                      {(() => {
+                        // Group claims by requestor name
+                        const claimsByRequestor = approvedClaims.reduce((acc: any, claim) => {
+                          const requestorName = claim.requestorName || getEmployeeName(claim.employeeId);
+                          if (!acc[requestorName]) {
+                            acc[requestorName] = [];
+                          }
+                          acc[requestorName].push(claim);
+                          return acc;
+                        }, {});
+
+                        return Object.entries(claimsByRequestor).map(([requestorName, claims]: [string, any]) => {
+                          const requestorTotal = claims.reduce((sum: number, claim: any) => sum + (parseFloat(claim.amount || '0') || 0), 0);
+                          
+                          return (
+                            <div key={requestorName} className="bg-white p-3 rounded border">
+                              <div className="flex justify-between items-center mb-2">
+                                <div className="font-semibold text-gray-900 text-base">{requestorName}</div>
+                                <span className="font-bold text-blue-600">RM {requestorTotal.toFixed(2)}</span>
+                              </div>
+                              <div className="space-y-1">
+                                {claims.map((claim: any) => (
+                                  <div key={claim.id} className="flex justify-between items-center text-xs bg-gray-50 p-2 rounded">
+                                    <span className="text-gray-600">{claim.claimCategory}</span>
+                                    <span className="text-green-600 font-medium">RM {(parseFloat(claim.amount || '0') || 0).toFixed(2)}</span>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                            <div className="text-xs text-gray-500">
-                              {claim.claimCategory} • {claim.employeeId}
-                            </div>
-                          </div>
-                          <span className="font-semibold text-green-600">
-                            RM {(parseFloat(claim.amount || '0') || 0).toFixed(2)}
-                          </span>
-                        </div>
-                      ))}
+                          );
+                        });
+                      })()}
                       <div className="border-t pt-2 mt-2">
                         <div className="flex justify-between items-center text-sm font-semibold">
                           <span>Jumlah Keseluruhan:</span>

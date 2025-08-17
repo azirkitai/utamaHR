@@ -3296,6 +3296,27 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // DUPLICATE PREVENTION: Check if voucher exists for requestor in specific month/year
+  async getPaymentVoucherByRequestor(requestorName: string, year: number, month: number): Promise<PaymentVoucher | undefined> {
+    try {
+      const [voucher] = await db
+        .select()
+        .from(paymentVouchers)
+        .where(
+          and(
+            eq(paymentVouchers.requestorName, requestorName),
+            eq(paymentVouchers.year, year),
+            eq(paymentVouchers.month, month)
+          )
+        )
+        .limit(1);
+      return voucher || undefined;
+    } catch (error) {
+      console.error('Error checking duplicate voucher:', error);
+      throw error;
+    }
+  }
+
   async createPaymentVoucher(voucher: InsertPaymentVoucher): Promise<PaymentVoucher> {
     try {
       const [newVoucher] = await db

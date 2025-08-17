@@ -64,6 +64,7 @@ function Router() {
       <ProtectedRoute path="/employee-salary/:employeeId" component={EmployeeSalaryDetailsPage} />
 
       <ProtectedRoute path="/payment/voucher" component={PaymentVoucherPage} />
+      <ProtectedRoute path="/payment-voucher" component={PaymentVoucherPage} />
       <ProtectedRoute path="/voucher-details/:voucherId" component={VoucherDetailsPage} />
       <ProtectedRoute path="/qr-clockin" component={QRClockInPage} />
       <ProtectedRoute path="/system-setting/*" component={SystemSettingPage} />
