@@ -57,7 +57,7 @@ const navigationItems: { category: string; items: SidebarItem[] }[] = [
       },
       {
         id: "qr-clockin",
-        label: "QR Clock-In",
+        label: "QR Clock-In/Out",
         icon: <QrCode className="w-4 h-4" />,
         href: "/qr-clockin",
       },
