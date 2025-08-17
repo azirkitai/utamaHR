@@ -3458,28 +3458,30 @@ export class DatabaseStorage implements IStorage {
         conditions.push(eq(claimApplications.status, filters.status));
       }
 
+      // Build the query without complex select mapping first
       let query = db
-        .select({
-          // Claim application fields
-          id: claimApplications.id,
-          employeeId: claimApplications.employeeId,
-          claimType: claimApplications.claimType,
-          claimCategory: claimApplications.claimCategory,
-          status: claimApplications.status,
-          amount: claimApplications.amount,
-          description: claimApplications.description,
-          receiptUrl: claimApplications.receiptUrl,
-          claimDate: claimApplications.claimDate,
-          dateSubmitted: claimApplications.dateSubmitted,
-          // Employee details
-          requestorName: employees.fullName,
-        })
+        .select()
         .from(claimApplications)
         .leftJoin(employees, eq(claimApplications.employeeId, employees.id));
 
-      const result = conditions.length > 0 
+      const rawResult = conditions.length > 0 
         ? await query.where(and(...conditions)).orderBy(desc(claimApplications.dateSubmitted))
         : await query.orderBy(desc(claimApplications.dateSubmitted));
+
+      // Map the result manually to avoid Drizzle select issues
+      const result = rawResult.map((row: any) => ({
+        id: row.claim_applications?.id,
+        employeeId: row.claim_applications?.employee_id,
+        claimType: row.claim_applications?.claim_type,
+        claimCategory: row.claim_applications?.claim_category,
+        status: row.claim_applications?.status,
+        amount: row.claim_applications?.amount,
+        description: row.claim_applications?.description,
+        receiptUrl: row.claim_applications?.receipt_url,
+        claimDate: row.claim_applications?.claim_date,
+        dateSubmitted: row.claim_applications?.date_submitted,
+        requestorName: row.employees?.full_name || 'Unknown Employee',
+      }));
 
       return result;
     } catch (error) {
