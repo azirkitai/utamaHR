@@ -185,7 +185,7 @@ export default function CalendarPage() {
   // Holiday mutations
   const createHolidayMutation = useMutation({
     mutationFn: async (holiday: { name: string; date: string }) => {
-      return apiRequest('/api/holidays', 'POST', holiday);
+      return apiRequest('POST', '/api/holidays', holiday);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/holidays"] });
@@ -197,7 +197,7 @@ export default function CalendarPage() {
 
   const updateHolidayMutation = useMutation({
     mutationFn: async ({ id, isPublic }: { id: string; isPublic: boolean }) => {
-      return apiRequest(`/api/holidays/${id}`, 'PUT', { isPublic });
+      return apiRequest('PUT', `/api/holidays/${id}`, { isPublic });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/holidays"] });
@@ -209,7 +209,7 @@ export default function CalendarPage() {
 
   const deleteHolidayMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest(`/api/holidays/${id}`, 'DELETE');
+      return apiRequest('DELETE', `/api/holidays/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/holidays"] });
@@ -662,10 +662,13 @@ export default function CalendarPage() {
                           Add Event
                         </Button>
                       </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent aria-describedby="add-event-description">
                       <DialogHeader>
                         <DialogTitle>Create New Event</DialogTitle>
                       </DialogHeader>
+                      <p id="add-event-description" className="sr-only">
+                        Create a new calendar event with title, description, dates and employee assignment.
+                      </p>
                       
                       <div className="space-y-4">
                         <div>
