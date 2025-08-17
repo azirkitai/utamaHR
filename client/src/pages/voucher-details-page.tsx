@@ -763,8 +763,8 @@ export default function VoucherDetailsPage() {
                   </table>
                 </div>
 
-                {/* Action Buttons Below Total */}
-                <div className="flex justify-center space-x-4 mt-6">
+                {/* Action Buttons Bottom Right */}
+                <div className="flex justify-end space-x-4 mt-6">
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button
