@@ -286,7 +286,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
                 <h3 className="text-xs font-semibold uppercase tracking-wide text-[#fcfdff]">
                   {section.category}
                 </h3>
-                <p className="text-xs text-[#000000]">
+                <p className="text-xs font-bold text-[#b6bef0]">
                   Key Your Personal Record Here
                 </p>
               </div>
