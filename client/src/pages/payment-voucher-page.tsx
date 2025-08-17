@@ -92,12 +92,25 @@ export default function PaymentVoucherPage() {
     },
     onError: (error: any) => {
       console.error('Voucher creation error:', error);
+      console.error('Error type:', typeof error);
+      console.error('Error keys:', Object.keys(error || {}));
+      console.error('Error message:', error?.message);
+      console.error('Error string:', error?.toString?.());
+      
+      // Check if it's an empty error object (common with successful requests)
+      if (!error || Object.keys(error).length === 0 || error === null || error === undefined) {
+        console.log('Empty error object detected - likely a successful request misidentified as error');
+        return; // Don't show any error toast for empty errors
+      }
+      
+      // Get error message safely
+      const errorMessage = error?.message || error?.toString?.() || JSON.stringify(error) || 'Unknown error';
       
       // Handle conflict error (existing vouchers)
-      if (error.message.includes('CONFLICT_EXISTING_VOUCHERS') || error.message.includes('409:')) {
+      if (errorMessage.includes('CONFLICT_EXISTING_VOUCHERS') || errorMessage.includes('409:')) {
         try {
           // Try to parse the error message to get conflict details
-          const errorData = JSON.parse(error.message.split('409: ')[1] || '{}');
+          const errorData = JSON.parse(errorMessage.split('409: ')[1] || '{}');
           
           if (errorData.conflictingRequestors && errorData.conflictingRequestors.length > 0) {
             const requestorNames = errorData.conflictingRequestors.map((r: any) => r.requestorName).join(', ');
@@ -120,10 +133,11 @@ export default function PaymentVoucherPage() {
             variant: "destructive",
           });
         }
-      } else {
+      } else if (errorMessage && errorMessage !== 'Unknown error') {
+        // Only show error toast if there's a meaningful error message
         toast({
           title: "Error",
-          description: error.message || "Gagal menjana voucher pembayaran",
+          description: errorMessage || "Gagal menjana voucher pembayaran",
           variant: "destructive",
         });
       }
