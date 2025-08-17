@@ -371,6 +371,32 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Get unread announcements for dashboard
+  app.get("/api/announcements/unread", authenticateToken, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const unreadAnnouncements = await storage.getUnreadAnnouncementsForUser(userId);
+      res.json(unreadAnnouncements);
+    } catch (error) {
+      console.error("Get unread announcements error:", error);
+      res.status(500).json({ error: "Gagal mendapatkan pengumuman yang belum dibaca" });
+    }
+  });
+
+  // Mark announcement as read (acknowledge)
+  app.post("/api/announcements/:id/acknowledge", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user!.id;
+      
+      await storage.markAnnouncementAsRead(id, userId);
+      res.json({ success: true, message: "Pengumuman telah ditanda sebagai dibaca" });
+    } catch (error) {
+      console.error("Acknowledge announcement error:", error);
+      res.status(500).json({ error: "Gagal menanda pengumuman sebagai dibaca" });
+    }
+  });
+
   app.get("/api/announcements", authenticateToken, async (req, res) => {
     try {
       const userId = req.user!.id;

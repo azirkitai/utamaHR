@@ -192,7 +192,7 @@ import {
   type UpdateEvent,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, count, sql, asc, ilike, or, gte, lte, inArray, not } from "drizzle-orm";
+import { eq, and, desc, count, sql, asc, ilike, or, gte, lte, inArray, not, isNull } from "drizzle-orm";
 
 export interface IStorage {
   // =================== USER METHODS ===================
@@ -356,12 +356,13 @@ export interface IStorage {
 
   // =================== ANNOUNCEMENT METHODS ===================
   getAnnouncementsForUser(userId: string): Promise<any[]>;
+  getUnreadAnnouncementsForUser(userId: string): Promise<any[]>;
   getAllAnnouncements(): Promise<any[]>;
   createAnnouncement(announcement: InsertAnnouncement): Promise<SelectAnnouncement>;
   updateAnnouncement(announcementId: string, updates: Partial<InsertAnnouncement>): Promise<SelectAnnouncement>;
   getAnnouncementById(announcementId: string): Promise<SelectAnnouncement | null>;
   getUserAnnouncements(userId: string): Promise<SelectUserAnnouncement[]>;
-  markAnnouncementAsRead(userId: string, announcementId: string): Promise<SelectUserAnnouncement>;
+  markAnnouncementAsRead(announcementId: string, userId: string): Promise<void>;
   deleteAnnouncement(announcementId: string): Promise<boolean>;
 
   // =================== LEAVE BALANCE CARRY FORWARD METHODS ===================
@@ -1777,7 +1778,47 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async markAnnouncementAsRead(userId: string, announcementId: string): Promise<SelectUserAnnouncement> {
+  async getUnreadAnnouncementsForUser(userId: string): Promise<any[]> {
+    try {
+      const unreadAnnouncements = await db
+        .select({
+          id: announcements.id,
+          title: announcements.title,
+          message: announcements.message,
+          department: announcements.department,
+          announcerName: announcements.announcerName,
+          createdAt: announcements.createdAt,
+          updatedAt: announcements.updatedAt,
+        })
+        .from(announcements)
+        .leftJoin(
+          userAnnouncements,
+          and(
+            eq(userAnnouncements.announcementId, announcements.id),
+            eq(userAnnouncements.userId, userId)
+          )
+        )
+        .where(
+          and(
+            // Check if user is in target employees list
+            sql`${userId} = ANY(${announcements.targetEmployees})`,
+            // Not read or doesn't have read record
+            or(
+              isNull(userAnnouncements.isRead),
+              eq(userAnnouncements.isRead, false)
+            )
+          )
+        )
+        .orderBy(desc(announcements.createdAt));
+
+      return unreadAnnouncements;
+    } catch (error) {
+      console.error('Error getting unread announcements:', error);
+      return [];
+    }
+  }
+
+  async markAnnouncementAsRead(announcementId: string, userId: string): Promise<void> {
     try {
       const [existingRecord] = await db
         .select()
@@ -1790,23 +1831,19 @@ export class DatabaseStorage implements IStorage {
         );
 
       if (existingRecord) {
-        const [updated] = await db
+        await db
           .update(userAnnouncements)
           .set({ isRead: true, readAt: new Date() })
-          .where(eq(userAnnouncements.id, existingRecord.id))
-          .returning();
-        return updated;
+          .where(eq(userAnnouncements.id, existingRecord.id));
       } else {
-        const [newRecord] = await db
+        await db
           .insert(userAnnouncements)
           .values({
             userId,
             announcementId,
             isRead: true,
             readAt: new Date(),
-          })
-          .returning();
-        return newRecord;
+          });
       }
     } catch (error) {
       console.error('Error marking announcement as read:', error);

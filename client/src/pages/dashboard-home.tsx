@@ -183,6 +183,12 @@ export default function DashboardHome() {
     queryFn: () => authenticatedFetch('/api/holidays'),
   });
 
+  // Fetch unread announcements
+  const { data: unreadAnnouncements = [], refetch: refetchUnreadAnnouncements } = useQuery<any[]>({
+    queryKey: ["/api/announcements/unread"],
+    queryFn: () => authenticatedFetch('/api/announcements/unread'),
+  });
+
   // Convert statistics to pie chart format
   const employeeData = employeeStats ? [
     { name: 'Active', value: employeeStats.activeCount, color: '#0891b2' },
@@ -577,6 +583,92 @@ export default function DashboardHome() {
           </CardContent>
         </Card>
         )}
+
+        {/* Announcement Widget */}
+        <Card>
+          <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-t-lg">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl font-semibold flex items-center gap-2">
+                <Bell className="w-5 h-5" />
+                Pengumuman
+                {unreadAnnouncements.length > 0 && (
+                  <Badge className="bg-red-500 text-white ml-2 animate-pulse">
+                    {unreadAnnouncements.length}
+                  </Badge>
+                )}
+              </CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              {unreadAnnouncements.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <Bell className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                  <p>Tiada pengumuman baru</p>
+                </div>
+              ) : (
+                unreadAnnouncements.slice(0, 3).map((announcement) => (
+                  <div key={announcement.id} className="border rounded-lg p-4 bg-blue-50 border-blue-200 hover:bg-blue-100 transition-colors">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="font-semibold text-blue-900">{announcement.title}</h3>
+                          <Badge className="bg-blue-500 text-white text-xs">BARU</Badge>
+                        </div>
+                        <p className="text-sm text-gray-700 mb-2 line-clamp-2">
+                          {announcement.message}
+                        </p>
+                        <div className="flex items-center justify-between text-xs text-gray-500">
+                          <span>Dari: {announcement.announcerName}</span>
+                          <span>{new Date(announcement.createdAt).toLocaleDateString('en-GB')}</span>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={async () => {
+                          try {
+                            await authenticatedFetch(`/api/announcements/${announcement.id}/acknowledge`, {
+                              method: 'POST'
+                            });
+                            refetchUnreadAnnouncements();
+                          } catch (error) {
+                            console.error('Error acknowledging announcement:', error);
+                          }
+                        }}
+                        className="text-xs px-2 py-1 bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+                        data-testid={`button-acknowledge-${announcement.id}`}
+                      >
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        Baca
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
+              
+              {unreadAnnouncements.length > 3 && (
+                <div className="text-center pt-2">
+                  <p className="text-sm text-gray-500">
+                    +{unreadAnnouncements.length - 3} pengumuman lagi
+                  </p>
+                </div>
+              )}
+              
+              <div className="text-center pt-4 border-t">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.location.href = '/announcement'}
+                  className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                  data-testid="button-view-all-announcements"
+                >
+                  Lihat Semua Pengumuman
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Bottom Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
