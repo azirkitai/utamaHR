@@ -165,13 +165,30 @@ export default function ApplyClaimPage() {
     const privilegedRoles = ['Super Admin', 'Admin', 'HR Manager'];
     const userRole = (currentUser as any)?.role;
     
+    console.log('=== CLAIM FILTERING DEBUG ===');
+    console.log('Current user role:', userRole);
+    console.log('Current user employee ID:', currentUserEmployee.id);
+    console.log('Total claims received:', claims.length);
+    console.log('Sample claims:', claims.slice(0, 2).map(c => ({ id: c.id, employeeId: c.employeeId, amount: c.amount, status: c.status })));
+    
+    let filteredClaims;
     if (privilegedRoles.includes(userRole)) {
       // Privileged users can see all claims
-      return claims;
+      console.log('User has privileged role, showing all claims');
+      filteredClaims = claims;
     } else {
       // Regular users can only see their own claims
-      return claims.filter((claim: any) => claim.employeeId === currentUserEmployee.id);
+      console.log('Regular user, filtering by employee ID:', currentUserEmployee.id);
+      filteredClaims = claims.filter((claim: any) => {
+        const matches = claim.employeeId === currentUserEmployee.id;
+        console.log(`Claim ${claim.id}: employeeId=${claim.employeeId}, matches=${matches}`);
+        return matches;
+      });
     }
+    
+    console.log('Filtered claims count:', filteredClaims.length);
+    console.log('=== END CLAIM FILTERING DEBUG ===');
+    return filteredClaims;
   };
 
   const filteredFinancialClaims = getFilteredClaims(recentFinancialClaims);
