@@ -17,6 +17,7 @@ UtamaHR is a comprehensive HR Management System built with React, TypeScript, an
 - RESOLVED: YTD HRDF display system - implemented complete YTD capture, template data structure, and conditional display logic (>0.01) for HRDF in employer contributions section
 - **RESOLVED: MTD/PCB Storage Issue (August 16, 2025)** - Fixed critical bug in generateDeductionsFromMasterSalary function where Master Salary's 'other' field (containing MTD/PCB values) was incorrectly mapped to customItems array instead of direct storage. Now properly captures deductions.other value as string for accurate payroll calculations.
 - **RESOLVED: My Record Download Integration (August 16, 2025)** - Successfully implemented My Record payslip download to use identical logic as main payroll system's green download button. Fixed import issues and function calls to use buildPdfPropsFromTemplateData from PayslipPDFDocument component. Downloads now show correct employee data, salary amounts, and calculations for each user's personalized payslip.
+- **RESOLVED: Holiday Management System Simplification (August 17, 2025)** - Simplified holiday management system by removing Public Holiday checkbox column from table as per user requirement. All holidays entered in the system now automatically become public holidays and display with red background indicators in calendar. Updated both inline Add Holiday functionality and separate Add Holiday modal to automatically set isPublic: true for all new holidays.
 
 # User Preferences
 Preferred communication style: Simple, everyday language.

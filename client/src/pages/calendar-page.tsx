@@ -72,9 +72,9 @@ interface LeaveApplication {
 const predefinedHolidays: Holiday[] = [
   { id: 1, name: "Federal Territory Day (regional holiday)", date: "01-02-2025", isPublic: true, importToCalendar: true },
   { id: 2, name: "Harvest Festival (regional holiday)", date: "30-05-2025", isPublic: true, importToCalendar: true },
-  { id: 3, name: "Valentine's Day", date: "14-02-2025", isPublic: false, importToCalendar: true },
+  { id: 3, name: "Valentine's Day", date: "14-02-2025", isPublic: true, importToCalendar: true },
   { id: 4, name: "Good Friday (regional holiday)", date: "18-04-2025", isPublic: true, importToCalendar: true },
-  { id: 5, name: "Easter Sunday", date: "20-04-2025", isPublic: false, importToCalendar: true }
+  { id: 5, name: "Easter Sunday", date: "20-04-2025", isPublic: true, importToCalendar: true }
 ];
 
 const employees: Employee[] = [
@@ -309,7 +309,7 @@ export default function CalendarPage() {
       id: holidays.length + 1,
       name: holidayDescription,
       date: holidayDate,
-      isPublic: isPublicHoliday,
+      isPublic: true,  // Automatically set as public holiday
       importToCalendar: true
     };
     
@@ -369,7 +369,7 @@ export default function CalendarPage() {
         id: holidays.length + 1,
         name: newHolidayName,
         date: newHolidayDate,
-        isPublic: newHolidayPublic,
+        isPublic: true,  // Automatically set as public holiday
         importToCalendar: true
       };
       setHolidays([...holidays, newHoliday]);
@@ -460,7 +460,6 @@ export default function CalendarPage() {
                                 <th className="text-left py-2 px-2 font-medium text-gray-700">No</th>
                                 <th className="text-left py-2 px-4 font-medium text-gray-700">Name Holiday</th>
                                 <th className="text-left py-2 px-4 font-medium text-gray-700">Date</th>
-                                <th className="text-center py-2 px-4 font-medium text-gray-700">Public Holiday</th>
                                 <th className="text-center py-2 px-4 font-medium text-gray-700">Action</th>
                               </tr>
                             </thead>
@@ -488,13 +487,6 @@ export default function CalendarPage() {
                                     />
                                   </td>
                                   <td className="py-3 px-4 text-center">
-                                    <Checkbox
-                                      checked={newHolidayPublic}
-                                      onCheckedChange={(checked) => setNewHolidayPublic(checked as boolean)}
-                                      data-testid="checkbox-new-holiday-public"
-                                    />
-                                  </td>
-                                  <td className="py-3 px-4 text-center">
                                     <Button
                                       onClick={handleSaveInlineHoliday}
                                       disabled={!newHolidayName || !newHolidayDate}
@@ -514,13 +506,6 @@ export default function CalendarPage() {
                                   <td className="py-3 px-2">{index + 1}</td>
                                   <td className="py-3 px-4">{holiday.name}</td>
                                   <td className="py-3 px-4">{holiday.date}</td>
-                                  <td className="py-3 px-4 text-center">
-                                    <Checkbox
-                                      checked={holiday.isPublic}
-                                      onCheckedChange={(checked) => updateHolidayPublic(holiday.id, checked as boolean)}
-                                      data-testid={`checkbox-holiday-public-${holiday.id}`}
-                                    />
-                                  </td>
                                   <td className="py-3 px-4 text-center">
                                     <Button
                                       onClick={() => handleDeleteHoliday(holiday.id)}
@@ -595,15 +580,7 @@ export default function CalendarPage() {
                           />
                         </div>
                         
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="public-holiday"
-                            checked={isPublicHoliday}
-                            onCheckedChange={(checked) => setIsPublicHoliday(checked as boolean)}
-                            data-testid="checkbox-public-holiday"
-                          />
-                          <Label htmlFor="public-holiday" className="text-sm">Set as public holiday</Label>
-                        </div>
+
                       </div>
                       
                       <DialogFooter className="gap-2">
