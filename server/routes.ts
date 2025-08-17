@@ -2132,18 +2132,55 @@ export function registerRoutes(app: Express): Server {
   // Get claim applications for My Record
   app.get("/api/claim-applications/my-record/:employeeId", authenticateToken, async (req, res) => {
     try {
+      const currentUser = req.user!;
       const { employeeId } = req.params;
       const { month, year, status } = req.query;
       
-      console.log("Fetching claims for employee:", employeeId, "with filters:", { month, year, status });
+      console.log('=== RBAC DEBUG ===');
+      console.log('User ID:', currentUser.id);
+      console.log('User Role:', currentUser.role);
+      console.log('Requested Employee ID:', employeeId);
       
-      const claims = await storage.getClaimApplicationsByEmployee(employeeId, {
-        month: month ? Number(month) : undefined,
-        year: year ? Number(year) : undefined,
-        status: status as string | undefined
-      });
+      // Role-based access control 
+      const privilegedRoles = ['Super Admin', 'Admin', 'HR Manager'];
+      const hasAdminAccess = privilegedRoles.includes(currentUser.role);
+      console.log('Has Admin Access:', hasAdminAccess);
       
-      console.log(`Found ${claims.length} claim applications for employee ${employeeId}`);
+      let targetEmployeeId = employeeId;
+      
+      // If user has admin access and requests 'all' or undefined, fetch all claims
+      if (hasAdminAccess && (employeeId === 'all' || employeeId === 'undefined')) {
+        targetEmployeeId = undefined; // This will fetch all claims
+      }
+      // If regular user, only allow access to their own claims
+      else if (!hasAdminAccess) {
+        const userEmployee = await storage.getEmployeeByUserId(currentUser.id);
+        if (!userEmployee || userEmployee.id !== employeeId) {
+          return res.status(403).json({ error: 'Tidak dibenarkan untuk mengakses rekod claim pekerja lain' });
+        }
+      }
+      
+      console.log('Final Target Employee ID:', targetEmployeeId);
+      console.log('=== END RBAC DEBUG ===');
+      
+      let claims;
+      if (targetEmployeeId === undefined) {
+        // Fetch all claims for admin users
+        claims = await storage.getAllClaimApplicationsWithDetails({
+          month: month ? Number(month) : undefined,
+          year: year ? Number(year) : undefined,
+          status: status as string | undefined
+        });
+      } else {
+        // Fetch specific employee claims
+        claims = await storage.getClaimApplicationsByEmployee(targetEmployeeId, {
+          month: month ? Number(month) : undefined,
+          year: year ? Number(year) : undefined,
+          status: status as string | undefined
+        });
+      }
+      
+      console.log(`Found ${claims.length} claim applications for ${targetEmployeeId || 'all employees'}`);
       res.json(claims);
     } catch (error) {
       console.error("Error fetching claim applications:", error);

@@ -3439,6 +3439,55 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Get all claim applications with employee details (for admin users)
+  async getAllClaimApplicationsWithDetails(
+    filters?: { month?: number; year?: number; status?: string }
+  ): Promise<any[]> {
+    try {
+      const conditions = [];
+
+      if (filters?.month) {
+        conditions.push(sql`EXTRACT(MONTH FROM ${claimApplications.claimDate}) = ${filters.month}`);
+      }
+
+      if (filters?.year) {
+        conditions.push(sql`EXTRACT(YEAR FROM ${claimApplications.claimDate}) = ${filters.year}`);
+      }
+
+      if (filters?.status) {
+        conditions.push(eq(claimApplications.status, filters.status));
+      }
+
+      let query = db
+        .select({
+          // Claim application fields
+          id: claimApplications.id,
+          employeeId: claimApplications.employeeId,
+          claimType: claimApplications.claimType,
+          claimCategory: claimApplications.claimCategory,
+          status: claimApplications.status,
+          amount: claimApplications.amount,
+          description: claimApplications.description,
+          receiptUrl: claimApplications.receiptUrl,
+          claimDate: claimApplications.claimDate,
+          dateSubmitted: claimApplications.dateSubmitted,
+          // Employee details
+          requestorName: employees.fullName,
+        })
+        .from(claimApplications)
+        .leftJoin(employees, eq(claimApplications.employeeId, employees.id));
+
+      const result = conditions.length > 0 
+        ? await query.where(and(...conditions)).orderBy(desc(claimApplications.dateSubmitted))
+        : await query.orderBy(desc(claimApplications.dateSubmitted));
+
+      return result;
+    } catch (error) {
+      console.error('Error fetching all claim applications:', error);
+      throw error;
+    }
+  }
+
   async getClaimApplicationsForApproval(filters: {
     status?: string;
     claimType?: string;

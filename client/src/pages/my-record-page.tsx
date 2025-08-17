@@ -142,23 +142,37 @@ export default function MyRecordPage() {
     enabled: !!user
   });
 
-  // Fetch claim applications for current user
+  // Check if current user has privileged access (Admin/Super Admin/HR Manager)
+  const hasPrivilegedAccess = user?.role && ['Super Admin', 'Admin', 'HR Manager'].includes(user.role);
+  
+  console.log('Current user role:', user?.role);
+  console.log('Has privileged access:', hasPrivilegedAccess);
+
+  // Fetch claim applications based on user role
   const { data: claimApplications = [], isLoading: isLoadingClaims, error: claimError, refetch: refetchClaims } = useQuery({
-    queryKey: ['/api/claim-applications/my-record', currentEmployee?.id, filters.dateFrom.toISOString(), filters.dateTo.toISOString()],
+    queryKey: ['/api/claim-applications/my-record', hasPrivilegedAccess ? 'all' : currentEmployee?.id, filters.dateFrom.toISOString(), filters.dateTo.toISOString()],
     queryFn: async () => {
-      if (!currentEmployee?.id) return [];
-      
-      console.log('Fetching claim applications for employee:', currentEmployee.id);
-      
       const token = localStorage.getItem('utamahr_token');
       if (!token) throw new Error('No authentication token found');
+      
+      let employeeIdParam;
+      if (hasPrivilegedAccess) {
+        // Admin users can see all claims
+        employeeIdParam = 'all';
+      } else {
+        // Regular users only see their own claims
+        if (!currentEmployee?.id) return [];
+        employeeIdParam = currentEmployee.id;
+      }
+      
+      console.log('Fetching claim applications for employee:', employeeIdParam);
       
       const params = new URLSearchParams({
         month: (filters.dateFrom.getMonth() + 1).toString(),
         year: filters.dateFrom.getFullYear().toString(),
       });
       
-      const response = await fetch(`/api/claim-applications/my-record/${currentEmployee.id}?${params}`, {
+      const response = await fetch(`/api/claim-applications/my-record/${employeeIdParam}?${params}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -175,7 +189,7 @@ export default function MyRecordPage() {
       console.log('Claim applications fetched:', data.length, 'records');
       return data as ClaimApplication[];
     },
-    enabled: !!user && !!currentEmployee?.id && activeTab === 'claim'
+    enabled: !!user && (hasPrivilegedAccess || !!currentEmployee?.id) && activeTab === 'claim'
   });
 
   // Fetch user payroll records for My Record page
