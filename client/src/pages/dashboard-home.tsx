@@ -590,7 +590,7 @@ export default function DashboardHome() {
             <div className="flex items-center justify-between">
               <CardTitle className="text-xl font-semibold flex items-center gap-2">
                 <Bell className="w-5 h-5" />
-                Pengumuman
+                Announcement
                 {unreadAnnouncements.length > 0 && (
                   <Badge className="bg-red-500 text-white ml-2 animate-pulse">
                     {unreadAnnouncements.length}
