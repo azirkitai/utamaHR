@@ -17,7 +17,9 @@ import {
   ChevronLeft,
   CalendarDays,
   Clock,
-  Users
+  Users,
+  Save,
+  Trash2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DashboardLayout } from "@/components/dashboard-layout";
@@ -156,6 +158,11 @@ export default function CalendarPage() {
   const [eventDateEnd, setEventDateEnd] = useState("");
   const [eventTime, setEventTime] = useState("");
   const [selectedEmployee, setSelectedEmployee] = useState("");
+
+  // Inline add holiday states
+  const [showAddHolidayRow, setShowAddHolidayRow] = useState(false);
+  const [newHolidayName, setNewHolidayName] = useState("");
+  const [newHolidayDate, setNewHolidayDate] = useState("");
 
   // Role-based access control functions
   const canAccessHolidayButtons = () => {
@@ -320,6 +327,33 @@ export default function CalendarPage() {
     ));
   };
 
+  // Inline add holiday functions
+  const handleAddNewHolidayRow = () => {
+    setShowAddHolidayRow(true);
+    setNewHolidayName("");
+    setNewHolidayDate("");
+  };
+
+  const handleSaveInlineHoliday = () => {
+    if (newHolidayName && newHolidayDate) {
+      const newHoliday: Holiday = {
+        id: holidays.length + 1,
+        name: newHolidayName,
+        date: newHolidayDate,
+        isPublic: false,
+        importToCalendar: true
+      };
+      setHolidays([...holidays, newHoliday]);
+      setShowAddHolidayRow(false);
+      setNewHolidayName("");
+      setNewHolidayDate("");
+    }
+  };
+
+  const handleDeleteHoliday = (holidayId: number) => {
+    setHolidays(holidays.filter(holiday => holiday.id !== holidayId));
+  };
+
   return (
     <DashboardLayout>
       <div className="min-h-screen bg-gray-50">
@@ -375,55 +409,100 @@ export default function CalendarPage() {
                         <DialogTitle>Generate Holiday</DialogTitle>
                       </DialogHeader>
                       
-                      <div className="overflow-x-auto">
-                        <table className="w-full">
-                          <thead>
-                            <tr className="border-b">
-                              <th className="text-left py-2 px-2 font-medium text-gray-700">No</th>
-                              <th className="text-left py-2 px-4 font-medium text-gray-700">Name</th>
-                              <th className="text-left py-2 px-4 font-medium text-gray-700">Date</th>
-                              <th className="text-center py-2 px-4 font-medium text-gray-700">Import to Calendar</th>
-                              <th className="text-center py-2 px-4 font-medium text-gray-700">Set as Public Holiday</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {holidays.map((holiday, index) => (
-                              <tr key={holiday.id} className="border-b">
-                                <td className="py-3 px-2">{index + 1}</td>
-                                <td className="py-3 px-4">{holiday.name}</td>
-                                <td className="py-3 px-4">{holiday.date}</td>
-                                <td className="py-3 px-4 text-center">
-                                  <Switch
-                                    checked={holiday.importToCalendar}
-                                    onCheckedChange={(checked) => updateHolidayImport(holiday.id, checked)}
-                                  />
-                                </td>
-                                <td className="py-3 px-4 text-center">
-                                  <Switch
-                                    checked={holiday.isPublic}
-                                    onCheckedChange={(checked) => updateHolidayPublic(holiday.id, checked)}
-                                  />
-                                </td>
+                      <div className="space-y-4">
+                        {/* Add Holiday Button */}
+                        <div className="flex justify-start">
+                          <Button 
+                            onClick={handleAddNewHolidayRow}
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                            data-testid="button-add-holiday-inline"
+                          >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add Holiday
+                          </Button>
+                        </div>
+
+                        {/* Holiday Table */}
+                        <div className="overflow-x-auto">
+                          <table className="w-full">
+                            <thead>
+                              <tr className="border-b">
+                                <th className="text-left py-2 px-2 font-medium text-gray-700">No</th>
+                                <th className="text-left py-2 px-4 font-medium text-gray-700">Name Holiday</th>
+                                <th className="text-left py-2 px-4 font-medium text-gray-700">Date</th>
+                                <th className="text-center py-2 px-4 font-medium text-gray-700">Action</th>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                            </thead>
+                            <tbody>
+                              {/* Add Holiday Row */}
+                              {showAddHolidayRow && (
+                                <tr className="border-b bg-gray-50">
+                                  <td className="py-3 px-2">{holidays.length + 1}</td>
+                                  <td className="py-3 px-4">
+                                    <Input
+                                      value={newHolidayName}
+                                      onChange={(e) => setNewHolidayName(e.target.value)}
+                                      placeholder="Enter holiday name"
+                                      className="h-8"
+                                      data-testid="input-new-holiday-name"
+                                    />
+                                  </td>
+                                  <td className="py-3 px-4">
+                                    <Input
+                                      type="date"
+                                      value={newHolidayDate}
+                                      onChange={(e) => setNewHolidayDate(e.target.value)}
+                                      className="h-8"
+                                      data-testid="input-new-holiday-date"
+                                    />
+                                  </td>
+                                  <td className="py-3 px-4 text-center">
+                                    <Button
+                                      onClick={handleSaveInlineHoliday}
+                                      disabled={!newHolidayName || !newHolidayDate}
+                                      size="sm"
+                                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                                      data-testid="button-save-inline-holiday"
+                                    >
+                                      <Save className="w-4 h-4" />
+                                    </Button>
+                                  </td>
+                                </tr>
+                              )}
+
+                              {/* Existing Holidays */}
+                              {holidays.map((holiday, index) => (
+                                <tr key={holiday.id} className="border-b">
+                                  <td className="py-3 px-2">{index + 1}</td>
+                                  <td className="py-3 px-4">{holiday.name}</td>
+                                  <td className="py-3 px-4">{holiday.date}</td>
+                                  <td className="py-3 px-4 text-center">
+                                    <Button
+                                      onClick={() => handleDeleteHoliday(holiday.id)}
+                                      size="sm"
+                                      variant="destructive"
+                                      data-testid={`button-delete-holiday-${holiday.id}`}
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
                       </div>
                       
                       <DialogFooter className="gap-2">
                         <Button 
                           variant="outline" 
-                          onClick={() => setIsGenerateHolidayOpen(false)}
-                          data-testid="button-cancel-generate"
+                          onClick={() => {
+                            setIsGenerateHolidayOpen(false);
+                            setShowAddHolidayRow(false);
+                          }}
+                          data-testid="button-close-generate"
                         >
-                          Cancel
-                        </Button>
-                        <Button 
-                          onClick={handleGenerateHolidays}
-                          className="bg-slate-700 hover:bg-slate-800"
-                          data-testid="button-generate"
-                        >
-                          Generate
+                          Close
                         </Button>
                       </DialogFooter>
                     </DialogContent>
