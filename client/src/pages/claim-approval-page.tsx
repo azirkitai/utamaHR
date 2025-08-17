@@ -52,7 +52,7 @@ export default function ClaimApprovalPage() {
   
   // Filter states - uniform across all tabs
   const [filters, setFilters] = useState({
-    startDate: '2025-08-01',
+    startDate: '2025-07-01',
     endDate: '2025-08-31', 
     department: 'all',
     employee: 'all',
@@ -89,7 +89,7 @@ export default function ClaimApprovalPage() {
 
   const handleResetFilters = () => {
     setFilters({
-      startDate: '2025-08-01',
+      startDate: '2025-07-01',
       endDate: '2025-08-31',
       department: 'all',
       employee: 'all', 
@@ -180,24 +180,7 @@ export default function ClaimApprovalPage() {
   const { data: financialClaimsData = [], isLoading: isLoadingFinancial } = useQuery<ClaimApplication[]>({
     queryKey: ["/api/claim-applications/type/financial"],
     enabled: selectedCategory === "financial" || selectedCategory === null,
-    onSuccess: (data) => {
-      console.log('=== FINANCIAL CLAIMS DEBUG ===');
-      console.log('Total financial claims fetched:', data?.length || 0);
-      if (data && data.length > 0) {
-        data.forEach((claim: any, index) => {
-          console.log(`Claim ${index + 1}:`, {
-            id: claim.id,
-            employeeId: claim.employeeId,
-            employeeName: getEmployeeName(claim.employeeId),
-            status: claim.status,
-            claimType: claim.claimType,
-            amount: claim.amount,
-            date: claim.claimDate
-          });
-        });
-      }
-      console.log('=== END FINANCIAL DEBUG ===');
-    }
+
   });
 
   // Fetch overtime claim applications from database  
@@ -514,6 +497,8 @@ export default function ClaimApprovalPage() {
       const endDate = new Date(filters.endDate);
       const dateInRange = claimDateValue && !isNaN(claimDate.getTime()) && claimDate >= startDate && claimDate <= endDate;
       
+
+      
       // Department filter
       const employeeDepartment = (employeesData as any[]).find((emp: any) => emp.id === claim.employeeId)?.employment?.department;
       const departmentMatch = filters.department === 'all' || employeeDepartment === filters.department;
@@ -552,18 +537,20 @@ export default function ClaimApprovalPage() {
       // APPROVAL TAB: Only show pending claims that user can approve
       if (!userCanApproveFinancial) return [];
       tabFilteredClaims = financialClaimsData.filter((claim: any) => {
-        const isPending = claim.status === 'Pending' || claim.status === 'pending';
+        const isPending = claim.status?.toLowerCase() === 'pending';
         return isPending;
       });
     } else if (activeTab === 'report') {
       // REPORT TAB: Only show processed claims (approved, rejected) - NOT pending
       tabFilteredClaims = financialClaimsData.filter((claim: any) => {
-        return ['approved', 'Approved', 'rejected', 'Rejected'].includes(claim.status);
+        const status = claim.status?.toLowerCase();
+        return ['approved', 'rejected'].includes(status);
       });
     } else {
       // SUMMARY TAB: Show pending and approved claims only (NO rejected)
       tabFilteredClaims = financialClaimsData.filter((claim: any) => {
-        return ['pending', 'Pending', 'firstLevelApproved', 'First Level Approved', 'approved', 'Approved'].includes(claim.status);
+        const status = claim.status?.toLowerCase();
+        return ['pending', 'firstlevelapproved', 'approved'].includes(status);
       });
     }
     
