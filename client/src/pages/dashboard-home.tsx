@@ -15,7 +15,9 @@ import {
   Bell,
   CheckCircle,
   AlertCircle,
-  Download
+  Download,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import utamaMedgroupImage from "@assets/PANEL KLINIK UTAMA_1754579785517.png";
@@ -62,6 +64,18 @@ interface EmployeeStats {
   activeCount: number;
   resignedCount: number;
   totalCount: number;
+}
+
+interface LeaveApplication {
+  id: string;
+  employeeId: string;
+  applicant: string;
+  leaveType: string;
+  startDate: string;
+  endDate: string;
+  totalDays: string;
+  status: 'Pending' | 'Approved' | 'Rejected' | 'First Level Approved';
+  reason: string;
 }
 
 const weeklyData = [
@@ -119,6 +133,12 @@ export default function DashboardHome() {
     queryFn: () => authenticatedFetch('/api/pending-approval-statistics'),
   });
 
+  // Fetch all leave applications for calendar display
+  const { data: allLeaveApplications = [] } = useQuery<LeaveApplication[]>({
+    queryKey: ["/api/leave-applications/all-for-calendar"],
+    queryFn: () => authenticatedFetch('/api/leave-applications/all-for-calendar'),
+  });
+
   // Convert statistics to pie chart format
   const employeeData = employeeStats ? [
     { name: 'Active', value: employeeStats.activeCount, color: '#0891b2' },
@@ -135,6 +155,21 @@ export default function DashboardHome() {
     return "Good Evening";
   };
 
+  // Helper function to get upcoming leave dates
+  const getUpcomingLeaveDates = () => {
+    const today = new Date();
+    const oneWeekFromNow = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+    
+    return allLeaveApplications
+      .filter(leave => {
+        const startDate = new Date(leave.startDate);
+        const endDate = new Date(leave.endDate);
+        return (leave.status === 'Approved' || leave.status === 'Pending' || leave.status === 'First Level Approved') &&
+               startDate <= oneWeekFromNow && endDate >= today;
+      })
+      .slice(0, 5); // Show only 5 upcoming leave dates
+  };
+
   // Get current user's employee data for fullName
   const { data: currentEmployee } = useQuery({
     queryKey: ["/api/user/employee"],
@@ -145,7 +180,7 @@ export default function DashboardHome() {
   const userName = currentEmployee?.fullName || dashboardData?.user?.username || 'User';
 
   // Check if user has privileged access to view Today Statistic and Pending Approval cards
-  const hasPrivilegedAccess = (dashboardData?.user as any)?.role && ['Super Admin', 'Admin', 'HR Manager', 'PIC'].includes((dashboardData.user as any).role);
+  const hasPrivilegedAccess = (dashboardData?.user as any)?.role && ['Super Admin', 'Admin', 'HR Manager', 'PIC'].includes((dashboardData?.user as any).role);
   
   // Debug log to check role
   console.log('Current user role:', (dashboardData?.user as any)?.role);
@@ -410,14 +445,49 @@ export default function DashboardHome() {
               </CardContent>
             </Card>
 
-            {/* Who's off This Week */}
+            {/* Leave Calendar Widget */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-3">
-                <CardTitle className="text-lg text-gray-800">Who's off This Week</CardTitle>
+                <CardTitle className="text-lg text-gray-800 flex items-center gap-2">
+                  <Calendar className="w-5 h-5" />
+                  Leave Calendar
+                </CardTitle>
                 <Button variant="link" size="sm" className="text-cyan-600">See More</Button>
               </CardHeader>
-              <CardContent>
-                <div className="text-sm text-gray-600">All present today</div>
+              <CardContent className="space-y-3">
+                {getUpcomingLeaveDates().length === 0 ? (
+                  <div className="text-sm text-gray-600">No upcoming leave this week</div>
+                ) : (
+                  <div className="space-y-3">
+                    {getUpcomingLeaveDates().map((leave, index) => (
+                      <div key={index} className="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg">
+                        <div className={`w-3 h-3 rounded-full ${
+                          leave.status === 'Approved' ? 'bg-green-500' :
+                          leave.status === 'Pending' ? 'bg-yellow-500' :
+                          leave.status === 'First Level Approved' ? 'bg-blue-500' :
+                          'bg-red-500'
+                        }`}></div>
+                        <div className="flex-1">
+                          <div className="text-sm font-medium">{leave.applicant}</div>
+                          <div className="text-xs text-gray-600">
+                            {new Date(leave.startDate).toLocaleDateString('en-GB')} - {new Date(leave.endDate).toLocaleDateString('en-GB')}
+                          </div>
+                          <div className="text-xs text-gray-500">{leave.leaveType}</div>
+                        </div>
+                        <Badge 
+                          className={`text-xs ${
+                            leave.status === 'Approved' ? 'bg-green-100 text-green-800' :
+                            leave.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                            leave.status === 'First Level Approved' ? 'bg-blue-100 text-blue-800' :
+                            'bg-red-100 text-red-800'
+                          }`}
+                        >
+                          {leave.status === 'First Level Approved' ? 'Level 1' : leave.status}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

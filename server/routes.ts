@@ -3124,6 +3124,38 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // GET /api/leave-applications/all-for-calendar - Get all leave applications for calendar display
+  app.get("/api/leave-applications/all-for-calendar", authenticateToken, async (req, res) => {
+    try {
+      console.log("=== FETCH ALL LEAVE APPLICATIONS FOR CALENDAR ===");
+      
+      // Get all leave applications (no filtering by user)
+      const allLeaveApps = await db
+        .select({
+          id: leaveApplications.id,
+          employeeId: leaveApplications.employeeId,
+          applicant: leaveApplications.applicant,
+          leaveType: leaveApplications.leaveType,
+          startDate: leaveApplications.startDate,
+          endDate: leaveApplications.endDate,
+          totalDays: leaveApplications.totalDays,
+          status: leaveApplications.status,
+          reason: leaveApplications.reason,
+        })
+        .from(leaveApplications)
+        .orderBy(desc(leaveApplications.createdAt));
+
+      console.log(`Found ${allLeaveApps.length} leave applications for calendar`);
+      res.json(allLeaveApps);
+    } catch (error) {
+      console.error("Fetch leave applications for calendar error:", error);
+      res.status(500).json({ 
+        error: "Gagal mengambil permohonan cuti untuk kalendar",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // =================== APPROVAL SETTINGS ROUTES ===================
 
   // GET /api/approval-settings/leave - Get leave approval settings

@@ -9,13 +9,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { 
   ChevronRight,
   Search,
   Plus,
   ChevronLeft,
   CalendarDays,
-  Clock
+  Clock,
+  Users
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DashboardLayout } from "@/components/dashboard-layout";
@@ -51,6 +53,18 @@ interface ShiftDay {
   date: string;
   shift: string;
   type: 'Default Shift' | 'Off Day';
+}
+
+interface LeaveApplication {
+  id: string;
+  employeeId: string;
+  applicant: string;
+  leaveType: string;
+  startDate: string;
+  endDate: string;
+  totalDays: string;
+  status: 'Pending' | 'Approved' | 'Rejected' | 'First Level Approved';
+  reason: string;
 }
 
 const predefinedHolidays: Holiday[] = [
@@ -101,6 +115,22 @@ export default function CalendarPage() {
   const [currentMonth, setCurrentMonth] = useState("August 2025");
   const [currentWeek, setCurrentWeek] = useState("Aug 4 – 10, 2025");
 
+  // Fetch all leave applications for calendar display
+  const { data: allLeaveApplications = [] } = useQuery<LeaveApplication[]>({
+    queryKey: ["/api/leave-applications/all-for-calendar"],
+    queryFn: async () => {
+      const response = await fetch('/api/leave-applications/all-for-calendar', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('utamahr_token')}`
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch leave applications');
+      }
+      return response.json();
+    },
+  });
+
   // User role is available from useAuth hook
   
   // Modal states
@@ -136,6 +166,21 @@ export default function CalendarPage() {
     return role && ['Super Admin', 'Admin', 'HR Manager', 'PIC', 'Manager/Supervisor'].includes(role);
   };
 
+  // Helper function to check if date has leave applications
+  const getLeaveApplicationsForDate = (date: number) => {
+    const currentYear = 2025;
+    const currentMonthIndex = 7; // August = 7 (0-indexed)
+    const targetDate = new Date(currentYear, currentMonthIndex, date);
+    
+    return allLeaveApplications.filter(leave => {
+      const startDate = new Date(leave.startDate);
+      const endDate = new Date(leave.endDate);
+      
+      return targetDate >= startDate && targetDate <= endDate && 
+             (leave.status === 'Approved' || leave.status === 'Pending' || leave.status === 'First Level Approved');
+    });
+  };
+
   const generateCalendarDays = () => {
     const days = [];
     let dayNumber = 28;
@@ -143,15 +188,32 @@ export default function CalendarPage() {
     for (let week = 0; week < 6; week++) {
       for (let day = 0; day < 7; day++) {
         if (week === 0 && day < 4) {
-          days.push({ number: dayNumber++, isCurrentMonth: false });
+          days.push({ 
+            number: dayNumber++, 
+            isCurrentMonth: false,
+            leaveApplications: []
+          });
         } else if (dayNumber > 31 && week >= 4) {
-          days.push({ number: dayNumber - 31, isCurrentMonth: false });
+          days.push({ 
+            number: dayNumber - 31, 
+            isCurrentMonth: false,
+            leaveApplications: []
+          });
           dayNumber++;
         } else if (dayNumber <= 31) {
-          days.push({ number: dayNumber, isCurrentMonth: true });
+          const leaveApplications = getLeaveApplicationsForDate(dayNumber);
+          days.push({ 
+            number: dayNumber, 
+            isCurrentMonth: true,
+            leaveApplications
+          });
           dayNumber++;
         } else {
-          days.push({ number: dayNumber - 31, isCurrentMonth: false });
+          days.push({ 
+            number: dayNumber - 31, 
+            isCurrentMonth: false,
+            leaveApplications: []
+          });
           dayNumber++;
         }
       }
@@ -650,13 +712,38 @@ export default function CalendarPage() {
                             <div 
                               key={index}
                               className={cn(
-                                "p-2 text-center text-sm border-b border-r min-h-[60px] flex items-center justify-center",
+                                "p-2 text-center text-sm border-b border-r min-h-[80px] flex flex-col relative",
                                 day.isCurrentMonth ? "text-gray-900" : "text-gray-400",
                                 day.number === 7 && "bg-yellow-100",
                                 day.number === 15 && "bg-yellow-100"
                               )}
                             >
-                              {day.number}
+                              <div className="font-medium mb-1">{day.number}</div>
+                              
+                              {/* Show leave applications for this date */}
+                              {(day as any).leaveApplications?.slice(0, 2).map((leave: LeaveApplication, leaveIndex: number) => (
+                                <div
+                                  key={leaveIndex}
+                                  className={cn(
+                                    "text-xs px-1 py-0.5 rounded-full mb-1 truncate",
+                                    leave.status === 'Approved' ? "bg-green-100 text-green-800" :
+                                    leave.status === 'Pending' ? "bg-yellow-100 text-yellow-800" :
+                                    leave.status === 'First Level Approved' ? "bg-blue-100 text-blue-800" :
+                                    "bg-red-100 text-red-800"
+                                  )}
+                                  title={`${leave.applicant} - ${leave.leaveType} (${leave.status})`}
+                                >
+                                  <Users className="w-2 h-2 inline mr-1" />
+                                  {leave.applicant.split(' ')[0]}
+                                </div>
+                              ))}
+                              
+                              {/* Show count if more than 2 applications */}
+                              {(day as any).leaveApplications?.length > 2 && (
+                                <div className="text-xs text-gray-500">
+                                  +{(day as any).leaveApplications.length - 2} more
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>
