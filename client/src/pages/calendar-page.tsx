@@ -112,8 +112,10 @@ export default function CalendarPage() {
   const [calendarView, setCalendarView] = useState("month");
   const [activityTab, setActivityTab] = useState("holiday");
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentMonth, setCurrentMonth] = useState("August 2025");
+  const [currentDate, setCurrentDate] = useState(new Date(2025, 7, 1)); // August 2025
   const [currentWeek, setCurrentWeek] = useState("Aug 4 – 10, 2025");
+  const [selectedDateLeaves, setSelectedDateLeaves] = useState<LeaveApplication[]>([]);
+  const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
 
   // Fetch all leave applications for calendar display
   const { data: allLeaveApplications = [] } = useQuery<LeaveApplication[]>({
@@ -168,9 +170,7 @@ export default function CalendarPage() {
 
   // Helper function to check if date has leave applications
   const getLeaveApplicationsForDate = (date: number) => {
-    const currentYear = 2025;
-    const currentMonthIndex = 7; // August = 7 (0-indexed)
-    const targetDate = new Date(currentYear, currentMonthIndex, date);
+    const targetDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), date);
     
     return allLeaveApplications.filter(leave => {
       const startDate = new Date(leave.startDate);
@@ -181,43 +181,83 @@ export default function CalendarPage() {
     });
   };
 
+  // Get month name and year for display
+  const getMonthDisplay = () => {
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+    return `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+  };
+
+  // Navigate to previous month
+  const previousMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  };
+
+  // Navigate to next month
+  const nextMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  };
+
+  // Handle click on date with leave applications
+  const handleDateClick = (leaves: LeaveApplication[]) => {
+    if (leaves.length > 0) {
+      setSelectedDateLeaves(leaves);
+      setIsLeaveModalOpen(true);
+    }
+  };
+
   const generateCalendarDays = () => {
     const days = [];
-    let dayNumber = 28;
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
     
-    for (let week = 0; week < 6; week++) {
-      for (let day = 0; day < 7; day++) {
-        if (week === 0 && day < 4) {
-          days.push({ 
-            number: dayNumber++, 
-            isCurrentMonth: false,
-            leaveApplications: []
-          });
-        } else if (dayNumber > 31 && week >= 4) {
-          days.push({ 
-            number: dayNumber - 31, 
-            isCurrentMonth: false,
-            leaveApplications: []
-          });
-          dayNumber++;
-        } else if (dayNumber <= 31) {
-          const leaveApplications = getLeaveApplicationsForDate(dayNumber);
-          days.push({ 
-            number: dayNumber, 
-            isCurrentMonth: true,
-            leaveApplications
-          });
-          dayNumber++;
-        } else {
-          days.push({ 
-            number: dayNumber - 31, 
-            isCurrentMonth: false,
-            leaveApplications: []
-          });
-          dayNumber++;
-        }
-      }
+    // Get first day of month and calculate how many days from previous month to show
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    
+    // Get day of week for first day (0=Sunday, 1=Monday, etc)
+    // Convert to Monday=0 format
+    let startDayOfWeek = firstDay.getDay();
+    startDayOfWeek = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1;
+    
+    // Get previous month info
+    const prevMonth = new Date(year, month - 1, 0);
+    const daysInPrevMonth = prevMonth.getDate();
+    
+    // Add days from previous month
+    for (let i = startDayOfWeek - 1; i >= 0; i--) {
+      const dayNum = daysInPrevMonth - i;
+      days.push({
+        number: dayNum,
+        isCurrentMonth: false,
+        leaveApplications: []
+      });
     }
+    
+    // Add days from current month
+    for (let day = 1; day <= daysInMonth; day++) {
+      const leaveApplications = getLeaveApplicationsForDate(day);
+      days.push({
+        number: day,
+        isCurrentMonth: true,
+        leaveApplications
+      });
+    }
+    
+    // Add days from next month to fill the grid
+    const totalCells = 42; // 6 weeks × 7 days
+    const remainingCells = totalCells - days.length;
+    for (let day = 1; day <= remainingCells; day++) {
+      days.push({
+        number: day,
+        isCurrentMonth: false,
+        leaveApplications: []
+      });
+    }
+    
     return days;
   };
 
@@ -670,11 +710,11 @@ export default function CalendarPage() {
                         {/* Calendar Header */}
                         <div className="flex items-center justify-between mb-6">
                           <div className="flex items-center gap-4">
-                            <Button variant="ghost" size="sm">
+                            <Button variant="ghost" size="sm" onClick={previousMonth}>
                               <ChevronLeft className="w-4 h-4" />
                             </Button>
-                            <h2 className="text-xl font-semibold">{currentMonth}</h2>
-                            <Button variant="ghost" size="sm">
+                            <h2 className="text-xl font-semibold">{getMonthDisplay()}</h2>
+                            <Button variant="ghost" size="sm" onClick={nextMonth}>
                               <ChevronRight className="w-4 h-4" />
                             </Button>
                           </div>
@@ -721,27 +761,14 @@ export default function CalendarPage() {
                               <div className="font-medium mb-1">{day.number}</div>
                               
                               {/* Show leave applications for this date */}
-                              {(day as any).leaveApplications?.slice(0, 2).map((leave: LeaveApplication, leaveIndex: number) => (
-                                <div
-                                  key={leaveIndex}
-                                  className={cn(
-                                    "text-xs px-1 py-0.5 rounded-full mb-1 truncate",
-                                    leave.status === 'Approved' ? "bg-green-100 text-green-800" :
-                                    leave.status === 'Pending' ? "bg-yellow-100 text-yellow-800" :
-                                    leave.status === 'First Level Approved' ? "bg-blue-100 text-blue-800" :
-                                    "bg-red-100 text-red-800"
-                                  )}
-                                  title={`${leave.applicant} - ${leave.leaveType} (${leave.status})`}
+                              {(day as any).leaveApplications?.length > 0 && (
+                                <div 
+                                  className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded cursor-pointer hover:bg-blue-200 transition-colors"
+                                  onClick={() => handleDateClick((day as any).leaveApplications)}
+                                  title="Klik untuk melihat maklumat lengkap"
                                 >
                                   <Users className="w-2 h-2 inline mr-1" />
-                                  {leave.applicant.split(' ')[0]}
-                                </div>
-                              ))}
-                              
-                              {/* Show count if more than 2 applications */}
-                              {(day as any).leaveApplications?.length > 2 && (
-                                <div className="text-xs text-gray-500">
-                                  +{(day as any).leaveApplications.length - 2} more
+                                  {(day as any).leaveApplications.length} user bercuti
                                 </div>
                               )}
                             </div>
@@ -826,6 +853,85 @@ export default function CalendarPage() {
             </Tabs>
           </div>
         </div>
+
+        {/* Leave Details Modal */}
+        <Dialog open={isLeaveModalOpen} onOpenChange={setIsLeaveModalOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Maklumat Pengguna Yang Bercuti</DialogTitle>
+              <p className="text-sm text-gray-600">
+                Senarai pengguna yang mengambil cuti pada tarikh ini
+              </p>
+            </DialogHeader>
+            
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+              {selectedDateLeaves.map((leave, index) => (
+                <div key={index} className="border rounded-lg p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                          <Users className="w-5 h-5 text-gray-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-lg">{leave.applicant}</h3>
+                          <p className="text-sm text-gray-600">Employee ID: {leave.employeeId}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4 mb-3">
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">Jenis Cuti:</p>
+                          <p className="text-sm">{leave.leaveType}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">Tempoh:</p>
+                          <p className="text-sm">{leave.totalDays} hari</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">Tarikh Mula:</p>
+                          <p className="text-sm">{new Date(leave.startDate).toLocaleDateString('en-GB')}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-700">Tarikh Tamat:</p>
+                          <p className="text-sm">{new Date(leave.endDate).toLocaleDateString('en-GB')}</p>
+                        </div>
+                      </div>
+                      
+                      {leave.reason && (
+                        <div className="mb-3">
+                          <p className="text-sm font-medium text-gray-700">Sebab:</p>
+                          <p className="text-sm bg-gray-50 p-2 rounded">{leave.reason}</p>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <Badge 
+                      className={cn(
+                        "ml-4",
+                        leave.status === 'Approved' ? 'bg-green-100 text-green-800' :
+                        leave.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                        leave.status === 'First Level Approved' ? 'bg-blue-100 text-blue-800' :
+                        'bg-red-100 text-red-800'
+                      )}
+                    >
+                      {leave.status === 'First Level Approved' ? 'Level 1 Approved' : leave.status}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <DialogFooter>
+              <Button 
+                onClick={() => setIsLeaveModalOpen(false)}
+                className="bg-teal-600 hover:bg-teal-700 text-white"
+              >
+                Tutup
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );
