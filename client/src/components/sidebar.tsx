@@ -244,6 +244,16 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
     return privilegedRoles.includes(userRole);
   };
 
+  // Check if user can access Payment module (includes Finance role)
+  const canAccessPayment = (itemId: string) => {
+    if (itemId === 'payment') {
+      const userRole = currentEmployee?.role || user?.role;
+      const paymentRoles = ['Super Admin', 'Admin', 'HR Manager', 'Finance'];
+      return paymentRoles.includes(userRole);
+    }
+    return true; // For other items, default to true (will be filtered by section level)
+  };
+
   const isActiveRoute = (href: string) => {
     if (href === "/") return location === "/";
     return location.startsWith(href);
@@ -322,7 +332,18 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
             )}
             
             <nav className="space-y-1 px-2">
-              {section.items.map((item) => (
+              {section.items
+                .filter((item) => {
+                  // For Administration section, all items need privileged access except Payment
+                  if (section.category === "Administration") {
+                    if (item.id === 'payment') {
+                      return canAccessPayment(item.id);
+                    }
+                    return hasPrivilegedAccess();
+                  }
+                  return true; // For other sections, show all items
+                })
+                .map((item) => (
                 <div key={item.id}>
                   {/* Main Item */}
                   {item.children ? (
