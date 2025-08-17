@@ -158,6 +158,25 @@ export default function ApplyClaimPage() {
     queryKey: ["/api/claim-applications/type/overtime"]
   });
 
+  // Filter claims based on user role - only privileged users can see all claims
+  const getFilteredClaims = (claims: any[]) => {
+    if (!currentUser || !currentUserEmployee) return [];
+    
+    const privilegedRoles = ['Super Admin', 'Admin', 'HR Manager'];
+    const userRole = (currentUser as any)?.role;
+    
+    if (privilegedRoles.includes(userRole)) {
+      // Privileged users can see all claims
+      return claims;
+    } else {
+      // Regular users can only see their own claims
+      return claims.filter((claim: any) => claim.employeeId === currentUserEmployee.id);
+    }
+  };
+
+  const filteredFinancialClaims = getFilteredClaims(recentFinancialClaims);
+  const filteredOvertimeClaims = getFilteredClaims(recentOvertimeClaims);
+
   // Logic untuk menentukan employees yang boleh dipilih berdasarkan role
   const getAvailableEmployees = () => {
     if (!currentUser || !Array.isArray(employees)) return [];
@@ -697,8 +716,8 @@ export default function ApplyClaimPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {Array.isArray(recentFinancialClaims) && recentFinancialClaims.length > 0 ? (
-                          (recentFinancialClaims as any[]).map((claim: any) => (
+                        {Array.isArray(filteredFinancialClaims) && filteredFinancialClaims.length > 0 ? (
+                          (filteredFinancialClaims as any[]).map((claim: any) => (
                             <tr key={claim.id} className="border-b hover:bg-gray-50">
                               <td className="py-3 px-4">
                                 {availableEmployees.find((emp: any) => emp.id === claim.employeeId)?.fullName || 'Unknown'}
@@ -1010,8 +1029,8 @@ export default function ApplyClaimPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {Array.isArray(recentOvertimeClaims) && recentOvertimeClaims.length > 0 ? (
-                          (recentOvertimeClaims as any[]).map((claim: any) => (
+                        {Array.isArray(filteredOvertimeClaims) && filteredOvertimeClaims.length > 0 ? (
+                          (filteredOvertimeClaims as any[]).map((claim: any) => (
                             <tr key={claim.id} className="border-b hover:bg-gray-50">
                               <td className="py-3 px-4">
                                 {availableEmployees.find((emp: any) => emp.id === claim.employeeId)?.fullName || 'Unknown'}
