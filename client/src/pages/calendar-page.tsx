@@ -190,6 +190,9 @@ export default function CalendarPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/holidays"] });
     },
+    onError: (error) => {
+      console.error('Error creating holiday:', error);
+    },
   });
 
   const updateHolidayMutation = useMutation({
@@ -199,6 +202,9 @@ export default function CalendarPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/holidays"] });
     },
+    onError: (error) => {
+      console.error('Error updating holiday:', error);
+    },
   });
 
   const deleteHolidayMutation = useMutation({
@@ -207,6 +213,9 @@ export default function CalendarPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/holidays"] });
+    },
+    onError: (error) => {
+      console.error('Error deleting holiday:', error);
     },
   });
 
@@ -467,10 +476,13 @@ export default function CalendarPage() {
                           Generate Holiday
                         </Button>
                       </DialogTrigger>
-                    <DialogContent className="max-w-4xl">
+                    <DialogContent className="max-w-4xl" aria-describedby="generate-holiday-description">
                       <DialogHeader>
                         <DialogTitle>Generate Holiday</DialogTitle>
                       </DialogHeader>
+                      <p id="generate-holiday-description" className="sr-only">
+                        Manage company holidays by adding new holidays to the calendar system.
+                      </p>
                       
                       <div className="space-y-4">
                         {/* Add Holiday Button */}
@@ -582,10 +594,13 @@ export default function CalendarPage() {
                           Add Holiday
                         </Button>
                       </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent aria-describedby="add-holiday-description">
                       <DialogHeader>
                         <DialogTitle>Create New Holiday</DialogTitle>
                       </DialogHeader>
+                      <p id="add-holiday-description" className="sr-only">
+                        Add a new company holiday with name and date.
+                      </p>
                       
                       <div className="space-y-4">
                         <div>
