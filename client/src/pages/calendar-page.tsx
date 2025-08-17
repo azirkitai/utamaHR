@@ -238,7 +238,7 @@ export default function CalendarPage() {
 
   // Event mutations
   const createEventMutation = useMutation({
-    mutationFn: async (event: { title: string; description: string; startDate: string; endDate: string; time: string; assignedEmployee: string }) => {
+    mutationFn: async (event: { title: string; description: string; startDate: string; endDate: string; time: string; selectedEmployee: string }) => {
       return apiRequest('POST', '/api/events', event);
     },
     onSuccess: () => {
@@ -446,7 +446,7 @@ export default function CalendarPage() {
       startDate: eventDateStart,
       endDate: eventDateEnd || eventDateStart, // Use start date if end date is not provided
       time: eventTime || "00:00", // Default time if not provided
-      assignedEmployee: selectedEmployee || "everyone"
+      selectedEmployee: selectedEmployee || "everyone"
     });
   };
 
@@ -930,9 +930,9 @@ export default function CalendarPage() {
                                                 {event.time}
                                               </div>
                                             )}
-                                            {event.assignedEmployee && event.assignedEmployee !== "everyone" && (
+                                            {event.selectedEmployee && event.selectedEmployee !== "everyone" && (
                                               <Badge className="bg-blue-100 text-blue-800 text-xs mt-1">
-                                                {event.assignedEmployee}
+                                                {event.selectedEmployee}
                                               </Badge>
                                             )}
                                           </div>
