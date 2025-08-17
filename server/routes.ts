@@ -3126,6 +3126,29 @@ export function registerRoutes(app: Express): Server {
 
   // =================== APPROVAL SETTINGS ROUTES ===================
 
+  // GET /api/approval-settings/leave - Get leave approval settings
+  app.get("/api/approval-settings/leave", authenticateToken, async (req, res) => {
+    try {
+      const [approvalSetting] = await db
+        .select()
+        .from(approvalSettings)
+        .where(eq(approvalSettings.type, 'leave'))
+        .limit(1);
+
+      if (!approvalSetting) {
+        return res.status(404).json({ error: "Tetapan kelulusan tidak dijumpai" });
+      }
+
+      res.json(approvalSetting);
+    } catch (error) {
+      console.error("Get leave approval settings error:", error);
+      res.status(500).json({ 
+        error: "Gagal mengambil tetapan kelulusan",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // POST /api/approval-settings - Save approval settings
   app.post("/api/approval-settings", authenticateToken, async (req, res) => {
     try {

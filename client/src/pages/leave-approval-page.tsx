@@ -127,6 +127,38 @@ export default function LeaveApprovalPage() {
     enabled: activeTab === 'balance-carry-forward',
   });
 
+  // Fetch current user's employee record and approval settings
+  const { data: currentUserEmployee } = useQuery({
+    queryKey: ["/api/user/employee"],
+  });
+
+  // Fetch approval settings to check if current user is an approver
+  const { data: approvalSettings } = useQuery({
+    queryKey: ["/api/approval-settings/leave"],
+    queryFn: async () => {
+      const response = await fetch('/api/approval-settings/leave', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('utamahr_token')}`
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch approval settings');
+      }
+      return response.json();
+    },
+  });
+
+  // Check if current user is an approver
+  const isApprovalUser = () => {
+    if (!currentUserEmployee || !approvalSettings) return false;
+    
+    const currentEmployeeId = (currentUserEmployee as any)?.id;
+    const firstLevelApprover = (approvalSettings as any)?.firstLevelApprovalId;
+    const secondLevelApprover = (approvalSettings as any)?.secondLevelApprovalId;
+    
+    return currentEmployeeId === firstLevelApprover || currentEmployeeId === secondLevelApprover;
+  };
+
   // Mutation for approve/reject leave applications
   const approveRejectMutation = useMutation({
     mutationFn: async ({ id, action, comments }: { id: string; action: 'approve' | 'reject'; comments?: string }) => {
@@ -273,7 +305,8 @@ export default function LeaveApprovalPage() {
                   <Button size="sm" variant="outline" className="h-8 w-8 p-0">
                     <Eye className="w-4 h-4" />
                   </Button>
-                  {record.status === "Pending" && (
+                  {/* Only show approve/reject buttons to authorized approval users */}
+                  {record.status === "Pending" && isApprovalUser() && (
                     <>
                       <Button 
                         size="sm" 
