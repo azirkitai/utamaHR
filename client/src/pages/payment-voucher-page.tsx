@@ -76,31 +76,57 @@ export default function PaymentVoucherPage() {
     onSuccess: (response: any) => {
       queryClient.invalidateQueries({ queryKey: ['/api/payment-vouchers'] });
       
-      const { created, skipped, message } = response;
+      const { created, message } = response;
       toast({
-        title: "Success",
-        description: message || `Created ${created.length} voucher(s)${skipped.length > 0 ? `, skipped ${skipped.length} duplicate(s)` : ''}`,
+        title: "Berjaya",
+        description: message || `Berjaya menjana ${created.length} voucher pembayaran`,
       });
-      
-      if (skipped.length > 0) {
-        // Show additional info about skipped vouchers
-        console.log('Skipped vouchers:', skipped);
-      }
       
       setShowNewVoucherModal(false);
       setFormData({
         year: "2025",
         month: "8", 
         paymentDate: "2025-08-08",
-        remarks: "Payment for financial claims"
+        remarks: "Payment for financial claims August 2025"
       });
     },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create payment voucher",
-        variant: "destructive",
-      });
+    onError: (error: any) => {
+      console.error('Voucher creation error:', error);
+      
+      // Handle conflict error (existing vouchers)
+      if (error.message.includes('CONFLICT_EXISTING_VOUCHERS') || error.message.includes('409:')) {
+        try {
+          // Try to parse the error message to get conflict details
+          const errorData = JSON.parse(error.message.split('409: ')[1] || '{}');
+          
+          if (errorData.conflictingRequestors && errorData.conflictingRequestors.length > 0) {
+            const requestorNames = errorData.conflictingRequestors.map((r: any) => r.requestorName).join(', ');
+            toast({
+              title: "Voucher Sudah Wujud",
+              description: `Voucher sudah wujud untuk: ${requestorNames} pada bulan ini. Sila padam voucher lama terlebih dahulu sebelum menjana voucher baru.`,
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Voucher Sudah Wujud", 
+              description: "Voucher sudah wujud untuk penuntut pada bulan ini. Sila padam voucher lama terlebih dahulu.",
+              variant: "destructive",
+            });
+          }
+        } catch (parseError) {
+          toast({
+            title: "Voucher Sudah Wujud",
+            description: "Voucher sudah wujud untuk penuntut pada bulan ini. Sila padam voucher lama terlebih dahulu.",
+            variant: "destructive",
+          });
+        }
+      } else {
+        toast({
+          title: "Error",
+          description: error.message || "Gagal menjana voucher pembayaran",
+          variant: "destructive",
+        });
+      }
     },
   });
 

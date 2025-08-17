@@ -6126,7 +6126,7 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Create payment vouchers (GROUP BY REQUESTOR + DUPLICATE PREVENTION)
+  // Create payment vouchers (GROUP BY REQUESTOR + SMART DUPLICATE PREVENTION)
   app.post('/api/payment-vouchers', authenticateToken, async (req, res) => {
     try {
       // Handle multiple vouchers data
@@ -6138,25 +6138,38 @@ export function registerRoutes(app: Express): Server {
 
       const createdVouchers = [];
       const skippedVouchers = [];
+      const conflictingRequestors = [];
 
-      // Process each voucher (ONE PER REQUESTOR)
+      // SMART DUPLICATE PREVENTION: Check ALL requestors first
       for (const voucherData of vouchers) {
         const { year, month, requestorName } = voucherData;
         
-        // DUPLICATE PREVENTION: Check if voucher exists for this requestor in this month
         const existingVoucher = await storage.getPaymentVoucherByRequestor(requestorName, year, month);
         
         if (existingVoucher) {
-          // Skip if voucher already exists for this requestor this month
-          skippedVouchers.push({
+          conflictingRequestors.push({
             requestorName,
-            reason: `Voucher already exists for ${requestorName} in ${month}/${year}`,
-            existingVoucherId: existingVoucher.id
+            existingVoucherId: existingVoucher.id,
+            existingVoucherNumber: existingVoucher.voucherNumber
           });
-          continue;
         }
+      }
 
-        // Generate voucher for NEW REQUESTOR only
+      // If ANY existing vouchers found, return conflict error with clear instruction
+      if (conflictingRequestors.length > 0) {
+        return res.status(409).json({
+          error: 'CONFLICT_EXISTING_VOUCHERS',
+          message: 'Voucher sudah wujud untuk penuntut berikut pada bulan ini. Sila padam voucher lama terlebih dahulu sebelum menjana voucher baru.',
+          conflictingRequestors,
+          instruction: 'Padam voucher yang telah wujud dahulu, kemudian cuba lagi untuk menjana voucher baru.'
+        });
+      }
+
+      // If no conflicts, proceed to create ALL vouchers
+      for (const voucherData of vouchers) {
+        const { year, month, requestorName } = voucherData;
+        
+        // Generate voucher for each requestor
         const voucherNumber = await storage.generateVoucherNumber();
         
         const finalVoucherData = {
@@ -6176,12 +6189,12 @@ export function registerRoutes(app: Express): Server {
         createdVouchers.push(newVoucher);
       }
 
-      // Return results with created and skipped vouchers
+      // Return success with all created vouchers
       res.status(201).json({
         success: true,
         created: createdVouchers,
         skipped: skippedVouchers,
-        message: `Created ${createdVouchers.length} voucher(s), skipped ${skippedVouchers.length} duplicate(s)`
+        message: `Berjaya menjana ${createdVouchers.length} voucher pembayaran`
       });
 
     } catch (error) {
