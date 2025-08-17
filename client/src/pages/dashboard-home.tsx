@@ -379,17 +379,17 @@ export default function DashboardHome() {
         <div className="relative bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 rounded-2xl p-8 text-white overflow-hidden pt-[4px] pb-[4px]">
           <div className="relative z-10">
             <div className="flex justify-between items-start">
-              <div className="pt-[79px] pb-[79px] text-[34px] font-semibold">
-                <h1 className="text-3xl font-bold mt-[-7px] mb-[-7px]" data-testid="text-welcome">
+              <div className="pt-[79px] pb-[79px] text-[48px] font-semibold">
+                <h1 className="text-5xl font-bold mt-[-7px] mb-[-7px]" data-testid="text-welcome">
                   Hey,
                 </h1>
-                <h2 className="font-bold text-cyan-100 mt-[-4px] mb-[-4px] text-[40px]">
+                <h2 className="font-bold text-cyan-100 mt-[-4px] mb-[-4px] text-[56px]">
                   {getGreeting()}
                 </h2>
-                <h3 className="font-semibold text-[32px] mt-[-11px] mb-[-11px]">
+                <h3 className="font-semibold text-[44px] mt-[-11px] mb-[-11px]">
                   {userName.toUpperCase()}!
                 </h3>
-                <p className="text-cyan-100 text-lg">
+                <p className="text-cyan-100 text-2xl">
                   We are delighted to have you here today.
                 </p>
               </div>
