@@ -762,6 +762,50 @@ export default function VoucherDetailsPage() {
                     </tbody>
                   </table>
                 </div>
+
+                {/* Action Buttons Below Total */}
+                <div className="flex justify-center space-x-4 mt-6">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="border-red-300 text-red-700 hover:bg-red-50 px-6"
+                        data-testid="button-delete-voucher"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete Voucher
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Payment Voucher</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Adakah anda pasti mahu memadamkan payment voucher ini? Tindakan ini tidak boleh dibatalkan.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => deleteVoucherMutation.mutate(voucher.id)}
+                          disabled={deleteVoucherMutation.isPending}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          {deleteVoucherMutation.isPending ? "Deleting..." : "Delete"}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+
+                  <Button
+                    onClick={() => submitVoucherMutation.mutate(voucher.id)}
+                    disabled={submitVoucherMutation.isPending || voucher.status === 'Submitted' || voucher.status === 'Approved'}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+                    data-testid="button-submit-voucher"
+                  >
+                    <Send className="w-4 h-4 mr-2" />
+                    {submitVoucherMutation.isPending ? "Submitting..." : "Submit Voucher"}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -890,50 +934,6 @@ export default function VoucherDetailsPage() {
 
         {/* Payment Voucher Approval Card */}
         <PaymentVoucherApprovalCard voucher={voucher} currentUser={currentUser} />
-
-        {/* Bottom Action Buttons */}
-        <div className="flex justify-center space-x-4 mt-8 mb-8">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="outline"
-                className="border-red-300 text-red-700 hover:bg-red-50 px-8"
-                data-testid="button-delete-voucher"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete Voucher
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete Payment Voucher</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Adakah anda pasti mahu memadamkan payment voucher ini? Tindakan ini tidak boleh dibatalkan.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={() => deleteVoucherMutation.mutate(voucher.id)}
-                  disabled={deleteVoucherMutation.isPending}
-                  className="bg-red-600 hover:bg-red-700"
-                >
-                  {deleteVoucherMutation.isPending ? "Deleting..." : "Delete"}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-
-          <Button
-            onClick={() => submitVoucherMutation.mutate(voucher.id)}
-            disabled={submitVoucherMutation.isPending || voucher.status === 'Submitted' || voucher.status === 'Approved'}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-8"
-            data-testid="button-submit-voucher"
-          >
-            <Send className="w-4 h-4 mr-2" />
-            {submitVoucherMutation.isPending ? "Submitting..." : "Submit Voucher"}
-          </Button>
-        </div>
       </div>
     </DashboardLayout>
   );
