@@ -180,6 +180,24 @@ export default function ClaimApprovalPage() {
   const { data: financialClaimsData = [], isLoading: isLoadingFinancial } = useQuery<ClaimApplication[]>({
     queryKey: ["/api/claim-applications/type/financial"],
     enabled: selectedCategory === "financial" || selectedCategory === null,
+    onSuccess: (data) => {
+      console.log('=== FINANCIAL CLAIMS DEBUG ===');
+      console.log('Total financial claims fetched:', data?.length || 0);
+      if (data && data.length > 0) {
+        data.forEach((claim: any, index) => {
+          console.log(`Claim ${index + 1}:`, {
+            id: claim.id,
+            employeeId: claim.employeeId,
+            employeeName: getEmployeeName(claim.employeeId),
+            status: claim.status,
+            claimType: claim.claimType,
+            amount: claim.amount,
+            date: claim.claimDate
+          });
+        });
+      }
+      console.log('=== END FINANCIAL DEBUG ===');
+    }
   });
 
   // Fetch overtime claim applications from database  
