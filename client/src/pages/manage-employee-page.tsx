@@ -663,7 +663,7 @@ export default function ManageEmployeePage() {
                                 <td className="py-3 px-4">
                                   <div className="flex gap-1">
                                     <Badge variant="secondary" className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white text-xs">
-                                      Employee
+                                      {employee.role || 'Employee'}
                                     </Badge>
                                     <Badge variant="secondary" className={`text-white text-xs ${employee.status === 'employed' ? 'bg-green-600' : 'bg-red-600'}`}>
                                       {employee.status === 'employed' ? 'Active' : 'Inactive'}
