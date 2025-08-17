@@ -768,7 +768,12 @@ export default function CalendarPage() {
                                   title="Klik untuk melihat maklumat lengkap"
                                 >
                                   <Users className="w-2 h-2 inline mr-1" />
-                                  {(day as any).leaveApplications.length} user bercuti
+                                  {(day as any).leaveApplications.slice(0, 2).map((leave: LeaveApplication, idx: number) => 
+                                    leave.applicant.split(' ')[0]
+                                  ).join(', ')}
+                                  {(day as any).leaveApplications.length > 2 && 
+                                    ` +${(day as any).leaveApplications.length - 2}`
+                                  }
                                 </div>
                               )}
                             </div>
