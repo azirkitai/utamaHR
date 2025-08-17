@@ -105,6 +105,17 @@ export default function AnnouncementPage() {
 
   const { toast } = useToast();
 
+  // Fetch current logged-in user data for role-based access control
+  const { data: currentUser } = useQuery<{ id: string; role?: string }>({
+    queryKey: ["/api/user"],
+  });
+
+  // Fetch current user's employee data to get role
+  const { data: currentUserEmployee } = useQuery<{ id: string; role?: string }>({
+    queryKey: ["/api/user/employee"],
+    enabled: !!currentUser?.id,
+  });
+
   // Fetch real employees from database
   const { data: employeesData, isLoading: loadingEmployees } = useQuery<any[]>({
     queryKey: ["/api/employees"],
@@ -253,9 +264,11 @@ export default function AnnouncementPage() {
 
   // Role-based access control function
   const canAccessAnnouncementActions = () => {
-    const role = (user as any)?.role;
-    console.log('Announcement page - Current user role:', role);
-    const hasAccess = role && ['Super Admin', 'Admin', 'HR Manager', 'PIC', 'Finance/Account', 'Manager/Supervisor'].includes(role);
+    const currentUserRole = currentUserEmployee?.role || currentUser?.role || '';
+    const privilegedRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC', 'Finance/Account', 'Manager/Supervisor'];
+    const hasAccess = privilegedRoles.includes(currentUserRole);
+    
+    console.log('Announcement page - Current user role:', currentUserRole);
     console.log('Announcement page - Has access:', hasAccess);
     return hasAccess;
   };

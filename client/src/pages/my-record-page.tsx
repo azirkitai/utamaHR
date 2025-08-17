@@ -142,15 +142,18 @@ export default function MyRecordPage() {
     enabled: !!user
   });
 
+  // Fetch current logged-in user data for role-based access control
+  const { data: currentUser } = useQuery<{ id: string; role?: string }>({
+    queryKey: ["/api/user"],
+  });
+
   // Check if current user has privileged access (Admin/Super Admin/HR Manager)
-  const hasPrivilegedAccess = (user as any)?.role && ['Super Admin', 'Admin', 'HR Manager'].includes((user as any).role);
+  const currentUserRole = currentEmployee?.role || currentUser?.role || '';
+  const privilegedRoles = ['Super Admin', 'Admin', 'HR Manager'];
+  const hasPrivilegedAccess = privilegedRoles.includes(currentUserRole);
   
-  // Force refetch user data to get role information if missing (cleanup after role fix)
-  useEffect(() => {
-    if (user && !(user as any)?.role) {
-      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
-    }
-  }, [user]);
+  console.log('My Record page - Current user role:', currentUserRole);
+  console.log('My Record page - Has privileged access:', hasPrivilegedAccess);
 
 
   // Fetch claim applications based on user role
