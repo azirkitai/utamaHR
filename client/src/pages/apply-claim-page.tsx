@@ -50,6 +50,7 @@ export default function ApplyClaimPage() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [selectedRequestor, setSelectedRequestor] = useState("");
   const [expandedSectionId, setExpandedSectionId] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState("");
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -173,8 +174,7 @@ export default function ApplyClaimPage() {
   }, [claimType, financialClaimPolicies]);
 
   // Validation states
-  const [validationError, setValidationError] = React.useState<string>("");
-  const [isValidating, setIsValidating] = React.useState(false);
+  const [isValidating, setIsValidating] = useState(false);
 
   // Set default requestor to current user if not privileged role
   React.useEffect(() => {
@@ -310,11 +310,11 @@ export default function ApplyClaimPage() {
         claimCategory: 'financial',
         financialPolicyName: claimType,
         amount: claimAmount,
-        claimDate: claimDate, // Send as string, server will convert
+        claimDate: new Date(claimDate),
         particulars,
         remark,
         status: 'pending',
-        dateSubmitted: new Date().toISOString(), // Send as ISO string, server will convert
+        dateSubmitted: new Date(),
       };
 
       createClaimMutation.mutate(claimData);
@@ -348,13 +348,13 @@ export default function ApplyClaimPage() {
         employeeId: selectedRequestor,
         claimType: 'overtime',
         claimCategory: 'overtime',
-        claimDate: claimDate, // Send as string, server will convert
+        claimDate: new Date(claimDate),
         startTime: startTime,
         endTime: endTime,
         reason: reason,
         remark: additionalDescription,
         status: 'pending',
-        dateSubmitted: new Date().toISOString(), // Send as ISO string, server will convert
+        dateSubmitted: new Date(),
       };
 
       createClaimMutation.mutate(claimData);
@@ -529,7 +529,7 @@ export default function ApplyClaimPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {recentFinancialClaims && recentFinancialClaims.length > 0 ? (
+                        {Array.isArray(recentFinancialClaims) && recentFinancialClaims.length > 0 ? (
                           (recentFinancialClaims as any[]).map((claim: any) => (
                             <tr key={claim.id} className="border-b hover:bg-gray-50">
                               <td className="py-3 px-4">
@@ -826,7 +826,7 @@ export default function ApplyClaimPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {recentOvertimeClaims && recentOvertimeClaims.length > 0 ? (
+                        {Array.isArray(recentOvertimeClaims) && recentOvertimeClaims.length > 0 ? (
                           (recentOvertimeClaims as any[]).map((claim: any) => (
                             <tr key={claim.id} className="border-b hover:bg-gray-50">
                               <td className="py-3 px-4">

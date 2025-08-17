@@ -62,6 +62,7 @@ import {
 } from "@shared/schema";
 import { checkEnvironmentSecrets } from "./env-check";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
+import { z } from "zod";
 import { randomUUID } from "crypto";
 import { db } from "./db";
 import { eq, desc, and, sql, lte } from "drizzle-orm";
@@ -2098,6 +2099,156 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error updating company logo:", error);
       res.status(500).json({ error: "Gagal mengemaskini logo syarikat" });
+    }
+  });
+
+  // =================== CLAIM APPLICATION ROUTES ===================
+  
+  // Create claim application
+  app.post("/api/claim-applications", authenticateToken, async (req, res) => {
+    try {
+      console.log("Creating claim application with data:", req.body);
+      
+      const validatedData = insertClaimApplicationSchema.parse(req.body);
+      console.log("Validated claim data:", validatedData);
+      
+      // Create claim application with proper data structure
+      const claimApplication = await storage.createClaimApplication(validatedData);
+      console.log("Created claim application:", claimApplication);
+      
+      res.status(201).json(claimApplication);
+    } catch (error) {
+      console.error("Error creating claim application:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Data tidak sah", 
+          details: error.errors 
+        });
+      }
+      res.status(500).json({ error: "Gagal membuat permohonan claim" });
+    }
+  });
+
+  // Get claim applications for My Record
+  app.get("/api/claim-applications/my-record/:employeeId", authenticateToken, async (req, res) => {
+    try {
+      const { employeeId } = req.params;
+      const { month, year, status } = req.query;
+      
+      console.log("Fetching claims for employee:", employeeId, "with filters:", { month, year, status });
+      
+      const claims = await storage.getClaimApplicationsByEmployee(employeeId, {
+        month: month ? Number(month) : undefined,
+        year: year ? Number(year) : undefined,
+        status: status as string | undefined
+      });
+      
+      console.log(`Found ${claims.length} claim applications for employee ${employeeId}`);
+      res.json(claims);
+    } catch (error) {
+      console.error("Error fetching claim applications:", error);
+      res.status(500).json({ error: "Gagal mengambil rekod permohonan claim" });
+    }
+  });
+
+  // Get all claim applications for approval (admin view)
+  app.get("/api/claim-applications", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      const { status, claimType, page = 1, limit = 10 } = req.query;
+      
+      console.log("Fetching all claim applications for approval by user:", currentUser.username);
+      
+      // Check if user has approval rights
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (!adminRoles.includes(currentUser.role)) {
+        return res.status(403).json({ error: "Tidak dibenarkan untuk melihat permohonan approval" });
+      }
+      
+      const filters = {
+        status: status as string | undefined,
+        claimType: claimType as string | undefined,
+        page: Number(page),
+        limit: Number(limit)
+      };
+      
+      const result = await storage.getClaimApplicationsForApproval(filters);
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching claim applications for approval:", error);
+      res.status(500).json({ error: "Gagal mengambil senarai permohonan untuk approval" });
+    }
+  });
+
+  // Approve claim application
+  app.put("/api/claim-applications/:id/approve", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { level } = req.body; // 'first' or 'final'
+      const currentUser = req.user!;
+      
+      console.log(`Approving claim ${id} at ${level} level by user:`, currentUser.username);
+      
+      // Check if user has approval rights
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (!adminRoles.includes(currentUser.role)) {
+        return res.status(403).json({ error: "Tidak dibenarkan untuk approve permohonan" });
+      }
+      
+      const updatedClaim = await storage.approveClaimApplication(id, currentUser.id, level);
+      
+      if (!updatedClaim) {
+        return res.status(404).json({ error: "Permohonan claim tidak dijumpai" });
+      }
+      
+      res.json(updatedClaim);
+    } catch (error) {
+      console.error("Error approving claim application:", error);
+      res.status(500).json({ error: "Gagal approve permohonan claim" });
+    }
+  });
+
+  // Reject claim application
+  app.put("/api/claim-applications/:id/reject", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { reason } = req.body;
+      const currentUser = req.user!;
+      
+      console.log(`Rejecting claim ${id} by user:`, currentUser.username, "with reason:", reason);
+      
+      // Check if user has approval rights
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (!adminRoles.includes(currentUser.role)) {
+        return res.status(403).json({ error: "Tidak dibenarkan untuk reject permohonan" });
+      }
+      
+      const updatedClaim = await storage.rejectClaimApplication(id, currentUser.id, reason);
+      
+      if (!updatedClaim) {
+        return res.status(404).json({ error: "Permohonan claim tidak dijumpai" });
+      }
+      
+      res.json(updatedClaim);
+    } catch (error) {
+      console.error("Error rejecting claim application:", error);
+      res.status(500).json({ error: "Gagal reject permohonan claim" });
+    }
+  });
+
+  // Get recent claim applications for dashboard
+  app.get("/api/claim-applications/recent/:claimType", authenticateToken, async (req, res) => {
+    try {
+      const { claimType } = req.params;
+      const { limit = 5 } = req.query;
+      
+      console.log("Fetching recent claim applications of type:", claimType);
+      
+      const claims = await storage.getRecentClaimApplications(claimType, Number(limit));
+      res.json(claims);
+    } catch (error) {
+      console.error("Error fetching recent claim applications:", error);
+      res.status(500).json({ error: "Gagal mengambil recent claim applications" });
     }
   });
 

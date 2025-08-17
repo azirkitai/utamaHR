@@ -72,6 +72,7 @@ import {
   type AttendanceRecord,
   type InsertAttendanceRecord,
   type UpdateAttendanceRecord,
+
   // Tables
   users, 
   employees,
@@ -3382,6 +3383,172 @@ export class DatabaseStorage implements IStorage {
         .orderBy(asc(claimApplications.employeeId));
     } catch (error) {
       console.error('Error fetching approved financial claims:', error);
+      throw error;
+    }
+  }
+
+  // =================== CLAIM APPLICATION METHODS ===================
+
+  async createClaimApplication(data: InsertClaimApplication): Promise<ClaimApplication> {
+    try {
+      const [claimApplication] = await db
+        .insert(claimApplications)
+        .values(data)
+        .returning();
+      return claimApplication;
+    } catch (error) {
+      console.error('Error creating claim application:', error);
+      throw error;
+    }
+  }
+
+  async getClaimApplicationsByEmployee(
+    employeeId: string, 
+    filters?: { month?: number; year?: number; status?: string }
+  ): Promise<ClaimApplication[]> {
+    try {
+      let query = db
+        .select()
+        .from(claimApplications)
+        .where(eq(claimApplications.employeeId, employeeId));
+
+      const conditions = [eq(claimApplications.employeeId, employeeId)];
+
+      if (filters?.month) {
+        conditions.push(sql`EXTRACT(MONTH FROM ${claimApplications.claimDate}) = ${filters.month}`);
+      }
+
+      if (filters?.year) {
+        conditions.push(sql`EXTRACT(YEAR FROM ${claimApplications.claimDate}) = ${filters.year}`);
+      }
+
+      if (filters?.status) {
+        conditions.push(eq(claimApplications.status, filters.status));
+      }
+
+      const result = await db
+        .select()
+        .from(claimApplications)
+        .where(and(...conditions))
+        .orderBy(desc(claimApplications.dateSubmitted));
+
+      return result;
+    } catch (error) {
+      console.error('Error fetching claim applications by employee:', error);
+      throw error;
+    }
+  }
+
+  async getClaimApplicationsForApproval(filters: {
+    status?: string;
+    claimType?: string;
+    page: number;
+    limit: number;
+  }): Promise<{ claims: ClaimApplication[]; total: number }> {
+    try {
+      const conditions = [];
+
+      if (filters.status) {
+        conditions.push(eq(claimApplications.status, filters.status));
+      }
+
+      if (filters.claimType) {
+        conditions.push(eq(claimApplications.claimType, filters.claimType));
+      }
+
+      const offset = (filters.page - 1) * filters.limit;
+
+      const [claims, totalResult] = await Promise.all([
+        db
+          .select()
+          .from(claimApplications)
+          .where(conditions.length > 0 ? and(...conditions) : undefined)
+          .orderBy(desc(claimApplications.dateSubmitted))
+          .limit(filters.limit)
+          .offset(offset),
+        db
+          .select({ count: sql<number>`count(*)` })
+          .from(claimApplications)
+          .where(conditions.length > 0 ? and(...conditions) : undefined)
+      ]);
+
+      return {
+        claims,
+        total: totalResult[0]?.count || 0
+      };
+    } catch (error) {
+      console.error('Error fetching claim applications for approval:', error);
+      throw error;
+    }
+  }
+
+  async approveClaimApplication(
+    claimId: string,
+    approverId: string,
+    level: 'first' | 'final'
+  ): Promise<ClaimApplication | null> {
+    try {
+      const updateData: any = {
+        updatedAt: new Date()
+      };
+
+      if (level === 'first') {
+        updateData.status = 'First Level Approved';
+        updateData.firstLevelApproverId = approverId;
+      } else {
+        updateData.status = 'Approved';
+        updateData.approvedBy = approverId;
+        updateData.approvedAt = new Date();
+      }
+
+      const [updatedClaim] = await db
+        .update(claimApplications)
+        .set(updateData)
+        .where(eq(claimApplications.id, claimId))
+        .returning();
+
+      return updatedClaim || null;
+    } catch (error) {
+      console.error('Error approving claim application:', error);
+      throw error;
+    }
+  }
+
+  async rejectClaimApplication(
+    claimId: string,
+    rejectedById: string,
+    reason?: string
+  ): Promise<ClaimApplication | null> {
+    try {
+      const [updatedClaim] = await db
+        .update(claimApplications)
+        .set({
+          status: 'Rejected',
+          rejectedBy: rejectedById,
+          rejectedAt: new Date(),
+          rejectionReason: reason,
+          updatedAt: new Date()
+        })
+        .where(eq(claimApplications.id, claimId))
+        .returning();
+
+      return updatedClaim || null;
+    } catch (error) {
+      console.error('Error rejecting claim application:', error);
+      throw error;
+    }
+  }
+
+  async getRecentClaimApplications(claimType: string, limit: number): Promise<ClaimApplication[]> {
+    try {
+      return await db
+        .select()
+        .from(claimApplications)
+        .where(eq(claimApplications.claimType, claimType))
+        .orderBy(desc(claimApplications.dateSubmitted))
+        .limit(limit);
+    } catch (error) {
+      console.error('Error fetching recent claim applications:', error);
       throw error;
     }
   }

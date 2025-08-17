@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 import { format, addDays, subDays } from "date-fns";
 import { CalendarIcon, Download, Filter, Search, ChevronLeft, ChevronRight, Calendar as CalendarLucide, Clock, FileText, CreditCard, Users, DollarSign, Image, StickyNote, Eye, File, Share } from "lucide-react";
 import { pdf } from '@react-pdf/renderer';
-import type { AttendanceRecord, LeaveApplication, UserPayrollRecord } from "@shared/schema";
+import type { AttendanceRecord, LeaveApplication, UserPayrollRecord, ClaimApplication } from "@shared/schema";
 import { PayslipPDFDocument, buildPdfPropsFromTemplateData } from '@/components/PayslipPDFDocument';
 
 type TabType = "leave" | "claim" | "overtime" | "attendance" | "payment";
@@ -116,6 +116,66 @@ export default function MyRecordPage() {
       return data as LeaveApplication[];
     },
     enabled: !!user && activeTab === 'leave'
+  });
+
+  // Fetch current user's employee ID for claim applications
+  const { data: currentEmployee } = useQuery({
+    queryKey: ['/api/user/employee'],
+    queryFn: async () => {
+      const token = localStorage.getItem('utamahr_token');
+      if (!token) throw new Error('No authentication token found');
+      
+      const response = await fetch('/api/user/employee', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || 'Failed to fetch employee data');
+      }
+      
+      return response.json();
+    },
+    enabled: !!user
+  });
+
+  // Fetch claim applications for current user
+  const { data: claimApplications = [], isLoading: isLoadingClaims, error: claimError, refetch: refetchClaims } = useQuery({
+    queryKey: ['/api/claim-applications/my-record', currentEmployee?.id, filters.dateFrom.toISOString(), filters.dateTo.toISOString()],
+    queryFn: async () => {
+      if (!currentEmployee?.id) return [];
+      
+      console.log('Fetching claim applications for employee:', currentEmployee.id);
+      
+      const token = localStorage.getItem('utamahr_token');
+      if (!token) throw new Error('No authentication token found');
+      
+      const params = new URLSearchParams({
+        month: (filters.dateFrom.getMonth() + 1).toString(),
+        year: filters.dateFrom.getFullYear().toString(),
+      });
+      
+      const response = await fetch(`/api/claim-applications/my-record/${currentEmployee.id}?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Claim applications API error:', errorData);
+        throw new Error(errorData.error || 'Failed to fetch claim applications');
+      }
+      
+      const data = await response.json();
+      console.log('Claim applications fetched:', data.length, 'records');
+      return data as ClaimApplication[];
+    },
+    enabled: !!user && !!currentEmployee?.id && activeTab === 'claim'
   });
 
   // Fetch user payroll records for My Record page
@@ -567,21 +627,79 @@ export default function MyRecordPage() {
               <TableHead>Claim For</TableHead>
               <TableHead>Amount</TableHead>
               <TableHead>Date</TableHead>
+              <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow>
-              <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                No data available in table
-              </TableCell>
-            </TableRow>
+            {isLoadingClaims ? (
+              <TableRow>
+                <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                  Loading claim applications...
+                </TableCell>
+              </TableRow>
+            ) : claimError ? (
+              <TableRow>
+                <TableCell colSpan={8} className="text-center py-8 text-red-500">
+                  Error loading claims: {claimError.message}
+                </TableCell>
+              </TableRow>
+            ) : claimApplications.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                  No claim applications found
+                </TableCell>
+              </TableRow>
+            ) : (
+              claimApplications.map((claim, index) => {
+                const getStatusBadge = (status: string) => {
+                  switch (status.toLowerCase()) {
+                    case 'pending':
+                      return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Pending</Badge>;
+                    case 'approved':
+                      return <Badge variant="secondary" className="bg-green-100 text-green-800">Approved</Badge>;
+                    case 'rejected':
+                      return <Badge variant="secondary" className="bg-red-100 text-red-800">Rejected</Badge>;
+                    case 'first level approved':
+                      return <Badge variant="secondary" className="bg-blue-100 text-blue-800">First Level Approved</Badge>;
+                    default:
+                      return <Badge variant="outline">{status}</Badge>;
+                  }
+                };
+
+                return (
+                  <TableRow key={claim.id}>
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>{claim.requestorName}</TableCell>
+                    <TableCell className="capitalize">{claim.claimType}</TableCell>
+                    <TableCell>{getStatusBadge(claim.status)}</TableCell>
+                    <TableCell>{claim.description || 'N/A'}</TableCell>
+                    <TableCell>RM {parseFloat(claim.amount).toFixed(2)}</TableCell>
+                    <TableCell>{format(new Date(claim.claimDate), 'dd/MM/yyyy')}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" data-testid={`button-view-claim-${claim.id}`}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        {claim.receiptUrl && (
+                          <Button variant="outline" size="sm" data-testid={`button-download-receipt-${claim.id}`}>
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
           </TableBody>
         </Table>
       </div>
 
       {/* Pagination */}
       <div className="flex justify-between items-center">
-        <span className="text-sm text-gray-500">Showing 0 to 0 of 0 entries</span>
+        <span className="text-sm text-gray-500">
+          Showing {claimApplications.length === 0 ? 0 : 1} to {claimApplications.length} of {claimApplications.length} entries
+        </span>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" disabled data-testid="button-claim-previous">
             Previous
