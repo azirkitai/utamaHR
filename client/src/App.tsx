@@ -44,6 +44,7 @@ function Router() {
       <ProtectedRoute path="/my-record" component={MyRecordPage} />
       <ProtectedRoute path="/apply/leave" component={ApplyLeavePage} />
       <ProtectedRoute path="/apply/claim" component={ApplyClaimPage} />
+      <ProtectedRoute path="/apply-claim" component={ApplyClaimPage} />
 
       <ProtectedRoute path="/announcement" component={AnnouncementPage} />
       <ProtectedRoute path="/calendar" component={CalendarPage} />
