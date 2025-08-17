@@ -19,8 +19,32 @@ export function ClaimPolicyTab({ employeeId }: ClaimPolicyTabProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Fetch current logged-in user data for role-based access control
+  const { data: currentUser } = useQuery<{ id: string; role?: string }>({
+    queryKey: ["/api/user"],
+  });
+
+  // Fetch current user's employee data to get role
+  const { data: currentUserEmployee } = useQuery<{ id: string; role?: string }>({
+    queryKey: ["/api/user/employee"],
+    enabled: !!currentUser?.id,
+  });
+
+  // Check if current logged-in user has privileged access (Super Admin, Admin, HR Manager only)
+  const hasPrivilegedAccess = () => {
+    const currentUserRole = currentUserEmployee?.role || currentUser?.role || '';
+    const privilegedRoles = ['Super Admin', 'Admin', 'HR Manager'];
+    const hasAccess = privilegedRoles.includes(currentUserRole);
+    
+    // Debug logging
+    console.log("Current user role (ClaimPolicyTab):", currentUserRole);
+    console.log("Has privileged access (ClaimPolicyTab):", hasAccess);
+    
+    return hasAccess;
+  };
+
   // Fetch company financial claim policies (these are the policies configured in System Settings)
-  const { data: financialClaimPolicies = [], isLoading } = useQuery({
+  const { data: financialClaimPolicies = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/financial-claim-policies"],
   });
 
@@ -63,7 +87,7 @@ export function ClaimPolicyTab({ employeeId }: ClaimPolicyTabProps) {
   });
 
   // Filter policies based on search
-  const filteredPolicies = claimPolicies.filter((policy) =>
+  const filteredPolicies = claimPolicies.filter((policy: any) =>
     policy.claimType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     policy.remarks?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -150,7 +174,7 @@ export function ClaimPolicyTab({ employeeId }: ClaimPolicyTabProps) {
                       </td>
                     </tr>
                   ) : (
-                    filteredPolicies.map((policy) => (
+                    filteredPolicies.map((policy: any) => (
                       <tr key={policy.id} className="hover:bg-gray-50">
                         <td className="px-4 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">
@@ -184,11 +208,14 @@ export function ClaimPolicyTab({ employeeId }: ClaimPolicyTabProps) {
                             <Switch
                               checked={policy.isEnabled || false}
                               onCheckedChange={(checked) => handleStatusToggle(policy.id, checked)}
-                              disabled={updateStatusMutation.isPending}
+                              disabled={updateStatusMutation.isPending || !hasPrivilegedAccess()}
                               data-testid={`switch-included-${policy.id}`}
                             />
-                            <span className="ml-2 text-sm text-gray-600">
-                              {policy.isEnabled ? "Yes" : "No"}
+                            <span className={`ml-2 text-sm ${hasPrivilegedAccess() ? 'text-gray-600' : 'text-gray-400'}`}>
+                              {!hasPrivilegedAccess() 
+                                ? "Access Restricted" 
+                                : (policy.isEnabled ? "Yes" : "No")
+                              }
                             </span>
                           </div>
                         </td>
