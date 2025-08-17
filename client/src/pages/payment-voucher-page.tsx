@@ -132,7 +132,7 @@ export default function PaymentVoucherPage() {
   // Get employee name by ID  
   const getEmployeeName = (employeeId: string) => {
     const employee = (employeesData as any[])?.find(emp => emp.id === employeeId);
-    return employee ? employee.fullName : 'Unknown Employee';
+    return employee ? (employee.fullName || employee.full_name || `${employee.firstName || employee.first_name || ''} ${employee.lastName || employee.last_name || ''}`.trim()) : 'Unknown Employee';
   };
 
   const renderPaymentVoucherListTable = () => (
@@ -485,7 +485,7 @@ export default function PaymentVoucherPage() {
                         <div key={claim.id} className="flex justify-between items-center text-sm bg-white p-2 rounded border">
                           <div className="flex-1">
                             <div className="font-medium text-gray-900">
-                              {getEmployeeName(claim.employeeId)}
+                              {claim.requestorName || getEmployeeName(claim.employeeId)}
                             </div>
                             <div className="text-xs text-gray-500">
                               {claim.claimCategory} • {claim.employeeId}
