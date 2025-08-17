@@ -851,11 +851,32 @@ export default function CalendarPage() {
                               </tr>
                             </thead>
                             <tbody>
-                              <tr>
-                                <td colSpan={2} className="text-center py-8 text-gray-500">
-                                  No data available in table
-                                </td>
-                              </tr>
+                              {holidays && holidays.length > 0 ? (
+                                holidays.map((holiday: Holiday) => (
+                                  <tr key={holiday.id} className="border-b hover:bg-gray-50">
+                                    <td className="py-3 px-4 text-sm">
+                                      {new Date(holiday.date).toLocaleDateString('en-GB')}
+                                    </td>
+                                    <td className="py-3 px-4 text-sm">
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-red-600">🏛️</span>
+                                        <span>{holiday.name}</span>
+                                        {holiday.isPublic && (
+                                          <Badge className="bg-red-100 text-red-800 text-xs">
+                                            Cuti Umum
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    </td>
+                                  </tr>
+                                ))
+                              ) : (
+                                <tr>
+                                  <td colSpan={2} className="text-center py-8 text-gray-500">
+                                    Tiada cuti umum ditetapkan untuk tahun ini
+                                  </td>
+                                </tr>
+                              )}
                             </tbody>
                           </table>
                         </div>
