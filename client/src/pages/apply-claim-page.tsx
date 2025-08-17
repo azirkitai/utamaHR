@@ -23,7 +23,7 @@ import {
 import { cn } from "@/lib/utils";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { apiRequest } from "@/lib/queryClient";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 type ClaimCategory = 'main' | 'financial' | 'overtime';
 
@@ -1166,17 +1166,10 @@ export default function ApplyClaimPage() {
       <Dialog open={showViewModal} onOpenChange={setShowViewModal}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
-              <span>Application Details</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowViewModal(false)}
-                className="h-6 w-6 p-0"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </DialogTitle>
+            <DialogTitle>Application Details</DialogTitle>
+            <DialogDescription>
+              View detailed information about the selected claim application.
+            </DialogDescription>
           </DialogHeader>
           
           {selectedClaimForView && (
