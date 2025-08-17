@@ -1074,8 +1074,7 @@ export default function CalendarPage() {
                   
                   <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
                     <p className="text-sm text-blue-800">
-                      <strong>Nota:</strong> Ini adalah cuti umum yang ditetapkan oleh syarikat. 
-                      Semua kakitangan berhak mendapat cuti pada tarikh ini.
+                      <strong>Nota:</strong> Ini adalah cuti umum yang ditetapkan oleh syarikat.
                     </p>
                   </div>
                 </div>
