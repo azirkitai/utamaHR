@@ -2,11 +2,248 @@ import { useState } from "react";
 import { useParams, useLocation } from "wouter";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Download, Printer } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { ArrowLeft, Download, Printer, Trash2, Check, X, Send } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import type { PaymentVoucher, ClaimApplication } from "@shared/schema";
+
+// Payment Voucher Approval Card Component
+function PaymentVoucherApprovalCard({ voucher, currentUser }: { voucher: any; currentUser: any }) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch payment approval settings
+  const { data: paymentApprovalSettings } = useQuery({
+    queryKey: ["/api/approval-settings/payment"],
+  });
+
+  // Fetch current user's employee data
+  const { data: currentUserEmployee } = useQuery({
+    queryKey: ["/api/user/employee"],
+    retry: false, // Don't retry on 404 - user might not have employee record
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
+
+  // Fetch approval employee details
+  const { data: firstLevelApprover } = useQuery({
+    queryKey: ["/api/employees", (paymentApprovalSettings as any)?.firstLevelApprovalId],
+    enabled: !!(paymentApprovalSettings as any)?.firstLevelApprovalId,
+  });
+
+  const { data: secondLevelApprover } = useQuery({
+    queryKey: ["/api/employees", (paymentApprovalSettings as any)?.secondLevelApprovalId],
+    enabled: !!(paymentApprovalSettings as any)?.secondLevelApprovalId,
+  });
+
+  // Approve voucher mutation
+  const approveVoucherMutation = useMutation({
+    mutationFn: async ({ voucherId, approverId }: { voucherId: string; approverId: string }) => {
+      const response = await apiRequest('PUT', `/api/payment-vouchers/${voucherId}`, { 
+        status: 'Approved',
+        approvedBy: approverId,
+        approvedAt: new Date().toISOString()
+      });
+      return response;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Voucher Diluluskan",
+        description: "Payment voucher telah berjaya diluluskan",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/payment-vouchers"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Gagal meluluskan voucher",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Reject voucher mutation
+  const rejectVoucherMutation = useMutation({
+    mutationFn: async ({ voucherId, rejectorId, reason }: { voucherId: string; rejectorId: string; reason: string }) => {
+      const response = await apiRequest('PUT', `/api/payment-vouchers/${voucherId}`, { 
+        status: 'Rejected',
+        rejectedBy: rejectorId,
+        rejectedAt: new Date().toISOString(),
+        rejectionReason: reason
+      });
+      return response;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Voucher Ditolak",
+        description: "Payment voucher telah ditolak",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/payment-vouchers"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Gagal menolak voucher",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Check if user has approval privileges
+  const hasApprovalPrivilege = () => {
+    if (!currentUser?.id || !paymentApprovalSettings) return false;
+    
+    if (!(paymentApprovalSettings as any).enableApproval) return false;
+    
+    const userEmployeeId = (currentUserEmployee as any)?.id;
+    const isFirstLevelApprover = (paymentApprovalSettings as any).firstLevelApprovalId === currentUser.id || 
+                                 (paymentApprovalSettings as any).firstLevelApprovalId === userEmployeeId;
+    const isSecondLevelApprover = (paymentApprovalSettings as any).secondLevelApprovalId === currentUser.id ||
+                                  (paymentApprovalSettings as any).secondLevelApprovalId === userEmployeeId;
+    
+    return isFirstLevelApprover || isSecondLevelApprover;
+  };
+
+  const handleApprove = () => {
+    if (!currentUser?.id) {
+      toast({
+        title: "Error",
+        description: "User ID tidak dijumpai. Sila login semula.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    approveVoucherMutation.mutate({ 
+      voucherId: voucher.id, 
+      approverId: currentUser.id 
+    });
+  };
+
+  const handleReject = () => {
+    if (!currentUser?.id) {
+      toast({
+        title: "Error",
+        description: "User ID tidak dijumpai. Sila login semula.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const reason = prompt("Sila masukkan sebab penolakan:");
+    if (reason) {
+      rejectVoucherMutation.mutate({ 
+        voucherId: voucher.id, 
+        rejectorId: currentUser.id, 
+        reason 
+      });
+    }
+  };
+
+  // Only show approval card if user has approval privilege and voucher is generated
+  if (!hasApprovalPrivilege() || !['Generated', 'Pending'].includes(voucher.status)) {
+    return null;
+  }
+
+  return (
+    <div className="bg-white border rounded-lg shadow-sm mt-6">
+      <div className="p-4 border-b bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg">
+        <h3 className="text-lg font-semibold">Payment Voucher Approval</h3>
+      </div>
+      
+      <div className="p-6">
+        <div className="flex items-center justify-between">
+          {/* Left side - Approver profiles */}
+          <div className="flex items-center space-x-6">
+            {firstLevelApprover && (
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                  {(firstLevelApprover as any)?.profileImageUrl ? (
+                    <img 
+                      src={(firstLevelApprover as any)?.profileImageUrl} 
+                      alt={(firstLevelApprover as any)?.fullName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-blue-500 flex items-center justify-center text-white font-semibold">
+                      {(firstLevelApprover as any)?.fullName?.charAt(0)?.toUpperCase() || 'A'}
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">{(firstLevelApprover as any)?.fullName}</p>
+                  <p className="text-sm text-gray-600">{(firstLevelApprover as any)?.role}</p>
+                  <p className="text-xs text-gray-500">First Level Approver</p>
+                </div>
+              </div>
+            )}
+
+            {secondLevelApprover && (
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                  {(secondLevelApprover as any)?.profileImageUrl ? (
+                    <img 
+                      src={(secondLevelApprover as any)?.profileImageUrl} 
+                      alt={(secondLevelApprover as any)?.fullName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-blue-500 flex items-center justify-center text-white font-semibold">
+                      {(secondLevelApprover as any)?.fullName?.charAt(0)?.toUpperCase() || 'A'}
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">{(secondLevelApprover as any)?.fullName}</p>
+                  <p className="text-sm text-gray-600">{(secondLevelApprover as any)?.role}</p>
+                  <p className="text-xs text-gray-500">Second Level Approver</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right side - Action buttons (only visible to approvers) */}
+          <div className="flex items-center space-x-3">
+            <Button
+              onClick={handleApprove}
+              disabled={approveVoucherMutation.isPending}
+              className="bg-green-600 hover:bg-green-700 text-white px-6"
+              data-testid="button-approve-voucher"
+            >
+              <Check className="w-4 h-4 mr-2" />
+              {approveVoucherMutation.isPending ? "Approving..." : "Approve"}
+            </Button>
+            
+            <Button
+              onClick={handleReject}
+              disabled={rejectVoucherMutation.isPending}
+              variant="outline"
+              className="border-red-300 text-red-700 hover:bg-red-50 px-6"
+              data-testid="button-reject-voucher"
+            >
+              <X className="w-4 h-4 mr-2" />
+              {rejectVoucherMutation.isPending ? "Rejecting..." : "Reject"}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function VoucherDetailsPage() {
   const { voucherId } = useParams();
@@ -39,6 +276,62 @@ export default function VoucherDetailsPage() {
   // Fetch company settings for voucher header
   const { data: companySettings } = useQuery({
     queryKey: ['/api/company-settings'],
+  });
+
+  // Fetch current user data for approval section
+  const { data: currentUser } = useQuery({
+    queryKey: ["/api/user"],
+  });
+
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Delete voucher mutation
+  const deleteVoucherMutation = useMutation({
+    mutationFn: async (voucherId: string) => {
+      const response = await apiRequest('DELETE', `/api/payment-vouchers/${voucherId}`, {});
+      return response;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Payment voucher telah berjaya dipadam",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/payment-vouchers"] });
+      setLocation('/payment/voucher');
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Gagal memadam voucher",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Submit voucher mutation
+  const submitVoucherMutation = useMutation({
+    mutationFn: async (voucherId: string) => {
+      const response = await apiRequest('PUT', `/api/payment-vouchers/${voucherId}`, { 
+        status: 'Submitted',
+        submittedAt: new Date().toISOString()
+      });
+      return response;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Payment voucher telah berjaya dihantar untuk kelulusan",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/payment-vouchers"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Gagal menghantar voucher",
+        variant: "destructive",
+      });
+    },
   });
 
   // Get employee name by ID  
@@ -594,6 +887,53 @@ export default function VoucherDetailsPage() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Payment Voucher Approval Card */}
+        <PaymentVoucherApprovalCard voucher={voucher} currentUser={currentUser} />
+
+        {/* Bottom Action Buttons */}
+        <div className="flex justify-center space-x-4 mt-8 mb-8">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="border-red-300 text-red-700 hover:bg-red-50 px-8"
+                data-testid="button-delete-voucher"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete Voucher
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete Payment Voucher</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Adakah anda pasti mahu memadamkan payment voucher ini? Tindakan ini tidak boleh dibatalkan.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => deleteVoucherMutation.mutate(voucher.id)}
+                  disabled={deleteVoucherMutation.isPending}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  {deleteVoucherMutation.isPending ? "Deleting..." : "Delete"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          <Button
+            onClick={() => submitVoucherMutation.mutate(voucher.id)}
+            disabled={submitVoucherMutation.isPending || voucher.status === 'Submitted' || voucher.status === 'Approved'}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-8"
+            data-testid="button-submit-voucher"
+          >
+            <Send className="w-4 h-4 mr-2" />
+            {submitVoucherMutation.isPending ? "Submitting..." : "Submit Voucher"}
+          </Button>
+        </div>
       </div>
     </DashboardLayout>
   );
