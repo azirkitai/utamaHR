@@ -213,10 +213,13 @@ export default function PaymentVoucherPage() {
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                       voucher.status === 'Approved' ? 'bg-green-100 text-green-800' :
                       voucher.status === 'Rejected' ? 'bg-red-100 text-red-800' :
-                      voucher.status === 'Generated' ? 'bg-blue-100 text-blue-800' :
-                      'bg-yellow-100 text-yellow-800'
+                      voucher.status === 'Generated' || voucher.status === 'Submitted' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-blue-100 text-blue-800'
                     }`}>
-                      {voucher.status}
+                      {voucher.status === 'Generated' ? 'Pending' :
+                       voucher.status === 'Submitted' ? 'Sent' :
+                       voucher.status === 'Approved' ? 'Approved' :
+                       voucher.status}
                     </span>
                   </td>
                   <td className="p-3 text-center">
