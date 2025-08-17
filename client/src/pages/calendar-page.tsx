@@ -163,6 +163,7 @@ export default function CalendarPage() {
   const [showAddHolidayRow, setShowAddHolidayRow] = useState(false);
   const [newHolidayName, setNewHolidayName] = useState("");
   const [newHolidayDate, setNewHolidayDate] = useState("");
+  const [newHolidayPublic, setNewHolidayPublic] = useState(false);
 
   // Role-based access control functions
   const canAccessHolidayButtons = () => {
@@ -185,6 +186,33 @@ export default function CalendarPage() {
       
       return targetDate >= startDate && targetDate <= endDate && 
              (leave.status === 'Approved' || leave.status === 'Pending' || leave.status === 'First Level Approved');
+    });
+  };
+
+  // Helper function to check if date is a public holiday
+  const getHolidayForDate = (date: number) => {
+    const targetDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), date);
+    
+    return holidays.find(holiday => {
+      // Holiday date format is "DD-MM-YYYY" or "YYYY-MM-DD"
+      let holidayDate;
+      if (holiday.date.includes('-')) {
+        const parts = holiday.date.split('-');
+        if (parts[0].length === 4) {
+          // Format: YYYY-MM-DD
+          holidayDate = new Date(holiday.date);
+        } else {
+          // Format: DD-MM-YYYY
+          holidayDate = new Date(parts[2] + '-' + parts[1] + '-' + parts[0]);
+        }
+      } else {
+        holidayDate = new Date(holiday.date);
+      }
+      
+      return holidayDate.getFullYear() === targetDate.getFullYear() &&
+             holidayDate.getMonth() === targetDate.getMonth() &&
+             holidayDate.getDate() === targetDate.getDate() &&
+             holiday.isPublic;
     });
   };
 
@@ -332,6 +360,7 @@ export default function CalendarPage() {
     setShowAddHolidayRow(true);
     setNewHolidayName("");
     setNewHolidayDate("");
+    setNewHolidayPublic(false);
   };
 
   const handleSaveInlineHoliday = () => {
@@ -340,13 +369,14 @@ export default function CalendarPage() {
         id: holidays.length + 1,
         name: newHolidayName,
         date: newHolidayDate,
-        isPublic: false,
+        isPublic: newHolidayPublic,
         importToCalendar: true
       };
       setHolidays([...holidays, newHoliday]);
       setShowAddHolidayRow(false);
       setNewHolidayName("");
       setNewHolidayDate("");
+      setNewHolidayPublic(false);
     }
   };
 
@@ -430,6 +460,7 @@ export default function CalendarPage() {
                                 <th className="text-left py-2 px-2 font-medium text-gray-700">No</th>
                                 <th className="text-left py-2 px-4 font-medium text-gray-700">Name Holiday</th>
                                 <th className="text-left py-2 px-4 font-medium text-gray-700">Date</th>
+                                <th className="text-center py-2 px-4 font-medium text-gray-700">Public Holiday</th>
                                 <th className="text-center py-2 px-4 font-medium text-gray-700">Action</th>
                               </tr>
                             </thead>
@@ -457,6 +488,13 @@ export default function CalendarPage() {
                                     />
                                   </td>
                                   <td className="py-3 px-4 text-center">
+                                    <Checkbox
+                                      checked={newHolidayPublic}
+                                      onCheckedChange={(checked) => setNewHolidayPublic(checked as boolean)}
+                                      data-testid="checkbox-new-holiday-public"
+                                    />
+                                  </td>
+                                  <td className="py-3 px-4 text-center">
                                     <Button
                                       onClick={handleSaveInlineHoliday}
                                       disabled={!newHolidayName || !newHolidayDate}
@@ -476,6 +514,13 @@ export default function CalendarPage() {
                                   <td className="py-3 px-2">{index + 1}</td>
                                   <td className="py-3 px-4">{holiday.name}</td>
                                   <td className="py-3 px-4">{holiday.date}</td>
+                                  <td className="py-3 px-4 text-center">
+                                    <Checkbox
+                                      checked={holiday.isPublic}
+                                      onCheckedChange={(checked) => updateHolidayPublic(holiday.id, checked as boolean)}
+                                      data-testid={`checkbox-holiday-public-${holiday.id}`}
+                                    />
+                                  </td>
                                   <td className="py-3 px-4 text-center">
                                     <Button
                                       onClick={() => handleDeleteHoliday(holiday.id)}
@@ -827,34 +872,45 @@ export default function CalendarPage() {
                           ))}
                           
                           {/* Calendar days */}
-                          {generateCalendarDays().map((day, index) => (
-                            <div 
-                              key={index}
-                              className={cn(
-                                "p-2 text-center text-sm border-b border-r min-h-[80px] flex flex-col relative",
-                                day.isCurrentMonth ? "text-gray-900" : "text-gray-400"
-                              )}
-                            >
-                              <div className="font-medium mb-1">{day.number}</div>
-                              
-                              {/* Show leave applications for this date */}
-                              {(day as any).leaveApplications?.length > 0 && (
-                                <div 
-                                  className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded cursor-pointer hover:bg-blue-200 transition-colors"
-                                  onClick={() => handleDateClick((day as any).leaveApplications)}
-                                  title="Klik untuk melihat maklumat lengkap"
-                                >
-                                  <Users className="w-2 h-2 inline mr-1" />
-                                  {(day as any).leaveApplications.slice(0, 2).map((leave: LeaveApplication, idx: number) => 
-                                    leave.applicant.split(' ')[0]
-                                  ).join(', ')}
-                                  {(day as any).leaveApplications.length > 2 && 
-                                    ` +${(day as any).leaveApplications.length - 2}`
-                                  }
-                                </div>
-                              )}
-                            </div>
-                          ))}
+                          {generateCalendarDays().map((day, index) => {
+                            const holiday = getHolidayForDate(day.number);
+                            return (
+                              <div 
+                                key={index}
+                                className={cn(
+                                  "p-2 text-center text-sm border-b border-r min-h-[80px] flex flex-col relative",
+                                  day.isCurrentMonth ? "text-gray-900" : "text-gray-400",
+                                  holiday && "bg-red-50 border-red-200"
+                                )}
+                              >
+                                <div className="font-medium mb-1">{day.number}</div>
+                                
+                                {/* Show public holiday indicator */}
+                                {holiday && (
+                                  <div className="text-xs px-1 py-1 bg-red-100 text-red-800 rounded mb-1 truncate">
+                                    🏛️ {holiday.name}
+                                  </div>
+                                )}
+                                
+                                {/* Show leave applications for this date */}
+                                {(day as any).leaveApplications?.length > 0 && (
+                                  <div 
+                                    className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded cursor-pointer hover:bg-blue-200 transition-colors"
+                                    onClick={() => handleDateClick((day as any).leaveApplications)}
+                                    title="Klik untuk melihat maklumat lengkap"
+                                  >
+                                    <Users className="w-2 h-2 inline mr-1" />
+                                    {(day as any).leaveApplications.slice(0, 2).map((leave: LeaveApplication, idx: number) => 
+                                      leave.applicant.split(' ')[0]
+                                    ).join(', ')}
+                                    {(day as any).leaveApplications.length > 2 && 
+                                      ` +${(day as any).leaveApplications.length - 2}`
+                                    }
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       </CardContent>
                     </Card>
