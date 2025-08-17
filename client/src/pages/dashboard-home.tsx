@@ -662,9 +662,7 @@ export default function DashboardHome() {
                   onClick={() => window.location.href = '/announcement'}
                   className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                   data-testid="button-view-all-announcements"
-                >
-                  Lihat Semua Pengumuman
-                </Button>
+                >See All Announcement</Button>
               </div>
             </div>
           </CardContent>

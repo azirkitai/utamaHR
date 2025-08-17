@@ -152,9 +152,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <div className="flex items-center space-x-2 md:space-x-3 border-l border-gray-200 pl-2 md:pl-4">
                 <div className="text-right hidden md:block">
                   <div className="text-sm font-medium text-gray-900" data-testid="text-header-username">
-                    {user?.username || 'UTAMA HR'}
+                    {currentEmployee?.fullName || user?.username || 'UTAMA HR'}
                   </div>
-                  <div className="text-xs text-gray-500">Administrator</div>
+                  <div className="text-xs text-gray-500">
+                    {currentEmployee?.role || user?.role || 'Staff'}
+                  </div>
                 </div>
                 
                 <Avatar className="w-7 h-7 md:w-8 md:h-8">
