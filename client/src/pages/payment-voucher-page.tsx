@@ -112,7 +112,7 @@ export default function PaymentVoucherPage() {
   };
 
   const handleGeneratePayment = () => {
-    if (!approvedClaims.length) {
+    if (!approvedClaims || !approvedClaims.length) {
       toast({
         title: "Warning",
         description: "No approved financial claims for this period",
@@ -199,7 +199,7 @@ export default function PaymentVoucherPage() {
                     </button>
                   </td>
                   <td className="p-3 text-gray-900">
-                    {voucher.includedClaims && voucher.includedClaims.length > 0 
+                    {voucher.includedClaims && voucher.includedClaims.length > 0 && approvedClaims && approvedClaims.length > 0
                       ? [...new Set(voucher.includedClaims.map(claimId => {
                           const claim = approvedClaims.find(c => c.id === claimId);
                           return claim ? getEmployeeName(claim.employeeId) : 'Unknown';
@@ -502,7 +502,7 @@ export default function PaymentVoucherPage() {
                 <div className="bg-gray-50 p-3 rounded-lg max-h-48 overflow-y-auto">
                   {claimsLoading ? (
                     <p className="text-sm text-gray-600">Memuatkan tuntutan...</p>
-                  ) : approvedClaims.length === 0 ? (
+                  ) : !approvedClaims || approvedClaims.length === 0 ? (
                     <p className="text-sm text-gray-600">Tiada tuntutan kewangan diluluskan untuk tempoh ini.</p>
                   ) : (
                     <div className="space-y-3">
@@ -566,7 +566,7 @@ export default function PaymentVoucherPage() {
                 <Button
                   onClick={handleGeneratePayment}
                   className="bg-blue-900 hover:bg-blue-800 text-white disabled:bg-gray-400"
-                  disabled={createVoucherMutation.isPending || claimsLoading || approvedClaims.length === 0}
+                  disabled={createVoucherMutation.isPending || claimsLoading || !approvedClaims || approvedClaims.length === 0}
                   data-testid="button-generate-payment"
                 >
                   {createVoucherMutation.isPending ? (
