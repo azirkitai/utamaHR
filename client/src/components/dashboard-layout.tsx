@@ -138,7 +138,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 </div>
                 
                 <Avatar className="w-7 h-7 md:w-8 md:h-8">
-                  <AvatarFallback className="bg-cyan-500 text-white text-xs md:text-sm font-medium">
+                  <AvatarFallback className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white text-xs md:text-sm font-medium">
                     {user?.username?.charAt(0).toUpperCase() || 'U'}
                   </AvatarFallback>
                 </Avatar>

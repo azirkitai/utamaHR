@@ -543,14 +543,14 @@ export default function CalendarPage() {
                 <TabsList className="grid w-fit grid-cols-2">
                   <TabsTrigger 
                     value="team" 
-                    className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white"
+                    className="data-[state=active]:bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 data-[state=active]:text-white"
                     data-testid="tab-team-calendar"
                   >
                     Team Calendar
                   </TabsTrigger>
                   <TabsTrigger 
                     value="shift"
-                    className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white"
+                    className="data-[state=active]:bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 data-[state=active]:text-white"
                     data-testid="tab-shift-calendar"
                   >
                     Shift Calendar
@@ -1112,7 +1112,7 @@ export default function CalendarPage() {
 
               <TabsContent value="shift">
                 <Card>
-                  <CardHeader className="bg-cyan-500 text-white rounded-t-lg">
+                  <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-t-lg">
                     <CardTitle>Shift Calendar</CardTitle>
                   </CardHeader>
                   <CardContent className="p-6">

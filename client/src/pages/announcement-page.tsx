@@ -457,14 +457,14 @@ export default function AnnouncementPage() {
                 <TabsList className="grid w-fit grid-cols-2">
                   <TabsTrigger 
                     value="all" 
-                    className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white"
+                    className="data-[state=active]:bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 data-[state=active]:text-white"
                     data-testid="tab-all-announcement"
                   >
                     All Announcement
                   </TabsTrigger>
                   <TabsTrigger 
                     value="unread"
-                    className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white flex items-center gap-2"
+                    className="data-[state=active]:bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 data-[state=active]:text-white flex items-center gap-2"
                     data-testid="tab-unread-announcement"
                   >
                     Unread Announcement
@@ -718,7 +718,7 @@ export default function AnnouncementPage() {
                                     variant={announcement.status === "New" ? "default" : "secondary"}
                                     className={cn(
                                       announcement.status === "New" 
-                                        ? "bg-cyan-500 hover:bg-cyan-600" 
+                                        ? "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700" 
                                         : "bg-gray-500"
                                     )}
                                   >
@@ -775,7 +775,7 @@ export default function AnnouncementPage() {
 
               <TabsContent value="unread">
                 <Card>
-                  <CardHeader className="bg-cyan-500 text-white rounded-t-lg">
+                  <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-t-lg">
                     <CardTitle>Unread Announcement</CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">
@@ -807,7 +807,7 @@ export default function AnnouncementPage() {
                                 <td className="py-3 px-4">
                                   <Badge 
                                     variant="default"
-                                    className="bg-cyan-500 hover:bg-cyan-600"
+                                    className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
                                   >
                                     {announcement.status}
                                   </Badge>
@@ -884,7 +884,7 @@ export default function AnnouncementPage() {
                     <label className="text-sm font-medium text-gray-700">Status</label>
                     <Badge 
                       variant="default"
-                      className="bg-cyan-500 hover:bg-cyan-600"
+                      className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
                     >
                       {selectedAnnouncement.status}
                     </Badge>

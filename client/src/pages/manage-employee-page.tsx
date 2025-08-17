@@ -306,14 +306,14 @@ export default function ManageEmployeePage() {
                 <TabsList className="grid w-fit grid-cols-2">
                   <TabsTrigger 
                     value="active" 
-                    className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white"
+                    className="data-[state=active]:bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 data-[state=active]:text-white"
                     data-testid="tab-active-staff"
                   >
                     Active Staff
                   </TabsTrigger>
                   <TabsTrigger 
                     value="resigned"
-                    className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white"
+                    className="data-[state=active]:bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 data-[state=active]:text-white"
                     data-testid="tab-resigned-staff"
                   >
                     Resigned Staff
@@ -608,7 +608,7 @@ export default function ManageEmployeePage() {
 
               <TabsContent value="active">
                 <Card>
-                  <CardHeader className="bg-cyan-500 text-white rounded-t-lg">
+                  <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-t-lg">
                     <div className="flex items-center justify-between">
                       <CardTitle>List of Employees</CardTitle>
                       <div className="flex items-center gap-4">
@@ -718,7 +718,7 @@ export default function ManageEmployeePage() {
 
               <TabsContent value="resigned">
                 <Card>
-                  <CardHeader className="bg-cyan-500 text-white rounded-t-lg">
+                  <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-t-lg">
                     <div className="flex items-center justify-between">
                       <CardTitle>List of Resigned Employees</CardTitle>
                       <div className="flex items-center gap-4">

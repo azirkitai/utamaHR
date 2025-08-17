@@ -679,7 +679,7 @@ export default function DashboardHome() {
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3">
-                    <div className="w-2 h-2 bg-cyan-500 rounded-full"></div>
+                    <div className="w-2 h-2 bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 rounded-full"></div>
                     <div>
                       <div className="text-sm font-medium">31 Aug 2025</div>
                       <div className="text-xs text-gray-600">WUJUD</div>

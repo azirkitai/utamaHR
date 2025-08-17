@@ -779,7 +779,7 @@ export default function ClaimApprovalPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Financial Claim */}
         <Card 
-          className="cursor-pointer hover:shadow-lg transition-shadow bg-gradient-to-br from-cyan-500 to-cyan-500 text-white border-0"
+          className="cursor-pointer hover:shadow-lg transition-shadow bg-gradient-to-br from-slate-900 to-cyan-800 text-white border-0"
           onClick={() => handleCategorySelect("financial")}
           data-testid="card-financial-claim"
         >
@@ -791,7 +791,7 @@ export default function ClaimApprovalPage() {
 
         {/* Overtime Claim */}
         <Card 
-          className="cursor-pointer hover:shadow-lg transition-shadow bg-gradient-to-br from-cyan-500 to-cyan-500 text-white border-0"
+          className="cursor-pointer hover:shadow-lg transition-shadow bg-gradient-to-br from-slate-900 to-cyan-800 text-white border-0"
           onClick={() => handleCategorySelect("overtime")}
           data-testid="card-overtime-claim"
         >

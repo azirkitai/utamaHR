@@ -174,7 +174,7 @@ function SalaryPayrollApprovalCard({ payrollDocument, currentUser }: { payrollDo
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full bg-cyan-500 flex items-center justify-center text-white font-semibold">
+                    <div className="w-full h-full bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 flex items-center justify-center text-white font-semibold">
                       {(firstLevelApprover as any)?.fullName?.charAt(0)?.toUpperCase() || 'A'}
                     </div>
                   )}
@@ -197,7 +197,7 @@ function SalaryPayrollApprovalCard({ payrollDocument, currentUser }: { payrollDo
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full bg-cyan-500 flex items-center justify-center text-white font-semibold">
+                    <div className="w-full h-full bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 flex items-center justify-center text-white font-semibold">
                       {(secondLevelApprover as any)?.fullName?.charAt(0)?.toUpperCase() || 'A'}
                     </div>
                   )}
