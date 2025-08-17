@@ -143,10 +143,15 @@ export default function MyRecordPage() {
   });
 
   // Check if current user has privileged access (Admin/Super Admin/HR Manager)
-  const hasPrivilegedAccess = user?.role && ['Super Admin', 'Admin', 'HR Manager'].includes(user.role);
+  const hasPrivilegedAccess = (user as any)?.role && ['Super Admin', 'Admin', 'HR Manager'].includes((user as any).role);
   
-  console.log('Current user role:', user?.role);
-  console.log('Has privileged access:', hasPrivilegedAccess);
+  // Force refetch user data to get role information if missing (cleanup after role fix)
+  useEffect(() => {
+    if (user && !(user as any)?.role) {
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+    }
+  }, [user]);
+
 
   // Fetch claim applications based on user role
   const { data: claimApplications = [], isLoading: isLoadingClaims, error: claimError, refetch: refetchClaims } = useQuery({
@@ -187,7 +192,7 @@ export default function MyRecordPage() {
       console.log('Claim applications fetched:', data.length, 'records');
       return data as ClaimApplication[];
     },
-    enabled: !!user && (hasPrivilegedAccess || !!currentEmployee?.id) && activeTab === 'claim'
+    enabled: !!user && !!((user as any)?.role) && (hasPrivilegedAccess || !!currentEmployee?.id) && activeTab === 'claim'
   });
 
   // Fetch user payroll records for My Record page
