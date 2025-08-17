@@ -296,12 +296,26 @@ export default function CalendarPage() {
   const getEventsForDate = (date: number) => {
     const targetDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), date);
     
-    return events.filter(event => {
+    const filteredEvents = events.filter(event => {
       const startDate = new Date(event.startDate);
       const endDate = new Date(event.endDate || event.startDate);
       
-      return targetDate >= startDate && targetDate <= endDate;
+      // Set time to 00:00:00 for accurate date comparison
+      const targetDateOnly = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+      const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+      const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+      
+      return targetDateOnly >= startDateOnly && targetDateOnly <= endDateOnly;
     });
+    
+    // Debug logging
+    if (date === 24 && currentDate.getMonth() === 7) { // August 24th
+      console.log('Events for Aug 24:', filteredEvents);
+      console.log('All events:', events);
+      console.log('Target date:', targetDate);
+    }
+    
+    return filteredEvents;
   };
 
   // Helper function to check if date is a public holiday
