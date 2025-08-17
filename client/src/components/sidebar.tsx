@@ -34,6 +34,7 @@ import {
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import utamaHRLogo from "@assets/eClaim_1755438999246.png";
+import { useQuery } from "@tanstack/react-query";
 
 interface SidebarItem {
   id: string;
@@ -223,6 +224,26 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
   const [location] = useLocation();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
+  // Get user and employee data for role-based access control
+  const { data: user } = useQuery({
+    queryKey: ["/api/user"],
+    retry: false,
+  });
+
+  const { data: currentEmployee } = useQuery({
+    queryKey: ["/api/user/employee"],
+    retry: false,
+  });
+
+  // Check if user has privileged access (Super Admin, Admin, HR Manager)
+  const hasPrivilegedAccess = () => {
+    const userRole = currentEmployee?.role || user?.role;
+    const privilegedRoles = ['Super Admin', 'Admin', 'HR Manager'];
+    console.log('Current user role:', userRole);
+    console.log('Has privileged access:', privilegedRoles.includes(userRole));
+    return privilegedRoles.includes(userRole);
+  };
+
   const isActiveRoute = (href: string) => {
     if (href === "/") return location === "/";
     return location.startsWith(href);
@@ -279,7 +300,15 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
       </div>
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto py-4">
-        {navigationItems.map((section) => (
+        {navigationItems
+          .filter((section) => {
+            // Filter out Administration section for non-privileged users
+            if (section.category === "Administration" && !hasPrivilegedAccess()) {
+              return false;
+            }
+            return true;
+          })
+          .map((section) => (
           <div key={section.category} className="mb-6">
             {!isCollapsed && (
               <div className="px-4 mb-2">
