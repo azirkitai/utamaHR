@@ -277,7 +277,6 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
           )}
         </Button>
       </div>
-
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto py-4">
         {navigationItems.map((section) => (
@@ -287,7 +286,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
                 <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
                   {section.category}
                 </h3>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-[#000000]">
                   Key Your Personal Record Here
                 </p>
               </div>
@@ -419,7 +418,6 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
           </div>
         ))}
       </div>
-
       {/* Footer - Collapse hint */}
       {!isCollapsed && (
         <div className="p-4 border-t border-slate-700">
