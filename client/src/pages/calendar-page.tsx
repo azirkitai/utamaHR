@@ -74,11 +74,11 @@ interface LeaveApplication {
 }
 
 const predefinedHolidays: Holiday[] = [
-  { id: 1, name: "Federal Territory Day (regional holiday)", date: "01-02-2025", isPublic: true, importToCalendar: true },
-  { id: 2, name: "Harvest Festival (regional holiday)", date: "30-05-2025", isPublic: true, importToCalendar: true },
-  { id: 3, name: "Valentine's Day", date: "14-02-2025", isPublic: true, importToCalendar: true },
-  { id: 4, name: "Good Friday (regional holiday)", date: "18-04-2025", isPublic: true, importToCalendar: true },
-  { id: 5, name: "Easter Sunday", date: "20-04-2025", isPublic: true, importToCalendar: true }
+  { id: "1", name: "Federal Territory Day (regional holiday)", date: "01-02-2025", isPublic: true, importToCalendar: true },
+  { id: "2", name: "Harvest Festival (regional holiday)", date: "30-05-2025", isPublic: true, importToCalendar: true },
+  { id: "3", name: "Valentine's Day", date: "14-02-2025", isPublic: true, importToCalendar: true },
+  { id: "4", name: "Good Friday (regional holiday)", date: "18-04-2025", isPublic: true, importToCalendar: true },
+  { id: "5", name: "Easter Sunday", date: "20-04-2025", isPublic: true, importToCalendar: true }
 ];
 
 const employees: Employee[] = [
@@ -289,6 +289,18 @@ export default function CalendarPage() {
       
       return targetDate >= startDate && targetDate <= endDate && 
              (leave.status === 'Approved' || leave.status === 'Pending' || leave.status === 'First Level Approved');
+    });
+  };
+
+  // Helper function to check if date has events
+  const getEventsForDate = (date: number) => {
+    const targetDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), date);
+    
+    return events.filter(event => {
+      const startDate = new Date(event.startDate);
+      const endDate = new Date(event.endDate || event.startDate);
+      
+      return targetDate >= startDate && targetDate <= endDate;
     });
   };
 
@@ -780,7 +792,6 @@ export default function CalendarPage() {
                           />
                         </div>
                         
-                        
                       </div>
                       
                       <DialogFooter className="gap-2">
@@ -1004,6 +1015,7 @@ export default function CalendarPage() {
                           {/* Calendar days */}
                           {generateCalendarDays().map((day, index) => {
                             const holiday = getHolidayForDate(day.number);
+                            const dayEvents = getEventsForDate(day.number);
                             return (
                               <div 
                                 key={index}
@@ -1023,6 +1035,16 @@ export default function CalendarPage() {
                                     title="Klik untuk melihat maklumat holiday"
                                   >
                                     🏛️ {holiday.name}
+                                  </div>
+                                )}
+                                
+                                {/* Show events for this date */}
+                                {dayEvents?.length > 0 && (
+                                  <div 
+                                    className="text-xs px-1 py-1 bg-green-100 text-green-800 rounded mb-1 truncate cursor-pointer hover:bg-green-200 transition-colors"
+                                    title={`Events: ${dayEvents.map(e => e.title).join(', ')}`}
+                                  >
+                                    📅 {dayEvents.length > 1 ? `${dayEvents.length} events` : dayEvents[0].title}
                                   </div>
                                 )}
                                 
