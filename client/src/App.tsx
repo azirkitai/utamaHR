@@ -50,6 +50,7 @@ function Router() {
       <ProtectedRoute path="/announcement" component={AnnouncementPage} />
       <ProtectedRoute path="/calendar" component={CalendarPage} />
       <ProtectedRoute path="/performance" component={PerformanceEvaluationPage} />
+      <ProtectedRoute path="/evaluation" component={PerformanceEvaluationPage} />
       <ProtectedRoute path="/manage-employee" component={ManageEmployeePage} />
       <ProtectedRoute path="/approval" component={LeaveApprovalPage} />
       <ProtectedRoute path="/approval/leave" component={LeaveApprovalPage} />
