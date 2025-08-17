@@ -1604,19 +1604,53 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/qr-validate/:token", async (req, res) => {
     try {
       const token = req.params.token;
+      console.log("=== QR VALIDATION DEBUG ===");
+      console.log("Token received:", token);
+      console.log("Token length:", token?.length);
+      console.log("Timestamp:", new Date().toISOString());
+      
+      if (!token || token.length === 0) {
+        console.log("ERROR: Empty or missing token");
+        return res.status(400).json({ 
+          error: "Token QR Code tidak dijumpai",
+          code: "MISSING_TOKEN"
+        });
+      }
+
       const qrToken = await storage.getValidQrToken(token);
+      console.log("QR Token from DB:", qrToken ? "Found" : "Not Found");
+      
+      if (qrToken) {
+        console.log("Token details:", {
+          userId: qrToken.userId,
+          expiresAt: qrToken.expiresAt,
+          isUsed: qrToken.isUsed,
+          isExpired: new Date(qrToken.expiresAt) <= new Date()
+        });
+      }
 
       if (!qrToken) {
+        console.log("ERROR: Token not found or expired");
         return res.status(400).json({ 
           error: "QR Code tidak sah atau telah tamat tempoh",
-          expired: true
+          expired: true,
+          code: "INVALID_TOKEN"
         });
       }
 
       const user = await storage.getUser(qrToken.userId);
+      console.log("User from DB:", user ? "Found" : "Not Found");
+      
       if (!user) {
-        return res.status(400).json({ error: "Pengguna tidak dijumpai" });
+        console.log("ERROR: User not found for token");
+        return res.status(400).json({ 
+          error: "Pengguna tidak dijumpai",
+          code: "USER_NOT_FOUND"
+        });
       }
+
+      console.log("SUCCESS: QR validation completed for user:", user.username);
+      console.log("=== END QR VALIDATION DEBUG ===");
 
       res.json({
         valid: true,
@@ -1628,8 +1662,14 @@ export function registerRoutes(app: Express): Server {
         message: "QR Code sah"
       });
     } catch (error) {
-      console.error("QR validate error:", error);
-      res.status(500).json({ error: "Gagal mengesahkan QR Code" });
+      console.error("=== QR VALIDATION ERROR ===");
+      console.error("Error details:", error);
+      console.error("Stack trace:", error instanceof Error ? error.stack : "No stack trace");
+      console.error("=== END QR VALIDATION ERROR ===");
+      res.status(500).json({ 
+        error: "Gagal mengesahkan QR Code",
+        code: "SERVER_ERROR"
+      });
     }
   });
 

@@ -843,7 +843,21 @@ export class DatabaseStorage implements IStorage {
           eq(qrTokens.isUsed, "false")
         )
       );
-    return qrToken || undefined;
+    
+    // Check if token exists and hasn't expired
+    if (qrToken && new Date(qrToken.expiresAt) > new Date()) {
+      return qrToken;
+    }
+    
+    // If token is expired, mark it as used to clean up
+    if (qrToken && new Date(qrToken.expiresAt) <= new Date()) {
+      await db
+        .update(qrTokens)
+        .set({ isUsed: "true" })
+        .where(eq(qrTokens.token, token));
+    }
+    
+    return undefined;
   }
 
   async markQrTokenAsUsed(token: string): Promise<void> {
