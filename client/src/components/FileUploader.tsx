@@ -105,7 +105,7 @@ export function FileUploader({
           <Button
             onClick={handleUpload}
             disabled={uploading}
-            className="bg-gradient-to-r from-cyan-400 to-blue-700 hover:from-cyan-500 hover:to-blue-800"
+            className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
             data-testid="button-upload"
           >
             {uploading ? (
@@ -126,7 +126,7 @@ export function FileUploader({
       {selectedFile && (
         <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-r from-cyan-400 to-blue-700 rounded flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 rounded flex items-center justify-center">
               <Upload className="w-4 h-4 text-white" />
             </div>
             <div>

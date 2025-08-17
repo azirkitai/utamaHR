@@ -376,7 +376,7 @@ export default function MobileClockInPage() {
               </p>
               <Button 
                 onClick={() => window.close()}
-                className="w-full bg-gradient-to-r from-cyan-400 to-blue-700"
+                className="w-full bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800"
               >
                 Tutup
               </Button>

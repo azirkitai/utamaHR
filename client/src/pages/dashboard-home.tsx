@@ -376,7 +376,7 @@ export default function DashboardHome() {
     <DashboardLayout>
       <div className="p-6 space-y-6">
         {/* Welcome Hero Section */}
-        <div className="relative bg-gradient-to-r from-cyan-500 to-blue-600 rounded-2xl p-8 text-white overflow-hidden pt-[4px] pb-[4px]">
+        <div className="relative bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 rounded-2xl p-8 text-white overflow-hidden pt-[4px] pb-[4px]">
           <div className="relative z-10">
             <div className="flex justify-between items-start">
               <div className="pt-[79px] pb-[79px] text-[34px] font-semibold">
@@ -457,7 +457,7 @@ export default function DashboardHome() {
 
               {/* Stats Cards */}
               <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200">
+                <Card className="bg-gradient-to-br from-slate-50 to-blue-50 border-slate-200">
                   <CardContent className="p-6 text-center">
                     <div className="text-3xl font-bold text-blue-600 mb-2" data-testid="total-clock-ins">
                       {dashboardStats?.totalClockIns || 0}
@@ -467,7 +467,7 @@ export default function DashboardHome() {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-cyan-50 to-blue-50 border-cyan-200">
+                <Card className="bg-gradient-to-br from-slate-50 to-blue-50 border-slate-200">
                   <CardContent className="p-6 text-center">
                     <div className="text-3xl font-bold text-cyan-600 mb-2" data-testid="total-on-leave">
                       {dashboardStats?.totalOnLeave || 0}
@@ -477,7 +477,7 @@ export default function DashboardHome() {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200">
+                <Card className="bg-gradient-to-br from-slate-50 to-blue-50 border-slate-200">
                   <CardContent className="p-6 text-center">
                     <div className="text-3xl font-bold text-purple-600 mb-2" data-testid="total-leave-approved">
                       {dashboardStats?.totalLeaveApproved || 0}
@@ -494,12 +494,12 @@ export default function DashboardHome() {
 
         {/* Your Statistic */}
         <Card>
-          <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white rounded-t-lg">
+          <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-t-lg">
             <CardTitle className="text-xl font-semibold">Your Statistic</CardTitle>
           </CardHeader>
           <CardContent className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              <Card className="bg-gradient-to-br from-cyan-50 to-blue-50 border-cyan-200 hover:shadow-md transition-shadow">
+              <Card className="bg-gradient-to-br from-slate-50 to-blue-50 border-slate-200 hover:shadow-md transition-shadow">
                 <CardContent className="p-6 text-center">
                   <div className="text-3xl font-bold text-cyan-600 mb-2" data-testid="stat-leave-approved">
                     {userStats?.leaveApproved || 0}
@@ -508,7 +508,7 @@ export default function DashboardHome() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200 hover:shadow-md transition-shadow">
+              <Card className="bg-gradient-to-br from-slate-50 to-blue-50 border-slate-200 hover:shadow-md transition-shadow">
                 <CardContent className="p-6 text-center">
                   <div className="text-3xl font-bold text-blue-600 mb-2" data-testid="stat-claim-approved">
                     {userStats?.claimApproved || 0}
@@ -526,7 +526,7 @@ export default function DashboardHome() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200 hover:shadow-md transition-shadow">
+              <Card className="bg-gradient-to-br from-slate-50 to-blue-50 border-slate-200 hover:shadow-md transition-shadow">
                 <CardContent className="p-6 text-center">
                   <div className="text-3xl font-bold text-purple-600 mb-2" data-testid="stat-payroll-record">
                     {userStats?.payrollRecord || 0}
@@ -622,7 +622,7 @@ export default function DashboardHome() {
                   <div key={index} className={cn(
                     "min-h-[80px] p-1 border border-gray-100 rounded relative",
                     day.isOtherMonth && "opacity-30",
-                    day.isToday && "bg-blue-50 border-blue-200"
+                    day.isToday && "bg-blue-50 border-slate-200"
                   )}>
                     {day.date && (
                       <div className="text-xs font-medium text-gray-900 mb-1">

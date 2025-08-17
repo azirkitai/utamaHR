@@ -130,7 +130,7 @@ export function GroupPolicyDialog({ open, onOpenChange, leaveType }: GroupPolicy
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold bg-gradient-to-r from-[#1e40af] to-[#3b82f6] bg-clip-text text-transparent">
+          <DialogTitle className="text-lg font-semibold bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 bg-clip-text text-transparent">
             Tetapan Dasar Kumpulan - {leaveType}
           </DialogTitle>
         </DialogHeader>
@@ -159,7 +159,7 @@ export function GroupPolicyDialog({ open, onOpenChange, leaveType }: GroupPolicy
                   <Button 
                     onClick={handleAddRole}
                     disabled={!selectedRole || createMutation.isPending}
-                    className="bg-gradient-to-r from-[#1e40af] to-[#3b82f6] hover:from-[#06899A] hover:to-[#C8DFB6] text-white"
+                    className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700 text-white"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Tambah
@@ -207,7 +207,7 @@ export function GroupPolicyDialog({ open, onOpenChange, leaveType }: GroupPolicy
           </div>
 
           {/* Info section */}
-          <Card className="bg-blue-50 border-blue-200">
+          <Card className="bg-blue-50 border-slate-200">
             <CardContent className="p-4">
               <div className="text-sm text-blue-800">
                 <p className="font-medium mb-2">Maklumat:</p>

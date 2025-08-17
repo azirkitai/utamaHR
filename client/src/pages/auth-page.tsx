@@ -110,7 +110,7 @@ export default function AuthPage() {
 
                   <Button 
                     type="submit" 
-                    className="w-full h-12 bg-gradient-to-r from-cyan-400 to-blue-700 hover:from-cyan-500 hover:to-blue-800"
+                    className="w-full h-12 bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
                     disabled={loginMutation.isPending}
                     data-testid="button-login"
                   >

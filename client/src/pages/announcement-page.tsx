@@ -483,7 +483,7 @@ export default function AnnouncementPage() {
                   <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
                     <DialogTrigger asChild>
                       <Button 
-                        className="bg-gradient-to-r from-cyan-400 to-blue-700 hover:from-cyan-500 hover:to-blue-800 text-white"
+                        className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700 text-white"
                         data-testid="button-add-announcement"
                       >
                         <Plus className="w-4 h-4 mr-2" />
@@ -656,7 +656,7 @@ export default function AnnouncementPage() {
                       <Button 
                         onClick={handleSendAnnouncement}
                         disabled={!title || !message || selectedEmployees.length === 0 || sendAnnouncementMutation.isPending}
-                        className="bg-gradient-to-r from-cyan-400 to-blue-700 hover:from-cyan-500 hover:to-blue-800"
+                        className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
                         data-testid="button-send"
                       >
                         <Send className="w-4 h-4 mr-2" />
@@ -684,7 +684,7 @@ export default function AnnouncementPage() {
 
               <TabsContent value="all">
                 <Card>
-                  <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white rounded-t-lg">
+                  <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-t-lg">
                     <CardTitle>Announcement</CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">
@@ -733,7 +733,7 @@ export default function AnnouncementPage() {
                                     <Button
                                       size="sm"
                                       variant="ghost"
-                                      className="h-8 w-8 p-0 bg-gradient-to-r from-cyan-400 to-blue-700 hover:bg-gradient-to-r from-cyan-400 to-blue-700 text-white"
+                                      className="h-8 w-8 p-0 bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white"
                                       onClick={() => handleViewAnnouncement(announcement.id)}
                                       data-testid={`button-view-${announcement.id}`}
                                     >
@@ -820,7 +820,7 @@ export default function AnnouncementPage() {
                                     <Button
                                       size="sm"
                                       variant="ghost"
-                                      className="h-8 w-8 p-0 bg-gradient-to-r from-cyan-400 to-blue-700 hover:bg-gradient-to-r from-cyan-400 to-blue-700 text-white"
+                                      className="h-8 w-8 p-0 bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white"
                                       onClick={() => handleViewAnnouncement(announcement.id)}
                                       data-testid={`button-view-unread-${announcement.id}`}
                                     >
@@ -921,7 +921,7 @@ export default function AnnouncementPage() {
                 {selectedAnnouncement.attachment && (
                   <div>
                     <label className="text-sm font-medium text-gray-700 mb-2 block">Attachment</label>
-                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2 hover:bg-blue-100 cursor-pointer transition-colors">
+                    <div className="p-3 bg-blue-50 border border-slate-200 rounded-lg flex items-center gap-2 hover:bg-blue-100 cursor-pointer transition-colors">
                       <Upload className="h-4 w-4 text-blue-600" />
                       <button
                         onClick={() => handleDownloadAttachment(selectedAnnouncement.id, selectedAnnouncement.attachment!)}

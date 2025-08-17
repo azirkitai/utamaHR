@@ -760,7 +760,7 @@ export default function ClaimApprovalPage() {
       case "firstlevelapproved":
         return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Approved</Badge>;
       case "awaitingsecondapproval":
-        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Awaiting Second Approval</Badge>;
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-slate-200">Awaiting Second Approval</Badge>;
       case "rejected":
       case "firstlevelrejected":
         return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Rejected</Badge>;

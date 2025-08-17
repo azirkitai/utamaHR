@@ -1815,7 +1815,7 @@ export default function EmployeeSalaryDetailsPage() {
         </Alert>
 
         {/* Additional Item Logic Info */}
-        <Alert className="bg-blue-50 border-blue-200">
+        <Alert className="bg-blue-50 border-slate-200">
           <Settings className="h-4 w-4" />
           <AlertDescription>
             <strong>Additional Item Logic:</strong> Click the blue gear icon (⚙️) next to each Additional Item to access statutory checkboxes. 
@@ -1896,7 +1896,7 @@ export default function EmployeeSalaryDetailsPage() {
               
               {/* Column 1 - Basic Earning */}
               <div className="space-y-4">
-                <div className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white p-4 rounded-lg">
+                <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-4 rounded-lg">
                   <h3 className="text-lg font-semibold">Basic Earning</h3>
                 </div>
                 
@@ -2118,7 +2118,7 @@ export default function EmployeeSalaryDetailsPage() {
 
               {/* Column 2 - Additional Item */}
               <div className="space-y-4">
-                <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-lg">
+                <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-4 rounded-lg">
                   <h3 className="text-lg font-semibold">Additional Item</h3>
                 </div>
                 
@@ -2625,7 +2625,7 @@ export default function EmployeeSalaryDetailsPage() {
 
               {/* Column 3 - Deduction Item */}
               <div className="space-y-4">
-                <div className="bg-gradient-to-r from-red-600 to-red-700 text-white p-4 rounded-lg">
+                <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-4 rounded-lg">
                   <h3 className="text-lg font-semibold">Deduction Item</h3>
                 </div>
                 
@@ -3146,7 +3146,7 @@ export default function EmployeeSalaryDetailsPage() {
 
               {/* Column 4 - Company Contribution */}
               <div className="space-y-4">
-                <div className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-4 rounded-lg">
+                <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-4 rounded-lg">
                   <h3 className="text-lg font-semibold">Company Contribution</h3>
                 </div>
                 
@@ -3369,7 +3369,7 @@ export default function EmployeeSalaryDetailsPage() {
                     <Button
                       onClick={handleManualRecalculate}
                       disabled={isCalculating}
-                      className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white"
+                      className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white"
                       data-testid="btn-calculate-payroll"
                     >
                       Calculate Payroll
@@ -3390,7 +3390,7 @@ export default function EmployeeSalaryDetailsPage() {
                     
                     {/* YTD Employee Contribution */}
                     <div className="space-y-4">
-                      <div className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white p-4 rounded-lg">
+                      <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-4 rounded-lg">
                         <h3 className="text-lg font-semibold">YTD EMPLOYEE CONTRIBUTION</h3>
                       </div>
                       
@@ -3517,7 +3517,7 @@ export default function EmployeeSalaryDetailsPage() {
 
                     {/* YTD Employer Contribution */}
                     <div className="space-y-4">
-                      <div className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white p-4 rounded-lg">
+                      <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-4 rounded-lg">
                         <h3 className="text-lg font-semibold">YTD EMPLOYER CONTRIBUTION</h3>
                       </div>
                       
@@ -4868,7 +4868,7 @@ export default function EmployeeSalaryDetailsPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="p-4 bg-blue-50 rounded-lg border border-slate-200">
               <p className="text-sm text-gray-700">
                 <strong>BIK/VOLA will be excluded from total Gross amount calculation and Payslip</strong>
               </p>

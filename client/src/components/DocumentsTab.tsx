@@ -163,7 +163,7 @@ export function DocumentsTab({ employeeId }: DocumentsTabProps) {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white rounded-t-lg">
+        <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-t-lg">
           <div className="flex justify-between items-center">
             <CardTitle>Dokumen</CardTitle>
             <Button

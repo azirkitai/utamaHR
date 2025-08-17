@@ -603,7 +603,7 @@ export default function ApplyClaimPage() {
 
               {/* Overtime Claim */}
               <Card 
-                className="cursor-pointer hover:shadow-lg transition-shadow bg-gradient-to-br from-cyan-400 to-blue-700 text-white border-none"
+                className="cursor-pointer hover:shadow-lg transition-shadow bg-gradient-to-br from-slate-900 via-blue-900 to-cyan-800 text-white border-none"
                 onClick={() => setSelectedCategory('overtime')}
                 data-testid="card-overtime-claim"
               >
@@ -633,7 +633,7 @@ export default function ApplyClaimPage() {
             {/* Main Content */}
             <div className="flex-1 p-6">
               {/* Summary Panel */}
-              <div className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white p-6 rounded-lg mb-6">
+              <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-6 rounded-lg mb-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-semibold">What you have claimed so far</h2>
                 </div>
@@ -656,7 +656,7 @@ export default function ApplyClaimPage() {
 
               {/* Recent Claim Application */}
               <Card>
-                <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white rounded-t-lg">
+                <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-t-lg">
                   <CardTitle>Recent Claim Application</CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
@@ -728,7 +728,7 @@ export default function ApplyClaimPage() {
             {/* Right Sidebar - Apply Form */}
             <div className="w-80 p-6 bg-white border-l">
               <Card>
-                <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white rounded-t-lg">
+                <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-t-lg">
                   <CardTitle className="text-center">Apply Claim</CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 space-y-4">
@@ -843,7 +843,7 @@ export default function ApplyClaimPage() {
 
                   {/* Policy Limits Display */}
                   {selectedPolicy && claimType && (
-                    <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-md text-sm">
+                    <div className="bg-blue-50 border border-slate-200 text-blue-700 px-4 py-3 rounded-md text-sm">
                       <div className="font-medium mb-1">Had untuk {claimType}:</div>
                       <div className="text-xs space-y-1">
                         <div>• Had tahunan: {selectedPolicy.annualLimitUnlimited ? "Tanpa had" : `RM${selectedPolicy.annualLimit}`}</div>
@@ -860,7 +860,7 @@ export default function ApplyClaimPage() {
                       console.log('Form values:', { claimType, claimAmount, claimDate, selectedRequestor, isValidating, isPending: createClaimMutation.isPending });
                       handleSubmit();
                     }}
-                    className="w-full bg-gradient-to-r from-cyan-400 to-blue-700 hover:bg-gradient-to-r from-cyan-400 to-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    className="w-full bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 disabled:bg-gray-400 disabled:cursor-not-allowed"
                     disabled={!claimType || !claimAmount || !claimDate || !selectedRequestor || isValidating || createClaimMutation.isPending}
                     data-testid="button-submit-claim"
                   >
@@ -877,7 +877,7 @@ export default function ApplyClaimPage() {
             {/* Main Content */}
             <div className="flex-1 p-6">
               {/* Summary Panel */}
-              <div className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white p-6 rounded-lg mb-6">
+              <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-6 rounded-lg mb-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-semibold">Overtime you have taken so far</h2>
                   <Button 
@@ -969,7 +969,7 @@ export default function ApplyClaimPage() {
 
               {/* Recent Claim Application */}
               <Card>
-                <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white rounded-t-lg">
+                <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-t-lg">
                   <CardTitle>Recent Claim Application</CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
@@ -1043,7 +1043,7 @@ export default function ApplyClaimPage() {
             {/* Right Sidebar - Apply Form */}
             <div className="w-80 p-6 bg-white border-l">
               <Card>
-                <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white rounded-t-lg">
+                <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-t-lg">
                   <CardTitle className="text-center">Apply Claim</CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 space-y-4">
@@ -1147,7 +1147,7 @@ export default function ApplyClaimPage() {
                       console.log('Form values:', { startTime, endTime, claimDate, reason, selectedRequestor, isValidating, isPending: createClaimMutation.isPending });
                       handleSubmit();
                     }}
-                    className="w-full bg-gradient-to-r from-cyan-400 to-blue-700 hover:bg-gradient-to-r from-cyan-400 to-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    className="w-full bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 disabled:bg-gray-400 disabled:cursor-not-allowed"
                     disabled={!startTime || !endTime || !claimDate || !reason || !selectedRequestor || isValidating || createClaimMutation.isPending}
                     data-testid="button-submit-overtime"
                   >

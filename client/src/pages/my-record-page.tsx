@@ -363,7 +363,7 @@ export default function MyRecordPage() {
 
   const renderLeaveTab = () => (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-cyan-400 to-blue-700 p-4 rounded-lg text-white">
+      <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 p-4 rounded-lg text-white">
         <h2 className="text-xl font-semibold">Leave Record</h2>
       </div>
       
@@ -568,7 +568,7 @@ export default function MyRecordPage() {
 
   const renderClaimTab = () => (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-cyan-400 to-blue-700 p-4 rounded-lg text-white">
+      <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 p-4 rounded-lg text-white">
         <h2 className="text-xl font-semibold">Claim Record</h2>
       </div>
       
@@ -798,7 +798,7 @@ export default function MyRecordPage() {
 
   const renderOvertimeTab = () => (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-cyan-400 to-blue-700 p-4 rounded-lg text-white">
+      <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 p-4 rounded-lg text-white">
         <h2 className="text-xl font-semibold">Overtime Record</h2>
       </div>
       
@@ -932,7 +932,7 @@ export default function MyRecordPage() {
 
   const renderAttendanceTab = () => (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-cyan-400 to-blue-700 p-4 rounded-lg text-white">
+      <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 p-4 rounded-lg text-white">
         <h2 className="text-xl font-semibold">Attendance Record</h2>
       </div>
       
@@ -1362,7 +1362,7 @@ export default function MyRecordPage() {
 
     return (
       <div className="space-y-6">
-        <div className="bg-gradient-to-r from-cyan-400 to-blue-700 p-4 rounded-lg text-white">
+        <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 p-4 rounded-lg text-white">
           <h2 className="text-xl font-semibold">Payment Record</h2>
         </div>
         

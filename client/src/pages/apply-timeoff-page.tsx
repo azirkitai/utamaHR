@@ -75,7 +75,7 @@ export default function ApplyTimeoffPage() {
           {/* Main Content */}
           <div className="flex-1 p-6">
             {/* Summary Panel */}
-            <div className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white p-6 rounded-lg mb-6">
+            <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-6 rounded-lg mb-6">
               <h2 className="text-xl font-semibold mb-4">Time off you have taken so far</h2>
               
               <div className="grid grid-cols-3 gap-4">
@@ -107,7 +107,7 @@ export default function ApplyTimeoffPage() {
 
             {/* Recent Timeoff Application */}
             <Card>
-              <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white rounded-t-lg">
+              <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-t-lg">
                 <CardTitle>Recent Timeoff Application</CardTitle>
               </CardHeader>
               <CardContent className="p-6">
@@ -137,7 +137,7 @@ export default function ApplyTimeoffPage() {
           {/* Right Sidebar - Apply Form */}
           <div className="w-80 p-6 bg-white border-l">
             <Card>
-              <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white rounded-t-lg">
+              <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-t-lg">
                 <CardTitle className="text-center">Apply Timeoff</CardTitle>
               </CardHeader>
               <CardContent className="p-6 space-y-4">
@@ -241,7 +241,7 @@ export default function ApplyTimeoffPage() {
                 {/* Submit Button */}
                 <Button 
                   onClick={handleSubmit}
-                  className="w-full bg-gradient-to-r from-cyan-400 to-blue-700 hover:bg-gradient-to-r from-cyan-400 to-blue-700"
+                  className="w-full bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800"
                   disabled={!timeoffDate || !startTime || !endTime || !reason}
                 >
                   Submit Now

@@ -100,7 +100,7 @@ export function DocumentModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="bg-gradient-to-r from-cyan-400 to-blue-700 bg-clip-text text-transparent">
+          <DialogTitle className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 bg-clip-text text-transparent">
             {getModalTitle()}
           </DialogTitle>
         </DialogHeader>
@@ -188,7 +188,7 @@ export function DocumentModal({
             <Button
               onClick={handleSave}
               disabled={loading}
-              className="bg-gradient-to-r from-cyan-400 to-blue-700 hover:from-cyan-500 hover:to-blue-800"
+              className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
               data-testid="button-save"
             >
               {loading ? "Menyimpan..." : "Simpan"}

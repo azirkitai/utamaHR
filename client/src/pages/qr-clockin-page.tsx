@@ -146,7 +146,7 @@ export default function QRClockInPage() {
         {/* Page Header */}
         <div className="mb-8">
           <div 
-            className="rounded-lg p-6 shadow-sm bg-gradient-to-r from-cyan-400 to-blue-700"
+            className="rounded-lg p-6 shadow-sm bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800"
           >
             <h1 className="text-3xl font-bold text-white mb-2">
               Sistem QR Code Clock-In
@@ -188,7 +188,7 @@ export default function QRClockInPage() {
                   <Button
                     onClick={() => generateQrMutation.mutate()}
                     disabled={generateQrMutation.isPending}
-                    className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white shadow-sm px-6 py-3 hover:from-cyan-500 hover:to-blue-800"
+                    className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white shadow-sm px-6 py-3 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
                     data-testid="button-generate-qr"
                   >
                     {generateQrMutation.isPending ? (

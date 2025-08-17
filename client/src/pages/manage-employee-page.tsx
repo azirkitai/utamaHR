@@ -324,7 +324,7 @@ export default function ManageEmployeePage() {
                   <Dialog open={isAddEmployeeOpen} onOpenChange={setIsAddEmployeeOpen}>
                     <DialogTrigger asChild>
                       <Button 
-                        className="bg-gradient-to-r from-cyan-400 to-blue-700 hover:from-cyan-500 hover:to-blue-800 text-white"
+                        className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700 text-white"
                         data-testid="button-add-new-staff"
                       >
                         Add New Staff
@@ -508,7 +508,7 @@ export default function ManageEmployeePage() {
                         <Button 
                           onClick={handleAddEmployee}
                           disabled={!firstName || !lastName || !email || !username || !password || !userRole || hasPasswordMismatch || createStaffMutation.isPending}
-                          className="bg-gradient-to-r from-cyan-400 to-blue-700 hover:from-cyan-500 hover:to-blue-800 text-white"
+                          className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700 text-white"
                           data-testid="button-add-staff"
                         >
                           {createStaffMutation.isPending ? "Adding..." : "Add Staff"}
@@ -520,7 +520,7 @@ export default function ManageEmployeePage() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button 
-                        className="bg-gradient-to-r from-cyan-400 to-blue-700 hover:from-cyan-500 hover:to-blue-800 text-white"
+                        className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700 text-white"
                         data-testid="button-export-staff"
                       >
                         Export Staff
@@ -542,7 +542,7 @@ export default function ManageEmployeePage() {
                   <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
                     <DialogTrigger asChild>
                       <Button 
-                        className="bg-gradient-to-r from-cyan-400 to-blue-700 hover:from-cyan-500 hover:to-blue-800 text-white"
+                        className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700 text-white"
                         data-testid="button-import-staff"
                       >
                         Import Staff
@@ -595,7 +595,7 @@ export default function ManageEmployeePage() {
                         <Button 
                           onClick={handleImportFile}
                           disabled={!selectedFile}
-                          className="bg-gradient-to-r from-cyan-400 to-blue-700 hover:from-cyan-500 hover:to-blue-800"
+                          className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
                           data-testid="button-upload"
                         >
                           Upload

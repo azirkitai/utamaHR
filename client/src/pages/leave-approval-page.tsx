@@ -437,7 +437,7 @@ export default function LeaveApprovalPage() {
             employees.map((employee: any, index: number) => (
               <TableRow key={employee.employeeId} className="hover:bg-gray-50">
                 <TableCell>
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-cyan-400 to-blue-700 flex items-center justify-center text-white text-sm font-medium">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 flex items-center justify-center text-white text-sm font-medium">
                     {index + 1}
                   </div>
                 </TableCell>
@@ -649,7 +649,7 @@ export default function LeaveApprovalPage() {
         {/* Content Section */}
         <div className="bg-white rounded-lg shadow">
           {/* Section Header */}
-          <div className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white px-6 py-4 rounded-t-lg">
+          <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white px-6 py-4 rounded-t-lg">
             <h2 className="text-lg font-medium">{getSectionTitle()}</h2>
           </div>
 
@@ -753,7 +753,7 @@ export default function LeaveApprovalPage() {
               <div className="flex items-center space-x-2 ml-auto">
                 <Button 
                   variant="default" 
-                  className="bg-gradient-to-r from-cyan-400 to-blue-700 hover:from-cyan-500 hover:to-blue-800 text-white"
+                  className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700 text-white"
                   data-testid="button-search"
                 >
                   <Search className="w-4 h-4 mr-2" />

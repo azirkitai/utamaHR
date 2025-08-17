@@ -161,7 +161,7 @@ function PaymentVoucherApprovalCard({ voucher, currentUser }: { voucher: any; cu
 
   return (
     <div className="bg-white border rounded-lg shadow-sm mt-6">
-      <div className="p-4 border-b bg-gradient-to-r from-cyan-400 to-blue-700 text-white rounded-t-lg">
+      <div className="p-4 border-b bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-t-lg">
         <h3 className="text-lg font-semibold">Payment Voucher Approval</h3>
       </div>
       
@@ -724,7 +724,7 @@ export default function VoucherDetailsPage() {
           {/* Voucher Details Tab */}
           <TabsContent value="details" className="space-y-6">
             <Card>
-              <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
+              <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white">
                 <CardTitle className="text-lg">
                   Voucher {monthName} - {voucher.voucherNumber}
                 </CardTitle>
@@ -836,7 +836,7 @@ export default function VoucherDetailsPage() {
           {/* Voucher Preview Tab */}
           <TabsContent value="voucher" className="space-y-6">
             <Card>
-              <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
+              <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white">
                 <CardTitle className="text-lg">Voucher Preview</CardTitle>
               </CardHeader>
               <CardContent className="p-6">

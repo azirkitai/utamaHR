@@ -628,7 +628,7 @@ export default function EmployeeDetailsPage() {
         {/* Main Content Area */}
         <div className="flex-1">
           {/* Employee Header Profile */}
-          <div className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white p-6 mx-6 mt-6 rounded-lg shadow-lg">
+          <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-6 mx-6 mt-6 rounded-lg shadow-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-6">
                   <div className="relative group">
@@ -734,7 +734,7 @@ export default function EmployeeDetailsPage() {
                 <div className="space-y-6">
                   {/* Personal Details Card */}
                   <Card>
-                    <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
+                    <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white">
                       <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
                           <UserCheck className="w-5 h-5" />
@@ -1105,7 +1105,7 @@ export default function EmployeeDetailsPage() {
 
                   {/* Driving License Details Card */}
                   <Card>
-                    <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
+                    <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white">
                       <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
                           <Car className="w-5 h-5" />
@@ -1216,7 +1216,7 @@ export default function EmployeeDetailsPage() {
 
                   {/* Work Experience Card */}
                   <Card>
-                    <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
+                    <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white">
                       <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
                           <Building className="w-5 h-5" />
@@ -1368,7 +1368,7 @@ export default function EmployeeDetailsPage() {
                 <div className="space-y-6">
                   {/* Employment Details Card */}
                   <Card>
-                    <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
+                    <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white">
                       <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
                           <Building className="w-5 h-5" />
@@ -1609,7 +1609,7 @@ export default function EmployeeDetailsPage() {
 
                   {/* Approval Details Card */}
                   <Card>
-                    <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
+                    <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white">
                       <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
                           <UserCheck className="w-5 h-5" />
@@ -1834,7 +1834,7 @@ export default function EmployeeDetailsPage() {
 
                   {/* Yearly Form Card */}
                   <Card>
-                    <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
+                    <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white">
                       <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
                           <FileText className="w-5 h-5" />
@@ -1903,7 +1903,7 @@ export default function EmployeeDetailsPage() {
 
                   {/* Company Access Card */}
                   <Card>
-                    <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
+                    <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white">
                       <CardTitle className="flex items-center gap-2">
                         <Building className="w-5 h-5" />
                         Company Access
@@ -1944,7 +1944,7 @@ export default function EmployeeDetailsPage() {
                 <div className="space-y-6">
                   {/* Contact Details Card */}
                   <Card>
-                    <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
+                    <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white">
                       <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
                           <Phone className="w-5 h-5" />
@@ -2119,7 +2119,7 @@ export default function EmployeeDetailsPage() {
                 <div className="space-y-6">
                   {/* Family Details Card */}
                   <Card>
-                    <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
+                    <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white">
                       <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
                           <Users className="w-5 h-5" />
@@ -2363,7 +2363,7 @@ export default function EmployeeDetailsPage() {
                 <div className="space-y-6">
                   {/* Bank Details Card */}
                   <Card>
-                    <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
+                    <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white">
                       <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
                           <Building className="w-5 h-5" />
@@ -2528,7 +2528,7 @@ export default function EmployeeDetailsPage() {
 
                   {/* Statutory Details Card */}
                   <Card>
-                    <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
+                    <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white">
                       <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
                           <FileText className="w-5 h-5" />
@@ -2722,7 +2722,7 @@ export default function EmployeeDetailsPage() {
 
                   {/* Income Tax Details Card */}
                   <Card>
-                    <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
+                    <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white">
                       <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
                           <Calculator className="w-5 h-5" />
@@ -2912,7 +2912,7 @@ export default function EmployeeDetailsPage() {
               {/* Placeholder for other tabs */}
               {!["personal-details", "employment", "contact", "family-detail", "compensation", "document", "equipment", "leave-policy", "claim-policy"].includes(activeTab) && (
                 <Card>
-                  <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white">
+                  <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white">
                     <CardTitle className="capitalize">
                       {activeTab.replace("-", " ")} Information
                     </CardTitle>

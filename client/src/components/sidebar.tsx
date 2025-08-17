@@ -241,7 +241,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
   return (
     <div
       className={cn(
-        "bg-gradient-to-b from-cyan-600 to-blue-800 text-white transition-all duration-300 ease-in-out flex flex-col h-full",
+        "bg-gradient-to-b from-slate-900 via-blue-900 to-cyan-800 text-white transition-all duration-300 ease-in-out flex flex-col h-full",
         isCollapsed ? "w-16" : "w-64"
       )}
     >
@@ -267,7 +267,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
           variant="ghost"
           size="sm"
           onClick={onToggleCollapse}
-          className="text-white hover:bg-gradient-to-r from-cyan-400 to-blue-700 p-1 absolute top-2 right-2"
+          className="text-white hover:bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 p-1 absolute top-2 right-2"
           data-testid="button-toggle-sidebar"
         >
           {isCollapsed ? (
@@ -303,8 +303,8 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
                       className={cn(
                         "w-full justify-start text-left h-10 px-3",
                         isActiveRoute(item.href)
-                          ? "bg-gradient-to-r from-cyan-400 to-blue-700 text-white hover:from-cyan-500 hover:to-blue-800"
-                          : "text-slate-300 hover:bg-gradient-to-r hover:from-cyan-400 hover:to-blue-700 hover:text-white",
+                          ? "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
+                          : "text-slate-300 hover:bg-gradient-to-r hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700 hover:text-white",
                         isCollapsed && "justify-center px-2"
                       )}
                       data-testid={`nav-${item.id}`}
@@ -325,7 +325,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
                                   "text-xs px-2 py-0",
                                   item.badge === "★" 
                                     ? "bg-yellow-500 text-yellow-900" 
-                                    : "bg-gradient-to-r from-cyan-400 to-blue-700 text-white"
+                                    : "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white"
                                 )}
                               >
                                 {item.badge}
@@ -349,8 +349,8 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
                         className={cn(
                           "inline-flex items-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 py-2 w-full justify-start text-left h-10 px-3 text-[#f0f0f0] hover:text-white",
                           isActiveRoute(item.href)
-                            ? "bg-gradient-to-r from-cyan-400 to-blue-700 text-white hover:from-cyan-500 hover:to-blue-800"
-                            : "bg-[#0e749000] hover:bg-gradient-to-r hover:from-cyan-400 hover:to-blue-700"
+                            ? "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
+                            : "bg-[#0e749000] hover:bg-gradient-to-r hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
                         )}
                         data-testid={`nav-${item.id}`}
                       >
@@ -370,7 +370,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
                                     "text-xs px-2 py-0",
                                     item.badge === "★" 
                                       ? "bg-yellow-500 text-yellow-900" 
-                                      : "bg-gradient-to-r from-cyan-400 to-blue-700 text-white"
+                                      : "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white"
                                   )}
                                 >
                                   {item.badge}
@@ -393,8 +393,8 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
                             className={cn(
                               "w-full justify-start text-left h-8 px-3",
                               isActiveRoute(child.href)
-                                ? "bg-gradient-to-r from-cyan-400 to-blue-700 text-white hover:from-cyan-500 hover:to-blue-800"
-                                : "text-slate-400 hover:bg-gradient-to-r hover:from-cyan-400 hover:to-blue-700 hover:text-white"
+                                ? "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
+                                : "text-slate-400 hover:bg-gradient-to-r hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700 hover:text-white"
                             )}
                             data-testid={`nav-${child.id}`}
                           >

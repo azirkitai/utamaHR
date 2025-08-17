@@ -316,7 +316,7 @@ export default function ApplyLeavePage() {
           {/* Main Content */}
           <div className="flex-1 p-6">
           {/* Available Leave Banner */}
-          <div className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white p-6 rounded-lg mb-6">
+          <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-6 rounded-lg mb-6">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-semibold mb-2">Available Leave</h2>
@@ -490,7 +490,7 @@ export default function ApplyLeavePage() {
           {/* Right Sidebar - Apply Leave Form */}
           <div className="w-80 p-6 bg-white border-l">
           <Card>
-            <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white rounded-t-lg">
+            <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-t-lg">
               <CardTitle className="text-center">Apply Leave</CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-6">
@@ -639,7 +639,7 @@ export default function ApplyLeavePage() {
               {/* Apply Button */}
               <Button 
                 onClick={handleApply}
-                className="w-full bg-gradient-to-r from-cyan-400 to-blue-700 hover:from-cyan-500 hover:to-blue-800 text-white"
+                className="w-full bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700 text-white"
                 disabled={!startDate || !endDate || !leaveType || !selectedEmployeeId || createLeaveApplicationMutation.isPending}
               >
                 {createLeaveApplicationMutation.isPending ? "Submitting..." : "Apply Now"}

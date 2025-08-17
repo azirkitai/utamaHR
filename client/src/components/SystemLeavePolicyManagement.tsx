@@ -196,7 +196,7 @@ export function SystemLeavePolicyManagement() {
   if (isLoading) {
     return (
       <Card>
-        <CardHeader className="bg-gradient-to-r from-[#1e40af] to-[#3b82f6] text-white">
+        <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white">
           <CardTitle>Pengurusan Polisi Cuti Sistem</CardTitle>
         </CardHeader>
         <CardContent className="p-6">
@@ -211,7 +211,7 @@ export function SystemLeavePolicyManagement() {
   return (
     <>
       <Card>
-        <CardHeader className="bg-gradient-to-r from-[#1e40af] to-[#3b82f6] text-white">
+        <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white">
           <div className="flex items-center justify-between">
             <CardTitle>Pengurusan Polisi Cuti Sistem</CardTitle>
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
