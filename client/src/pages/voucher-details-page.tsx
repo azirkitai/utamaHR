@@ -578,10 +578,6 @@ export default function VoucherDetailsPage() {
           <div>
             <div className="space-y-2 text-sm">
               <div className="flex">
-                <span className="w-32">Employee No:</span>
-                <span>{voucherClaims.length > 0 ? (employeesData as any[])?.find(emp => emp.id === voucherClaims[0].employeeId)?.staffId || 'S27650-5127' : 'S27650-5127'}</span>
-              </div>
-              <div className="flex">
                 <span className="w-32">Name:</span>
                 <span>{voucherClaims.length > 0 ? getEmployeeName(voucherClaims[0].employeeId) : 'Employee Name'}</span>
               </div>
@@ -880,7 +876,6 @@ export default function VoucherDetailsPage() {
                         <div className="font-bold text-gray-900 mb-3">PAID TO:</div>
                         {voucherClaims.length > 0 && (
                           <div className="space-y-1 text-sm">
-                            <div>Employee No: {voucherClaims[0].employeeId}</div>
                             <div>Name: {getEmployeeName(voucherClaims[0].employeeId)}</div>
                             <div>NRIC: {getEmployeeNRIC(voucherClaims[0].employeeId)}</div>
                             <div>Bank / Cheque No.: {getEmployeeBankInfo(voucherClaims[0].employeeId)}</div>

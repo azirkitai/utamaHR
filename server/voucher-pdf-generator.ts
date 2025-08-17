@@ -130,7 +130,6 @@ function generateVoucherPreviewHTML(data: VoucherData): string {
             <div class="mb-4">
                 <div class="font-bold text-gray-900 mb-3">PAID TO:</div>
                 <div class="space-y-1 text-sm">
-                    <div>Employee No: ${data.employee.staffId}</div>
                     <div>Name: ${data.employee.name}</div>
                     <div>NRIC: ${data.employee.nric}</div>
                     <div>Bank / Cheque No.: ${data.employee.bankAccount}</div>
