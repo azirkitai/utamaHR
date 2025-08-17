@@ -3459,6 +3459,9 @@ export class DatabaseStorage implements IStorage {
       }
 
       // Build the query without complex select mapping first
+      // Add filter for financial claims only
+      conditions.push(eq(claimApplications.claimType, 'financial'));
+      
       let query = db
         .select()
         .from(claimApplications)
@@ -3476,11 +3479,12 @@ export class DatabaseStorage implements IStorage {
         claimCategory: row.claim_applications?.claim_category,
         status: row.claim_applications?.status,
         amount: row.claim_applications?.amount,
-        description: row.claim_applications?.description,
-        receiptUrl: row.claim_applications?.receipt_url,
+        particulars: row.claim_applications?.particulars, // Field "claim for" - particulars filled by requestor
+        supportingDocuments: row.claim_applications?.supporting_documents || [], // Supporting documents
         claimDate: row.claim_applications?.claim_date ? new Date(row.claim_applications.claim_date).toISOString() : null,
         dateSubmitted: row.claim_applications?.date_submitted ? new Date(row.claim_applications.date_submitted).toISOString() : null,
-        requestorName: row.employees?.full_name || 'Unknown Employee',
+        requestorName: row.employees?.full_name || 'Unknown Employee', // Employee name
+        financialPolicyName: row.claim_applications?.financial_policy_name || row.claim_applications?.claim_category, // Financial policy name
       }));
 
       return result;

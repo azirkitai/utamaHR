@@ -641,7 +641,7 @@ export default function MyRecordPage() {
               <TableHead>Claim For</TableHead>
               <TableHead>Amount</TableHead>
               <TableHead>Date</TableHead>
-              <TableHead>Action</TableHead>
+              <TableHead>Supporting Document</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -683,10 +683,10 @@ export default function MyRecordPage() {
                 return (
                   <TableRow key={claim.id}>
                     <TableCell>{index + 1}</TableCell>
-                    <TableCell>{claim.requestorName}</TableCell>
-                    <TableCell className="capitalize">{claim.claimType}</TableCell>
+                    <TableCell>{claim.requestorName || 'Unknown Employee'}</TableCell>
+                    <TableCell className="capitalize">{claim.financialPolicyName || claim.claimCategory}</TableCell>
                     <TableCell>{getStatusBadge(claim.status)}</TableCell>
-                    <TableCell>{claim.description || 'N/A'}</TableCell>
+                    <TableCell>{claim.particulars || 'N/A'}</TableCell>
                     <TableCell>RM {parseFloat(claim.amount).toFixed(2)}</TableCell>
                     <TableCell>
                       {(() => {
@@ -704,13 +704,20 @@ export default function MyRecordPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm" data-testid={`button-view-claim-${claim.id}`}>
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        {claim.receiptUrl && (
-                          <Button variant="outline" size="sm" data-testid={`button-download-receipt-${claim.id}`}>
-                            <Download className="h-4 w-4" />
-                          </Button>
+                        {claim.supportingDocuments && claim.supportingDocuments.length > 0 ? (
+                          claim.supportingDocuments.map((doc, docIndex) => (
+                            <Button 
+                              key={docIndex}
+                              variant="outline" 
+                              size="sm" 
+                              data-testid={`button-download-document-${claim.id}-${docIndex}`}
+                            >
+                              <Download className="h-4 w-4 mr-1" />
+                              Doc {docIndex + 1}
+                            </Button>
+                          ))
+                        ) : (
+                          <span className="text-gray-500 text-sm">No documents</span>
                         )}
                       </div>
                     </TableCell>
