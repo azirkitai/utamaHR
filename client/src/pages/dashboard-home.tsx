@@ -21,6 +21,9 @@ import {
 } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import utamaMedgroupImage from "@assets/PANEL KLINIK UTAMA_1754579785517.png";
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 
 interface DashboardData {
   message: string;
@@ -78,6 +81,26 @@ interface LeaveApplication {
   reason: string;
 }
 
+interface Event {
+  id: string;
+  title: string;
+  description: string;
+  startDate: string;
+  endDate?: string;
+  time?: string;
+  selectedEmployee?: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface Holiday {
+  id: string;
+  name: string;
+  date: string;
+  isPublic: boolean;
+}
+
 const weeklyData = [
   { day: 'Mon', clockIn: 8, onLeave: 2 },
   { day: 'Tue', clockIn: 9, onLeave: 1 },
@@ -87,6 +110,15 @@ const weeklyData = [
 ];
 
 export default function DashboardHome() {
+  // Calendar state
+  const [currentDate, setCurrentDate] = useState(new Date(2025, 7, 1)); // August 2025
+  const [selectedEvents, setSelectedEvents] = useState<Event[]>([]);
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+  const [selectedHoliday, setSelectedHoliday] = useState<Holiday | null>(null);
+  const [isHolidayModalOpen, setIsHolidayModalOpen] = useState(false);
+  const [selectedDateLeaves, setSelectedDateLeaves] = useState<LeaveApplication[]>([]);
+  const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+
   // Fetch dashboard data
   const { data: dashboardData, isLoading: isDashboardLoading } = useQuery<DashboardData>({
     queryKey: ["/api/dashboard"],
@@ -139,6 +171,18 @@ export default function DashboardHome() {
     queryFn: () => authenticatedFetch('/api/leave-applications/all-for-calendar'),
   });
 
+  // Fetch events for calendar
+  const { data: events = [] } = useQuery<Event[]>({
+    queryKey: ["/api/events"],
+    queryFn: () => authenticatedFetch('/api/events'),
+  });
+
+  // Fetch holidays for calendar
+  const { data: holidays = [] } = useQuery<Holiday[]>({
+    queryKey: ["/api/holidays"],
+    queryFn: () => authenticatedFetch('/api/holidays'),
+  });
+
   // Convert statistics to pie chart format
   const employeeData = employeeStats ? [
     { name: 'Active', value: employeeStats.activeCount, color: '#0891b2' },
@@ -169,6 +213,138 @@ export default function DashboardHome() {
       })
       .slice(0, 5); // Show only 5 upcoming leave dates
   };
+
+  // Calendar helper functions
+  const getEventsForDate = (date: number) => {
+    if (!events || events.length === 0) return [];
+    
+    const filteredEvents = events.filter(event => {
+      // Parse event dates as strings in YYYY-MM-DD format
+      const eventStartParts = event.startDate.split('-');
+      const eventEndParts = (event.endDate || event.startDate).split('-');
+      
+      const eventStartYear = parseInt(eventStartParts[0]);
+      const eventStartMonth = parseInt(eventStartParts[1]) - 1; // Month is 0-indexed
+      const eventStartDate = parseInt(eventStartParts[2]);
+      
+      const eventEndYear = parseInt(eventEndParts[0]);
+      const eventEndMonth = parseInt(eventEndParts[1]) - 1; // Month is 0-indexed
+      const eventEndDate = parseInt(eventEndParts[2]);
+      
+      // Check if the calendar date falls within the event date range
+      const calendarYear = currentDate.getFullYear();
+      const calendarMonth = currentDate.getMonth();
+      const calendarDate = date;
+      
+      // Compare year, month, and date
+      const isAfterStart = (calendarYear > eventStartYear) || 
+                          (calendarYear === eventStartYear && calendarMonth > eventStartMonth) ||
+                          (calendarYear === eventStartYear && calendarMonth === eventStartMonth && calendarDate >= eventStartDate);
+      
+      const isBeforeEnd = (calendarYear < eventEndYear) || 
+                         (calendarYear === eventEndYear && calendarMonth < eventEndMonth) ||
+                         (calendarYear === eventEndYear && calendarMonth === eventEndMonth && calendarDate <= eventEndDate);
+      
+      return isAfterStart && isBeforeEnd;
+    });
+    
+    return filteredEvents;
+  };
+
+  const getHolidayForDate = (date: number) => {
+    const targetDateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
+    return holidays.find(holiday => holiday.date === targetDateStr);
+  };
+
+  const getLeavesForDate = (date: number) => {
+    if (!allLeaveApplications || allLeaveApplications.length === 0) return [];
+    
+    const targetDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), date);
+    
+    return allLeaveApplications.filter(leave => {
+      const startDate = new Date(leave.startDate);
+      const endDate = new Date(leave.endDate);
+      
+      // Set time to 00:00:00 for accurate date comparison
+      const targetDateOnly = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+      const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+      const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+      
+      return targetDateOnly >= startDateOnly && targetDateOnly <= endDateOnly;
+    });
+  };
+
+  // Calendar click handlers
+  const handleEventClick = (events: Event[]) => {
+    if (events.length > 0) {
+      setSelectedEvents(events);
+      setIsEventModalOpen(true);
+    }
+  };
+
+  const handleHolidayClick = (holiday: Holiday) => {
+    setSelectedHoliday(holiday);
+    setIsHolidayModalOpen(true);
+  };
+
+  const handleLeaveClick = (leaves: LeaveApplication[]) => {
+    if (leaves.length > 0) {
+      setSelectedDateLeaves(leaves);
+      setIsLeaveModalOpen(true);
+    }
+  };
+
+  // Generate calendar days for current month view (mini calendar)
+  const generateCalendarDays = () => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const today = new Date();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+
+    const days = [];
+    
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push({ date: null, isOtherMonth: true });
+    }
+
+    // Add days of the current month
+    for (let date = 1; date <= daysInMonth; date++) {
+      const isToday = year === today.getFullYear() && 
+                     month === today.getMonth() && 
+                     date === today.getDate();
+      
+      days.push({ 
+        date, 
+        isOtherMonth: false, 
+        isToday,
+        events: getEventsForDate(date),
+        holiday: getHolidayForDate(date),
+        leaves: getLeavesForDate(date)
+      });
+    }
+
+    return days;
+  };
+
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    setCurrentDate(prev => {
+      const newDate = new Date(prev);
+      if (direction === 'prev') {
+        newDate.setMonth(prev.getMonth() - 1);
+      } else {
+        newDate.setMonth(prev.getMonth() + 1);
+      }
+      return newDate;
+    });
+  };
+
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const currentMonthName = monthNames[currentDate.getMonth()];
+  const currentYear = currentDate.getFullYear();
 
   // Get current user's employee data for fullName
   const { data: currentEmployee } = useQuery({
@@ -409,15 +585,83 @@ export default function DashboardHome() {
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="text-xl text-gray-800">Team Calendar</CardTitle>
-                <p className="text-sm text-gray-600">03 Aug - 09 Aug 2025</p>
+                <p className="text-sm text-gray-600">{currentMonthName} {currentYear}</p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigateMonth('prev')}
+                  className="p-2"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigateMonth('next')}
+                  className="p-2"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-7 gap-2 mb-4">
-                {['Mon 8/4', 'Tue 8/5', 'Wed 8/6', 'Thu 8/7', 'Fri 8/8', 'Sat 8/9', 'Sun 8/10'].map((day) => (
-                  <div key={day} className="text-center">
-                    <div className="text-xs font-medium text-gray-600 mb-2">{day}</div>
-                    <div className="h-20 bg-yellow-50 rounded border border-yellow-200"></div>
+              {/* Calendar Header */}
+              <div className="grid grid-cols-7 gap-1 mb-2">
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                  <div key={day} className="text-center py-2">
+                    <div className="text-xs font-medium text-gray-600">{day}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Calendar Body */}
+              <div className="grid grid-cols-7 gap-1">
+                {generateCalendarDays().map((day, index) => (
+                  <div key={index} className={cn(
+                    "min-h-[80px] p-1 border border-gray-100 rounded relative",
+                    day.isOtherMonth && "opacity-30",
+                    day.isToday && "bg-blue-50 border-blue-200"
+                  )}>
+                    {day.date && (
+                      <div className="text-xs font-medium text-gray-900 mb-1">
+                        {day.date}
+                      </div>
+                    )}
+                    
+                    {/* Holiday indicator */}
+                    {day.holiday && (
+                      <div 
+                        className="text-xs px-1 py-1 bg-red-100 text-red-800 rounded mb-1 truncate cursor-pointer hover:bg-red-200 transition-colors"
+                        onClick={() => handleHolidayClick(day.holiday!)}
+                        title={`Holiday: ${day.holiday.name} - Klik untuk maklumat lengkap`}
+                      >
+                        🏛️ {day.holiday.name.length > 8 ? day.holiday.name.substring(0, 8) + '...' : day.holiday.name}
+                      </div>
+                    )}
+
+                    {/* Event indicators */}
+                    {day.events && day.events.length > 0 && (
+                      <div 
+                        className="text-xs px-1 py-1 bg-green-100 text-green-800 rounded mb-1 truncate cursor-pointer hover:bg-green-200 transition-colors"
+                        onClick={() => handleEventClick(day.events!)}
+                        title={`Events: ${day.events!.map(e => e.title).join(', ')} - Klik untuk maklumat lengkap`}
+                      >
+                        📅 {day.events.length > 1 ? `${day.events.length} events` : day.events[0].title.length > 6 ? day.events[0].title.substring(0, 6) + '...' : day.events[0].title}
+                      </div>
+                    )}
+
+                    {/* Leave indicators */}
+                    {day.leaves && day.leaves.length > 0 && (
+                      <div 
+                        className="text-xs px-1 py-1 bg-yellow-100 text-yellow-800 rounded mb-1 truncate cursor-pointer hover:bg-yellow-200 transition-colors"
+                        onClick={() => handleLeaveClick(day.leaves!)}
+                        title={`Leaves: ${day.leaves!.map(l => l.applicant).join(', ')} - Klik untuk maklumat lengkap`}
+                      >
+                        🏖️ {day.leaves.length} leave{day.leaves.length > 1 ? 's' : ''}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -492,6 +736,195 @@ export default function DashboardHome() {
             </Card>
           </div>
         </div>
+
+        {/* Event Details Modal */}
+        <Dialog open={isEventModalOpen} onOpenChange={setIsEventModalOpen}>
+          <DialogContent className="max-w-lg" aria-describedby="event-details-description">
+            <DialogHeader>
+              <DialogTitle>Maklumat Event</DialogTitle>
+            </DialogHeader>
+            <p id="event-details-description" className="sr-only">
+              Details about the selected events.
+            </p>
+            
+            <div className="space-y-4">
+              {selectedEvents.map((event, index) => (
+                <div key={event.id} className="border rounded-lg p-4 bg-green-50 border-green-200">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="text-2xl">📅</div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg text-green-800">{event.title}</h3>
+                      <p className="text-sm text-green-600">Event {index + 1}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Keterangan:</p>
+                      <p className="text-base bg-white p-2 rounded border">{event.description}</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Tarikh Mula:</p>
+                        <p className="text-base">{new Date(event.startDate).toLocaleDateString('en-GB')}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Tarikh Tamat:</p>
+                        <p className="text-base">{new Date(event.endDate || event.startDate).toLocaleDateString('en-GB')}</p>
+                      </div>
+                    </div>
+                    
+                    {event.time && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Masa:</p>
+                        <p className="text-base">{event.time}</p>
+                      </div>
+                    )}
+                    
+                    {event.selectedEmployee && event.selectedEmployee !== "everyone" && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Kakitangan Terlibat:</p>
+                        <p className="text-base">{event.selectedEmployee}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <DialogFooter>
+              <Button 
+                onClick={() => setIsEventModalOpen(false)}
+                className="bg-green-600 hover:bg-green-700 text-white"
+                data-testid="button-close-event-modal"
+              >
+                Tutup
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Holiday Details Modal */}
+        <Dialog open={isHolidayModalOpen} onOpenChange={setIsHolidayModalOpen}>
+          <DialogContent className="max-w-md" aria-describedby="holiday-details-description">
+            <DialogHeader>
+              <DialogTitle>Maklumat Hari Kelepasan</DialogTitle>
+            </DialogHeader>
+            <p id="holiday-details-description" className="sr-only">
+              Details about the selected holiday.
+            </p>
+            
+            {selectedHoliday && (
+              <div className="space-y-4">
+                <div className="border rounded-lg p-4 bg-red-50 border-red-200">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="text-2xl">🏛️</div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg text-red-800">{selectedHoliday.name}</h3>
+                      <p className="text-sm text-red-600">Hari Kelepasan Awam</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Tarikh:</p>
+                      <p className="text-base bg-white p-2 rounded border">
+                        {new Date(selectedHoliday.date).toLocaleDateString('en-GB')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <DialogFooter>
+              <Button 
+                onClick={() => setIsHolidayModalOpen(false)}
+                className="bg-red-600 hover:bg-red-700 text-white"
+                data-testid="button-close-holiday-modal"
+              >
+                Tutup
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Leave Details Modal */}
+        <Dialog open={isLeaveModalOpen} onOpenChange={setIsLeaveModalOpen}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" aria-describedby="leave-details-description">
+            <DialogHeader>
+              <DialogTitle>Maklumat Cuti</DialogTitle>
+            </DialogHeader>
+            <p id="leave-details-description" className="sr-only">
+              Details about leave applications for the selected date.
+            </p>
+            
+            <div className="space-y-4">
+              {selectedDateLeaves.map((leave) => (
+                <div key={leave.id} className="flex items-start space-x-4 p-4 border rounded-lg bg-yellow-50 border-yellow-200">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="text-2xl">🏖️</div>
+                      <div>
+                        <h3 className="font-semibold text-lg text-yellow-800">{leave.applicant}</h3>
+                        <p className="text-sm text-yellow-600">Permohonan Cuti</p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 mb-3">
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Jenis Cuti:</p>
+                        <p className="text-sm">{leave.leaveType}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Tempoh:</p>
+                        <p className="text-sm">{leave.totalDays} hari</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Tarikh Mula:</p>
+                        <p className="text-sm">{new Date(leave.startDate).toLocaleDateString('en-GB')}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Tarikh Tamat:</p>
+                        <p className="text-sm">{new Date(leave.endDate).toLocaleDateString('en-GB')}</p>
+                      </div>
+                    </div>
+                    
+                    {leave.reason && (
+                      <div className="mb-3">
+                        <p className="text-sm font-medium text-gray-700">Sebab:</p>
+                        <p className="text-sm bg-white p-2 rounded">{leave.reason}</p>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <Badge 
+                    className={cn(
+                      "ml-4",
+                      leave.status === 'Approved' ? 'bg-green-100 text-green-800' :
+                      leave.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                      leave.status === 'First Level Approved' ? 'bg-blue-100 text-blue-800' :
+                      'bg-red-100 text-red-800'
+                    )}
+                  >
+                    {leave.status === 'First Level Approved' ? 'Level 1 Approved' : leave.status}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+            
+            <DialogFooter>
+              <Button 
+                onClick={() => setIsLeaveModalOpen(false)}
+                className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                data-testid="button-close-leave-modal"
+              >
+                Tutup
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );
