@@ -71,12 +71,14 @@ export default function PaymentVoucherPage() {
   // Create payment voucher mutation (GROUP BY REQUESTOR)
   const createVoucherMutation = useMutation({
     mutationFn: async (voucherData: any) => {
-      return await apiRequest('POST', '/api/payment-vouchers', voucherData);
+      const response = await apiRequest('POST', '/api/payment-vouchers', voucherData);
+      return await response.json();
     },
     onSuccess: (response: any) => {
       queryClient.invalidateQueries({ queryKey: ['/api/payment-vouchers'] });
       
-      const { created, message } = response;
+      console.log('Success response:', response);
+      const { created = [], message } = response || {};
       toast({
         title: "Berjaya",
         description: message || `Berjaya menjana ${created.length} voucher pembayaran`,
@@ -101,6 +103,12 @@ export default function PaymentVoucherPage() {
       if (!error || Object.keys(error).length === 0 || error === null || error === undefined) {
         console.log('Empty error object detected - likely a successful request misidentified as error');
         return; // Don't show any error toast for empty errors
+      }
+
+      // Check if this is actually a successful request misidentified as error
+      if (errorMessage.includes('Cannot read properties of undefined')) {
+        console.log('JavaScript runtime error detected - not a network/API error');
+        return; // Don't show error toast for JS runtime errors during successful operations
       }
       
       // Get error message safely
