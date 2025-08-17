@@ -638,8 +638,8 @@ export default function ApplyClaimPage() {
                   <h2 className="text-xl font-semibold">What you have claimed so far</h2>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white/20 p-4 rounded-lg">
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="bg-white/20 p-6 rounded-lg">
                     <div className="text-xs text-teal-100 mb-1">TOTAL APPROVED</div>
                     <div className="text-2xl font-bold">
                       {isLoadingTotals ? "Loading..." : `RM ${(userClaimTotals?.totalApproved || 0).toFixed(2)}`}
@@ -649,8 +649,6 @@ export default function ApplyClaimPage() {
                       <CreditCard className="w-12 h-12 text-white/50" />
                     </div>
                   </div>
-                  
-                  
                 </div>
 
                 
