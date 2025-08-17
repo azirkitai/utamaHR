@@ -165,30 +165,13 @@ export default function ApplyClaimPage() {
     const privilegedRoles = ['Super Admin', 'Admin', 'HR Manager'];
     const userRole = (currentUser as any)?.role;
     
-    console.log('=== CLAIM FILTERING DEBUG ===');
-    console.log('Current user role:', userRole);
-    console.log('Current user employee ID:', currentUserEmployee.id);
-    console.log('Total claims received:', claims.length);
-    console.log('Sample claims:', claims.slice(0, 2).map(c => ({ id: c.id, employeeId: c.employeeId, amount: c.amount, status: c.status })));
-    
-    let filteredClaims;
     if (privilegedRoles.includes(userRole)) {
       // Privileged users can see all claims
-      console.log('User has privileged role, showing all claims');
-      filteredClaims = claims;
+      return claims;
     } else {
       // Regular users can only see their own claims
-      console.log('Regular user, filtering by employee ID:', currentUserEmployee.id);
-      filteredClaims = claims.filter((claim: any) => {
-        const matches = claim.employeeId === currentUserEmployee.id;
-        console.log(`Claim ${claim.id}: employeeId=${claim.employeeId}, matches=${matches}`);
-        return matches;
-      });
+      return claims.filter((claim: any) => claim.employeeId === currentUserEmployee.id);
     }
-    
-    console.log('Filtered claims count:', filteredClaims.length);
-    console.log('=== END CLAIM FILTERING DEBUG ===');
-    return filteredClaims;
   };
 
   const filteredFinancialClaims = getFilteredClaims(recentFinancialClaims);
@@ -720,9 +703,9 @@ export default function ApplyClaimPage() {
                   <CardTitle>Recent Claim Application</CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
-                  <div className="overflow-x-auto">
+                  <div className="overflow-x-auto max-h-96 overflow-y-auto">
                     <table className="w-full">
-                      <thead>
+                      <thead className="sticky top-0 bg-white">
                         <tr className="border-b">
                           <th className="text-left py-3 px-4 font-medium text-gray-700">Pemohon</th>
                           <th className="text-left py-3 px-4 font-medium text-gray-700">Claim Type</th>
@@ -1033,9 +1016,9 @@ export default function ApplyClaimPage() {
                   <CardTitle>Recent Claim Application</CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
-                  <div className="overflow-x-auto">
+                  <div className="overflow-x-auto max-h-96 overflow-y-auto">
                     <table className="w-full">
-                      <thead>
+                      <thead className="sticky top-0 bg-white">
                         <tr className="border-b">
                           <th className="text-left py-3 px-4 font-medium text-gray-700">Pemohon</th>
                           <th className="text-left py-3 px-4 font-medium text-gray-700">Claim Type</th>
