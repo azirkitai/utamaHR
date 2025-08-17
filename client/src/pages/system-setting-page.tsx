@@ -1724,16 +1724,29 @@ export default function SystemSettingPage() {
 
   // Delete financial policy handler
   const handleDeleteFinancialPolicy = async (policyId: string) => {
-    const policyData = financialPolicyForm[policyId];
-    if (!policyData) return;
+    console.log('🗑️ Delete button clicked for policy:', policyId);
+    
+    // Get policy data from either form or API data
+    const formData = financialPolicyForm[policyId];
+    const existingPolicy = financialClaimPoliciesData?.find(
+      (p: FinancialClaimPolicy) => p.id === policyId
+    );
+    
+    console.log('Form data:', formData);
+    console.log('Existing policy:', existingPolicy);
+    
+    const policyName = formData?.claimName || existingPolicy?.claimName || 'polisi ini';
 
     // Show confirmation dialog
     const confirmed = window.confirm(
-      `Adakah anda pasti untuk memadamkan polisi "${policyData.claimName}"? Tindakan ini tidak boleh dibatalkan.`
+      `Adakah anda pasti untuk memadamkan polisi "${policyName}"? Tindakan ini tidak boleh dibatalkan.`
     );
 
     if (confirmed) {
+      console.log('User confirmed deletion, calling mutation...');
       deleteFinancialPolicyMutation.mutate(policyId);
+    } else {
+      console.log('User cancelled deletion');
     }
   };
 
