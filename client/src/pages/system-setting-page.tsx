@@ -40,7 +40,8 @@ import {
   Calendar,
   MapPin,
   Navigation,
-  Loader2
+  Loader2,
+  Trash2
 } from "lucide-react";
 import { useLocation, Link as RouterLink } from "wouter";
 import { cn } from "@/lib/utils";
@@ -824,6 +825,31 @@ export default function SystemSettingPage() {
       toast({
         title: "Ralat",
         description: "Gagal mengemaskini polisi claim. Sila cuba lagi.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete financial policy mutation
+  const deleteFinancialPolicyMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest(`/api/financial-claim-policies/${id}`, {
+        method: "DELETE",
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Polisi claim dipadam",
+        description: "Polisi claim kewangan berjaya dipadam dari sistem.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/financial-claim-policies"] });
+      // Close expanded policy if it was deleted
+      setExpandedFinancialPolicyId(null);
+    },
+    onError: (error) => {
+      toast({
+        title: "Ralat",
+        description: "Gagal memadamkan polisi claim. Sila cuba lagi.",
         variant: "destructive",
       });
     },
@@ -1696,6 +1722,21 @@ export default function SystemSettingPage() {
     }
   };
 
+  // Delete financial policy handler
+  const handleDeleteFinancialPolicy = async (policyId: string) => {
+    const policyData = financialPolicyForm[policyId];
+    if (!policyData) return;
+
+    // Show confirmation dialog
+    const confirmed = window.confirm(
+      `Adakah anda pasti untuk memadamkan polisi "${policyData.claimName}"? Tindakan ini tidak boleh dibatalkan.`
+    );
+
+    if (confirmed) {
+      deleteFinancialPolicyMutation.mutate(policyId);
+    }
+  };
+
   // Handler untuk cancel changes
   const handleCancelFinancialPolicy = (policyId: string) => {
     // Reset form untuk policy ini ke nilai asal atau kosong
@@ -2381,11 +2422,20 @@ export default function SystemSettingPage() {
                       >
                         {expandedFinancialPolicyId === policyId ? "See Less" : "See More"}
                       </Button>
-                      <Switch 
-                        checked={policy.enabled !== false}
-                        className="data-[state=checked]:bg-blue-900"
-                        data-testid={`switch-financial-${policyId}`}
-                      />
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => handleDeleteFinancialPolicy(policyId)}
+                        disabled={deleteFinancialPolicyMutation.isPending}
+                        data-testid={`button-delete-policy-${policyId}`}
+                      >
+                        {deleteFinancialPolicyMutation.isPending ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4" />
+                        )}
+                      </Button>
                     </div>
                   </div>
 
