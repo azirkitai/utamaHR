@@ -640,7 +640,7 @@ export default function DashboardHome() {
                         data-testid={`button-acknowledge-${announcement.id}`}
                       >
                         <CheckCircle className="w-3 h-3 mr-1" />
-                        Baca
+                        Read
                       </Button>
                     </div>
                   </div>
