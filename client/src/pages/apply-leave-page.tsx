@@ -316,7 +316,7 @@ export default function ApplyLeavePage() {
           {/* Main Content */}
           <div className="flex-1 p-6">
           {/* Available Leave Banner */}
-          <div className="bg-gradient-to-r from-teal-400 to-blue-600 text-white p-6 rounded-lg mb-6">
+          <div className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white p-6 rounded-lg mb-6">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-semibold mb-2">Available Leave</h2>

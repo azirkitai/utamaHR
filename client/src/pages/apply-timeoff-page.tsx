@@ -75,7 +75,7 @@ export default function ApplyTimeoffPage() {
           {/* Main Content */}
           <div className="flex-1 p-6">
             {/* Summary Panel */}
-            <div className="bg-gradient-to-r from-teal-400 to-blue-600 text-white p-6 rounded-lg mb-6">
+            <div className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white p-6 rounded-lg mb-6">
               <h2 className="text-xl font-semibold mb-4">Time off you have taken so far</h2>
               
               <div className="grid grid-cols-3 gap-4">

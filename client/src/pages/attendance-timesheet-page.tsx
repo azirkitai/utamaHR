@@ -171,7 +171,7 @@ export default function AttendanceTimesheetPage() {
 
   const renderTodayAttendanceTab = () => (
     <div className="space-y-6">
-      <div className="flex justify-between items-center bg-gradient-to-r from-cyan-600 to-teal-600 text-white p-4 rounded-lg">
+      <div className="flex justify-between items-center bg-gradient-to-r from-cyan-400 to-blue-700 text-white p-4 rounded-lg">
         <div className="flex items-center space-x-4">
           <h3 className="text-lg font-semibold">Today Attendance Record</h3>
           <div className="flex items-center space-x-2 bg-white/20 px-3 py-1 rounded">

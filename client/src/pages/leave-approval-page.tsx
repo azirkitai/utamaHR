@@ -437,7 +437,7 @@ export default function LeaveApprovalPage() {
             employees.map((employee: any, index: number) => (
               <TableRow key={employee.employeeId} className="hover:bg-gray-50">
                 <TableCell>
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-cyan-500 to-cyan-600 flex items-center justify-center text-white text-sm font-medium">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-cyan-400 to-blue-700 flex items-center justify-center text-white text-sm font-medium">
                     {index + 1}
                   </div>
                 </TableCell>
@@ -649,7 +649,7 @@ export default function LeaveApprovalPage() {
         {/* Content Section */}
         <div className="bg-white rounded-lg shadow">
           {/* Section Header */}
-          <div className="bg-gradient-to-r from-cyan-500 to-cyan-600 text-white px-6 py-4 rounded-t-lg">
+          <div className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white px-6 py-4 rounded-t-lg">
             <h2 className="text-lg font-medium">{getSectionTitle()}</h2>
           </div>
 

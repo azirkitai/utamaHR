@@ -494,7 +494,7 @@ export default function DashboardHome() {
 
         {/* Your Statistic */}
         <Card>
-          <CardHeader className="bg-gradient-to-r from-[#07A3B2] to-[#D9ECC7] text-white rounded-t-lg">
+          <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white rounded-t-lg">
             <CardTitle className="text-xl font-semibold">Your Statistic</CardTitle>
           </CardHeader>
           <CardContent className="p-6">
