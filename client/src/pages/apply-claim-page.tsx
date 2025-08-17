@@ -688,15 +688,17 @@ export default function ApplyClaimPage() {
                               </td>
                               <td className="py-3 px-4">
                                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                  claim.status === 'approved' 
+                                  claim.status?.toLowerCase() === 'approved' 
                                     ? 'bg-green-100 text-green-800' 
-                                    : claim.status === 'rejected'
+                                    : claim.status?.toLowerCase() === 'rejected'
                                     ? 'bg-red-100 text-red-800'
                                     : 'bg-yellow-100 text-yellow-800'
                                 }`}>
-                                  {claim.status === 'pending' ? 'Pending' : 
-                                   claim.status === 'approved' ? 'Approved' :
-                                   claim.status === 'rejected' ? 'Rejected' : 'Unknown'}
+                                  {claim.status?.toLowerCase() === 'pending' ? 'Pending' : 
+                                   claim.status?.toLowerCase() === 'approved' ? 'Approved' :
+                                   claim.status?.toLowerCase() === 'rejected' ? 'Rejected' : 
+                                   claim.status?.toLowerCase() === 'firstlevelapproved' ? 'First Level Approved' :
+                                   claim.status || 'Unknown'}
                                 </span>
                               </td>
                               <td className="py-3 px-4">
@@ -987,15 +989,17 @@ export default function ApplyClaimPage() {
                               </td>
                               <td className="py-3 px-4">
                                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                  claim.status === 'approved' 
+                                  claim.status?.toLowerCase() === 'approved' 
                                     ? 'bg-green-100 text-green-800' 
-                                    : claim.status === 'rejected'
+                                    : claim.status?.toLowerCase() === 'rejected'
                                     ? 'bg-red-100 text-red-800'
                                     : 'bg-yellow-100 text-yellow-800'
                                 }`}>
-                                  {claim.status === 'pending' ? 'Pending' : 
-                                   claim.status === 'approved' ? 'Approved' :
-                                   claim.status === 'rejected' ? 'Rejected' : 'Unknown'}
+                                  {claim.status?.toLowerCase() === 'pending' ? 'Pending' : 
+                                   claim.status?.toLowerCase() === 'approved' ? 'Approved' :
+                                   claim.status?.toLowerCase() === 'rejected' ? 'Rejected' : 
+                                   claim.status?.toLowerCase() === 'firstlevelapproved' ? 'First Level Approved' :
+                                   claim.status || 'Unknown'}
                                 </span>
                               </td>
                               <td className="py-3 px-4">
