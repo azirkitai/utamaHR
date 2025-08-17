@@ -17,11 +17,13 @@ import {
   CreditCard,
   Timer,
   FileText,
-  Calendar
+  Calendar,
+  X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { apiRequest } from "@/lib/queryClient";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 type ClaimCategory = 'main' | 'financial' | 'overtime';
 
@@ -51,6 +53,8 @@ export default function ApplyClaimPage() {
   const [selectedRequestor, setSelectedRequestor] = useState("");
   const [expandedSectionId, setExpandedSectionId] = useState<string | null>(null);
   const [validationError, setValidationError] = useState("");
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [selectedClaimForView, setSelectedClaimForView] = useState<any>(null);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -275,6 +279,11 @@ export default function ApplyClaimPage() {
     } finally {
       setIsValidating(false);
     }
+  };
+
+  const handleViewClaim = (claim: any) => {
+    setSelectedClaimForView(claim);
+    setShowViewModal(true);
   };
 
   const handleSubmit = async () => {
@@ -702,7 +711,12 @@ export default function ApplyClaimPage() {
                                 </span>
                               </td>
                               <td className="py-3 px-4">
-                                <Button variant="outline" size="sm">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleViewClaim(claim)}
+                                  data-testid={`button-view-financial-${claim.id}`}
+                                >
                                   View
                                 </Button>
                               </td>
@@ -1003,7 +1017,12 @@ export default function ApplyClaimPage() {
                                 </span>
                               </td>
                               <td className="py-3 px-4">
-                                <Button variant="outline" size="sm">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleViewClaim(claim)}
+                                  data-testid={`button-view-overtime-${claim.id}`}
+                                >
                                   View
                                 </Button>
                               </td>
@@ -1142,6 +1161,169 @@ export default function ApplyClaimPage() {
           </div>
         )}
       </div>
+
+      {/* View Claim Modal */}
+      <Dialog open={showViewModal} onOpenChange={setShowViewModal}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>Application Details</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowViewModal(false)}
+                className="h-6 w-6 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedClaimForView && (
+            <div className="space-y-4">
+              {/* Basic Information */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-lg mb-3">Basic Information</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Applicant</label>
+                    <p className="text-sm font-medium">
+                      {availableEmployees.find((emp: any) => emp.id === selectedClaimForView.employeeId)?.fullName || 'Unknown'}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Application Date</label>
+                    <p className="text-sm font-medium">
+                      {new Date(selectedClaimForView.dateSubmitted).toLocaleDateString('en-MY')}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Claim Date</label>
+                    <p className="text-sm font-medium">
+                      {new Date(selectedClaimForView.claimDate || selectedClaimForView.dateSubmitted).toLocaleDateString('en-MY')}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Status</label>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      selectedClaimForView.status?.toLowerCase() === 'approved' 
+                        ? 'bg-green-100 text-green-800' 
+                        : selectedClaimForView.status?.toLowerCase() === 'rejected'
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {selectedClaimForView.status?.toLowerCase() === 'pending' ? 'Pending' : 
+                       selectedClaimForView.status?.toLowerCase() === 'approved' ? 'Approved' :
+                       selectedClaimForView.status?.toLowerCase() === 'rejected' ? 'Rejected' : 
+                       selectedClaimForView.status?.toLowerCase() === 'firstlevelapproved' ? 'First Level Approved' :
+                       selectedClaimForView.status || 'Unknown'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Claim Details */}
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-lg mb-3">Claim Details</h3>
+                <div className="grid grid-cols-1 gap-4">
+                  {selectedClaimForView.claimType === 'financial' ? (
+                    <>
+                      <div>
+                        <label className="text-sm font-medium text-gray-600">Claim Type</label>
+                        <p className="text-sm font-medium">{selectedClaimForView.financialPolicyName || selectedClaimForView.claimType}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-600">Amount</label>
+                        <p className="text-sm font-medium">RM {parseFloat(selectedClaimForView.amount || 0).toFixed(2)}</p>
+                      </div>
+                      {selectedClaimForView.particulars && (
+                        <div>
+                          <label className="text-sm font-medium text-gray-600">Particulars</label>
+                          <p className="text-sm font-medium">{selectedClaimForView.particulars}</p>
+                        </div>
+                      )}
+                      {selectedClaimForView.remark && (
+                        <div>
+                          <label className="text-sm font-medium text-gray-600">Remarks</label>
+                          <p className="text-sm font-medium">{selectedClaimForView.remark}</p>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <div>
+                        <label className="text-sm font-medium text-gray-600">Claim Type</label>
+                        <p className="text-sm font-medium">Overtime</p>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <label className="text-sm font-medium text-gray-600">Start Time</label>
+                          <p className="text-sm font-medium">{selectedClaimForView.startTime || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-600">End Time</label>
+                          <p className="text-sm font-medium">{selectedClaimForView.endTime || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-600">Total Hours</label>
+                          <p className="text-sm font-medium">
+                            {selectedClaimForView.totalHours ? `${parseFloat(selectedClaimForView.totalHours).toFixed(1)} hrs` : 'N/A'}
+                          </p>
+                        </div>
+                      </div>
+                      {selectedClaimForView.reason && (
+                        <div>
+                          <label className="text-sm font-medium text-gray-600">Reason</label>
+                          <p className="text-sm font-medium">{selectedClaimForView.reason}</p>
+                        </div>
+                      )}
+                      {selectedClaimForView.additionalDescription && (
+                        <div>
+                          <label className="text-sm font-medium text-gray-600">Additional Description</label>
+                          <p className="text-sm font-medium">{selectedClaimForView.additionalDescription}</p>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Supporting Documents */}
+              {selectedClaimForView.supportingDocuments && selectedClaimForView.supportingDocuments.length > 0 && (
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-lg mb-3">Supporting Documents</h3>
+                  <div className="space-y-2">
+                    {selectedClaimForView.supportingDocuments.map((doc: string, index: number) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <FileText className="w-4 h-4 text-gray-500" />
+                        <a 
+                          href={doc} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline text-sm"
+                        >
+                          Document {index + 1}
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-2 pt-4 border-t">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowViewModal(false)}
+                  data-testid="button-close-view-modal"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }
