@@ -688,7 +688,20 @@ export default function MyRecordPage() {
                     <TableCell>{getStatusBadge(claim.status)}</TableCell>
                     <TableCell>{claim.description || 'N/A'}</TableCell>
                     <TableCell>RM {parseFloat(claim.amount).toFixed(2)}</TableCell>
-                    <TableCell>{format(new Date(claim.claimDate), 'dd/MM/yyyy')}</TableCell>
+                    <TableCell>
+                      {(() => {
+                        try {
+                          const claimDate = claim.claimDate ? new Date(claim.claimDate) : null;
+                          if (!claimDate || isNaN(claimDate.getTime())) {
+                            return 'Invalid Date';
+                          }
+                          return format(claimDate, 'dd/MM/yyyy');
+                        } catch (error) {
+                          console.error('Date formatting error for claim:', claim.id, 'date:', claim.claimDate, error);
+                          return 'Invalid Date';
+                        }
+                      })()}
+                    </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm" data-testid={`button-view-claim-${claim.id}`}>

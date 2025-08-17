@@ -3478,8 +3478,8 @@ export class DatabaseStorage implements IStorage {
         amount: row.claim_applications?.amount,
         description: row.claim_applications?.description,
         receiptUrl: row.claim_applications?.receipt_url,
-        claimDate: row.claim_applications?.claim_date,
-        dateSubmitted: row.claim_applications?.date_submitted,
+        claimDate: row.claim_applications?.claim_date ? new Date(row.claim_applications.claim_date).toISOString() : null,
+        dateSubmitted: row.claim_applications?.date_submitted ? new Date(row.claim_applications.date_submitted).toISOString() : null,
         requestorName: row.employees?.full_name || 'Unknown Employee',
       }));
 
