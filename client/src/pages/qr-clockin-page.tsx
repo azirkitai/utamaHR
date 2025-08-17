@@ -42,17 +42,19 @@ export default function QRClockInPage() {
   const [qrToken, setQrToken] = useState<QrToken | null>(null);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>("");
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
+  const [lastAttendanceStatus, setLastAttendanceStatus] = useState<TodayAttendanceStatus | null>(null);
   const qrCanvasRef = useRef<HTMLCanvasElement>(null);
 
   // Query for today's attendance status
   const { data: attendanceStatus, isLoading: statusLoading } = useQuery<TodayAttendanceStatus>({
     queryKey: ["/api/today-attendance-status"],
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 5000, // Refresh every 5 seconds for real-time updates
   });
 
   // Query for clock-in history
   const { data: clockInHistory, isLoading: historyLoading } = useQuery<{clockInRecords: ClockInRecord[]}>({
     queryKey: ["/api/clockin-history"],
+    refetchInterval: 5000, // Refresh every 5 seconds for real-time updates
   });
 
   // Generate QR Code mutation
@@ -102,7 +104,7 @@ export default function QRClockInPage() {
     },
   });
 
-  // Countdown timer effect
+  // Countdown timer effect with auto refresh after clock-in
   useEffect(() => {
     if (!qrToken) return;
 
@@ -115,6 +117,10 @@ export default function QRClockInPage() {
       if (remaining === 0) {
         setQrToken(null);
         setQrCodeDataUrl("");
+        // Refresh data after QR expires (might have been used)
+        queryClient.invalidateQueries({ queryKey: ["/api/today-attendance-status"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/clockin-history"] });
+        
         toast({
           title: "QR Code Tamat Tempoh",
           description: "Sila jana QR Code baharu untuk clock-in",
@@ -127,7 +133,77 @@ export default function QRClockInPage() {
     const interval = setInterval(updateTimer, 1000);
 
     return () => clearInterval(interval);
-  }, [qrToken, toast]);
+  }, [qrToken, toast, queryClient]);
+
+  // Auto refresh on window focus and visibility change (when user returns from mobile)
+  useEffect(() => {
+    const handleFocus = () => {
+      // Immediate refresh when user comes back to page
+      queryClient.invalidateQueries({ queryKey: ["/api/today-attendance-status"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/clockin-history"] });
+    };
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // Immediate refresh when page becomes visible
+        queryClient.invalidateQueries({ queryKey: ["/api/today-attendance-status"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/clockin-history"] });
+      }
+    };
+
+    // Add event listeners
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [queryClient]);
+
+  // Additional polling for real-time updates during active use
+  useEffect(() => {
+    const refreshInterval = setInterval(() => {
+      queryClient.invalidateQueries({ queryKey: ["/api/today-attendance-status"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/clockin-history"] });
+    }, 3000); // Poll every 3 seconds for immediate updates
+
+    return () => clearInterval(refreshInterval);
+  }, [queryClient]);
+
+  // Detect attendance status changes and notify user
+  useEffect(() => {
+    if (!attendanceStatus || !lastAttendanceStatus) {
+      setLastAttendanceStatus(attendanceStatus || null);
+      return;
+    }
+
+    // Check if clock-in status changed
+    if (!lastAttendanceStatus.isClockInCompleted && attendanceStatus.isClockInCompleted) {
+      toast({
+        title: "Clock-In Berjaya!",
+        description: "Rekod kehadiran telah dikemas kini",
+        variant: "default",
+      });
+      // Clear QR token since it was used successfully
+      setQrToken(null);
+      setQrCodeDataUrl("");
+    }
+
+    // Check if clock-out status changed  
+    if (!lastAttendanceStatus.isClockOutCompleted && attendanceStatus.isClockOutCompleted) {
+      toast({
+        title: "Clock-Out Berjaya!",
+        description: "Kehadiran hari ini telah selesai",
+        variant: "default",
+      });
+      // Clear QR token since it was used successfully
+      setQrToken(null);
+      setQrCodeDataUrl("");
+    }
+
+    setLastAttendanceStatus(attendanceStatus);
+  }, [attendanceStatus, lastAttendanceStatus, toast]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
