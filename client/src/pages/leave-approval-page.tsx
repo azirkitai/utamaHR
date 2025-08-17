@@ -753,7 +753,7 @@ export default function LeaveApprovalPage() {
               <div className="flex items-center space-x-2 ml-auto">
                 <Button 
                   variant="default" 
-                  className="bg-slate-800 hover:bg-slate-900 text-white"
+                  className="bg-gradient-to-r from-cyan-400 to-blue-700 hover:from-cyan-500 hover:to-blue-800 text-white"
                   data-testid="button-search"
                 >
                   <Search className="w-4 h-4 mr-2" />

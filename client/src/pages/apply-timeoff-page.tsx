@@ -107,7 +107,7 @@ export default function ApplyTimeoffPage() {
 
             {/* Recent Timeoff Application */}
             <Card>
-              <CardHeader className="bg-slate-700 text-white rounded-t-lg">
+              <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white rounded-t-lg">
                 <CardTitle>Recent Timeoff Application</CardTitle>
               </CardHeader>
               <CardContent className="p-6">
@@ -137,7 +137,7 @@ export default function ApplyTimeoffPage() {
           {/* Right Sidebar - Apply Form */}
           <div className="w-80 p-6 bg-white border-l">
             <Card>
-              <CardHeader className="bg-slate-600 text-white rounded-t-lg">
+              <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white rounded-t-lg">
                 <CardTitle className="text-center">Apply Timeoff</CardTitle>
               </CardHeader>
               <CardContent className="p-6 space-y-4">
@@ -241,7 +241,7 @@ export default function ApplyTimeoffPage() {
                 {/* Submit Button */}
                 <Button 
                   onClick={handleSubmit}
-                  className="w-full bg-slate-600 hover:bg-slate-700"
+                  className="w-full bg-gradient-to-r from-cyan-400 to-blue-700 hover:bg-gradient-to-r from-cyan-400 to-blue-700"
                   disabled={!timeoffDate || !startTime || !endTime || !reason}
                 >
                   Submit Now

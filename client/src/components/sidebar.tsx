@@ -267,7 +267,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
           variant="ghost"
           size="sm"
           onClick={onToggleCollapse}
-          className="text-white hover:bg-slate-700 p-1 absolute top-2 right-2"
+          className="text-white hover:bg-gradient-to-r from-cyan-400 to-blue-700 p-1 absolute top-2 right-2"
           data-testid="button-toggle-sidebar"
         >
           {isCollapsed ? (
@@ -305,7 +305,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
                         "w-full justify-start text-left h-10 px-3",
                         isActiveRoute(item.href)
                           ? "bg-cyan-600 text-white hover:bg-cyan-700"
-                          : "text-slate-300 hover:bg-slate-700 hover:text-white",
+                          : "text-slate-300 hover:bg-gradient-to-r from-cyan-400 to-blue-700 hover:text-white",
                         isCollapsed && "justify-center px-2"
                       )}
                       data-testid={`nav-${item.id}`}
@@ -326,7 +326,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
                                   "text-xs px-2 py-0",
                                   item.badge === "★" 
                                     ? "bg-yellow-500 text-yellow-900" 
-                                    : "bg-slate-600 text-white"
+                                    : "bg-gradient-to-r from-cyan-400 to-blue-700 text-white"
                                 )}
                               >
                                 {item.badge}
@@ -351,7 +351,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
                           "w-full justify-start text-left h-10 px-3",
                           isActiveRoute(item.href)
                             ? "bg-cyan-600 text-white hover:bg-cyan-700"
-                            : "text-slate-300 hover:bg-slate-700 hover:text-white",
+                            : "text-slate-300 hover:bg-gradient-to-r from-cyan-400 to-blue-700 hover:text-white",
                           isCollapsed && "justify-center px-2"
                         )}
                         data-testid={`nav-${item.id}`}
@@ -372,7 +372,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
                                     "text-xs px-2 py-0",
                                     item.badge === "★" 
                                       ? "bg-yellow-500 text-yellow-900" 
-                                      : "bg-slate-600 text-white"
+                                      : "bg-gradient-to-r from-cyan-400 to-blue-700 text-white"
                                   )}
                                 >
                                   {item.badge}
@@ -396,7 +396,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
                               "w-full justify-start text-left h-8 px-3",
                               isActiveRoute(child.href)
                                 ? "bg-cyan-600 text-white hover:bg-cyan-700"
-                                : "text-slate-400 hover:bg-slate-700 hover:text-white"
+                                : "text-slate-400 hover:bg-gradient-to-r from-cyan-400 to-blue-700 hover:text-white"
                             )}
                             data-testid={`nav-${child.id}`}
                           >

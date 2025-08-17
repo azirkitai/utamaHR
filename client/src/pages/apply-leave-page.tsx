@@ -490,7 +490,7 @@ export default function ApplyLeavePage() {
           {/* Right Sidebar - Apply Leave Form */}
           <div className="w-80 p-6 bg-white border-l">
           <Card>
-            <CardHeader className="bg-slate-600 text-white rounded-t-lg">
+            <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white rounded-t-lg">
               <CardTitle className="text-center">Apply Leave</CardTitle>
             </CardHeader>
             <CardContent className="p-6 space-y-6">
@@ -639,7 +639,7 @@ export default function ApplyLeavePage() {
               {/* Apply Button */}
               <Button 
                 onClick={handleApply}
-                className="w-full bg-slate-600 hover:bg-slate-700"
+                className="w-full bg-gradient-to-r from-cyan-400 to-blue-700 hover:from-cyan-500 hover:to-blue-800 text-white"
                 disabled={!startDate || !endDate || !leaveType || !selectedEmployeeId || createLeaveApplicationMutation.isPending}
               >
                 {createLeaveApplicationMutation.isPending ? "Submitting..." : "Apply Now"}

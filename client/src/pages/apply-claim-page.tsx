@@ -656,7 +656,7 @@ export default function ApplyClaimPage() {
 
               {/* Recent Claim Application */}
               <Card>
-                <CardHeader className="bg-slate-700 text-white rounded-t-lg">
+                <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white rounded-t-lg">
                   <CardTitle>Recent Claim Application</CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
@@ -728,7 +728,7 @@ export default function ApplyClaimPage() {
             {/* Right Sidebar - Apply Form */}
             <div className="w-80 p-6 bg-white border-l">
               <Card>
-                <CardHeader className="bg-slate-600 text-white rounded-t-lg">
+                <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white rounded-t-lg">
                   <CardTitle className="text-center">Apply Claim</CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 space-y-4">
@@ -860,7 +860,7 @@ export default function ApplyClaimPage() {
                       console.log('Form values:', { claimType, claimAmount, claimDate, selectedRequestor, isValidating, isPending: createClaimMutation.isPending });
                       handleSubmit();
                     }}
-                    className="w-full bg-slate-600 hover:bg-slate-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    className="w-full bg-gradient-to-r from-cyan-400 to-blue-700 hover:bg-gradient-to-r from-cyan-400 to-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
                     disabled={!claimType || !claimAmount || !claimDate || !selectedRequestor || isValidating || createClaimMutation.isPending}
                     data-testid="button-submit-claim"
                   >
@@ -969,7 +969,7 @@ export default function ApplyClaimPage() {
 
               {/* Recent Claim Application */}
               <Card>
-                <CardHeader className="bg-slate-700 text-white rounded-t-lg">
+                <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white rounded-t-lg">
                   <CardTitle>Recent Claim Application</CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
@@ -1043,7 +1043,7 @@ export default function ApplyClaimPage() {
             {/* Right Sidebar - Apply Form */}
             <div className="w-80 p-6 bg-white border-l">
               <Card>
-                <CardHeader className="bg-slate-600 text-white rounded-t-lg">
+                <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white rounded-t-lg">
                   <CardTitle className="text-center">Apply Claim</CardTitle>
                 </CardHeader>
                 <CardContent className="p-6 space-y-4">
@@ -1147,7 +1147,7 @@ export default function ApplyClaimPage() {
                       console.log('Form values:', { startTime, endTime, claimDate, reason, selectedRequestor, isValidating, isPending: createClaimMutation.isPending });
                       handleSubmit();
                     }}
-                    className="w-full bg-slate-600 hover:bg-slate-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    className="w-full bg-gradient-to-r from-cyan-400 to-blue-700 hover:bg-gradient-to-r from-cyan-400 to-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
                     disabled={!startTime || !endTime || !claimDate || !reason || !selectedRequestor || isValidating || createClaimMutation.isPending}
                     data-testid="button-submit-overtime"
                   >

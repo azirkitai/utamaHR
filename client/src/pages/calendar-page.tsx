@@ -562,7 +562,7 @@ export default function CalendarPage() {
                     <Dialog open={isGenerateHolidayOpen} onOpenChange={setIsGenerateHolidayOpen}>
                       <DialogTrigger asChild>
                         <Button 
-                          className="bg-slate-700 hover:bg-slate-800 text-white"
+                          className="bg-gradient-to-r from-cyan-400 to-blue-700 hover:from-cyan-500 hover:to-blue-800 text-white"
                           data-testid="button-generate-holiday"
                         >
                           Generate Holiday
@@ -680,7 +680,7 @@ export default function CalendarPage() {
                     <Dialog open={isAddHolidayOpen} onOpenChange={setIsAddHolidayOpen}>
                       <DialogTrigger asChild>
                         <Button 
-                          className="bg-slate-700 hover:bg-slate-800 text-white"
+                          className="bg-gradient-to-r from-cyan-400 to-blue-700 hover:from-cyan-500 hover:to-blue-800 text-white"
                           data-testid="button-add-holiday"
                         >
                           Add Holiday
@@ -734,7 +734,7 @@ export default function CalendarPage() {
                         <Button 
                           onClick={handleAddHoliday}
                           disabled={!holidayDescription || !holidayDate}
-                          className="bg-slate-700 hover:bg-slate-800"
+                          className="bg-gradient-to-r from-cyan-400 to-blue-700 hover:from-cyan-500 hover:to-blue-800"
                           data-testid="button-save-holiday"
                         >
                           Save
@@ -748,7 +748,7 @@ export default function CalendarPage() {
                     <Dialog open={isAddEventOpen} onOpenChange={setIsAddEventOpen}>
                       <DialogTrigger asChild>
                         <Button 
-                          className="bg-slate-700 hover:bg-slate-800 text-white"
+                          className="bg-gradient-to-r from-cyan-400 to-blue-700 hover:from-cyan-500 hover:to-blue-800 text-white"
                           data-testid="button-add-event"
                         >
                           Add Event
@@ -840,7 +840,7 @@ export default function CalendarPage() {
                         <Button 
                           onClick={handleAddEvent}
                           disabled={!eventTitle || !eventDescription || !eventDateStart}
-                          className="bg-slate-700 hover:bg-slate-800"
+                          className="bg-gradient-to-r from-cyan-400 to-blue-700 hover:from-cyan-500 hover:to-blue-800"
                           data-testid="button-save-event"
                         >
                           Save
@@ -857,7 +857,7 @@ export default function CalendarPage() {
                   {/* Left Panel - Activity */}
                   <div className="w-1/3">
                     <Card>
-                      <CardHeader className="bg-slate-700 text-white rounded-t-lg">
+                      <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white rounded-t-lg">
                         <CardTitle>Activity</CardTitle>
                       </CardHeader>
                       <CardContent className="p-0">

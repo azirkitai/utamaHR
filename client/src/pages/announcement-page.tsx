@@ -483,7 +483,7 @@ export default function AnnouncementPage() {
                   <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
                     <DialogTrigger asChild>
                       <Button 
-                        className="bg-slate-700 hover:bg-slate-800 text-white"
+                        className="bg-gradient-to-r from-cyan-400 to-blue-700 hover:from-cyan-500 hover:to-blue-800 text-white"
                         data-testid="button-add-announcement"
                       >
                         <Plus className="w-4 h-4 mr-2" />
@@ -656,7 +656,7 @@ export default function AnnouncementPage() {
                       <Button 
                         onClick={handleSendAnnouncement}
                         disabled={!title || !message || selectedEmployees.length === 0 || sendAnnouncementMutation.isPending}
-                        className="bg-slate-700 hover:bg-slate-800"
+                        className="bg-gradient-to-r from-cyan-400 to-blue-700 hover:from-cyan-500 hover:to-blue-800"
                         data-testid="button-send"
                       >
                         <Send className="w-4 h-4 mr-2" />
@@ -684,7 +684,7 @@ export default function AnnouncementPage() {
 
               <TabsContent value="all">
                 <Card>
-                  <CardHeader className="bg-slate-700 text-white rounded-t-lg">
+                  <CardHeader className="bg-gradient-to-r from-cyan-400 to-blue-700 text-white rounded-t-lg">
                     <CardTitle>Announcement</CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">
@@ -733,7 +733,7 @@ export default function AnnouncementPage() {
                                     <Button
                                       size="sm"
                                       variant="ghost"
-                                      className="h-8 w-8 p-0 bg-slate-600 hover:bg-slate-700 text-white"
+                                      className="h-8 w-8 p-0 bg-gradient-to-r from-cyan-400 to-blue-700 hover:bg-gradient-to-r from-cyan-400 to-blue-700 text-white"
                                       onClick={() => handleViewAnnouncement(announcement.id)}
                                       data-testid={`button-view-${announcement.id}`}
                                     >
@@ -820,7 +820,7 @@ export default function AnnouncementPage() {
                                     <Button
                                       size="sm"
                                       variant="ghost"
-                                      className="h-8 w-8 p-0 bg-slate-600 hover:bg-slate-700 text-white"
+                                      className="h-8 w-8 p-0 bg-gradient-to-r from-cyan-400 to-blue-700 hover:bg-gradient-to-r from-cyan-400 to-blue-700 text-white"
                                       onClick={() => handleViewAnnouncement(announcement.id)}
                                       data-testid={`button-view-unread-${announcement.id}`}
                                     >
