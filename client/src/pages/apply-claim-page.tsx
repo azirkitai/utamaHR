@@ -303,6 +303,77 @@ export default function ApplyClaimPage() {
         return;
       }
 
+      // Handle file upload to create supporting documents array
+      let supportingDocuments: string[] = [];
+      
+      if (uploadedFile) {
+        try {
+          console.log('Processing uploaded file:', uploadedFile.name);
+          
+          // Get JWT token for authorization
+          const token = localStorage.getItem('utamahr_token');
+          if (!token) {
+            throw new Error('No authentication token found');
+          }
+
+          // Step 1: Get presigned upload URL from object storage
+          const uploadUrlResponse = await fetch('/api/objects/upload', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (!uploadUrlResponse.ok) {
+            throw new Error(`Failed to get upload URL: ${uploadUrlResponse.status} ${uploadUrlResponse.statusText}`);
+          }
+
+          const { uploadURL } = await uploadUrlResponse.json();
+          console.log('Got upload URL from object storage');
+
+          // Step 2: Upload file directly to the presigned URL
+          const fileUploadResponse = await fetch(uploadURL, {
+            method: 'PUT',
+            body: uploadedFile,
+            headers: {
+              'Content-Type': uploadedFile.type,
+            },
+          });
+
+          if (!fileUploadResponse.ok) {
+            throw new Error(`File upload to object storage failed: ${fileUploadResponse.status} ${fileUploadResponse.statusText}`);
+          }
+
+          // Step 3: Set ACL policy for the uploaded file
+          const aclResponse = await fetch('/api/objects/set-acl', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ objectUrl: uploadURL }),
+          });
+
+          if (!aclResponse.ok) {
+            throw new Error(`Failed to set ACL policy: ${aclResponse.status} ${aclResponse.statusText}`);
+          }
+
+          const { objectPath } = await aclResponse.json();
+          supportingDocuments.push(objectPath);
+          console.log('File uploaded successfully to object storage with ACL:', objectPath);
+        } catch (error) {
+          console.error('Error uploading file:', error);
+          setValidationError('Failed to upload supporting document: ' + (error instanceof Error ? error.message : 'Unknown error'));
+          toast({
+            title: "File Upload Error",
+            description: 'Failed to upload supporting document. Please try again.',
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
       // Create financial claim application
       const claimData: InsertClaimApplication = {
         employeeId: selectedRequestor,
@@ -313,10 +384,12 @@ export default function ApplyClaimPage() {
         claimDate: new Date(claimDate),
         particulars,
         remark,
+        supportingDocuments, // Include the uploaded documents
         status: 'pending',
         dateSubmitted: new Date(),
       };
 
+      console.log('Submitting claim with supporting documents:', supportingDocuments);
       createClaimMutation.mutate(claimData);
     } else if (selectedCategory === 'overtime') {
       // Basic validation for overtime
@@ -343,6 +416,77 @@ export default function ApplyClaimPage() {
         return;
       }
 
+      // Handle file upload for overtime claims too
+      let supportingDocuments: string[] = [];
+      
+      if (uploadedFile) {
+        try {
+          console.log('Processing uploaded file for overtime:', uploadedFile.name);
+          
+          // Get JWT token for authorization
+          const token = localStorage.getItem('utamahr_token');
+          if (!token) {
+            throw new Error('No authentication token found');
+          }
+
+          // Step 1: Get presigned upload URL from object storage
+          const uploadUrlResponse = await fetch('/api/objects/upload', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (!uploadUrlResponse.ok) {
+            throw new Error(`Failed to get upload URL: ${uploadUrlResponse.status} ${uploadUrlResponse.statusText}`);
+          }
+
+          const { uploadURL } = await uploadUrlResponse.json();
+          console.log('Got upload URL from object storage for overtime');
+
+          // Step 2: Upload file directly to the presigned URL
+          const fileUploadResponse = await fetch(uploadURL, {
+            method: 'PUT',
+            body: uploadedFile,
+            headers: {
+              'Content-Type': uploadedFile.type,
+            },
+          });
+
+          if (!fileUploadResponse.ok) {
+            throw new Error(`File upload to object storage failed: ${fileUploadResponse.status} ${fileUploadResponse.statusText}`);
+          }
+
+          // Step 3: Set ACL policy for the uploaded file
+          const aclResponse = await fetch('/api/objects/set-acl', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ objectUrl: uploadURL }),
+          });
+
+          if (!aclResponse.ok) {
+            throw new Error(`Failed to set ACL policy: ${aclResponse.status} ${aclResponse.statusText}`);
+          }
+
+          const { objectPath } = await aclResponse.json();
+          supportingDocuments.push(objectPath);
+          console.log('Overtime file uploaded successfully to object storage with ACL:', objectPath);
+        } catch (error) {
+          console.error('Error uploading overtime file:', error);
+          setValidationError('Failed to upload supporting document: ' + (error instanceof Error ? error.message : 'Unknown error'));
+          toast({
+            title: "File Upload Error",
+            description: 'Failed to upload supporting document. Please try again.',
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
       // Create overtime claim application
       const claimData: InsertClaimApplication = {
         employeeId: selectedRequestor,
@@ -353,10 +497,12 @@ export default function ApplyClaimPage() {
         endTime: endTime,
         reason: reason,
         remark: additionalDescription,
+        supportingDocuments, // Include the uploaded documents
         status: 'pending',
         dateSubmitted: new Date(),
       };
 
+      console.log('Submitting overtime claim with supporting documents:', supportingDocuments);
       createClaimMutation.mutate(claimData);
     }
   };

@@ -2021,6 +2021,34 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Set ACL policy for uploaded supporting documents
+  app.post("/api/objects/set-acl", authenticateToken, async (req, res) => {
+    try {
+      const { objectUrl } = req.body;
+      if (!objectUrl) {
+        return res.status(400).json({ error: "objectUrl diperlukan" });
+      }
+
+      const objectStorageService = new ObjectStorageService();
+      const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
+        objectUrl,
+        {
+          owner: req.user!.id,
+          visibility: "private", // Supporting documents are private
+        }
+      );
+
+      res.json({ 
+        success: true, 
+        objectPath,
+        message: "ACL policy set successfully" 
+      });
+    } catch (error) {
+      console.error("Error setting ACL policy:", error);
+      res.status(500).json({ error: "Gagal menetapkan ACL policy" });
+    }
+  });
+
   // Update employee profile image
   app.put("/api/employees/:id/profile-image", authenticateToken, async (req, res) => {
     try {

@@ -310,6 +310,52 @@ export default function MyRecordPage() {
     }
   };
 
+  // Handle supporting document download
+  const handleDocumentDownload = async (documentPath: string, claimId: string, docIndex: number) => {
+    try {
+      console.log('Downloading document:', documentPath, 'for claim:', claimId);
+      
+      // Get JWT token
+      const token = localStorage.getItem('utamahr_token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      // Download the document
+      const response = await fetch(documentPath, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to download document: ${response.status} ${response.statusText}`);
+      }
+
+      // Get the file as blob
+      const blob = await response.blob();
+      
+      // Extract filename from path or create default
+      const pathParts = documentPath.split('/');
+      const filename = pathParts[pathParts.length - 1] || `claim_document_${claimId}_${docIndex + 1}`;
+      
+      // Create download link
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      console.log('Document downloaded successfully:', filename);
+    } catch (error) {
+      console.error('Error downloading document:', error);
+      alert('Failed to download document: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    }
+  };
+
   const renderLeaveTab = () => (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-teal-500 to-blue-600 p-4 rounded-lg text-white">
@@ -708,6 +754,7 @@ export default function MyRecordPage() {
                               key={docIndex}
                               variant="outline" 
                               size="sm" 
+                              onClick={() => handleDocumentDownload(doc, claim.id, docIndex)}
                               data-testid={`button-download-document-${claim.id}-${docIndex}`}
                             >
                               <Download className="h-4 w-4 mr-1" />
