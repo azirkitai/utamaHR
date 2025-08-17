@@ -6275,6 +6275,28 @@ export function registerRoutes(app: Express): Server {
       if (!voucher) {
         return res.status(404).json({ error: 'Voucer pembayaran tidak dijumpai' });
       }
+
+      // When voucher is submitted, update all related claims to "Paid" status
+      if (validationResult.data.status === 'Submitted') {
+        console.log(`Voucher ${id} submitted, updating related claims to "Paid" status`);
+        
+        try {
+          // Get all claims associated with this voucher
+          const voucherClaims = await storage.getClaimsByVoucherId(id);
+          console.log(`Found ${voucherClaims.length} claims for voucher ${id}`);
+          
+          // Update each claim status to "Paid"
+          for (const claim of voucherClaims) {
+            await storage.updateClaimApplicationStatus(claim.id, 'Paid');
+            console.log(`Updated claim ${claim.id} status to "Paid"`);
+          }
+          
+          console.log(`Successfully updated ${voucherClaims.length} claims to "Paid" status`);
+        } catch (claimUpdateError) {
+          console.error('Error updating claim statuses to Paid:', claimUpdateError);
+          // Don't fail the voucher update if claim updates fail, just log the error
+        }
+      }
       
       res.json(voucher);
     } catch (error) {

@@ -372,6 +372,8 @@ export interface IStorage {
   updateClaimApplication(id: string, application: UpdateClaimApplication): Promise<ClaimApplication | undefined>;
   approveClaimApplication(id: string, approverId: string): Promise<boolean>;
   rejectClaimApplication(id: string, rejectorId: string, reason: string): Promise<boolean>;
+  updateClaimApplicationStatus(id: string, status: string): Promise<ClaimApplication | undefined>;
+  getClaimsByVoucherId(voucherId: string): Promise<ClaimApplication[]>;
   
   // =================== PAYROLL METHODS ===================
   getAllPayrollDocuments(): Promise<PayrollDocument[]>;
@@ -3770,6 +3772,84 @@ export class DatabaseStorage implements IStorage {
       };
     } catch (error) {
       console.error('Error fetching user claim totals:', error);
+      throw error;
+    }
+  }
+
+  // Update claim status - used when voucher is submitted to mark claims as "Paid"
+  async updateClaimApplicationStatus(id: string, status: string): Promise<ClaimApplication | undefined> {
+    try {
+      const [updatedClaim] = await db
+        .update(claimApplications)
+        .set({ 
+          status,
+          updatedAt: new Date()
+        })
+        .where(eq(claimApplications.id, id))
+        .returning();
+      
+      console.log(`Updated claim ${id} status to "${status}"`);
+      return updatedClaim || undefined;
+    } catch (error) {
+      console.error(`Error updating claim ${id} status to ${status}:`, error);
+      throw error;
+    }
+  }
+
+  // Get all claims associated with a specific voucher ID
+  async getClaimsByVoucherId(voucherId: string): Promise<ClaimApplication[]> {
+    try {
+      // Get the voucher first to get its month/year and requestor info
+      const voucher = await this.getPaymentVoucher(voucherId);
+      if (!voucher) {
+        console.log(`Voucher ${voucherId} not found`);
+        return [];
+      }
+
+      // Find all approved financial claims for the same month/year and requestor
+      // This works because vouchers are generated from approved claims for specific requestors in specific months
+      const claims = await db
+        .select()
+        .from(claimApplications)
+        .leftJoin(employees, eq(claimApplications.employeeId, employees.id))
+        .where(
+          and(
+            eq(claimApplications.claimType, 'financial'),
+            eq(claimApplications.status, 'Approved'),
+            sql`EXTRACT(YEAR FROM ${claimApplications.claimDate}) = ${voucher.year}`,
+            sql`EXTRACT(MONTH FROM ${claimApplications.claimDate}) = ${voucher.month}`
+          )
+        );
+
+      // Filter claims that belong to the same requestor as the voucher
+      const voucherClaims = claims
+        .filter((row: any) => {
+          const employee = row.employees || row;
+          const employeeName = employee.full_name || employee.fullName || '';
+          return employeeName === voucher.requestorName;
+        })
+        .map((row: any) => {
+          const claimApp = row.claim_applications || row;
+          return {
+            id: claimApp.id,
+            employeeId: claimApp.employee_id || claimApp.employeeId,
+            claimType: claimApp.claim_type || claimApp.claimType,
+            claimCategory: claimApp.claim_category || claimApp.claimCategory,
+            status: claimApp.status,
+            amount: claimApp.amount,
+            particulars: claimApp.particulars,
+            supportingDocuments: claimApp.supporting_documents || claimApp.supportingDocuments || [],
+            claimDate: claimApp.claim_date || claimApp.claimDate,
+            dateSubmitted: claimApp.date_submitted || claimApp.dateSubmitted,
+            createdAt: claimApp.created_at || claimApp.createdAt,
+            updatedAt: claimApp.updated_at || claimApp.updatedAt
+          } as ClaimApplication;
+        });
+
+      console.log(`Found ${voucherClaims.length} claims for voucher ${voucherId} (${voucher.requestorName}, ${voucher.month}/${voucher.year})`);
+      return voucherClaims;
+    } catch (error) {
+      console.error(`Error fetching claims for voucher ${voucherId}:`, error);
       throw error;
     }
   }

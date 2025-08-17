@@ -321,9 +321,14 @@ export default function VoucherDetailsPage() {
     onSuccess: () => {
       toast({
         title: "Success",
-        description: "Payment voucher telah berjaya dihantar untuk kelulusan",
+        description: "Payment voucher telah berjaya dihantar. Status claim berkaitan telah dikemas kini kepada 'Paid'",
       });
+      // Invalidate payment vouchers cache
       queryClient.invalidateQueries({ queryKey: ["/api/payment-vouchers"] });
+      // Invalidate claim applications cache to reflect status changes
+      queryClient.invalidateQueries({ queryKey: ["/api/claim-applications"] });
+      // Invalidate my-record specific claim cache
+      queryClient.invalidateQueries({ queryKey: ["/api/claim-applications/my-record"] });
     },
     onError: (error: any) => {
       toast({
