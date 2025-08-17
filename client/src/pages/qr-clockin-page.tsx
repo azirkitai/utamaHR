@@ -27,6 +27,15 @@ interface ClockInRecord {
   distance?: number;
 }
 
+interface TodayAttendanceStatus {
+  hasAttendanceToday: boolean;
+  clockInTime: string | null;
+  clockOutTime: string | null;
+  isClockInCompleted: boolean;
+  isClockOutCompleted: boolean;
+  needsClockOut: boolean;
+}
+
 export default function QRClockInPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -34,6 +43,12 @@ export default function QRClockInPage() {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>("");
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
   const qrCanvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Query for today's attendance status
+  const { data: attendanceStatus, isLoading: statusLoading } = useQuery<TodayAttendanceStatus>({
+    queryKey: ["/api/today-attendance-status"],
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
 
   // Query for clock-in history
   const { data: clockInHistory, isLoading: historyLoading } = useQuery<{clockInRecords: ClockInRecord[]}>({
@@ -69,6 +84,9 @@ export default function QRClockInPage() {
         });
       }
 
+      // Refresh attendance status after generating QR
+      queryClient.invalidateQueries({ queryKey: ["/api/today-attendance-status"] });
+      
       toast({
         title: "QR Code Dijana",
         description: data.message,
@@ -167,28 +185,77 @@ export default function QRClockInPage() {
                   <QrCode className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl text-gray-800">Jana QR Code</CardTitle>
+                  <CardTitle className="text-xl text-gray-800">
+                    {attendanceStatus?.needsClockOut ? "Jana QR Clock-Out" : "Jana QR Code"}
+                  </CardTitle>
                   <CardDescription>
-                    QR code untuk clock-in pekerja (sah selama 2 minit)
+                    {attendanceStatus?.needsClockOut 
+                      ? "QR code untuk clock-out pekerja (sah selama 2 minit)"
+                      : attendanceStatus?.isClockOutCompleted
+                      ? "Clock-in dan clock-out sudah selesai untuk hari ini"
+                      : "QR code untuk clock-in pekerja (sah selama 2 minit)"
+                    }
                   </CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              {!qrToken ? (
+              {/* Show completion message if both clock-in and clock-out are done */}
+              {attendanceStatus?.isClockOutCompleted ? (
                 <div className="text-center py-8">
                   <div className="mb-4">
-                    <div className="w-32 h-32 mx-auto bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
-                      <QrCode className="h-12 w-12 text-gray-400" />
+                    <div className="w-32 h-32 mx-auto bg-green-100 border-2 border-green-300 rounded-lg flex items-center justify-center">
+                      <CheckCircle className="h-12 w-12 text-green-600" />
                     </div>
                   </div>
+                  <div className="space-y-2">
+                    <p className="font-medium text-green-700">Kehadiran Hari Ini Selesai</p>
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <p>Clock-In: {attendanceStatus?.clockInTime ? new Date(attendanceStatus.clockInTime).toLocaleTimeString('ms-MY') : '-'}</p>
+                      <p>Clock-Out: {attendanceStatus?.clockOutTime ? new Date(attendanceStatus.clockOutTime).toLocaleTimeString('ms-MY') : '-'}</p>
+                    </div>
+                    <p className="text-green-600 text-sm mt-3">
+                      Anda telah selesai clock-in dan clock-out untuk hari ini
+                    </p>
+                  </div>
+                </div>
+              ) : !qrToken ? (
+                <div className="text-center py-8">
+                  <div className="mb-4">
+                    <div className={`w-32 h-32 mx-auto border-2 border-dashed rounded-lg flex items-center justify-center ${
+                      attendanceStatus?.needsClockOut 
+                        ? 'bg-orange-100 border-orange-300' 
+                        : 'bg-gray-100 border-gray-300'
+                    }`}>
+                      <QrCode className={`h-12 w-12 ${
+                        attendanceStatus?.needsClockOut ? 'text-orange-500' : 'text-gray-400'
+                      }`} />
+                    </div>
+                  </div>
+                  
+                  {attendanceStatus?.needsClockOut && (
+                    <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                      <p className="text-orange-700 text-sm font-medium">Anda sudah Clock-In</p>
+                      <p className="text-orange-600 text-xs">
+                        Clock-In: {attendanceStatus?.clockInTime ? new Date(attendanceStatus.clockInTime).toLocaleTimeString('ms-MY') : '-'}
+                      </p>
+                    </div>
+                  )}
+                  
                   <p className="text-gray-600 mb-4">
-                    Klik butang di bawah untuk menjana QR Code baharu
+                    {attendanceStatus?.needsClockOut 
+                      ? "Klik butang di bawah untuk menjana QR Code clock-out"
+                      : "Klik butang di bawah untuk menjana QR Code baharu"
+                    }
                   </p>
                   <Button
                     onClick={() => generateQrMutation.mutate()}
                     disabled={generateQrMutation.isPending}
-                    className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white shadow-sm px-6 py-3 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
+                    className={`text-white shadow-sm px-6 py-3 ${
+                      attendanceStatus?.needsClockOut
+                        ? 'bg-gradient-to-r from-orange-600 via-orange-700 to-red-700 hover:from-orange-700 hover:via-orange-800 hover:to-red-800'
+                        : 'bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700'
+                    }`}
                     data-testid="button-generate-qr"
                   >
                     {generateQrMutation.isPending ? (
@@ -199,7 +266,7 @@ export default function QRClockInPage() {
                     ) : (
                       <>
                         <QrCode className="mr-2 h-4 w-4" />
-                        Jana QR Code Baharu
+                        {attendanceStatus?.needsClockOut ? "Jana QR Clock-Out" : "Jana QR Code Baharu"}
                       </>
                     )}
                   </Button>
@@ -212,7 +279,7 @@ export default function QRClockInPage() {
                       <div className="inline-block p-4 bg-white border-2 border-gray-200 rounded-lg shadow-sm">
                         <img 
                           src={qrCodeDataUrl} 
-                          alt="QR Code untuk Clock-In" 
+                          alt={attendanceStatus?.needsClockOut ? "QR Code untuk Clock-Out" : "QR Code untuk Clock-In"} 
                           className="w-64 h-64 mx-auto"
                           data-testid="qr-code-image"
                         />
@@ -299,8 +366,8 @@ export default function QRClockInPage() {
                     4
                   </div>
                   <div>
-                    <p className="font-medium text-blue-800">Clock-In Berjaya</p>
-                    <p className="text-blue-600 text-sm">Sistem akan sahkan lokasi (dalam radius 50m) dan rekod clock-in</p>
+                    <p className="font-medium text-blue-800">Clock-In/Out Berjaya</p>
+                    <p className="text-blue-600 text-sm">Sistem akan sahkan lokasi dan automatik detect clock-in atau clock-out</p>
                   </div>
                 </div>
 
@@ -312,6 +379,7 @@ export default function QRClockInPage() {
                       <ul className="text-amber-700 text-xs mt-1 space-y-1">
                         <li>• QR Code sah selama 2 minit sahaja</li>
                         <li>• Setiap QR Code hanya boleh digunakan sekali</li>
+                        <li>• Sistem automatik detect clock-in atau clock-out</li>
                         <li>• Pekerja mesti berada dalam radius 50m dari pejabat</li>
                         <li>• Selfie dan lokasi GPS wajib untuk pengesahan</li>
                       </ul>

@@ -1818,6 +1818,34 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Get today's attendance status for QR clock-in page
+  app.get("/api/today-attendance-status", authenticateToken, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const employee = await storage.getEmployeeByUserId(userId);
+      if (!employee) {
+        return res.status(404).json({ error: "Employee tidak dijumpai" });
+      }
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const todayAttendance = await storage.getTodayAttendanceRecord(employee.id, today);
+      
+      res.json({
+        hasAttendanceToday: !!todayAttendance,
+        clockInTime: todayAttendance?.clockInTime || null,
+        clockOutTime: todayAttendance?.clockOutTime || null,
+        isClockInCompleted: !!(todayAttendance && todayAttendance.clockInTime),
+        isClockOutCompleted: !!(todayAttendance && todayAttendance.clockOutTime),
+        needsClockOut: !!(todayAttendance && todayAttendance.clockInTime && !todayAttendance.clockOutTime)
+      });
+    } catch (error) {
+      console.error("Today attendance status error:", error);
+      res.status(500).json({ error: "Gagal mendapatkan status kehadiran hari ini" });
+    }
+  });
+
   // Get user's clock-in history
   app.get("/api/clockin-history", authenticateToken, async (req, res) => {
     try {
