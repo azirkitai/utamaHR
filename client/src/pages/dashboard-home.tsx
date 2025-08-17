@@ -20,7 +20,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
-import utamaMedgroupImage from "@assets/PANEL KLINIK UTAMA_1754579785517.png";
+import utamaMedgroupImage from "@assets/PANEL KLINIK UTAMA_1755445660449.png";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
