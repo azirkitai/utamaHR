@@ -346,7 +346,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
                     <Link href={item.href}>
                       <Button
                         variant="ghost"
-                        className="inline-flex items-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:text-accent-foreground py-2 w-full justify-start text-left h-10 px-3 hover:bg-cyan-700 bg-[#009ac4] text-[#f0f0f0]"
+                        className="inline-flex items-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:text-accent-foreground py-2 w-full justify-start text-left h-10 px-3 hover:bg-cyan-700 text-[#f0f0f0] bg-[#0e749000]"
                         data-testid={`nav-${item.id}`}
                       >
                         <div className="flex items-center space-x-3 w-full">
