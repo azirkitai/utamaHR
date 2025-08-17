@@ -33,7 +33,7 @@ import {
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import utamaHRLogo from "@assets/eClaim_1754579086368.png";
+import utamaHRLogo from "@assets/eClaim_1755438999246.png";
 
 interface SidebarItem {
   id: string;
