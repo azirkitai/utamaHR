@@ -1250,7 +1250,7 @@ export default function DashboardHome() {
         <Dialog open={isAnnouncementModalOpen} onOpenChange={setIsAnnouncementModalOpen}>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" aria-describedby="announcement-details-description">
             <DialogHeader>
-              <DialogTitle>Detail Pengumuman</DialogTitle>
+              <DialogTitle>Announcement</DialogTitle>
             </DialogHeader>
             <p id="announcement-details-description" className="sr-only">
               Full details about the selected announcement.
