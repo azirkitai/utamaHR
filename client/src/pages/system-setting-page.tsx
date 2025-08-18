@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -762,14 +762,13 @@ export default function SystemSettingPage() {
     cNumber: "C-Number"
   });
 
-  const getCurrentSection = () => {
+  // Stable calculation of current section to prevent hooks order issues
+  const currentSection = useMemo(() => {
     if (location === "/system-setting" || location === "/system-setting/company") {
       return "company";
     }
     return location.split("/").pop() || "company";
-  };
-
-  const currentSection = getCurrentSection();
+  }, [location]);
 
   // Load active leave policies from database to check which ones are enabled
   const { data: activeLeaveTypesFromDB = [] } = useQuery<string[]>({
@@ -885,7 +884,7 @@ export default function SystemSettingPage() {
   // Fetch leave policy settings for current expanded policy
   const { data: currentLeavePolicySettings } = useQuery({
     queryKey: ["/api/leave-policy-settings", expandedPolicyId],
-    enabled: !!expandedPolicyId
+    enabled: true // Always enabled to prevent hooks order issues
   });
 
   // Fetch current leave approval settings
