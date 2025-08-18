@@ -846,9 +846,7 @@ export default function DashboardHome() {
                           <span>{new Date(announcement.createdAt).toLocaleDateString('en-GB')}</span>
                         </div>
                       </div>
-                      <div className="text-blue-600 text-xs">
-                        Click untuk baca
-                      </div>
+                      <div className="text-blue-600 text-xs">Click To Read</div>
                     </div>
                   </div>
                 ))
