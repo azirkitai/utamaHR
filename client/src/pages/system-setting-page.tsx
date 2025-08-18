@@ -774,7 +774,7 @@ export default function SystemSettingPage() {
   // Load active leave policies from database to check which ones are enabled
   const { data: activeLeaveTypesFromDB = [] } = useQuery<string[]>({
     queryKey: ["/api/active-leave-policies"],
-    enabled: currentSection === "leave"
+    enabled: true // Always enabled to prevent hooks order issues
   });
 
   // Fetch employees with approval roles (Super Admin, Admin, HR Manager, PIC)
