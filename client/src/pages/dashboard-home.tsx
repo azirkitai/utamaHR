@@ -842,7 +842,7 @@ export default function DashboardHome() {
                           {announcement.message}
                         </p>
                         <div className="flex items-center justify-between text-xs text-gray-500">
-                          <span>Dari: {announcement.announcerName}</span>
+                          <span>From: {announcement.announcerName}</span>
                           <span>{new Date(announcement.createdAt).toLocaleDateString('en-GB')}</span>
                         </div>
                       </div>
