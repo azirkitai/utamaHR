@@ -362,6 +362,11 @@ export default function SystemSettingPage() {
   const [formFile, setFormFile] = useState<File | null>(null);
   const [isUploadingForm, setIsUploadingForm] = useState(false);
   const formFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Fetch forms data
+  const { data: formsData, isLoading: isLoadingForms, refetch: refetchForms } = useQuery({
+    queryKey: ["/api/forms"]
+  });
   
   // Financial Policy State
   const [financialPolicyForm, setFinancialPolicyForm] = useState<{
@@ -1650,8 +1655,8 @@ export default function SystemSettingPage() {
         setFormFile(null);
         setShowFormUploadDialog(false);
         
-        // TODO: Refresh forms data
-        // queryClient.invalidateQueries({ queryKey: ["/api/forms"] });
+        // Refresh forms data
+        refetchForms();
       } else {
         throw new Error("Gagal memuat naik borang");
       }
@@ -1671,6 +1676,35 @@ export default function SystemSettingPage() {
     setFormName("");
     setFormFile(null);
     setShowFormUploadDialog(false);
+  };
+
+  const handleDeleteForm = async (formId: string) => {
+    if (!confirm("Adakah anda pasti ingin memadamkan borang ini?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/forms/${formId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Berjaya",
+          description: "Borang telah berjaya dipadamkan",
+        });
+        refetchForms();
+      } else {
+        throw new Error("Gagal memadamkan borang");
+      }
+    } catch (error) {
+      console.error("Form delete error:", error);
+      toast({
+        title: "Ralat",
+        description: "Gagal memadamkan borang. Sila cuba lagi.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleToggleFinancialExpand = (policyId: string) => {
@@ -2133,100 +2167,63 @@ export default function SystemSettingPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              <tr>
-                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">1</td>
-                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">Employee Registration Form</td>
-                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <div className="flex items-center">
-                    <FileText className="w-4 h-4 mr-2" />
-                    registration_form.pdf
-                  </div>
-                </td>
-                <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                  <div className="flex items-center space-x-2">
-                    <Button size="sm" variant="outline" className="text-blue-600 border-blue-600 hover:bg-blue-50">
-                      <Eye className="w-3 h-3 mr-1" />
-                      View
-                    </Button>
-                    <Button size="sm" variant="outline" className="text-green-600 border-green-600 hover:bg-green-50">
-                      <Download className="w-3 h-3 mr-1" />
-                      Download
-                    </Button>
-                    <Button size="sm" variant="outline" className="text-red-600 border-red-600 hover:bg-red-50">
-                      <Trash2 className="w-3 h-3 mr-1" />
-                      Delete
-                    </Button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">2</td>
-                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">Leave Application Form</td>
-                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <div className="flex items-center">
-                    <FileText className="w-4 h-4 mr-2" />
-                    leave_application.pdf
-                  </div>
-                </td>
-                <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                  <div className="flex items-center space-x-2">
-                    <Button size="sm" variant="outline" className="text-blue-600 border-blue-600 hover:bg-blue-50">
-                      <Eye className="w-3 h-3 mr-1" />
-                      View
-                    </Button>
-                    <Button size="sm" variant="outline" className="text-green-600 border-green-600 hover:bg-green-50">
-                      <Download className="w-3 h-3 mr-1" />
-                      Download
-                    </Button>
-                    <Button size="sm" variant="outline" className="text-red-600 border-red-600 hover:bg-red-50">
-                      <Trash2 className="w-3 h-3 mr-1" />
-                      Delete
-                    </Button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">3</td>
-                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">Claim Submission Form</td>
-                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <div className="flex items-center">
-                    <FileText className="w-4 h-4 mr-2" />
-                    claim_form.pdf
-                  </div>
-                </td>
-                <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                  <div className="flex items-center space-x-2">
-                    <Button size="sm" variant="outline" className="text-blue-600 border-blue-600 hover:bg-blue-50">
-                      <Eye className="w-3 h-3 mr-1" />
-                      View
-                    </Button>
-                    <Button size="sm" variant="outline" className="text-green-600 border-green-600 hover:bg-green-50">
-                      <Download className="w-3 h-3 mr-1" />
-                      Download
-                    </Button>
-                    <Button size="sm" variant="outline" className="text-red-600 border-red-600 hover:bg-red-50">
-                      <Trash2 className="w-3 h-3 mr-1" />
-                      Delete
-                    </Button>
-                  </div>
-                </td>
-              </tr>
+              {isLoadingForms ? (
+                <tr>
+                  <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
+                    Loading forms...
+                  </td>
+                </tr>
+              ) : !formsData || formsData.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-4 py-8 text-center text-gray-500">
+                    No forms found. Click "Upload New Form" to add forms.
+                  </td>
+                </tr>
+              ) : (
+                formsData.map((form: any, index: number) => (
+                  <tr key={form.id}>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{index + 1}</td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{form.formName}</td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <div className="flex items-center">
+                        <FileText className="w-4 h-4 mr-2" />
+                        {form.fileName}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="text-red-600 border-red-600 hover:bg-red-50"
+                        onClick={() => handleDeleteForm(form.id)}
+                        data-testid={`button-delete-form-${form.id}`}
+                      >
+                        <Trash2 className="w-3 h-3 mr-1" />
+                        Delete
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
         
         {/* Pagination */}
-        <div className="flex items-center justify-between text-sm text-gray-600">
-          <span>Showing 1 to 3 of 3 entries</span>
-          <div className="flex items-center space-x-2">
-            <Button size="sm" variant="outline" disabled>
-              Previous
-            </Button>
-            <Button size="sm" variant="outline" disabled>
-              Next
-            </Button>
+        {formsData && formsData.length > 0 && (
+          <div className="flex items-center justify-between text-sm text-gray-600">
+            <span>Showing 1 to {formsData.length} of {formsData.length} entries</span>
+            <div className="flex items-center space-x-2">
+              <Button size="sm" variant="outline" disabled>
+                Previous
+              </Button>
+              <Button size="sm" variant="outline" disabled>
+                Next
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Save Button */}
