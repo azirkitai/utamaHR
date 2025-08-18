@@ -8,8 +8,7 @@ import {
   Download, 
   Eye,
   Trash2,
-  Plus,
-  Upload
+  Plus
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -129,19 +128,7 @@ export default function FormsPage() {
                 <p className="text-white/80 text-lg">Manage and access all company forms</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Button 
-                variant="outline" 
-                className="bg-white/10 text-white border-white/20 hover:bg-white/20"
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                Upload Form
-              </Button>
-              <Button className="bg-white text-slate-900 hover:bg-white/90">
-                <Plus className="w-4 h-4 mr-2" />
-                Add New Form
-              </Button>
-            </div>
+            
           </div>
         </div>
 
