@@ -1,362 +1,250 @@
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard-layout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { 
-  FormInput, 
   FileText, 
-  Calendar, 
-  DollarSign, 
-  Clock,
-  Users,
-  Building2,
-  Settings,
+  Download, 
+  Eye,
+  Trash2,
   Plus,
-  Download,
   Upload
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
-interface FormCategory {
+// Define the Form type
+interface Form {
   id: string;
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  forms: FormItem[];
-  color: string;
-}
-
-interface FormItem {
-  id: string;
-  name: string;
-  description: string;
-  status: "active" | "draft" | "archived";
-  lastModified: string;
-  href: string;
-}
-
-const formCategories: FormCategory[] = [
-  {
-    id: "employee",
-    title: "Employee Forms",
-    description: "Forms related to employee management and HR processes",
-    icon: <Users className="w-5 h-5" />,
-    color: "bg-blue-50 text-blue-700 border-blue-200",
-    forms: [
-      {
-        id: "employee-registration",
-        name: "Employee Registration",
-        description: "New employee onboarding form",
-        status: "active",
-        lastModified: "2025-08-15",
-        href: "/forms/employee-registration"
-      },
-      {
-        id: "personal-data-update",
-        name: "Personal Data Update",
-        description: "Update employee personal information",
-        status: "active",
-        lastModified: "2025-08-14",
-        href: "/forms/personal-data-update"
-      },
-      {
-        id: "emergency-contact",
-        name: "Emergency Contact",
-        description: "Emergency contact information form",
-        status: "active",
-        lastModified: "2025-08-13",
-        href: "/forms/emergency-contact"
-      }
-    ]
-  },
-  {
-    id: "leave",
-    title: "Leave Forms",
-    description: "Leave application and management forms",
-    icon: <Calendar className="w-5 h-5" />,
-    color: "bg-green-50 text-green-700 border-green-200",
-    forms: [
-      {
-        id: "annual-leave",
-        name: "Annual Leave Application",
-        description: "Apply for annual leave",
-        status: "active",
-        lastModified: "2025-08-16",
-        href: "/forms/annual-leave"
-      },
-      {
-        id: "medical-leave",
-        name: "Medical Leave",
-        description: "Medical leave application form",
-        status: "active",
-        lastModified: "2025-08-15",
-        href: "/forms/medical-leave"
-      },
-      {
-        id: "emergency-leave",
-        name: "Emergency Leave",
-        description: "Emergency leave application",
-        status: "active",
-        lastModified: "2025-08-14",
-        href: "/forms/emergency-leave"
-      }
-    ]
-  },
-  {
-    id: "claims",
-    title: "Claims Forms",
-    description: "Financial claims and reimbursement forms",
-    icon: <DollarSign className="w-5 h-5" />,
-    color: "bg-orange-50 text-orange-700 border-orange-200",
-    forms: [
-      {
-        id: "travel-claim",
-        name: "Travel Claim",
-        description: "Business travel expense claim",
-        status: "active",
-        lastModified: "2025-08-17",
-        href: "/forms/travel-claim"
-      },
-      {
-        id: "medical-claim",
-        name: "Medical Claim",
-        description: "Medical expense reimbursement",
-        status: "active",
-        lastModified: "2025-08-16",
-        href: "/forms/medical-claim"
-      },
-      {
-        id: "meal-allowance",
-        name: "Meal Allowance",
-        description: "Daily meal allowance claim",
-        status: "active",
-        lastModified: "2025-08-15",
-        href: "/forms/meal-allowance"
-      }
-    ]
-  },
-  {
-    id: "attendance",
-    title: "Attendance Forms",
-    description: "Time tracking and attendance related forms",
-    icon: <Clock className="w-5 h-5" />,
-    color: "bg-purple-50 text-purple-700 border-purple-200",
-    forms: [
-      {
-        id: "overtime-request",
-        name: "Overtime Request",
-        description: "Request for overtime work",
-        status: "active",
-        lastModified: "2025-08-18",
-        href: "/forms/overtime-request"
-      },
-      {
-        id: "shift-change",
-        name: "Shift Change Request",
-        description: "Request to change work shift",
-        status: "active",
-        lastModified: "2025-08-17",
-        href: "/forms/shift-change"
-      },
-      {
-        id: "attendance-correction",
-        name: "Attendance Correction",
-        description: "Correct attendance records",
-        status: "active",
-        lastModified: "2025-08-16",
-        href: "/forms/attendance-correction"
-      }
-    ]
-  },
-  {
-    id: "company",
-    title: "Company Forms",
-    description: "Official company and administrative forms",
-    icon: <Building2 className="w-5 h-5" />,
-    color: "bg-gray-50 text-gray-700 border-gray-200",
-    forms: [
-      {
-        id: "letter-request",
-        name: "Letter Request",
-        description: "Request for official letters",
-        status: "active",
-        lastModified: "2025-08-18",
-        href: "/forms/letter-request"
-      },
-      {
-        id: "facility-booking",
-        name: "Facility Booking",
-        description: "Book company facilities",
-        status: "active",
-        lastModified: "2025-08-17",
-        href: "/forms/facility-booking"
-      },
-      {
-        id: "equipment-request",
-        name: "Equipment Request",
-        description: "Request for office equipment",
-        status: "draft",
-        lastModified: "2025-08-15",
-        href: "/forms/equipment-request"
-      }
-    ]
-  }
-];
-
-function getStatusBadge(status: string) {
-  switch (status) {
-    case "active":
-      return <Badge variant="success" className="text-xs">Active</Badge>;
-    case "draft":
-      return <Badge variant="secondary" className="text-xs">Draft</Badge>;
-    case "archived":
-      return <Badge variant="destructive" className="text-xs">Archived</Badge>;
-    default:
-      return <Badge variant="outline" className="text-xs">{status}</Badge>;
-  }
+  formName: string;
+  fileName: string;
+  filePath: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export default function FormsPage() {
+  const { toast } = useToast();
+
+  // Fetch forms data from API
+  const { data: forms, isLoading, refetch } = useQuery<Form[]>({
+    queryKey: ["/api/forms"],
+  });
+
+  const handleDownload = async (form: Form) => {
+    try {
+      const token = localStorage.getItem("utamahr_token");
+      if (!token) {
+        toast({
+          title: "Error",
+          description: "Token tidak dijumpai. Sila log masuk semula.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const response = await fetch(`/api/forms/download/${form.id}`, {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = form.fileName;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        throw new Error("Gagal memuat turun borang");
+      }
+    } catch (error) {
+      console.error("Download error:", error);
+      toast({
+        title: "Ralat",
+        description: "Gagal memuat turun borang. Sila cuba lagi.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDelete = async (formId: string) => {
+    if (!confirm("Adakah anda pasti ingin memadamkan borang ini?")) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("utamahr_token");
+      if (!token) {
+        toast({
+          title: "Error",
+          description: "Token tidak dijumpai. Sila log masuk semula.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const response = await fetch(`/api/forms/${formId}`, {
+        method: 'DELETE',
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Berjaya",
+          description: "Borang telah berjaya dipadamkan",
+        });
+        refetch();
+      } else {
+        throw new Error("Gagal memadamkan borang");
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast({
+        title: "Ralat",
+        description: "Gagal memadamkan borang. Sila cuba lagi.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6 p-6">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800">
-                <FormInput className="h-6 w-6 text-white" />
+        {/* Gradient Header */}
+        <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 rounded-lg p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/10 rounded-lg">
+                <FileText className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Forms</h1>
-                <p className="text-gray-600">Manage and access all company forms</p>
+                <h1 className="text-3xl font-bold text-white">List of Forms</h1>
+                <p className="text-white/80 text-lg">Manage and access all company forms</p>
               </div>
             </div>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm">
-              <Upload className="w-4 h-4 mr-2" />
-              Upload Form
-            </Button>
-            <Button className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white hover:opacity-90">
-              <Plus className="w-4 h-4 mr-2" />
-              Create New Form
-            </Button>
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="outline" 
+                className="bg-white/10 text-white border-white/20 hover:bg-white/20"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Upload Form
+              </Button>
+              <Button className="bg-white text-slate-900 hover:bg-white/90">
+                <Plus className="w-4 h-4 mr-2" />
+                Add New Form
+              </Button>
+            </div>
           </div>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Content Table */}
+        <div className="bg-white rounded-lg shadow-sm">
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Total Forms</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {formCategories.reduce((total, category) => total + category.forms.length, 0)}
-                  </p>
+            <CardContent className="p-0">
+              {isLoading ? (
+                <div className="p-8 text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900 mx-auto"></div>
+                  <p className="mt-4 text-gray-600">Loading forms...</p>
                 </div>
-                <FileText className="h-8 w-8 text-blue-600" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Categories</p>
-                  <p className="text-2xl font-bold text-gray-900">{formCategories.length}</p>
+              ) : !forms || forms.length === 0 ? (
+                <div className="p-8 text-center">
+                  <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No forms found</h3>
+                  <p className="text-gray-600">Upload your first form to get started.</p>
                 </div>
-                <Settings className="h-8 w-8 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Active Forms</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {formCategories.reduce((total, category) => 
-                      total + category.forms.filter(form => form.status === "active").length, 0)}
-                  </p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50 border-b">
+                      <tr>
+                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900 w-20">
+                          No
+                        </th>
+                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                          Form Name
+                        </th>
+                        <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900 w-32">
+                          Action
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {forms.map((form, index) => (
+                        <tr key={form.id} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-6 py-4 text-sm text-gray-900 font-medium">
+                            {index + 1}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 rounded-lg">
+                                <FileText className="h-4 w-4 text-white" />
+                              </div>
+                              <div>
+                                <h3 className="text-sm font-medium text-gray-900">
+                                  {form.formName}
+                                </h3>
+                                <p className="text-xs text-gray-500">
+                                  {form.fileName}
+                                </p>
+                                <p className="text-xs text-gray-400">
+                                  Created: {new Date(form.createdAt).toLocaleDateString('ms-MY')}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center justify-center gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleDownload(form)}
+                                className="h-8 px-3"
+                                data-testid={`button-download-${form.id}`}
+                              >
+                                <Download className="w-3 h-3 mr-1" />
+                                Download
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleDelete(form.id)}
+                                className="h-8 px-3 text-red-600 border-red-200 hover:bg-red-50"
+                                data-testid={`button-delete-${form.id}`}
+                              >
+                                <Trash2 className="w-3 h-3 mr-1" />
+                                Delete
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-                <Plus className="h-8 w-8 text-orange-600" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Draft Forms</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {formCategories.reduce((total, category) => 
-                      total + category.forms.filter(form => form.status === "draft").length, 0)}
-                  </p>
-                </div>
-                <FileText className="h-8 w-8 text-purple-600" />
-              </div>
+              )}
             </CardContent>
           </Card>
         </div>
 
-        {/* Form Categories */}
-        <div className="space-y-6">
-          {formCategories.map((category) => (
-            <Card key={category.id} className="overflow-hidden">
-              <CardHeader className={`${category.color} border-b`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    {category.icon}
-                    <div>
-                      <CardTitle className="text-lg">{category.title}</CardTitle>
-                      <CardDescription className="text-sm opacity-80">
-                        {category.description}
-                      </CardDescription>
-                    </div>
-                  </div>
-                  <Badge variant="outline" className="bg-white/50">
-                    {category.forms.length} forms
-                  </Badge>
-                </div>
-              </CardHeader>
-              
-              <CardContent className="p-0">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 divide-y md:divide-y-0 md:divide-x divide-gray-200">
-                  {category.forms.map((form) => (
-                    <div key={form.id} className="p-4 hover:bg-gray-50 transition-colors">
-                      <div className="flex items-start justify-between mb-2">
-                        <h3 className="font-medium text-gray-900 text-sm">{form.name}</h3>
-                        {getStatusBadge(form.status)}
-                      </div>
-                      <p className="text-xs text-gray-600 mb-3 line-clamp-2">
-                        {form.description}
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs text-gray-500">
-                          Modified: {new Date(form.lastModified).toLocaleDateString('ms-MY')}
-                        </p>
-                        <div className="flex items-center gap-2">
-                          <Button size="sm" variant="ghost" className="h-7 px-2 text-xs">
-                            <Download className="w-3 h-3 mr-1" />
-                            Download
-                          </Button>
-                          <Button size="sm" variant="outline" className="h-7 px-2 text-xs">
-                            Edit
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        {/* Footer Info */}
+        {forms && forms.length > 0 && (
+          <div className="flex items-center justify-between text-sm text-gray-600 bg-gray-50 px-6 py-3 rounded-lg">
+            <span>
+              Showing {forms.length} form{forms.length !== 1 ? 's' : ''}
+            </span>
+            <span>
+              Total: {forms.length} items
+            </span>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
