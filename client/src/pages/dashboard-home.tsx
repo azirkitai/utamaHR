@@ -1325,14 +1325,6 @@ export default function DashboardHome() {
             
             <DialogFooter className="flex gap-3">
               <Button 
-                variant="outline"
-                onClick={() => setIsAnnouncementModalOpen(false)}
-                className="text-gray-600 hover:text-gray-700"
-                data-testid="button-close-announcement-modal"
-              >
-                Tutup
-              </Button>
-              <Button 
                 onClick={async () => {
                   try {
                     await authenticatedFetch(`/api/announcements/${selectedAnnouncement.id}/acknowledge`, {
@@ -1348,7 +1340,7 @@ export default function DashboardHome() {
                 data-testid="button-acknowledge-announcement"
               >
                 <CheckCircle className="w-4 h-4 mr-2" />
-                Telah Dibaca
+                Acknowledgement
               </Button>
             </DialogFooter>
           </DialogContent>
