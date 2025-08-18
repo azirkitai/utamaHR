@@ -629,7 +629,7 @@ export default function DashboardHome() {
               {unreadAnnouncements.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <Bell className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                  <p>Tiada pengumuman baru</p>
+                  <p>No New Announcement</p>
                 </div>
               ) : (
                 unreadAnnouncements.slice(0, 3).map((announcement) => (
