@@ -41,7 +41,9 @@ import {
   MapPin,
   Navigation,
   Loader2,
-  Trash2
+  Trash2,
+  Eye,
+  Download
 } from "lucide-react";
 import { useLocation, Link as RouterLink } from "wouter";
 import { cn } from "@/lib/utils";
@@ -2036,6 +2038,113 @@ export default function SystemSettingPage() {
             <Plus className="w-4 h-4 mr-2" />
             Upload New Form
           </Button>
+        </div>
+        
+        {/* Forms Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No.</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Form Name</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Forms Attachment</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              <tr>
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">1</td>
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">Employee Registration Form</td>
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <div className="flex items-center">
+                    <FileText className="w-4 h-4 mr-2" />
+                    registration_form.pdf
+                  </div>
+                </td>
+                <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                  <div className="flex items-center space-x-2">
+                    <Button size="sm" variant="outline" className="text-blue-600 border-blue-600 hover:bg-blue-50">
+                      <Eye className="w-3 h-3 mr-1" />
+                      View
+                    </Button>
+                    <Button size="sm" variant="outline" className="text-green-600 border-green-600 hover:bg-green-50">
+                      <Download className="w-3 h-3 mr-1" />
+                      Download
+                    </Button>
+                    <Button size="sm" variant="outline" className="text-red-600 border-red-600 hover:bg-red-50">
+                      <Trash2 className="w-3 h-3 mr-1" />
+                      Delete
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">2</td>
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">Leave Application Form</td>
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <div className="flex items-center">
+                    <FileText className="w-4 h-4 mr-2" />
+                    leave_application.pdf
+                  </div>
+                </td>
+                <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                  <div className="flex items-center space-x-2">
+                    <Button size="sm" variant="outline" className="text-blue-600 border-blue-600 hover:bg-blue-50">
+                      <Eye className="w-3 h-3 mr-1" />
+                      View
+                    </Button>
+                    <Button size="sm" variant="outline" className="text-green-600 border-green-600 hover:bg-green-50">
+                      <Download className="w-3 h-3 mr-1" />
+                      Download
+                    </Button>
+                    <Button size="sm" variant="outline" className="text-red-600 border-red-600 hover:bg-red-50">
+                      <Trash2 className="w-3 h-3 mr-1" />
+                      Delete
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">3</td>
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">Claim Submission Form</td>
+                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <div className="flex items-center">
+                    <FileText className="w-4 h-4 mr-2" />
+                    claim_form.pdf
+                  </div>
+                </td>
+                <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                  <div className="flex items-center space-x-2">
+                    <Button size="sm" variant="outline" className="text-blue-600 border-blue-600 hover:bg-blue-50">
+                      <Eye className="w-3 h-3 mr-1" />
+                      View
+                    </Button>
+                    <Button size="sm" variant="outline" className="text-green-600 border-green-600 hover:bg-green-50">
+                      <Download className="w-3 h-3 mr-1" />
+                      Download
+                    </Button>
+                    <Button size="sm" variant="outline" className="text-red-600 border-red-600 hover:bg-red-50">
+                      <Trash2 className="w-3 h-3 mr-1" />
+                      Delete
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        {/* Pagination */}
+        <div className="flex items-center justify-between text-sm text-gray-600">
+          <span>Showing 1 to 3 of 3 entries</span>
+          <div className="flex items-center space-x-2">
+            <Button size="sm" variant="outline" disabled>
+              Previous
+            </Button>
+            <Button size="sm" variant="outline" disabled>
+              Next
+            </Button>
+          </div>
         </div>
       </div>
 
