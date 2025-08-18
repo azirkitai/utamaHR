@@ -2024,105 +2024,7 @@ export default function SystemSettingPage() {
         <p className="text-sm opacity-90 mt-1">Manage system forms and templates</p>
       </div>
 
-      {/* Form Templates */}
-      <div className="bg-white p-6 rounded-lg border space-y-4">
-        <h4 className="text-lg font-medium text-gray-900">Form Templates</h4>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {/* Employee Forms */}
-          <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-            <div className="flex items-center space-x-3 mb-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Users className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <h5 className="font-medium text-gray-900">Employee Forms</h5>
-                <p className="text-sm text-gray-500">3 templates</p>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span>Registration Form</span>
-                <Switch className="data-[state=checked]:bg-blue-900" />
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span>Profile Update</span>
-                <Switch className="data-[state=checked]:bg-blue-900" />
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span>Emergency Contact</span>
-                <Switch className="data-[state=checked]:bg-blue-900" />
-              </div>
-            </div>
-          </div>
-
-          {/* Leave Forms */}
-          <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-            <div className="flex items-center space-x-3 mb-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Calendar className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <h5 className="font-medium text-gray-900">Leave Forms</h5>
-                <p className="text-sm text-gray-500">4 templates</p>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span>Annual Leave</span>
-                <Switch defaultChecked className="data-[state=checked]:bg-blue-900" />
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span>Medical Leave</span>
-                <Switch defaultChecked className="data-[state=checked]:bg-blue-900" />
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span>Emergency Leave</span>
-                <Switch defaultChecked className="data-[state=checked]:bg-blue-900" />
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span>Maternity Leave</span>
-                <Switch className="data-[state=checked]:bg-blue-900" />
-              </div>
-            </div>
-          </div>
-
-          {/* Claim Forms */}
-          <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-            <div className="flex items-center space-x-3 mb-3">
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <DollarSign className="w-5 h-5 text-orange-600" />
-              </div>
-              <div>
-                <h5 className="font-medium text-gray-900">Claim Forms</h5>
-                <p className="text-sm text-gray-500">5 templates</p>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span>Travel Claim</span>
-                <Switch defaultChecked className="data-[state=checked]:bg-blue-900" />
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span>Medical Claim</span>
-                <Switch defaultChecked className="data-[state=checked]:bg-blue-900" />
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span>Meal Allowance</span>
-                <Switch defaultChecked className="data-[state=checked]:bg-blue-900" />
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span>Transport Claim</span>
-                <Switch className="data-[state=checked]:bg-blue-900" />
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span>Parking Claim</span>
-                <Switch className="data-[state=checked]:bg-blue-900" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      
 
       
 
@@ -2134,38 +2036,6 @@ export default function SystemSettingPage() {
             <Plus className="w-4 h-4 mr-2" />
             Upload New Form
           </Button>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Default Form Language</Label>
-            <Select defaultValue="ms">
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ms">Bahasa Malaysia</SelectItem>
-                <SelectItem value="en">English</SelectItem>
-                <SelectItem value="zh">中文</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Form Retention Period</Label>
-            <Select defaultValue="5">
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">1 Year</SelectItem>
-                <SelectItem value="3">3 Years</SelectItem>
-                <SelectItem value="5">5 Years</SelectItem>
-                <SelectItem value="7">7 Years</SelectItem>
-                <SelectItem value="permanent">Permanent</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
         </div>
       </div>
 
