@@ -356,6 +356,13 @@ export default function SystemSettingPage() {
   const [expandedFinancialPolicyId, setExpandedFinancialPolicyId] = useState<string | null>(null);
   const [excludedFinancialEmployees, setExcludedFinancialEmployees] = useState<string[]>([]);
   
+  // Form upload dialog state
+  const [showFormUploadDialog, setShowFormUploadDialog] = useState(false);
+  const [formName, setFormName] = useState("");
+  const [formFile, setFormFile] = useState<File | null>(null);
+  const [isUploadingForm, setIsUploadingForm] = useState(false);
+  const formFileInputRef = useRef<HTMLInputElement>(null);
+  
   // Financial Policy State
   const [financialPolicyForm, setFinancialPolicyForm] = useState<{
     [key: string]: {
@@ -1595,6 +1602,77 @@ export default function SystemSettingPage() {
     setExpandedPolicyId(expandedPolicyId === policyId ? null : policyId);
   };
 
+  // Form upload handlers
+  const handleFormFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setFormFile(file);
+    }
+  };
+
+  const handleFormUpload = () => {
+    if (formFileInputRef.current) {
+      formFileInputRef.current.click();
+    }
+  };
+
+  const handleSaveForm = async () => {
+    if (!formName.trim() || !formFile) {
+      toast({
+        title: "Error",
+        description: "Sila masukkan nama borang dan pilih fail untuk dimuat naik",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploadingForm(true);
+    
+    try {
+      // Create FormData to upload file
+      const formData = new FormData();
+      formData.append('formName', formName);
+      formData.append('formFile', formFile);
+
+      const response = await fetch('/api/forms', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Berjaya",
+          description: "Borang telah berjaya dimuat naik",
+        });
+        
+        // Reset form
+        setFormName("");
+        setFormFile(null);
+        setShowFormUploadDialog(false);
+        
+        // TODO: Refresh forms data
+        // queryClient.invalidateQueries({ queryKey: ["/api/forms"] });
+      } else {
+        throw new Error("Gagal memuat naik borang");
+      }
+    } catch (error) {
+      console.error("Form upload error:", error);
+      toast({
+        title: "Ralat",
+        description: "Gagal memuat naik borang. Sila cuba lagi.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingForm(false);
+    }
+  };
+
+  const handleCancelFormUpload = () => {
+    setFormName("");
+    setFormFile(null);
+    setShowFormUploadDialog(false);
+  };
+
   const handleToggleFinancialExpand = (policyId: string) => {
     const newExpandedId = expandedFinancialPolicyId === policyId ? null : policyId;
     setExpandedFinancialPolicyId(newExpandedId);
@@ -2034,7 +2112,10 @@ export default function SystemSettingPage() {
       <div className="bg-white p-6 rounded-lg border space-y-4">
         <div className="flex items-center justify-between">
           <h4 className="text-lg font-medium text-gray-900">Form Management</h4>
-          <Button className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white hover:opacity-90">
+          <Button 
+            className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white hover:opacity-90"
+            onClick={() => setShowFormUploadDialog(true)}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Upload New Form
           </Button>
@@ -5954,6 +6035,91 @@ export default function SystemSettingPage() {
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               ) : null}
               Update Location
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Form Upload Dialog */}
+      <Dialog open={showFormUploadDialog} onOpenChange={setShowFormUploadDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Upload New Form</DialogTitle>
+            <DialogDescription>
+              Upload a new form document to the system
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="form-name">Form Name</Label>
+              <Input
+                id="form-name"
+                placeholder="Enter form name"
+                value={formName}
+                onChange={(e) => setFormName(e.target.value)}
+                data-testid="input-form-name"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Form Document</Label>
+              <div className="flex items-center space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleFormUpload}
+                  className="flex items-center space-x-2"
+                  data-testid="button-upload-form-file"
+                >
+                  <Upload className="w-4 h-4" />
+                  <span>{formFile ? 'Change File' : 'Choose File'}</span>
+                </Button>
+                {formFile && (
+                  <span className="text-sm text-gray-600">{formFile.name}</span>
+                )}
+              </div>
+              <p className="text-xs text-gray-500">
+                PDF, DOC, DOCX files are supported (Max: 10MB)
+              </p>
+              
+              {/* Hidden file input */}
+              <input
+                ref={formFileInputRef}
+                type="file"
+                accept=".pdf,.doc,.docx"
+                onChange={handleFormFileSelect}
+                className="hidden"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={handleCancelFormUpload}
+              disabled={isUploadingForm}
+              data-testid="button-cancel-form-upload"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveForm}
+              disabled={isUploadingForm || !formName.trim() || !formFile}
+              className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white"
+              data-testid="button-save-form"
+            >
+              {isUploadingForm ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Save Form
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
