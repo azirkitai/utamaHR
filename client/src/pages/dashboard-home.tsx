@@ -522,13 +522,13 @@ export default function DashboardHome() {
                   <div className="flex items-center space-x-2">
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#0891b2' }}></div>
                     <span className="text-xs text-gray-600">
-                      Active ({employeeStats?.activeCount || 0}) - {employeeStats?.totalCount > 0 ? Math.round((employeeStats.activeCount / employeeStats.totalCount) * 100) : 0}%
+                      Active ({employeeStats?.activeCount || 0}) - {(employeeStats?.totalCount && employeeStats.totalCount > 0) ? Math.round(((employeeStats.activeCount || 0) / employeeStats.totalCount) * 100) : 0}%
                     </span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#94a3b8' }}></div>
                     <span className="text-xs text-gray-600">
-                      Resign ({employeeStats?.resignedCount || 0}) - {employeeStats?.totalCount > 0 ? Math.round((employeeStats.resignedCount / employeeStats.totalCount) * 100) : 0}%
+                      Resign ({employeeStats?.resignedCount || 0}) - {(employeeStats?.totalCount && employeeStats.totalCount > 0) ? Math.round(((employeeStats.resignedCount || 0) / employeeStats.totalCount) * 100) : 0}%
                     </span>
                   </div>
                 </div>
