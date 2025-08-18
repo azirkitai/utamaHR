@@ -4458,8 +4458,8 @@ export default function SystemSettingPage() {
     <div className="space-y-6">
       {/* Notification Setting */}
       <div className="bg-white rounded-lg border">
-        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}>
-          <h3 className="font-semibold text-gray-800">Notification Setting</h3>
+        <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-3 rounded-t-lg shadow-sm">
+          <h3 className="font-semibold text-white">Notification Setting</h3>
         </div>
         <div className="p-6 space-y-6">
           {/* Top Bar Notification */}
