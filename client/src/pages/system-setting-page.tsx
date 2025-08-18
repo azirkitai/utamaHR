@@ -4638,8 +4638,7 @@ export default function SystemSettingPage() {
 
             <div className="flex justify-end pt-4">
               <Button 
-                className="text-gray-800 shadow-sm" 
-                style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}
+                className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white shadow-sm" 
                 onClick={handleSubmitOvertimeApproval}
                 disabled={saveOvertimeApprovalMutation.isPending}
                 data-testid="button-save-overtime-approval"
@@ -4665,7 +4664,7 @@ export default function SystemSettingPage() {
     const [localPolicies, setLocalPolicies] = useState<any[]>([]);
 
     useEffect(() => {
-      if (overtimePolicyData && overtimePolicyData.length > 0) {
+      if (overtimePolicyData && Array.isArray(overtimePolicyData) && overtimePolicyData.length > 0) {
         setLocalPolicies(overtimePolicyData);
       }
     }, [overtimePolicyData]);
@@ -4678,7 +4677,7 @@ export default function SystemSettingPage() {
 
     const handleSaveOvertimePolicies = () => {
       localPolicies.forEach(policy => {
-        const originalPolicy = overtimePolicyData.find((p: any) => p.id === policy.id);
+        const originalPolicy = Array.isArray(overtimePolicyData) ? overtimePolicyData.find((p: any) => p.id === policy.id) : null;
         if (originalPolicy && (
           originalPolicy.multiplier !== policy.multiplier || 
           originalPolicy.enabled !== policy.enabled ||
@@ -4705,7 +4704,7 @@ export default function SystemSettingPage() {
           </div>
           <div className="p-6">
             <div className="space-y-4">
-              {localPolicies.map((policy) => (
+              {Array.isArray(localPolicies) && localPolicies.map((policy) => (
                 <div key={policy.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex-1">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
@@ -4737,8 +4736,7 @@ export default function SystemSettingPage() {
 
             <div className="flex justify-end pt-6">
               <Button 
-                className="text-gray-800 shadow-sm" 
-                style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}
+                className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white shadow-sm" 
                 onClick={handleSaveOvertimePolicies}
                 disabled={saveOvertimePolicyMutation.isPending}
                 data-testid="button-save-overtime-policies"
@@ -4871,8 +4869,7 @@ export default function SystemSettingPage() {
 
             <div className="flex justify-end pt-4">
               <Button 
-                className="text-gray-800 shadow-sm" 
-                style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}
+                className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white shadow-sm" 
                 onClick={handleSaveOvertimeSettings}
                 disabled={saveOvertimeSettingsMutation.isPending}
                 data-testid="button-save-overtime-settings"
@@ -4936,7 +4933,7 @@ export default function SystemSettingPage() {
                           : "text-gray-700"
                       )}
                       style={(currentSection === item.id || (currentSection === "company" && item.id === "company")) ? 
-                        { background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)", borderRightColor: "#1e40af", color: "white" } : 
+                        { background: "linear-gradient(to right, #0f172a, #1e3a8a, #0891b2)", borderRightColor: "#1e3a8a", color: "white" } : 
                         {}
                       }
                       data-testid={`nav-setting-${item.id}`}
