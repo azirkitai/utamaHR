@@ -17,14 +17,21 @@ interface QrToken {
   message: string;
 }
 
-interface ClockInRecord {
+interface AttendanceRecord {
   id: string;
-  clockInTime: string;
-  locationStatus: "valid" | "invalid";
-  latitude: string;
-  longitude: string;
-  selfieImagePath?: string;
-  distance?: number;
+  date: string;
+  clockInTime: string | null;
+  clockOutTime: string | null;
+  clockInLatitude: string | null;
+  clockInLongitude: string | null;
+  clockOutLatitude: string | null;
+  clockOutLongitude: string | null;
+  clockInLocationStatus: "valid" | "invalid" | null;
+  clockOutLocationStatus: "valid" | "invalid" | null;
+  clockInImage?: string;
+  clockOutImage?: string;
+  totalHours: string | null;
+  status: string;
 }
 
 interface TodayAttendanceStatus {
@@ -53,8 +60,8 @@ export default function QRClockInPage() {
     refetchOnMount: true, // Always refresh on mount
   });
 
-  // Query for clock-in history
-  const { data: clockInHistory, isLoading: historyLoading } = useQuery<{clockInRecords: ClockInRecord[]}>({
+  // Query for attendance history (clock-in and clock-out)
+  const { data: attendanceHistory, isLoading: historyLoading } = useQuery<{attendanceRecords: AttendanceRecord[]}>({
     queryKey: ["/api/clockin-history"],
     refetchInterval: 3000, // Refresh every 3 seconds for real-time updates
     refetchOnWindowFocus: true, // Refresh when window gets focus
@@ -494,9 +501,9 @@ export default function QRClockInPage() {
                   <Clock className="h-6 w-6 text-green-600" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl text-gray-800">Sejarah Clock-In</CardTitle>
+                  <CardTitle className="text-xl text-gray-800">Sejarah Kehadiran</CardTitle>
                   <CardDescription>
-                    Rekod clock-in pekerja menggunakan sistem QR Code
+                    Rekod clock-in dan clock-out pekerja menggunakan sistem QR Code
                   </CardDescription>
                 </div>
               </div>
@@ -510,7 +517,7 @@ export default function QRClockInPage() {
                     </div>
                   ))}
                 </div>
-              ) : !clockInHistory?.clockInRecords?.length ? (
+              ) : !attendanceHistory?.attendanceRecords?.length ? (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
                     <Clock className="h-8 w-8 text-gray-400" />
@@ -522,40 +529,120 @@ export default function QRClockInPage() {
                 </div>
               ) : (
                 <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {clockInHistory.clockInRecords.map((record) => (
+                  {attendanceHistory.attendanceRecords.map((record) => (
                     <div 
                       key={record.id} 
                       className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors"
                       data-testid={`clockin-record-${record.id}`}
                     >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <CheckCircle className="h-4 w-4 text-green-600" />
-                            <span className="font-medium text-gray-800">Clock-In Berjaya</span>
-                            {getLocationStatusBadge(record.locationStatus, record.distance)}
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
+                            <Clock className="h-5 w-5 text-blue-600" />
                           </div>
-                          
-                          <div className="grid grid-cols-1 gap-2 text-sm text-gray-600">
-                            <div className="flex items-center gap-2">
-                              <Clock className="h-3 w-3" />
-                              <span>{formatDateTime(record.clockInTime)}</span>
+                          <div>
+                            <p className="font-medium text-gray-800">
+                              {new Date(record.date).toLocaleDateString('ms-MY', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                              })}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              Status: {record.status}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          {record.totalHours && (
+                            <Badge variant="outline" className="text-xs">
+                              {record.totalHours} jam
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Clock-In Information */}
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-sm font-medium text-green-700">
+                            <Clock className="h-4 w-4" />
+                            Clock-In
+                          </div>
+                          {record.clockInTime ? (
+                            <div className="pl-6 space-y-1">
+                              <p className="text-sm text-gray-800">
+                                {new Date(record.clockInTime).toLocaleTimeString('ms-MY', {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                  second: '2-digit'
+                                })}
+                              </p>
+                              {record.clockInLocationStatus && (
+                                <Badge 
+                                  variant={record.clockInLocationStatus === "valid" ? "success" : "destructive"}
+                                  className="text-xs"
+                                >
+                                  {record.clockInLocationStatus === "valid" ? "Lokasi Sah" : "Lokasi Tidak Sah"}
+                                </Badge>
+                              )}
+                              {record.clockInLatitude && record.clockInLongitude && (
+                                <div className="text-xs text-gray-500">
+                                  <MapPin className="h-3 w-3 inline mr-1" />
+                                  {parseFloat(record.clockInLatitude).toFixed(6)}, {parseFloat(record.clockInLongitude).toFixed(6)}
+                                </div>
+                              )}
+                              {record.clockInImage && (
+                                <div className="text-xs text-gray-500">
+                                  <Camera className="h-3 w-3 inline mr-1" />
+                                  Selfie tersimpan
+                                </div>
+                              )}
                             </div>
-                            
-                            <div className="flex items-center gap-2">
-                              <MapPin className="h-3 w-3" />
-                              <span>
-                                {parseFloat(record.latitude).toFixed(6)}, {parseFloat(record.longitude).toFixed(6)}
-                              </span>
-                            </div>
+                          ) : (
+                            <p className="pl-6 text-sm text-gray-400">Belum clock-in</p>
+                          )}
+                        </div>
 
-                            {record.selfieImagePath && (
-                              <div className="flex items-center gap-2">
-                                <Camera className="h-3 w-3" />
-                                <span>Selfie tersimpan</span>
-                              </div>
-                            )}
+                        {/* Clock-Out Information */}
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-sm font-medium text-orange-700">
+                            <Clock className="h-4 w-4" />
+                            Clock-Out
                           </div>
+                          {record.clockOutTime ? (
+                            <div className="pl-6 space-y-1">
+                              <p className="text-sm text-gray-800">
+                                {new Date(record.clockOutTime).toLocaleTimeString('ms-MY', {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                  second: '2-digit'
+                                })}
+                              </p>
+                              {record.clockOutLocationStatus && (
+                                <Badge 
+                                  variant={record.clockOutLocationStatus === "valid" ? "success" : "destructive"}
+                                  className="text-xs"
+                                >
+                                  {record.clockOutLocationStatus === "valid" ? "Lokasi Sah" : "Lokasi Tidak Sah"}
+                                </Badge>
+                              )}
+                              {record.clockOutLatitude && record.clockOutLongitude && (
+                                <div className="text-xs text-gray-500">
+                                  <MapPin className="h-3 w-3 inline mr-1" />
+                                  {parseFloat(record.clockOutLatitude).toFixed(6)}, {parseFloat(record.clockOutLongitude).toFixed(6)}
+                                </div>
+                              )}
+                              {record.clockOutImage && (
+                                <div className="text-xs text-gray-500">
+                                  <Camera className="h-3 w-3 inline mr-1" />
+                                  Selfie tersimpan
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <p className="pl-6 text-sm text-gray-400">Belum clock-out</p>
+                          )}
                         </div>
                       </div>
                     </div>

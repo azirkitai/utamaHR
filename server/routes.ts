@@ -1928,21 +1928,47 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/clockin-history", authenticateToken, async (req, res) => {
     try {
       const userId = req.user!.id;
-      const clockInRecords = await storage.getUserClockInRecords(userId);
+      // Get user first, then employee
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User tidak ditemukan" });
+      }
+
+      const employee = await storage.getEmployeeByUserId(userId);
+      if (!employee) {
+        return res.status(404).json({ error: "Employee tidak ditemukan" });
+      }
+
+      // Get attendance records for the employee (last 30 days)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const attendanceRecords = await storage.getAttendanceRecords({
+        employeeId: employee.id,
+        dateFrom: thirtyDaysAgo
+      });
       
       res.json({
-        clockInRecords: clockInRecords.map(record => ({
+        attendanceRecords: attendanceRecords.map(record => ({
           id: record.id,
+          date: record.date,
           clockInTime: record.clockInTime,
-          locationStatus: record.locationStatus,
-          latitude: record.latitude,
-          longitude: record.longitude,
-          selfieImagePath: record.selfieImagePath
+          clockOutTime: record.clockOutTime,
+          clockInLatitude: record.clockInLatitude,
+          clockInLongitude: record.clockInLongitude,
+          clockOutLatitude: record.clockOutLatitude,
+          clockOutLongitude: record.clockOutLongitude,
+          clockInLocationStatus: record.clockInLocationStatus,
+          clockOutLocationStatus: record.clockOutLocationStatus,
+          clockInImage: record.clockInImage,
+          clockOutImage: record.clockOutImage,
+          totalHours: record.totalHours,
+          status: record.status
         }))
       });
     } catch (error) {
-      console.error("Clock-in history error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan sejarah clock-in" });
+      console.error("Attendance history error:", error);
+      res.status(500).json({ error: "Gagal mendapatkan sejarah kehadiran" });
     }
   });
 
