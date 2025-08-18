@@ -4843,6 +4843,16 @@ export default function SystemSettingPage() {
       });
     };
 
+    // Filter employees for privileged roles only (Super Admin, Admin, HR Manager)
+    const privilegedEmployees = approvalEmployees.filter(employee => 
+      ['Super Admin', 'Admin', 'HR Manager'].includes(employee.role)
+    );
+
+    // Filter second level employees to exclude the selected first level
+    const secondLevelEmployees = privilegedEmployees.filter(employee => 
+      employee.id !== overtimeApproval.firstLevel
+    );
+
     return (
       <div className="space-y-6">
         <div className="bg-white rounded-lg border">
@@ -4856,7 +4866,14 @@ export default function SystemSettingPage() {
                 <Label className="text-sm font-medium">First Level Approval</Label>
                 <Select 
                   value={overtimeApproval.firstLevel}
-                  onValueChange={(value) => setOvertimeApproval(prev => ({...prev, firstLevel: value}))}
+                  onValueChange={(value) => {
+                    setOvertimeApproval(prev => ({
+                      ...prev, 
+                      firstLevel: value,
+                      // Reset second level if it's the same as first level
+                      secondLevel: prev.secondLevel === value ? 'none' : prev.secondLevel
+                    }));
+                  }}
                   data-testid="select-overtime-first-level"
                 >
                   <SelectTrigger>
@@ -4864,9 +4881,9 @@ export default function SystemSettingPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">None</SelectItem>
-                    {employees.map((employee) => (
+                    {privilegedEmployees.map((employee) => (
                       <SelectItem key={employee.id} value={employee.id.toString()}>
-                        {employee.name} - {employee.position}
+                        {employee.fullName || employee.firstName + ' ' + employee.lastName} - {employee.role}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -4886,9 +4903,9 @@ export default function SystemSettingPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">None</SelectItem>
-                    {employees.map((employee) => (
+                    {secondLevelEmployees.map((employee) => (
                       <SelectItem key={employee.id} value={employee.id.toString()}>
-                        {employee.name} - {employee.position}
+                        {employee.fullName || employee.firstName + ' ' + employee.lastName} - {employee.role}
                       </SelectItem>
                     ))}
                   </SelectContent>
