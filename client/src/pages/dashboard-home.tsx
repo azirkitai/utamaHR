@@ -564,7 +564,8 @@ export default function DashboardHome() {
         </Card>
         )}
 
-        {/* Attendance Today Widget */}
+        {/* Attendance Today Widget - Only visible to superadmin, admin, and HR manager */}
+        {hasPrivilegedAccess && (
         <Card>
           <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-t-lg flex flex-row items-center justify-between pb-3">
             <div>
@@ -689,6 +690,7 @@ export default function DashboardHome() {
             )}
           </CardContent>
         </Card>
+        )}
 
         {/* Your Statistic */}
         <Card>
