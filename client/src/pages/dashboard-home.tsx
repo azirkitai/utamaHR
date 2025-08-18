@@ -153,7 +153,7 @@ export default function DashboardHome() {
     queryFn: () => authenticatedFetch('/api/employee-statistics'),
   });
 
-  // Query untuk dashboard statistics (clock in, leave data)
+  // Query untuk dashboard statistics (clock in, leave data) with auto-refresh
   const { data: dashboardStats, isLoading: isDashboardStatsLoading } = useQuery<{
     totalClockIns: number;
     totalOnLeave: number;
@@ -161,6 +161,8 @@ export default function DashboardHome() {
   }>({
     queryKey: ["/api/dashboard-statistics"],
     queryFn: () => authenticatedFetch('/api/dashboard-statistics'),
+    refetchInterval: 30000, // Auto-refresh every 30 seconds
+    refetchOnWindowFocus: true, // Refresh when window gains focus
   });
 
   // Query untuk user statistics (personal stats)
@@ -211,10 +213,12 @@ export default function DashboardHome() {
     queryFn: () => authenticatedFetch('/api/announcements/unread'),
   });
 
-  // Query untuk today's attendance
-  const { data: todayAttendance = [], isLoading: isTodayAttendanceLoading } = useQuery<TodayAttendance[]>({
+  // Query untuk today's attendance with auto-refresh
+  const { data: todayAttendance = [], isLoading: isTodayAttendanceLoading, refetch: refetchTodayAttendance } = useQuery<TodayAttendance[]>({
     queryKey: ["/api/today-attendance"],
     queryFn: () => authenticatedFetch('/api/today-attendance'),
+    refetchInterval: 30000, // Auto-refresh every 30 seconds
+    refetchOnWindowFocus: true, // Refresh when window gains focus
   });
 
   // Convert statistics to pie chart format
