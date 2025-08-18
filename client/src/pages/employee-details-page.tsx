@@ -67,6 +67,9 @@ export default function EmployeeDetailsPage() {
   const [isWorkExperienceDialogOpen, setIsWorkExperienceDialogOpen] = useState(false);
   const [isFamilyDialogOpen, setIsFamilyDialogOpen] = useState(false);
   const [isChangePasswordDialogOpen, setIsChangePasswordDialogOpen] = useState(false);
+  const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] = useState(false);
+  const [isNewPasswordDialogOpen, setIsNewPasswordDialogOpen] = useState(false);
+  const [generatedPassword, setGeneratedPassword] = useState("");
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
@@ -565,6 +568,34 @@ export default function EmployeeDetailsPage() {
     });
   };
 
+  // Reset Password mutation
+  const resetPasswordMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", `/api/employees/${id}/reset-password`, {});
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setGeneratedPassword(data.newPassword);
+      setIsResetPasswordDialogOpen(false);
+      setIsNewPasswordDialogOpen(true);
+      toast({
+        title: "Berjaya",
+        description: "Password telah berjaya direset",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Ralat",
+        description: error.message || "Gagal mereset password",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleConfirmResetPassword = () => {
+    resetPasswordMutation.mutate();
+  };
+
   const navigationTabs = [
     {
       id: "personal-details",
@@ -694,6 +725,7 @@ export default function EmployeeDetailsPage() {
                 variant="outline"
                 size="sm"
                 className="bg-red-600 text-white hover:bg-red-700"
+                onClick={() => setIsResetPasswordDialogOpen(true)}
                 data-testid="button-reset-password"
               >
                 <RotateCcw className="w-4 h-4 mr-2" />
@@ -3078,6 +3110,123 @@ export default function EmployeeDetailsPage() {
               data-testid="button-save-password"
             >
               {changePasswordMutation.isPending ? "Saving..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reset Password Confirmation Dialog */}
+      <Dialog open={isResetPasswordDialogOpen} onOpenChange={setIsResetPasswordDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reset Password</DialogTitle>
+            <DialogDescription>
+              Adakah anda pasti untuk mereset password? Password lama akan dihapuskan dan password baru akan dijana secara automatik.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+              <div className="w-8 h-8 bg-amber-500 rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-sm">!</span>
+              </div>
+              <div>
+                <p className="font-medium text-amber-800">Amaran</p>
+                <p className="text-sm text-amber-700">
+                  Tindakan ini tidak boleh dibuat asal. Password lama akan dihapuskan secara kekal.
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsResetPasswordDialogOpen(false)}
+              data-testid="button-cancel-reset"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirmResetPassword}
+              disabled={resetPasswordMutation.isPending}
+              className="bg-red-600 hover:bg-red-700 text-white"
+              data-testid="button-confirm-reset"
+            >
+              {resetPasswordMutation.isPending ? "Resetting..." : "Confirm Reset"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* New Password Display Dialog */}
+      <Dialog open={isNewPasswordDialogOpen} onOpenChange={setIsNewPasswordDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Password Baru</DialogTitle>
+            <DialogDescription>
+              Password baru telah dijana. Sila simpan password ini dengan selamat.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">✓</span>
+                </div>
+                <div>
+                  <p className="font-medium text-green-800">Berjaya Reset</p>
+                  <p className="text-sm text-green-700">
+                    Password telah berjaya direset
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Password Baru:</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={generatedPassword}
+                    readOnly
+                    className="font-mono text-lg bg-gray-50"
+                    data-testid="input-generated-password"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      navigator.clipboard.writeText(generatedPassword);
+                      toast({
+                        title: "Copied",
+                        description: "Password telah disalin ke clipboard",
+                      });
+                    }}
+                    data-testid="button-copy-password"
+                  >
+                    Copy
+                  </Button>
+                </div>
+              </div>
+
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-700">
+                  <strong>Penting:</strong> Sila simpan password ini dengan selamat. Password ini tidak akan ditunjukkan lagi selepas dialog ini ditutup.
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                setIsNewPasswordDialogOpen(false);
+                setGeneratedPassword("");
+              }}
+              className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
+              data-testid="button-close-new-password"
+            >
+              Tutup
             </Button>
           </DialogFooter>
         </DialogContent>

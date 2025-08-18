@@ -1389,6 +1389,25 @@ export function registerRoutes(app: Express): Server {
 
   app.post("/api/employees/:id/reset-password", authenticateToken, async (req, res) => {
     try {
+      const currentUser = req.user!;
+      
+      // Get employee to check authorization
+      const employee = await storage.getEmployee(req.params.id);
+      if (!employee) {
+        return res.status(404).json({ error: "Pekerja tidak dijumpai" });
+      }
+
+      // Role-based access control for password reset
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager'];
+      if (adminRoles.includes(currentUser.role)) {
+        // Admin roles can reset any employee password
+      } else {
+        // Regular employees can only reset their own password
+        if (employee.userId !== currentUser.id) {
+          return res.status(403).json({ error: "Tidak dibenarkan mereset password pekerja lain" });
+        }
+      }
+
       const newPassword = await storage.resetEmployeePassword(req.params.id);
       res.json({ 
         message: "Password berjaya direset",
