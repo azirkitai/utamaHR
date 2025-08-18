@@ -7,7 +7,6 @@ import {
   FileText, 
   Download, 
   Eye,
-  Trash2,
   Plus
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -71,47 +70,7 @@ export default function FormsPage() {
     }
   };
 
-  const handleDelete = async (formId: string) => {
-    if (!confirm("Adakah anda pasti ingin memadamkan borang ini?")) {
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem("utamahr_token");
-      if (!token) {
-        toast({
-          title: "Error",
-          description: "Token tidak dijumpai. Sila log masuk semula.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const response = await fetch(`/api/forms/${formId}`, {
-        method: 'DELETE',
-        headers: {
-          "Authorization": `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        toast({
-          title: "Berjaya",
-          description: "Borang telah berjaya dipadamkan",
-        });
-        refetch();
-      } else {
-        throw new Error("Gagal memadamkan borang");
-      }
-    } catch (error) {
-      console.error("Delete error:", error);
-      toast({
-        title: "Ralat",
-        description: "Gagal memadamkan borang. Sila cuba lagi.",
-        variant: "destructive",
-      });
-    }
-  };
+  
 
   return (
     <DashboardLayout>
@@ -188,7 +147,7 @@ export default function FormsPage() {
                             </div>
                           </td>
                           <td className="px-6 py-4">
-                            <div className="flex items-center justify-center gap-2">
+                            <div className="flex items-center justify-center">
                               <Button
                                 size="sm"
                                 variant="outline"
@@ -198,16 +157,6 @@ export default function FormsPage() {
                               >
                                 <Download className="w-3 h-3 mr-1" />
                                 Download
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleDelete(form.id)}
-                                className="h-8 px-3 text-red-600 border-red-200 hover:bg-red-50"
-                                data-testid={`button-delete-${form.id}`}
-                              >
-                                <Trash2 className="w-3 h-3 mr-1" />
-                                Delete
                               </Button>
                             </div>
                           </td>
