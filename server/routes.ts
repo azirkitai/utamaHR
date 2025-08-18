@@ -10,9 +10,33 @@ import puppeteer from 'puppeteer';
 import htmlPdf from 'html-pdf-node';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import multer from 'multer';
+import { promises as fs } from 'fs';
+import path from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+// Configure multer for file uploads
+const upload = multer({
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Allow PDF, DOC, DOCX files
+    const allowedMimes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+    
+    if (allowedMimes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Hanya fail PDF, DOC, dan DOCX dibenarkan'));
+    }
+  }
+});
 import { 
   insertEmployeeSchema, 
   updateEmployeeSchema,
@@ -7032,25 +7056,42 @@ export function registerRoutes(app: Express): Server {
   });
 
   // Upload new form (with file upload)
-  app.post("/api/forms", authenticateToken, async (req, res) => {
+  app.post("/api/forms", authenticateToken, upload.single('formFile'), async (req, res) => {
     try {
-      // This is a multipart form, so we'll need to handle file upload differently
-      // For now, we'll create a basic form entry with the data from formData
-      
       const formName = req.body.formName;
-      const fileName = req.body.fileName || "unknown.pdf";
-      const fileUrl = req.body.fileUrl || "/uploads/forms/" + randomUUID();
+      const uploadedFile = req.file;
       
       if (!formName) {
         return res.status(400).json({ error: "Nama borang diperlukan" });
       }
 
+      if (!uploadedFile) {
+        return res.status(400).json({ error: "Fail borang diperlukan" });
+      }
+
+      // Create uploads directory if it doesn't exist
+      const uploadsDir = path.join(__dirname, '../uploads/forms');
+      try {
+        await fs.mkdir(uploadsDir, { recursive: true });
+      } catch (mkdirError) {
+        // Directory might already exist, that's fine
+      }
+
+      // Generate unique filename
+      const fileExtension = path.extname(uploadedFile.originalname);
+      const uniqueFileName = `${randomUUID()}${fileExtension}`;
+      const filePath = path.join(uploadsDir, uniqueFileName);
+      const fileUrl = `/uploads/forms/${uniqueFileName}`;
+
+      // Save file to uploads directory
+      await fs.writeFile(filePath, uploadedFile.buffer);
+
       const validatedData = insertFormSchema.parse({
         formName,
-        fileName,
+        fileName: uploadedFile.originalname,
         fileUrl,
-        fileSize: 0, // Will be updated when file upload is properly implemented
-        mimeType: "application/pdf"
+        fileSize: uploadedFile.size,
+        mimeType: uploadedFile.mimetype
       });
 
       const [newForm] = await db.insert(forms).values(validatedData).returning();
@@ -7069,15 +7110,46 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Serve uploaded form files
+  app.get("/uploads/forms/:filename", async (req, res) => {
+    try {
+      const { filename } = req.params;
+      const filePath = path.join(__dirname, '../uploads/forms', filename);
+      
+      // Check if file exists
+      await fs.access(filePath);
+      
+      res.sendFile(path.resolve(filePath));
+    } catch (error) {
+      console.error("Error serving form file:", error);
+      res.status(404).json({ error: "Fail tidak dijumpai" });
+    }
+  });
+
   // Delete form
   app.delete("/api/forms/:id", authenticateToken, async (req, res) => {
     try {
       const { id } = req.params;
 
+      // First get the form to find the file to delete
+      const [existingForm] = await db.select().from(forms).where(eq(forms.id, id));
+      
+      if (!existingForm) {
+        return res.status(404).json({ error: "Borang tidak dijumpai" });
+      }
+
+      // Delete from database
       const [deletedForm] = await db.delete(forms).where(eq(forms.id, id)).returning();
 
-      if (!deletedForm) {
-        return res.status(404).json({ error: "Borang tidak dijumpai" });
+      // Try to delete the physical file
+      if (existingForm.fileUrl && existingForm.fileUrl.startsWith('/uploads/forms/')) {
+        const filename = path.basename(existingForm.fileUrl);
+        const filePath = path.join(__dirname, '../uploads/forms', filename);
+        try {
+          await fs.unlink(filePath);
+        } catch (fileError) {
+          console.log("File already deleted or not found:", fileError);
+        }
       }
 
       res.json({
