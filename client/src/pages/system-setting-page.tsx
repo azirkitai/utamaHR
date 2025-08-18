@@ -2016,6 +2016,209 @@ export default function SystemSettingPage() {
     }
   };
 
+  const renderFormsForm = () => (
+    <div className="space-y-6">
+      {/* Forms Settings Header */}
+      <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-4 rounded-lg">
+        <h3 className="text-lg font-semibold">Forms Settings</h3>
+        <p className="text-sm opacity-90 mt-1">Manage system forms and templates</p>
+      </div>
+
+      {/* Form Templates */}
+      <div className="bg-white p-6 rounded-lg border space-y-4">
+        <h4 className="text-lg font-medium text-gray-900">Form Templates</h4>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Employee Forms */}
+          <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+            <div className="flex items-center space-x-3 mb-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Users className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <h5 className="font-medium text-gray-900">Employee Forms</h5>
+                <p className="text-sm text-gray-500">3 templates</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span>Registration Form</span>
+                <Switch className="data-[state=checked]:bg-blue-900" />
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span>Profile Update</span>
+                <Switch className="data-[state=checked]:bg-blue-900" />
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span>Emergency Contact</span>
+                <Switch className="data-[state=checked]:bg-blue-900" />
+              </div>
+            </div>
+          </div>
+
+          {/* Leave Forms */}
+          <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+            <div className="flex items-center space-x-3 mb-3">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Calendar className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <h5 className="font-medium text-gray-900">Leave Forms</h5>
+                <p className="text-sm text-gray-500">4 templates</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span>Annual Leave</span>
+                <Switch defaultChecked className="data-[state=checked]:bg-blue-900" />
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span>Medical Leave</span>
+                <Switch defaultChecked className="data-[state=checked]:bg-blue-900" />
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span>Emergency Leave</span>
+                <Switch defaultChecked className="data-[state=checked]:bg-blue-900" />
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span>Maternity Leave</span>
+                <Switch className="data-[state=checked]:bg-blue-900" />
+              </div>
+            </div>
+          </div>
+
+          {/* Claim Forms */}
+          <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+            <div className="flex items-center space-x-3 mb-3">
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <DollarSign className="w-5 h-5 text-orange-600" />
+              </div>
+              <div>
+                <h5 className="font-medium text-gray-900">Claim Forms</h5>
+                <p className="text-sm text-gray-500">5 templates</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span>Travel Claim</span>
+                <Switch defaultChecked className="data-[state=checked]:bg-blue-900" />
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span>Medical Claim</span>
+                <Switch defaultChecked className="data-[state=checked]:bg-blue-900" />
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span>Meal Allowance</span>
+                <Switch defaultChecked className="data-[state=checked]:bg-blue-900" />
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span>Transport Claim</span>
+                <Switch className="data-[state=checked]:bg-blue-900" />
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span>Parking Claim</span>
+                <Switch className="data-[state=checked]:bg-blue-900" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Form Settings */}
+      <div className="bg-white p-6 rounded-lg border space-y-4">
+        <h4 className="text-lg font-medium text-gray-900">Form Settings</h4>
+        
+        <div className="space-y-4">
+          {/* Auto-save drafts */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h5 className="font-medium text-gray-900">Auto-save Drafts</h5>
+              <p className="text-sm text-gray-500">Automatically save form drafts every 30 seconds</p>
+            </div>
+            <Switch defaultChecked className="data-[state=checked]:bg-blue-900" />
+          </div>
+
+          {/* Required fields validation */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h5 className="font-medium text-gray-900">Required Fields Validation</h5>
+              <p className="text-sm text-gray-500">Validate required fields before submission</p>
+            </div>
+            <Switch defaultChecked className="data-[state=checked]:bg-blue-900" />
+          </div>
+
+          {/* Email notifications */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h5 className="font-medium text-gray-900">Email Notifications</h5>
+              <p className="text-sm text-gray-500">Send email notifications when forms are submitted</p>
+            </div>
+            <Switch defaultChecked className="data-[state=checked]:bg-blue-900" />
+          </div>
+
+          {/* Digital signatures */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h5 className="font-medium text-gray-900">Digital Signatures</h5>
+              <p className="text-sm text-gray-500">Enable digital signature capture for forms</p>
+            </div>
+            <Switch className="data-[state=checked]:bg-blue-900" />
+          </div>
+        </div>
+      </div>
+
+      {/* Form Upload & Management */}
+      <div className="bg-white p-6 rounded-lg border space-y-4">
+        <div className="flex items-center justify-between">
+          <h4 className="text-lg font-medium text-gray-900">Form Management</h4>
+          <Button className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white hover:opacity-90">
+            <Plus className="w-4 h-4 mr-2" />
+            Upload New Form
+          </Button>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Default Form Language</Label>
+            <Select defaultValue="ms">
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ms">Bahasa Malaysia</SelectItem>
+                <SelectItem value="en">English</SelectItem>
+                <SelectItem value="zh">中文</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Form Retention Period</Label>
+            <Select defaultValue="5">
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">1 Year</SelectItem>
+                <SelectItem value="3">3 Years</SelectItem>
+                <SelectItem value="5">5 Years</SelectItem>
+                <SelectItem value="7">7 Years</SelectItem>
+                <SelectItem value="permanent">Permanent</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+
+      {/* Save Button */}
+      <div className="flex justify-end">
+        <Button className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white hover:opacity-90">
+          Save Forms Settings
+        </Button>
+      </div>
+    </div>
+  );
+
   const renderCompanyForm = () => (
     <div className="space-y-6">
       {/* Company Details Header */}
@@ -4966,6 +5169,7 @@ export default function SystemSettingPage() {
              currentSection === "notifications" ? renderNotificationForm() :
              currentSection === "attendance" ? renderAttendanceForm() :
              currentSection === "yearly-form" ? renderYearlyForm() :
+             currentSection === "forms" ? renderFormsForm() :
              currentSection === "overtime-approval" ? renderOvertimeApprovalForm() :
              currentSection === "overtime-policy" ? renderOvertimePolicyForm() :
              currentSection === "overtime-settings" ? renderOvertimeSettingsForm() :
