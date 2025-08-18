@@ -15,6 +15,7 @@ import ApplyClaimPage from "@/pages/apply-claim-page";
 
 import AnnouncementPage from "@/pages/announcement-page";
 import CalendarPage from "@/pages/calendar-page";
+import FormsPage from "@/pages/forms-page";
 import ManageEmployeePage from "@/pages/manage-employee-page";
 import LeaveApprovalPage from "@/pages/leave-approval-page";
 import ClaimApprovalPage from "@/pages/claim-approval-page";
@@ -49,6 +50,7 @@ function Router() {
 
       <ProtectedRoute path="/announcement" component={AnnouncementPage} />
       <ProtectedRoute path="/calendar" component={CalendarPage} />
+      <ProtectedRoute path="/forms" component={FormsPage} />
       <ProtectedRoute path="/performance" component={PerformanceEvaluationPage} />
       <ProtectedRoute path="/evaluation" component={PerformanceEvaluationPage} />
       <ProtectedRoute path="/manage-employee" component={ManageEmployeePage} />

@@ -29,7 +29,8 @@ import {
   Banknote,
   Receipt,
   Bell,
-  QrCode
+  QrCode,
+  FormInput
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
@@ -99,6 +100,12 @@ const navigationItems: { category: string; items: SidebarItem[] }[] = [
         label: "Calendar",
         icon: <Calendar className="w-4 h-4" />,
         href: "/calendar",
+      },
+      {
+        id: "forms",
+        label: "Forms",
+        icon: <FormInput className="w-4 h-4" />,
+        href: "/forms",
       },
       {
         id: "performance",
