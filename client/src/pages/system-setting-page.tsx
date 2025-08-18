@@ -4586,8 +4586,8 @@ export default function SystemSettingPage() {
     return (
       <div className="space-y-6">
         <div className="bg-white rounded-lg border">
-          <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}>
-            <h3 className="font-semibold text-gray-800">Overtime Approval Settings</h3>
+          <div className="text-white p-3 rounded-t-lg shadow-sm bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800">
+            <h3 className="font-semibold text-white">Overtime Approval Settings</h3>
           </div>
           <div className="p-6 space-y-6">
             {/* First Level Approval */}
@@ -4700,8 +4700,8 @@ export default function SystemSettingPage() {
     return (
       <div className="space-y-6">
         <div className="bg-white rounded-lg border">
-          <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}>
-            <h3 className="font-semibold text-gray-800">Overtime Rate Policies</h3>
+          <div className="text-white p-3 rounded-t-lg shadow-sm bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800">
+            <h3 className="font-semibold text-white">Overtime Rate Policies</h3>
           </div>
           <div className="p-6">
             <div className="space-y-4">
@@ -4788,8 +4788,8 @@ export default function SystemSettingPage() {
     return (
       <div className="space-y-6">
         <div className="bg-white rounded-lg border">
-          <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}>
-            <h3 className="font-semibold text-gray-800">Overtime Calculation Settings</h3>
+          <div className="text-white p-3 rounded-t-lg shadow-sm bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800">
+            <h3 className="font-semibold text-white">Overtime Calculation Settings</h3>
           </div>
           <div className="p-6 space-y-6">
             {/* Count Overtime in Payroll */}
