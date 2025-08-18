@@ -567,7 +567,7 @@ export default function DashboardHome() {
             <CardTitle className="text-xl font-semibold">Pending Approval</CardTitle>
             <p className="text-sm text-gray-200">task(s) waiting for your action.</p>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6 pt-0 mt-[17px] mb-[17px]">
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               {[
                 { name: 'Leave', icon: Calendar, count: pendingStats?.pendingLeave || 0 },
