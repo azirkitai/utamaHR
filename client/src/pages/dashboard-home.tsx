@@ -131,6 +131,8 @@ export default function DashboardHome() {
   const [isHolidayModalOpen, setIsHolidayModalOpen] = useState(false);
   const [selectedDateLeaves, setSelectedDateLeaves] = useState<LeaveApplication[]>([]);
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<any>(null);
+  const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
   const [showSelfieForCard, setShowSelfieForCard] = useState<{ [key: string]: boolean }>({});
 
   // Function to toggle selfie display for a specific attendance card
@@ -357,6 +359,11 @@ export default function DashboardHome() {
       setSelectedDateLeaves(leaves);
       setIsLeaveModalOpen(true);
     }
+  };
+
+  const handleAnnouncementClick = (announcement: any) => {
+    setSelectedAnnouncement(announcement);
+    setIsAnnouncementModalOpen(true);
   };
 
   // Generate calendar days for current month view (mini calendar)
@@ -820,7 +827,11 @@ export default function DashboardHome() {
                 </div>
               ) : (
                 unreadAnnouncements.slice(0, 3).map((announcement) => (
-                  <div key={announcement.id} className="border rounded-lg p-4 bg-blue-50 border-blue-200 hover:bg-blue-100 transition-colors">
+                  <div 
+                    key={announcement.id} 
+                    className="border rounded-lg p-4 bg-blue-50 border-blue-200 hover:bg-blue-100 transition-colors cursor-pointer"
+                    onClick={() => handleAnnouncementClick(announcement)}
+                  >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
@@ -835,25 +846,9 @@ export default function DashboardHome() {
                           <span>{new Date(announcement.createdAt).toLocaleDateString('en-GB')}</span>
                         </div>
                       </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={async () => {
-                          try {
-                            await authenticatedFetch(`/api/announcements/${announcement.id}/acknowledge`, {
-                              method: 'POST'
-                            });
-                            refetchUnreadAnnouncements();
-                          } catch (error) {
-                            console.error('Error acknowledging announcement:', error);
-                          }
-                        }}
-                        className="text-xs px-2 py-1 bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
-                        data-testid={`button-acknowledge-${announcement.id}`}
-                      >
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        Read
-                      </Button>
+                      <div className="text-blue-600 text-xs">
+                        Click untuk baca
+                      </div>
                     </div>
                   </div>
                 ))
@@ -1246,6 +1241,115 @@ export default function DashboardHome() {
                 data-testid="button-close-leave-modal"
               >
                 Tutup
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Announcement Details Modal */}
+        <Dialog open={isAnnouncementModalOpen} onOpenChange={setIsAnnouncementModalOpen}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" aria-describedby="announcement-details-description">
+            <DialogHeader>
+              <DialogTitle>Detail Pengumuman</DialogTitle>
+            </DialogHeader>
+            <p id="announcement-details-description" className="sr-only">
+              Full details about the selected announcement.
+            </p>
+            
+            {selectedAnnouncement && (
+              <div className="space-y-6">
+                <div className="border rounded-lg p-6 bg-blue-50 border-blue-200">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="text-3xl">📢</div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-xl text-blue-900">{selectedAnnouncement.title}</h3>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge className="bg-blue-500 text-white text-xs">BARU</Badge>
+                        <span className="text-sm text-blue-700">Pengumuman Rasmi</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm font-medium text-gray-700 mb-2">Mesej:</p>
+                      <div className="bg-white p-4 rounded-lg border text-base leading-relaxed">
+                        {selectedAnnouncement.message}
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Daripada:</p>
+                        <p className="text-base font-semibold text-blue-800">{selectedAnnouncement.announcerName}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Tarikh Dikeluarkan:</p>
+                        <p className="text-base">{new Date(selectedAnnouncement.createdAt).toLocaleDateString('en-GB', { 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}</p>
+                      </div>
+                    </div>
+
+                    {selectedAnnouncement.attachmentPath && (
+                      <div className="border-t pt-4">
+                        <p className="text-sm font-medium text-gray-700 mb-3">Dokumen Lampiran:</p>
+                        <div className="bg-white p-3 rounded-lg border flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="text-2xl">📄</div>
+                            <div>
+                              <p className="font-medium text-gray-900">Dokumen Lampiran</p>
+                              <p className="text-sm text-gray-600">Klik untuk muat turun</p>
+                            </div>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              window.open(selectedAnnouncement.attachmentPath, '_blank');
+                            }}
+                            className="text-blue-600 hover:text-blue-700"
+                          >
+                            Muat Turun
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <DialogFooter className="flex gap-3">
+              <Button 
+                variant="outline"
+                onClick={() => setIsAnnouncementModalOpen(false)}
+                className="text-gray-600 hover:text-gray-700"
+                data-testid="button-close-announcement-modal"
+              >
+                Tutup
+              </Button>
+              <Button 
+                onClick={async () => {
+                  try {
+                    await authenticatedFetch(`/api/announcements/${selectedAnnouncement.id}/acknowledge`, {
+                      method: 'POST'
+                    });
+                    refetchUnreadAnnouncements();
+                    setIsAnnouncementModalOpen(false);
+                  } catch (error) {
+                    console.error('Error acknowledging announcement:', error);
+                  }
+                }}
+                className="bg-green-600 hover:bg-green-700 text-white"
+                data-testid="button-acknowledge-announcement"
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Telah Dibaca
               </Button>
             </DialogFooter>
           </DialogContent>
