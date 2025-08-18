@@ -3039,7 +3039,6 @@ export default function EmployeeDetailsPage() {
             </div>
         </div>
       </div>
-
       {/* Change Password Dialog */}
       <Dialog open={isChangePasswordDialogOpen} onOpenChange={setIsChangePasswordDialogOpen}>
         <DialogContent className="sm:max-w-md">
@@ -3114,15 +3113,12 @@ export default function EmployeeDetailsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       {/* Reset Password Confirmation Dialog */}
       <Dialog open={isResetPasswordDialogOpen} onOpenChange={setIsResetPasswordDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Reset Password</DialogTitle>
-            <DialogDescription>
-              Adakah anda pasti untuk mereset password? Password lama akan dihapuskan dan password baru akan dijana secara automatik.
-            </DialogDescription>
+            <DialogDescription>Are you sure you want to reset the password? The old password will be deleted and a new one will be generated automatically.</DialogDescription>
           </DialogHeader>
           
           <div className="py-4">
@@ -3158,7 +3154,6 @@ export default function EmployeeDetailsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       {/* New Password Display Dialog */}
       <Dialog open={isNewPasswordDialogOpen} onOpenChange={setIsNewPasswordDialogOpen}>
         <DialogContent className="sm:max-w-md">
