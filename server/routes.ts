@@ -7126,6 +7126,36 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Download form by ID
+  app.get("/api/forms/download/:id", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Get form details from database
+      const [form] = await db.select().from(forms).where(eq(forms.id, id));
+      
+      if (!form) {
+        return res.status(404).json({ error: "Borang tidak dijumpai" });
+      }
+
+      // Extract filename from fileUrl
+      const filename = path.basename(form.fileUrl);
+      const filePath = path.join(__dirname, '../uploads/forms', filename);
+      
+      // Check if file exists
+      await fs.access(filePath);
+      
+      // Set proper headers for download
+      res.setHeader('Content-Disposition', `attachment; filename="${form.fileName}"`);
+      res.setHeader('Content-Type', form.mimeType || 'application/octet-stream');
+      
+      res.sendFile(path.resolve(filePath));
+    } catch (error) {
+      console.error("Error downloading form:", error);
+      res.status(404).json({ error: "Fail tidak dijumpai" });
+    }
+  });
+
   // Delete form
   app.delete("/api/forms/:id", authenticateToken, async (req, res) => {
     try {
