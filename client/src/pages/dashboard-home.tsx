@@ -471,7 +471,7 @@ export default function DashboardHome() {
               {/* Stats Cards */}
               <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Card className="bg-gradient-to-br from-slate-50 to-blue-50 border-slate-200">
-                  <CardContent className="p-6 text-center">
+                  <CardContent className="p-6 text-center mt-[30px] mb-[30px]">
                     <div className="text-3xl font-bold text-blue-600 mb-2" data-testid="total-clock-ins">
                       {dashboardStats?.totalClockIns || 0}
                     </div>
@@ -481,7 +481,7 @@ export default function DashboardHome() {
                 </Card>
 
                 <Card className="bg-gradient-to-br from-slate-50 to-blue-50 border-slate-200">
-                  <CardContent className="p-6 text-center">
+                  <CardContent className="p-6 text-center mt-[30px] mb-[30px]">
                     <div className="text-3xl font-bold text-cyan-600 mb-2" data-testid="total-on-leave">
                       {dashboardStats?.totalOnLeave || 0}
                     </div>
@@ -491,7 +491,7 @@ export default function DashboardHome() {
                 </Card>
 
                 <Card className="bg-gradient-to-br from-slate-50 to-blue-50 border-slate-200">
-                  <CardContent className="p-6 text-center">
+                  <CardContent className="p-6 text-center mt-[30px] mb-[30px]">
                     <div className="text-3xl font-bold text-purple-600 mb-2" data-testid="total-leave-approved">
                       {dashboardStats?.totalLeaveApproved || 0}
                     </div>
