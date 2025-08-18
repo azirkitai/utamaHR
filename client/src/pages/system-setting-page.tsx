@@ -3528,9 +3528,26 @@ export default function SystemSettingPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="RM">RM</SelectItem>
-                <SelectItem value="USD">USD</SelectItem>
-                <SelectItem value="EUR">EUR</SelectItem>
+                <SelectItem value="RM">RM (Malaysian Ringgit)</SelectItem>
+                <SelectItem value="IDR">IDR (Indonesian Rupiah)</SelectItem>
+                <SelectItem value="THB">THB (Thai Baht)</SelectItem>
+                <SelectItem value="SGD">SGD (Singapore Dollar)</SelectItem>
+                <SelectItem value="MMK">MMK (Myanmar Kyat)</SelectItem>
+                <SelectItem value="PHP">PHP (Philippine Peso)</SelectItem>
+                <SelectItem value="VND">VND (Vietnamese Dong)</SelectItem>
+                <SelectItem value="BND">BND (Brunei Dollar)</SelectItem>
+                <SelectItem value="LAK">LAK (Lao Kip)</SelectItem>
+                <SelectItem value="KHR">KHR (Cambodian Riel)</SelectItem>
+                <SelectItem value="USD">USD (US Dollar)</SelectItem>
+                <SelectItem value="EUR">EUR (Euro)</SelectItem>
+                <SelectItem value="GBP">GBP (British Pound)</SelectItem>
+                <SelectItem value="JPY">JPY (Japanese Yen)</SelectItem>
+                <SelectItem value="CNY">CNY (Chinese Yuan)</SelectItem>
+                <SelectItem value="KRW">KRW (South Korean Won)</SelectItem>
+                <SelectItem value="INR">INR (Indian Rupee)</SelectItem>
+                <SelectItem value="AUD">AUD (Australian Dollar)</SelectItem>
+                <SelectItem value="CAD">CAD (Canadian Dollar)</SelectItem>
+                <SelectItem value="HKD">HKD (Hong Kong Dollar)</SelectItem>
               </SelectContent>
             </Select>
           </div>
