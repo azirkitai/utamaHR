@@ -17,6 +17,7 @@ import { Plus, Calculator, Save, Info, Settings, ChevronDown, ChevronUp, X, Tras
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { PCB39_RELIEFS_2025 } from "@shared/pcb39-reliefs-2025";
+import { useSystemCurrency } from "@/lib/currency";
 
 interface AdditionalItem {
   code: string;
@@ -416,6 +417,7 @@ export default function EmployeeSalaryDetailsPage() {
   const { employeeId } = useParams();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { currency, symbol, prefix, formatAmount } = useSystemCurrency();
   
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(employeeId || "");
   const [isCalculating, setIsCalculating] = useState(false);
@@ -1922,13 +1924,13 @@ export default function EmployeeSalaryDetailsPage() {
                 {/* Basic Salary */}
                 <div className="space-y-2">
                   <Label className="font-medium">
-                    {salaryData.salaryType === "Monthly" ? "Basic Salary (RM/Month)" : 
-                     salaryData.salaryType === "Daily" ? "Basic Salary (RM/Day)" : 
-                     "Basic Salary (RM/Hour)"}
+                    {salaryData.salaryType === "Monthly" ? `Basic Salary (${prefix}/Month)` : 
+                     salaryData.salaryType === "Daily" ? `Basic Salary (${prefix}/Day)` : 
+                     `Basic Salary (${prefix}/Hour)`}
                   </Label>
                   <div className="flex">
                     <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
-                      <span className="text-sm font-medium">RM</span>
+                      <span className="text-sm font-medium">{prefix}</span>
                     </div>
                     <Input
                       type="number"
@@ -1943,10 +1945,10 @@ export default function EmployeeSalaryDetailsPage() {
 
                 {/* Computed Salary */}
                 <div className="space-y-2">
-                  <Label className="font-medium">Computed Salary (RM)</Label>
+                  <Label className="font-medium">Computed Salary ({prefix})</Label>
                   <div className="flex">
                     <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
-                      <span className="text-sm font-medium">RM</span>
+                      <span className="text-sm font-medium">{prefix}</span>
                     </div>
                     <Input
                       type="text"
@@ -2138,7 +2140,7 @@ export default function EmployeeSalaryDetailsPage() {
                   </div>
                   <div className="flex">
                     <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
-                      <span className="text-sm font-medium">RM</span>
+                      <span className="text-sm font-medium">{prefix}</span>
                     </div>
                     <Input
                       type="number"
@@ -2221,7 +2223,7 @@ export default function EmployeeSalaryDetailsPage() {
                   </div>
                   <div className="flex">
                     <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
-                      <span className="text-sm font-medium">RM</span>
+                      <span className="text-sm font-medium">{prefix}</span>
                     </div>
                     <Input
                       type="number"
@@ -2304,7 +2306,7 @@ export default function EmployeeSalaryDetailsPage() {
                   </div>
                   <div className="flex">
                     <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
-                      <span className="text-sm font-medium">RM</span>
+                      <span className="text-sm font-medium">{prefix}</span>
                     </div>
                     <Input
                       type="number"
@@ -2393,7 +2395,7 @@ export default function EmployeeSalaryDetailsPage() {
                   </div>
                   <div className="flex">
                     <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
-                      <span className="text-sm font-medium">RM</span>
+                      <span className="text-sm font-medium">{prefix}</span>
                     </div>
                     <Input
                       type="number"
@@ -2435,7 +2437,7 @@ export default function EmployeeSalaryDetailsPage() {
                   </div>
                   <div className="flex">
                     <div className="bg-gray-200 px-3 py-2 rounded-l-md border border-r-0 flex items-center">
-                      <span className="text-sm font-medium">RM</span>
+                      <span className="text-sm font-medium">{prefix}</span>
                     </div>
                     <Input
                       type="text"

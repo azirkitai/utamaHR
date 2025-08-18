@@ -4755,6 +4755,28 @@ export function registerRoutes(app: Express): Server {
   });
 
   // =================== COMPANY SETTINGS ROUTES ===================
+  
+  // Get payment settings (for currency and other payment configurations)
+  app.get("/api/payment-settings", authenticateToken, async (req, res) => {
+    try {
+      const settings = await storage.getCompanySettings();
+      // Return payment-specific settings including currency
+      const paymentSettings = {
+        currency: settings?.currency || 'RM',
+        epfEnabled: settings?.epfEnabled ?? true,
+        socsoEnabled: settings?.socsoEnabled ?? true,
+        eisEnabled: settings?.eisEnabled ?? true,
+        hrdfEnabled: settings?.hrdfEnabled ?? true,
+        pcb39Enabled: settings?.pcb39Enabled ?? true,
+        standardWorkingHour: settings?.standardWorkingHour || '8'
+      };
+      res.json(paymentSettings);
+    } catch (error) {
+      console.error("Error fetching payment settings:", error);
+      res.status(500).json({ error: "Gagal mendapatkan tetapan pembayaran" });
+    }
+  });
+
   // Get financial settings
   app.get("/api/financial-settings", authenticateToken, async (req, res) => {
     try {

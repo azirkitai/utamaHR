@@ -298,6 +298,15 @@ export const companySettings = pgTable("company_settings", {
   // Logo and Branding
   logoUrl: text("logo_url"),
   
+  // Payment & Currency Settings  
+  currency: text("currency").default("RM"),
+  epfEnabled: boolean("epf_enabled").default(true),
+  socsoEnabled: boolean("socso_enabled").default(true),
+  eisEnabled: boolean("eis_enabled").default(true),
+  hrdfEnabled: boolean("hrdf_enabled").default(true),
+  pcb39Enabled: boolean("pcb39_enabled").default(true),
+  standardWorkingHour: text("standard_working_hour").default("8"),
+  
   // Bank & Account Details
   bankName: text("bank_name"),
   bankAccountNumber: text("bank_account_number"),

@@ -3522,7 +3522,12 @@ export default function SystemSettingPage() {
           {/* Currency */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">Currency</Label>
-            <p className="text-xs text-gray-500">Choose currency applied by the company</p>
+            <p className="text-xs text-gray-500">Choose currency applied by the company across the entire system</p>
+            <div className="bg-orange-50 p-3 rounded-lg border-l-4 border-orange-400">
+              <p className="text-xs text-orange-700">
+                <strong>Important:</strong> Changing the currency will apply to ALL parts of the system including Master Salary, Payroll, Payment Vouchers, Claims, and all financial calculations. This change affects all employees and existing data.
+              </p>
+            </div>
             <Select value={paymentSettings.currency} onValueChange={(value) => setPaymentSettings(prev => ({...prev, currency: value}))}>
               <SelectTrigger data-testid="select-currency">
                 <SelectValue />
