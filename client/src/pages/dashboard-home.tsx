@@ -836,7 +836,7 @@ export default function DashboardHome() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           <h3 className="font-semibold text-blue-900">{announcement.title}</h3>
-                          <Badge className="bg-blue-500 text-white text-xs">BARU</Badge>
+                          <Badge className="bg-blue-500 text-white text-xs">NEW</Badge>
                         </div>
                         <p className="text-sm text-gray-700 mb-2 line-clamp-2">
                           {announcement.message}
