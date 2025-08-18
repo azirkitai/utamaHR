@@ -4291,7 +4291,7 @@ export default function SystemSettingPage() {
 
       {/* Attendance Location */}
       <div className="bg-white rounded-lg border">
-        <div className="bg-gradient-to-r from-cyan-400 to-blue-900 text-white p-3 rounded-t-lg flex items-center justify-between">
+        <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-3 rounded-t-lg flex items-center justify-between">
           <h3 className="font-semibold">Attendance Location</h3>
           <Button 
             variant="secondary"
@@ -4345,7 +4345,7 @@ export default function SystemSettingPage() {
 
       {/* Shift Manager */}
       <div className="bg-white rounded-lg border">
-        <div className="bg-gradient-to-r from-cyan-400 to-blue-900 text-white p-3 rounded-t-lg flex items-center justify-between">
+        <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-3 rounded-t-lg flex items-center justify-between">
           <h3 className="font-semibold">Shift Manager</h3>
           <Button 
             variant="secondary"
