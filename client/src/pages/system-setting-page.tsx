@@ -107,6 +107,12 @@ const settingsMenuItems = [
     href: "/system-setting/yearly-form",
   },
   {
+    id: "forms",
+    label: "Forms",
+    icon: <FileText className="w-4 h-4" />,
+    href: "/system-setting/forms",
+  },
+  {
     id: "overtime-approval",
     label: "Overtime Approval",
     icon: <ClockIcon className="w-4 h-4" />,
