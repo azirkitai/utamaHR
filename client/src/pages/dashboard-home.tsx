@@ -570,22 +570,40 @@ export default function DashboardHome() {
           <CardContent className="p-6 pt-0 mt-[17px] mb-[17px]">
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               {[
-                { name: 'Leave', icon: Calendar, count: pendingStats?.pendingLeave || 0 },
-                { name: 'Claim', icon: FileText, count: pendingStats?.pendingClaim || 0 },
-                { name: 'Overtime', icon: Clock, count: pendingStats?.pendingOvertime || 0 },
-                { name: 'Payroll', icon: DollarSign, count: pendingStats?.pendingPayroll || 0 },
-                { name: 'Voucher', icon: Users, count: pendingStats?.pendingVoucher || 0 }
-              ].map((item) => (
-                <Card key={item.name} className="hover:shadow-md transition-shadow cursor-pointer">
-                  <CardContent className="p-6 text-center">
-                    <item.icon className="w-8 h-8 text-cyan-600 mx-auto mb-3" />
-                    <div className="text-2xl font-bold text-gray-800 mb-1" data-testid={`pending-${item.name.toLowerCase()}-count`}>
-                      {item.count}
-                    </div>
-                    <div className="text-sm text-gray-600">{item.name}</div>
-                  </CardContent>
-                </Card>
-              ))}
+                { name: 'Leave', icon: Calendar, count: pendingStats?.pendingLeave || 0, route: '/approval-leave' },
+                { name: 'Claim', icon: FileText, count: pendingStats?.pendingClaim || 0, route: '/approval-claim' },
+                { name: 'Overtime', icon: Clock, count: pendingStats?.pendingOvertime || 0, route: '/approval-overtime' },
+                { name: 'Payroll', icon: DollarSign, count: pendingStats?.pendingPayroll || 0, route: '/approval-payroll' },
+                { name: 'Voucher', icon: Users, count: pendingStats?.pendingVoucher || 0, route: '/approval-payment' }
+              ].map((item) => {
+                const hasValue = item.count > 0;
+                const cardClassName = hasValue 
+                  ? "hover:shadow-md transition-shadow cursor-pointer hover:bg-blue-50" 
+                  : "cursor-not-allowed opacity-60";
+                
+                const handleCardClick = () => {
+                  if (hasValue) {
+                    window.location.href = item.route;
+                  }
+                };
+
+                return (
+                  <Card 
+                    key={item.name} 
+                    className={cardClassName}
+                    onClick={handleCardClick}
+                    data-testid={`card-pending-${item.name.toLowerCase()}`}
+                  >
+                    <CardContent className="p-6 text-center">
+                      <item.icon className={`w-8 h-8 mx-auto mb-3 ${hasValue ? 'text-cyan-600' : 'text-gray-400'}`} />
+                      <div className={`text-2xl font-bold mb-1 ${hasValue ? 'text-gray-800' : 'text-gray-400'}`} data-testid={`pending-${item.name.toLowerCase()}-count`}>
+                        {item.count}
+                      </div>
+                      <div className={`text-sm ${hasValue ? 'text-gray-600' : 'text-gray-400'}`}>{item.name}</div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
