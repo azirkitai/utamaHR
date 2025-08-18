@@ -4251,43 +4251,7 @@ export default function SystemSettingPage() {
 
   const renderAttendanceForm = () => (
     <div className="space-y-6">
-      {/* General Shift Setting */}
-      <div className="bg-white rounded-lg border">
-        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}>
-          <h3 className="font-semibold text-gray-800">General Shift Setting</h3>
-        </div>
-        <div className="p-4 space-y-4">
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Notification Setting</Label>
-            <p className="text-xs text-gray-500">If enabled, employee will get notification through MySyarikat mobile apps before clock in/out.</p>
-            <div className="flex gap-2 items-center">
-              <Select value={attendanceSettings.reminderTime} onValueChange={(value) => setAttendanceSettings(prev => ({...prev, reminderTime: value}))}>
-                <SelectTrigger className="w-40" data-testid="select-reminder-time">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Before (Default)">Before (Default)</SelectItem>
-                  <SelectItem value="After">After</SelectItem>
-                </SelectContent>
-              </Select>
-              <Input 
-                type="number"
-                value={attendanceSettings.reminderMinutes}
-                onChange={(e) => setAttendanceSettings(prev => ({...prev, reminderMinutes: e.target.value}))}
-                className="w-20"
-                data-testid="input-reminder-minutes"
-              />
-              <span className="text-sm text-gray-600">mins</span>
-            </div>
-          </div>
-          
-          <div className="flex justify-end pt-2">
-            <Button className="bg-blue-900 hover:bg-blue-800" data-testid="button-save-general-shift">
-              Save Changes
-            </Button>
-          </div>
-        </div>
-      </div>
+      
 
       {/* Attendance Location */}
       <div className="bg-white rounded-lg border">
