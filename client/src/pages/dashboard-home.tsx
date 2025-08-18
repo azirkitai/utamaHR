@@ -664,11 +664,13 @@ export default function DashboardHome() {
                           <div className="text-xs text-gray-600 mb-2">Clock In Selfie:</div>
                           <div className="w-full h-32 rounded-lg overflow-hidden bg-gray-100">
                             <img 
-                              src={`/objects/${attendance.clockInImage}`} 
+                              src={attendance.clockInImage.startsWith('/objects/') 
+                                ? attendance.clockInImage 
+                                : `/objects/${attendance.clockInImage}`} 
                               alt={`${attendance.fullName} selfie`}
                               className="w-full h-full object-cover"
                               onError={(e) => {
-                                e.currentTarget.parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center text-sm text-gray-500">Selfie tidak dapat dipaparkan</div>';
+                                e.currentTarget.parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center text-sm text-gray-500"><div class="text-center"><div class="text-red-500 mb-2">📸</div><div>Selfie tidak dapat dipaparkan</div><div class="text-xs mt-1 text-gray-400">Path: ' + attendance.clockInImage + '</div></div></div>';
                               }}
                             />
                           </div>

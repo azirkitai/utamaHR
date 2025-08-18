@@ -1950,8 +1950,8 @@ export function registerRoutes(app: Express): Server {
   app.get("/objects/:objectPath(*)", async (req, res) => {
     try {
       const objectStorageService = new ObjectStorageService();
-      const objectFile = await objectStorageService.getSelfieFile(req.path);
-      objectStorageService.downloadSelfie(objectFile, res);
+      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      objectStorageService.downloadObject(objectFile, res);
     } catch (error) {
       console.error("Error serving selfie:", error);
       if (error instanceof ObjectNotFoundError) {
