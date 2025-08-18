@@ -961,11 +961,18 @@ export class DatabaseStorage implements IStorage {
       const user = await this.getUser(employee.userId);
       if (!user) return false;
       
-      // Verify current password (in production, this would be hashed)
-      if (user.password !== currentPassword) return false;
+      // Import password comparison helper from auth
+      const { comparePasswords, hashPassword } = await import('./auth');
       
-      // Update password (in production, this would be hashed)
-      const updatedUser = await this.updateUser(employee.userId, { password: newPassword });
+      // Verify current password using proper hashing
+      const isValidPassword = await comparePasswords(currentPassword, user.password);
+      if (!isValidPassword) return false;
+      
+      // Hash new password before storing
+      const hashedNewPassword = await hashPassword(newPassword);
+      
+      // Update password with hashed version
+      const updatedUser = await this.updateUser(employee.userId, { password: hashedNewPassword });
       return !!updatedUser;
     } catch (error) {
       console.error("Change password error:", error);
@@ -982,8 +989,14 @@ export class DatabaseStorage implements IStorage {
       // Generate new temporary password
       const newPassword = Math.random().toString(36).slice(-8);
       
-      // Update password (in production, this would be hashed)
-      const updatedUser = await this.updateUser(employee.userId, { password: newPassword });
+      // Import password hashing helper from auth
+      const { hashPassword } = await import('./auth');
+      
+      // Hash the new password before storing
+      const hashedNewPassword = await hashPassword(newPassword);
+      
+      // Update password with hashed version
+      const updatedUser = await this.updateUser(employee.userId, { password: hashedNewPassword });
       if (!updatedUser) throw new Error("Failed to reset password");
       
       return newPassword;

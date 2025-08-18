@@ -1351,14 +1351,33 @@ export function registerRoutes(app: Express): Server {
   // Employee password management routes
   app.put("/api/employees/:id/change-password", authenticateToken, async (req, res) => {
     try {
+      const currentUser = req.user!;
       const { currentPassword, newPassword } = req.body;
+      
       if (!currentPassword || !newPassword) {
         return res.status(400).json({ error: "Current password dan new password diperlukan" });
       }
 
+      // Get employee to check authorization
+      const employee = await storage.getEmployee(req.params.id);
+      if (!employee) {
+        return res.status(404).json({ error: "Pekerja tidak dijumpai" });
+      }
+
+      // Role-based access control for password changes
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager'];
+      if (adminRoles.includes(currentUser.role)) {
+        // Admin roles can change any employee password
+      } else {
+        // Regular employees can only change their own password
+        if (employee.userId !== currentUser.id) {
+          return res.status(403).json({ error: "Tidak dibenarkan menukar password pekerja lain" });
+        }
+      }
+
       const success = await storage.changeEmployeePassword(req.params.id, currentPassword, newPassword);
       if (!success) {
-        return res.status(400).json({ error: "Gagal menukar password" });
+        return res.status(400).json({ error: "Password lama tidak betul atau gagal menukar password" });
       }
 
       res.json({ message: "Password berjaya ditukar" });

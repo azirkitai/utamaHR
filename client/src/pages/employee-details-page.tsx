@@ -66,6 +66,12 @@ export default function EmployeeDetailsPage() {
   const [isEditingIncomeTaxDetails, setIsEditingIncomeTaxDetails] = useState(false);
   const [isWorkExperienceDialogOpen, setIsWorkExperienceDialogOpen] = useState(false);
   const [isFamilyDialogOpen, setIsFamilyDialogOpen] = useState(false);
+  const [isChangePasswordDialogOpen, setIsChangePasswordDialogOpen] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: ""
+  });
   const [employeeForm, setEmployeeForm] = useState<Partial<Employee>>({});
   const [employmentForm, setEmploymentForm] = useState<Partial<Employment>>({});
   const [contactForm, setContactForm] = useState({
@@ -488,6 +494,77 @@ export default function EmployeeDetailsPage() {
     }
   };
 
+  // Change Password mutation
+  const changePasswordMutation = useMutation({
+    mutationFn: async (data: { currentPassword: string; newPassword: string }) => {
+      const response = await apiRequest("PUT", `/api/employees/${id}/change-password`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Berjaya",
+        description: "Password telah berjaya ditukar",
+      });
+      setIsChangePasswordDialogOpen(false);
+      setPasswordForm({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: ""
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Ralat",
+        description: error.message || "Gagal menukar password",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleChangePassword = () => {
+    // Validation
+    if (!passwordForm.currentPassword) {
+      toast({
+        title: "Ralat",
+        description: "Sila masukkan password lama",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!passwordForm.newPassword) {
+      toast({
+        title: "Ralat", 
+        description: "Sila masukkan password baru",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast({
+        title: "Ralat",
+        description: "Password baru dan pengesahan password tidak sama",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      toast({
+        title: "Ralat",
+        description: "Password baru mestilah sekurang-kurangnya 6 aksara",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    changePasswordMutation.mutate({
+      currentPassword: passwordForm.currentPassword,
+      newPassword: passwordForm.newPassword
+    });
+  };
+
   const navigationTabs = [
     {
       id: "personal-details",
@@ -608,6 +685,7 @@ export default function EmployeeDetailsPage() {
                 variant="outline"
                 size="sm"
                 className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
+                onClick={() => setIsChangePasswordDialogOpen(true)}
                 data-testid="button-change-password"
               >
                 Change Password
@@ -2929,6 +3007,81 @@ export default function EmployeeDetailsPage() {
             </div>
         </div>
       </div>
+
+      {/* Change Password Dialog */}
+      <Dialog open={isChangePasswordDialogOpen} onOpenChange={setIsChangePasswordDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Change Password</DialogTitle>
+            <DialogDescription>
+              Tukar password anda dengan memasukkan password lama dan password baru.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="current-password">Current Password</Label>
+              <Input
+                id="current-password"
+                type="password"
+                value={passwordForm.currentPassword}
+                onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                placeholder="Masukkan password lama"
+                data-testid="input-current-password"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="new-password">New Password</Label>
+              <Input
+                id="new-password"
+                type="password"
+                value={passwordForm.newPassword}
+                onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                placeholder="Masukkan password baru"
+                data-testid="input-new-password"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="confirm-password">Confirm New Password</Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                value={passwordForm.confirmPassword}
+                onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                placeholder="Sahkan password baru"
+                data-testid="input-confirm-password"
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsChangePasswordDialogOpen(false);
+                setPasswordForm({
+                  currentPassword: "",
+                  newPassword: "",
+                  confirmPassword: ""
+                });
+              }}
+              data-testid="button-cancel-password"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleChangePassword}
+              disabled={changePasswordMutation.isPending}
+              className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
+              data-testid="button-save-password"
+            >
+              {changePasswordMutation.isPending ? "Saving..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }
