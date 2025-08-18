@@ -907,6 +907,12 @@ export default function SystemSettingPage() {
     staleTime: 30000, // Cache for 30 seconds
   });
 
+  // Fetch current company settings (currency and statutory contributions)
+  const { data: currentCompanySettings } = useQuery({
+    queryKey: ["/api/company-settings"],
+    staleTime: 30000, // Cache for 30 seconds
+  });
+
   // Sync payment approval state with API data
   useEffect(() => {
     if (currentPaymentSettings && typeof currentPaymentSettings === 'object') {
@@ -1358,6 +1364,78 @@ export default function SystemSettingPage() {
     } catch (error) {
       console.error("Error saving payment approval:", error);
       alert(`Gagal menyimpan tetapan kelulusan bayaran: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
+  // Handle saving payment settings (currency and statutory controls)
+  const handleSavePaymentSettings = async () => {
+    try {
+      const token = localStorage.getItem("utamahr_token");
+      
+      if (!token) {
+        toast({
+          title: "Error",
+          description: "Sila log masuk semula.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const response = await fetch("/api/company-settings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify(paymentSettings),
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Payment settings saved:", result);
+        // Create dynamic success message based on changes
+        const currencyChanged = paymentSettings.currency !== (currentCompanySettings?.currency || 'RM');
+        const contributionsChanged = Object.keys(paymentSettings).some(key => 
+          key.endsWith('Enabled') && paymentSettings[key] !== currentCompanySettings?.[key]
+        );
+        
+        let successMessage = "Tetapan pembayaran telah berjaya disimpan!";
+        
+        if (currencyChanged) {
+          successMessage += ` Mata wang dikemas kini kepada ${paymentSettings.currency} - perubahan ini mempengaruhi seluruh sistem termasuk Master Salary, Payroll, dan semua modul kewangan.`;
+        }
+        
+        if (contributionsChanged) {
+          const enabledContributions = [];
+          if (paymentSettings.epfEnabled) enabledContributions.push("EPF");
+          if (paymentSettings.socsoEnabled) enabledContributions.push("SOCSO");
+          if (paymentSettings.eisEnabled) enabledContributions.push("EIS");
+          if (paymentSettings.hrdfEnabled) enabledContributions.push("HRDF");
+          if (paymentSettings.pcb39Enabled) enabledContributions.push("PCB39");
+          
+          if (enabledContributions.length > 0) {
+            successMessage += ` Caruman berkanun diaktifkan: ${enabledContributions.join(", ")}.`;
+          }
+        }
+        
+        toast({
+          title: "Berjaya",
+          description: successMessage,
+        });
+        queryClient.invalidateQueries({ queryKey: ["/api/payment-settings"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/company-settings"] });
+      } else {
+        const errorData = await response.json();
+        console.log("Error response:", errorData);
+        throw new Error(errorData.error || "Failed to save payment settings");
+      }
+    } catch (error) {
+      console.error("Error saving payment settings:", error);
+      toast({
+        title: "Ralat",
+        description: `Gagal menyimpan tetapan pembayaran: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        variant: "destructive",
+      });
     }
   };
 
@@ -3700,7 +3778,11 @@ export default function SystemSettingPage() {
           </div>
 
           <div className="flex justify-end pt-4">
-            <Button className="bg-blue-900 hover:bg-blue-800" data-testid="button-save-payment-setting">
+            <Button 
+              className="bg-blue-900 hover:bg-blue-800" 
+              onClick={handleSavePaymentSettings}
+              data-testid="button-save-payment-setting"
+            >
               Save Changes
             </Button>
           </div>
