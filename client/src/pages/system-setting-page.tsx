@@ -421,6 +421,12 @@ export default function SystemSettingPage() {
     currency: "RM",
     hrdfContribution: "choose",
     standardWorkingHour: "8",
+    // Statutory Contributions Control
+    epfEnabled: true,
+    socsoEnabled: true,
+    eisEnabled: true,
+    hrdfEnabled: false,
+    pcb39Enabled: true,
   });
   
   const [paymentApproval, setPaymentApproval] = useState({
@@ -3529,20 +3535,130 @@ export default function SystemSettingPage() {
             </Select>
           </div>
 
-          {/* HRDF Contribution */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">HRDF Contribution</Label>
-            <p className="text-xs text-gray-500">Only applicable for every mode Monthly and hourly (From Salary Details)</p>
-            <Select value={paymentSettings.hrdfContribution} onValueChange={(value) => setPaymentSettings(prev => ({...prev, hrdfContribution: value}))}>
-              <SelectTrigger data-testid="select-hrdf">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="choose">Choose</SelectItem>
-                <SelectItem value="enabled">Enabled</SelectItem>
-                <SelectItem value="disabled">Disabled</SelectItem>
-              </SelectContent>
-            </Select>
+          {/* Statutory Contributions Control */}
+          <div className="space-y-4 pt-4 border-t">
+            <Label className="text-sm font-medium">Statutory Contributions Control</Label>
+            <p className="text-xs text-gray-500">Global on/off control for all statutory contributions across the system</p>
+            <div className="bg-blue-50 p-3 rounded-lg border-l-4 border-blue-400">
+              <p className="text-xs text-blue-700">
+                <strong>Note:</strong> Disabling any contribution will prevent it from being calculated in all payroll processes. This setting affects all employees.
+              </p>
+            </div>
+            
+            {/* EPF Control */}
+            <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <span className="text-xs font-medium text-blue-600">EPF</span>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">EPF Contribution</Label>
+                  <p className="text-xs text-gray-500">Employee Provident Fund</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Label className="text-xs text-gray-400">Disabled</Label>
+                <Switch 
+                  checked={paymentSettings.epfEnabled}
+                  onCheckedChange={(checked) => setPaymentSettings(prev => ({...prev, epfEnabled: checked}))}
+                  className="data-[state=checked]:bg-blue-900"
+                  data-testid="switch-epf-contribution"
+                />
+                <Label className="text-xs text-gray-400">Enabled</Label>
+              </div>
+            </div>
+
+            {/* SOCSO Control */}
+            <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                  <span className="text-xs font-medium text-green-600">SO</span>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">SOCSO Contribution</Label>
+                  <p className="text-xs text-gray-500">Social Security Organization</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Label className="text-xs text-gray-400">Disabled</Label>
+                <Switch 
+                  checked={paymentSettings.socsoEnabled}
+                  onCheckedChange={(checked) => setPaymentSettings(prev => ({...prev, socsoEnabled: checked}))}
+                  className="data-[state=checked]:bg-blue-900"
+                  data-testid="switch-socso-contribution"
+                />
+                <Label className="text-xs text-gray-400">Enabled</Label>
+              </div>
+            </div>
+
+            {/* EIS Control */}
+            <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                  <span className="text-xs font-medium text-orange-600">EIS</span>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">EIS Contribution</Label>
+                  <p className="text-xs text-gray-500">Employment Insurance System</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Label className="text-xs text-gray-400">Disabled</Label>
+                <Switch 
+                  checked={paymentSettings.eisEnabled}
+                  onCheckedChange={(checked) => setPaymentSettings(prev => ({...prev, eisEnabled: checked}))}
+                  className="data-[state=checked]:bg-blue-900"
+                  data-testid="switch-eis-contribution"
+                />
+                <Label className="text-xs text-gray-400">Enabled</Label>
+              </div>
+            </div>
+
+            {/* HRDF Control */}
+            <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                  <span className="text-xs font-medium text-purple-600">HR</span>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">HRDF Contribution</Label>
+                  <p className="text-xs text-gray-500">Human Resources Development Fund</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Label className="text-xs text-gray-400">Disabled</Label>
+                <Switch 
+                  checked={paymentSettings.hrdfEnabled}
+                  onCheckedChange={(checked) => setPaymentSettings(prev => ({...prev, hrdfEnabled: checked}))}
+                  className="data-[state=checked]:bg-blue-900"
+                  data-testid="switch-hrdf-contribution"
+                />
+                <Label className="text-xs text-gray-400">Enabled</Label>
+              </div>
+            </div>
+
+            {/* PCB39 Control */}
+            <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                  <span className="text-xs font-medium text-red-600">PCB</span>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">PCB39 Tax</Label>
+                  <p className="text-xs text-gray-500">Personal Income Tax</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Label className="text-xs text-gray-400">Disabled</Label>
+                <Switch 
+                  checked={paymentSettings.pcb39Enabled}
+                  onCheckedChange={(checked) => setPaymentSettings(prev => ({...prev, pcb39Enabled: checked}))}
+                  className="data-[state=checked]:bg-blue-900"
+                  data-testid="switch-pcb39-contribution"
+                />
+                <Label className="text-xs text-gray-400">Enabled</Label>
+              </div>
+            </div>
           </div>
 
           {/* Standard Working Hour */}
