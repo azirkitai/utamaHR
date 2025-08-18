@@ -735,11 +735,11 @@ export default function MyRecordPage() {
                 return (
                   <TableRow key={claim.id}>
                     <TableCell>{index + 1}</TableCell>
-                    <TableCell>{claim.requestorName || 'Unknown Employee'}</TableCell>
+                    <TableCell>{(claim as any).requestorName || claim.employeeName || 'Unknown Employee'}</TableCell>
                     <TableCell className="capitalize">{claim.financialPolicyName || claim.claimCategory}</TableCell>
                     <TableCell>{getStatusBadge(claim.status)}</TableCell>
                     <TableCell>{claim.particulars || 'N/A'}</TableCell>
-                    <TableCell>RM {parseFloat(claim.amount).toFixed(2)}</TableCell>
+                    <TableCell>RM {parseFloat(claim.amount || '0').toFixed(2)}</TableCell>
                     <TableCell>
                       {(() => {
                         try {
@@ -1207,7 +1207,7 @@ export default function MyRecordPage() {
                         size="sm" 
                         variant="outline"
                         className="h-8 w-8 p-0 hover:bg-blue-50"
-                        onClick={() => handleDownloadPayslip(record.payrollItemId, record.employeeName || 'Employee')}
+                        onClick={() => handleDownloadPayslip(record.payrollItemId, (record as any).employeeName || 'Employee')}
                         data-testid={`button-download-payroll-${record.id}`}
                         title="Download Payslip"
                       >
