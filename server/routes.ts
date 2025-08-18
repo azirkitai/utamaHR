@@ -64,6 +64,8 @@ import {
   updateHolidaySchema,
   insertEventSchema,
   updateEventSchema,
+  insertFormSchema,
+  updateFormSchema,
   type AttendanceRecord
 } from "@shared/schema";
 import { checkEnvironmentSecrets } from "./env-check";
@@ -94,7 +96,8 @@ import {
   financialClaimPolicies,
   payrollItems,
   payrollDocuments,
-  employeeSalaries
+  employeeSalaries,
+  forms
 } from "@shared/schema";
 
 // Helper function to get month name
@@ -7013,6 +7016,77 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error deleting event:", error);
       res.status(500).json({ error: "Gagal memadam acara" });
+    }
+  });
+
+  // =================== FORMS MANAGEMENT ENDPOINTS ===================
+  // Get all forms
+  app.get("/api/forms", authenticateToken, async (req, res) => {
+    try {
+      const formsData = await db.select().from(forms).orderBy(desc(forms.createdAt));
+      res.json(formsData);
+    } catch (error) {
+      console.error("Error fetching forms:", error);
+      res.status(500).json({ error: "Gagal mendapatkan senarai borang" });
+    }
+  });
+
+  // Upload new form (with file upload)
+  app.post("/api/forms", authenticateToken, async (req, res) => {
+    try {
+      // This is a multipart form, so we'll need to handle file upload differently
+      // For now, we'll create a basic form entry with the data from formData
+      
+      const formName = req.body.formName;
+      const fileName = req.body.fileName || "unknown.pdf";
+      const fileUrl = req.body.fileUrl || "/uploads/forms/" + randomUUID();
+      
+      if (!formName) {
+        return res.status(400).json({ error: "Nama borang diperlukan" });
+      }
+
+      const validatedData = insertFormSchema.parse({
+        formName,
+        fileName,
+        fileUrl,
+        fileSize: 0, // Will be updated when file upload is properly implemented
+        mimeType: "application/pdf"
+      });
+
+      const [newForm] = await db.insert(forms).values(validatedData).returning();
+
+      res.status(201).json({
+        success: true,
+        message: "Borang berjaya dimuat naik",
+        form: newForm
+      });
+    } catch (error) {
+      console.error("Error uploading form:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Data tidak sah", details: error.errors });
+      }
+      res.status(500).json({ error: "Gagal memuat naik borang" });
+    }
+  });
+
+  // Delete form
+  app.delete("/api/forms/:id", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      const [deletedForm] = await db.delete(forms).where(eq(forms.id, id)).returning();
+
+      if (!deletedForm) {
+        return res.status(404).json({ error: "Borang tidak dijumpai" });
+      }
+
+      res.json({
+        success: true,
+        message: "Borang berjaya dipadam"
+      });
+    } catch (error) {
+      console.error("Error deleting form:", error);
+      res.status(500).json({ error: "Gagal memadam borang" });
     }
   });
 

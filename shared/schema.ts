@@ -191,6 +191,20 @@ export const documents = pgTable("documents", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Forms Management Table (System Settings Forms)
+export const forms = pgTable("forms", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  formName: text("form_name").notNull(),
+  fileName: text("file_name").notNull(),
+  fileUrl: text("file_url").notNull(), // Object storage path
+  fileSize: integer("file_size"), // File size in bytes
+  mimeType: text("mime_type"), // File MIME type
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // 8. Equipment Table (Equipment tab)
 export const equipment = pgTable("equipment", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -901,6 +915,14 @@ export const insertDocumentSchema = createInsertSchema(documents).omit({
 });
 export const updateDocumentSchema = insertDocumentSchema.partial();
 
+// Forms schemas
+export const insertFormSchema = createInsertSchema(forms).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const updateFormSchema = insertFormSchema.partial();
+
 // Equipment schemas
 export const insertEquipmentSchema = createInsertSchema(equipment).omit({
   id: true,
@@ -1221,6 +1243,11 @@ export type UpdateCompensation = z.infer<typeof updateCompensationSchema>;
 export type Document = typeof documents.$inferSelect;
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
 export type UpdateDocument = z.infer<typeof updateDocumentSchema>;
+
+// Form types
+export type Form = typeof forms.$inferSelect;
+export type InsertForm = z.infer<typeof insertFormSchema>;
+export type UpdateForm = z.infer<typeof updateFormSchema>;
 
 // Equipment types
 export type Equipment = typeof equipment.$inferSelect;
