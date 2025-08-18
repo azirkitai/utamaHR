@@ -101,6 +101,19 @@ interface Holiday {
   isPublic: boolean;
 }
 
+interface TodayAttendance {
+  id: string;
+  employeeId: string;
+  fullName: string;
+  profileImageUrl?: string;
+  clockInTime?: string;
+  clockOutTime?: string;
+  clockInImage?: string;
+  clockOutImage?: string;
+  status: string;
+  totalHours?: string;
+}
+
 const weeklyData = [
   { day: 'Mon', clockIn: 8, onLeave: 2 },
   { day: 'Tue', clockIn: 9, onLeave: 1 },
@@ -189,6 +202,12 @@ export default function DashboardHome() {
     queryFn: () => authenticatedFetch('/api/announcements/unread'),
   });
 
+  // Query untuk today's attendance
+  const { data: todayAttendance = [], isLoading: isTodayAttendanceLoading } = useQuery<TodayAttendance[]>({
+    queryKey: ["/api/today-attendance"],
+    queryFn: () => authenticatedFetch('/api/today-attendance'),
+  });
+
   // Convert statistics to pie chart format
   const employeeData = employeeStats ? [
     { name: 'Active', value: employeeStats.activeCount, color: '#0891b2' },
@@ -203,6 +222,31 @@ export default function DashboardHome() {
     if (hour < 12) return "Good Morning";
     if (hour < 17) return "Good Afternoon";
     return "Good Evening";
+  };
+
+  // Helper function to format time with color
+  const formatTimeWithColor = (timeString?: string) => {
+    if (!timeString) return { time: "-", color: "text-gray-400" };
+    
+    const time = new Date(timeString);
+    const hours = time.getHours();
+    const timeDisplay = time.toLocaleTimeString('en-MY', { 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      hour12: false 
+    });
+    
+    // Color coding based on time
+    let color = "text-gray-600";
+    if (hours <= 8) {
+      color = "text-green-600"; // Early/on time
+    } else if (hours <= 9) {
+      color = "text-yellow-600"; // Slightly late
+    } else {
+      color = "text-red-600"; // Late
+    }
+    
+    return { time: timeDisplay, color };
   };
 
   // Helper function to get upcoming leave dates
@@ -862,6 +906,97 @@ export default function DashboardHome() {
                             }`}
                           >
                             {leave.status === 'First Level Approved' ? 'Level 1' : leave.status}
+                          </Badge>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Attendance Today Widget */}
+            <Card>
+              <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-t-lg flex flex-row items-center justify-between pb-3">
+                <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                  <UserCheck className="w-5 h-5" />
+                  Attendance Today
+                </CardTitle>
+                <Badge variant="secondary" className="bg-white text-blue-900 font-semibold">
+                  {todayAttendance.length}
+                </Badge>
+              </CardHeader>
+              <CardContent className="space-y-3 max-h-72 overflow-y-auto">
+                {isTodayAttendanceLoading ? (
+                  <div className="text-sm text-gray-600">Loading attendance...</div>
+                ) : todayAttendance.length === 0 ? (
+                  <div className="text-sm text-gray-600">No attendance records today</div>
+                ) : (
+                  <div className="space-y-3">
+                    {todayAttendance.map((attendance) => {
+                      const clockInFormat = formatTimeWithColor(attendance.clockInTime);
+                      const clockOutFormat = formatTimeWithColor(attendance.clockOutTime);
+                      
+                      return (
+                        <div key={attendance.id} className="flex items-center space-x-3 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                          {/* Profile Image or Selfie */}
+                          <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+                            {attendance.clockInImage ? (
+                              <img 
+                                src={`/objects/${attendance.clockInImage}`} 
+                                alt={attendance.fullName}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                  e.currentTarget.nextElementSibling?.classList?.remove('hidden');
+                                }}
+                              />
+                            ) : attendance.profileImageUrl ? (
+                              <img 
+                                src={attendance.profileImageUrl} 
+                                alt={attendance.fullName}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                  e.currentTarget.nextElementSibling?.classList?.remove('hidden');
+                                }}
+                              />
+                            ) : null}
+                            <div className={`w-full h-full flex items-center justify-center text-xs font-medium text-gray-600 ${attendance.clockInImage || attendance.profileImageUrl ? 'hidden' : ''}`}>
+                              {attendance.fullName.split(' ').map(n => n[0]).join('').toUpperCase()}
+                            </div>
+                          </div>
+
+                          {/* Employee Info and Times */}
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-gray-900 truncate">{attendance.fullName}</div>
+                            <div className="flex items-center gap-3 text-xs">
+                              <div className="flex items-center gap-1">
+                                <span className="text-gray-500">In:</span>
+                                <span className={clockInFormat.color}>{clockInFormat.time}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <span className="text-gray-500">Out:</span>
+                                <span className={clockOutFormat.color}>{clockOutFormat.time}</span>
+                              </div>
+                            </div>
+                            {attendance.totalHours && (
+                              <div className="text-xs text-gray-500">
+                                Total: {attendance.totalHours}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Status Badge */}
+                          <Badge 
+                            className={`text-xs flex-shrink-0 ${
+                              attendance.status === 'Present' ? 'bg-green-100 text-green-800' :
+                              attendance.status === 'Late' ? 'bg-yellow-100 text-yellow-800' :
+                              attendance.status === 'Absent' ? 'bg-red-100 text-red-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}
+                          >
+                            {attendance.status}
                           </Badge>
                         </div>
                       );

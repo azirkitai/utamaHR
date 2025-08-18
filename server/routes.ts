@@ -308,6 +308,44 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Get today's attendance with employee details and selfie images
+  app.get("/api/today-attendance", authenticateToken, async (req, res) => {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      const todayAttendance = await db
+        .select({
+          id: attendanceRecords.id,
+          employeeId: attendanceRecords.employeeId,
+          fullName: employees.fullName,
+          profileImageUrl: employees.profileImageUrl,
+          clockInTime: attendanceRecords.clockInTime,
+          clockOutTime: attendanceRecords.clockOutTime,
+          clockInImage: attendanceRecords.clockInImage,
+          clockOutImage: attendanceRecords.clockOutImage,
+          status: attendanceRecords.status,
+          totalHours: attendanceRecords.totalHours,
+        })
+        .from(attendanceRecords)
+        .leftJoin(employees, eq(attendanceRecords.employeeId, employees.id))
+        .where(
+          and(
+            gte(attendanceRecords.date, today),
+            lt(attendanceRecords.date, tomorrow)
+          )
+        )
+        .orderBy(desc(attendanceRecords.clockInTime));
+
+      res.json(todayAttendance);
+    } catch (error) {
+      console.error("Error fetching today's attendance:", error);
+      res.status(500).json({ error: "Failed to fetch today's attendance" });
+    }
+  });
+
   // Get current user's employee data endpoint
   app.get("/api/user/employee", authenticateToken, async (req, res) => {
     try {
