@@ -4936,7 +4936,7 @@ export default function SystemSettingPage() {
                           : "text-gray-700"
                       )}
                       style={(currentSection === item.id || (currentSection === "company" && item.id === "company")) ? 
-                        { background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)", borderRightColor: "#1e40af" } : 
+                        { background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)", borderRightColor: "#1e40af", color: "white" } : 
                         {}
                       }
                       data-testid={`nav-setting-${item.id}`}
