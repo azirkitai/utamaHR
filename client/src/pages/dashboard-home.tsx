@@ -1279,7 +1279,7 @@ export default function DashboardHome() {
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm font-medium text-gray-700">Daripada:</p>
+                        <p className="text-sm font-medium text-gray-700">From:</p>
                         <p className="text-base font-semibold text-blue-800">{selectedAnnouncement.announcerName}</p>
                       </div>
                       <div>
