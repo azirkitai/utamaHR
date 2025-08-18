@@ -431,7 +431,7 @@ export default function DashboardHome() {
               <p className="text-sm text-gray-200">Here's your employee statistic so far.</p>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 pt-[25px] pb-[25px]">
               {/* Pie Chart */}
               <div className="lg:col-span-1">
                 <div className="h-40">
