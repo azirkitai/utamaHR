@@ -1283,7 +1283,7 @@ export default function DashboardHome() {
                         <p className="text-base font-semibold text-blue-800">{selectedAnnouncement.announcerName}</p>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-700">Tarikh Dikeluarkan:</p>
+                        <p className="text-sm font-medium text-gray-700">Date Release:</p>
                         <p className="text-base">{new Date(selectedAnnouncement.createdAt).toLocaleDateString('en-GB', { 
                           year: 'numeric', 
                           month: 'long', 
