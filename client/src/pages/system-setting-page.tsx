@@ -4966,7 +4966,7 @@ export default function SystemSettingPage() {
                   <RouterLink key={item.id} href={item.href}>
                     <button
                       className={cn(
-                        "w-full flex items-center space-x-3 px-4 py-3 text-left text-sm hover:bg-gray-100 transition-colors rounded-l-lg",
+                        "w-full flex items-center space-x-3 px-4 py-3 text-left text-sm hover:bg-gray-100 hover:text-white transition-colors rounded-l-lg",
                         (currentSection === item.id || (currentSection === "company" && item.id === "company"))
                           ? "text-gray-800 border-r-4 shadow-sm"
                           : "text-gray-700"
