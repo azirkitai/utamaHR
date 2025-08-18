@@ -95,6 +95,8 @@ import {
 import { checkEnvironmentSecrets } from "./env-check";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { randomUUID } from "crypto";
+import { z } from "zod";
+import { eq, and, or, like, desc, lte, gte, inArray, isNotNull, isNull, ne, sql, count, not, lt } from "drizzle-orm";
 import { db } from "./db";
 import { 
   users, 
