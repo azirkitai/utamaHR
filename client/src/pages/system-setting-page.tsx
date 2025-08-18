@@ -2013,7 +2013,7 @@ export default function SystemSettingPage() {
   const renderCompanyForm = () => (
     <div className="space-y-6">
       {/* Company Details Header */}
-      <div className="bg-gradient-to-r from-slate-900 to-cyan-800 text-white p-4 rounded-lg">
+      <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-4 rounded-lg">
         <h3 className="text-lg font-semibold">Company Details</h3>
       </div>
 
@@ -2258,7 +2258,7 @@ export default function SystemSettingPage() {
       </div>
 
       {/* Bank & Other Account Details */}
-      <div className="bg-gradient-to-r from-slate-900 to-cyan-800 text-white p-4 rounded-lg">
+      <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-4 rounded-lg">
         <h3 className="text-lg font-semibold">Bank & Other Account Details</h3>
       </div>
 
@@ -2544,7 +2544,7 @@ export default function SystemSettingPage() {
           </div>
 
           {/* Financial Policy */}
-          <div className="bg-gradient-to-r from-slate-900 to-cyan-800 text-white p-4 rounded-lg flex items-center justify-between">
+          <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-4 rounded-lg flex items-center justify-between">
             <h3 className="text-lg font-semibold">Financial Policy</h3>
             <Button 
               variant="secondary"
@@ -3148,7 +3148,7 @@ export default function SystemSettingPage() {
           </div>
 
           {/* Leave Policy */}
-          <div className="bg-gradient-to-r from-slate-900 to-cyan-800 text-white p-4 rounded-lg flex items-center justify-between">
+          <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-4 rounded-lg flex items-center justify-between">
             <h3 className="text-lg font-semibold">Leave Policy</h3>
             <Button 
               variant="secondary"
@@ -4383,8 +4383,8 @@ export default function SystemSettingPage() {
     <div className="space-y-6">
       {/* EA Form Section */}
       <div className="bg-white rounded-lg border">
-        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}>
-          <h3 className="font-semibold text-gray-800">EA Form</h3>
+        <div className="text-white p-3 rounded-t-lg shadow-sm bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800">
+          <h3 className="font-semibold text-white">EA Form</h3>
         </div>
         <div className="p-6 space-y-6">
           <div className="space-y-4">
@@ -4410,8 +4410,7 @@ export default function SystemSettingPage() {
 
           <div className="flex justify-end pt-4">
             <Button 
-              className="text-gray-800 shadow-sm" 
-              style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}
+              className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white shadow-sm" 
               data-testid="button-save-yearly-form"
               onClick={() => {
                 // Handle save functionality
@@ -4537,7 +4536,7 @@ export default function SystemSettingPage() {
   const renderDepartmentForm = () => (
     <div className="space-y-6">
       {/* Department Header */}
-      <div className="bg-gradient-to-r from-slate-900 to-cyan-800 text-white p-4 rounded-lg flex items-center justify-between">
+      <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-4 rounded-lg flex items-center justify-between">
         <h3 className="text-lg font-semibold">Department</h3>
         <Button 
           variant="secondary"
