@@ -2153,10 +2153,17 @@ export function registerRoutes(app: Express): Server {
   app.put("/api/employees/:id/profile-image", authenticateToken, async (req, res) => {
     try {
       const currentUser = req.user!;
+      const targetEmployeeId = req.params.id;
       
-      // Only admin roles can update employee profile images
+      // Get current user's employee record to check if they're updating their own profile
+      const currentUserEmployee = await storage.getEmployeeByUserId(currentUser.id);
+      const isOwnProfile = currentUserEmployee?.id === targetEmployeeId;
+      
+      // Allow users to update their own profile OR admin roles to update any profile
       const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
-      if (!adminRoles.includes(currentUser.role)) {
+      const hasAdminAccess = adminRoles.includes(currentUser.role);
+      
+      if (!isOwnProfile && !hasAdminAccess) {
         return res.status(403).json({ error: "Tidak dibenarkan untuk mengemaskini gambar profil" });
       }
 
