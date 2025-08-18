@@ -1634,6 +1634,12 @@ export default function SystemSettingPage() {
     setIsUploadingForm(true);
     
     try {
+      // Get authentication token
+      const token = localStorage.getItem("utamahr_token");
+      if (!token) {
+        throw new Error("Token tidak dijumpai. Sila log masuk semula.");
+      }
+
       // Create FormData to upload file
       const formData = new FormData();
       formData.append('formName', formName);
@@ -1641,6 +1647,9 @@ export default function SystemSettingPage() {
 
       const response = await fetch('/api/forms', {
         method: 'POST',
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
         body: formData,
       });
 
@@ -1684,8 +1693,17 @@ export default function SystemSettingPage() {
     }
 
     try {
+      // Get authentication token
+      const token = localStorage.getItem("utamahr_token");
+      if (!token) {
+        throw new Error("Token tidak dijumpai. Sila log masuk semula.");
+      }
+
       const response = await fetch(`/api/forms/${formId}`, {
         method: 'DELETE',
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
       });
 
       if (response.ok) {
