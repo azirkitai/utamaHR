@@ -1265,7 +1265,6 @@ export default function DashboardHome() {
                       <h3 className="font-bold text-xl text-blue-900">{selectedAnnouncement.title}</h3>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge className="bg-blue-500 text-white text-xs">NEW</Badge>
-                        <span className="text-sm text-blue-700">Pengumuman Rasmi</span>
                       </div>
                     </div>
                   </div>
