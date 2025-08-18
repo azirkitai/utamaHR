@@ -3509,8 +3509,8 @@ export default function SystemSettingPage() {
     <div className="space-y-6">
       {/* Payment Setting */}
       <div className="bg-white rounded-lg border">
-        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}>
-          <h3 className="font-semibold text-gray-800">Payment Setting</h3>
+        <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-3 rounded-t-lg shadow-sm">
+          <h3 className="font-semibold text-white">Payment Setting</h3>
         </div>
         <div className="p-4 space-y-4">
           {/* Currency */}
@@ -3571,8 +3571,8 @@ export default function SystemSettingPage() {
 
       {/* Payment Approval */}
       <div className="bg-white rounded-lg border">
-        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}>
-          <h3 className="font-semibold text-gray-800">Payment Approval</h3>
+        <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-3 rounded-t-lg shadow-sm">
+          <h3 className="font-semibold text-white">Payment Approval</h3>
         </div>
         <div className="p-4 space-y-4">
           {/* Enable Approval */}
@@ -3663,8 +3663,8 @@ export default function SystemSettingPage() {
 
       {/* Unpaid Leave Setting */}
       <div className="bg-white rounded-lg border">
-        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}>
-          <h3 className="font-semibold text-gray-800">Unpaid Leave Setting</h3>
+        <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-3 rounded-t-lg shadow-sm">
+          <h3 className="font-semibold text-white">Unpaid Leave Setting</h3>
         </div>
         <div className="p-4 space-y-4">
           {/* Count approved Unpaid Leave */}
@@ -3741,8 +3741,8 @@ export default function SystemSettingPage() {
 
       {/* Claim Setting */}
       <div className="bg-white rounded-lg border">
-        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}>
-          <h3 className="font-semibold text-gray-800">Claim Setting</h3>
+        <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-3 rounded-t-lg shadow-sm">
+          <h3 className="font-semibold text-white">Claim Setting</h3>
         </div>
         <div className="p-4 space-y-4">
           {/* Enable count approved Claim */}
@@ -3802,8 +3802,8 @@ export default function SystemSettingPage() {
 
       {/* Overtime Setting */}
       <div className="bg-white rounded-lg border">
-        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}>
-          <h3 className="font-semibold text-gray-800">Overtime Setting</h3>
+        <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-3 rounded-t-lg shadow-sm">
+          <h3 className="font-semibold text-white">Overtime Setting</h3>
         </div>
         <div className="p-4 space-y-4">
           {/* Enable count approved Overtime */}
@@ -3911,8 +3911,8 @@ export default function SystemSettingPage() {
 
       {/* Lateness Setting */}
       <div className="bg-white rounded-lg border">
-        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}>
-          <h3 className="font-semibold text-gray-800">Lateness Setting</h3>
+        <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-3 rounded-t-lg shadow-sm">
+          <h3 className="font-semibold text-white">Lateness Setting</h3>
         </div>
         <div className="p-4 space-y-4">
           {/* Count approved Lateness */}
@@ -3939,8 +3939,8 @@ export default function SystemSettingPage() {
 
       {/* Payslip Setting */}
       <div className="bg-white rounded-lg border">
-        <div className="text-white p-3 rounded-t-lg shadow-sm" style={{ background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)" }}>
-          <h3 className="font-semibold text-gray-800">Payslip Setting</h3>
+        <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-3 rounded-t-lg shadow-sm">
+          <h3 className="font-semibold text-white">Payslip Setting</h3>
         </div>
         <div className="p-4 space-y-4">
           {/* Template */}
