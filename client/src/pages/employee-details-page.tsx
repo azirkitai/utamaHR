@@ -3128,9 +3128,7 @@ export default function EmployeeDetailsPage() {
               </div>
               <div>
                 <p className="font-medium text-amber-800">Warning</p>
-                <p className="text-sm text-amber-700">
-                  Tindakan ini tidak boleh dibuat asal. Password lama akan dihapuskan secara kekal.
-                </p>
+                <p className="text-sm text-amber-700">This action is irreversible. The existing password will be permanently removed.</p>
               </div>
             </div>
           </div>
