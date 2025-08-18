@@ -255,6 +255,15 @@ export default function SystemSettingPage() {
     }
   });
 
+  // Overtime policies state - moved from render function to top level
+  const [localPolicies, setLocalPolicies] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (overtimePolicyData && Array.isArray(overtimePolicyData) && overtimePolicyData.length > 0) {
+      setLocalPolicies(overtimePolicyData);
+    }
+  }, [overtimePolicyData]);
+
   // Function to calculate majority entitlement for a leave type
   const calculateMajorityEntitlement = (leaveTypeId: string) => {
     if (!Array.isArray(allGroupPolicySettings) || !Array.isArray(companyLeaveTypes)) {
@@ -4661,14 +4670,6 @@ export default function SystemSettingPage() {
 
   // Overtime Policy Form
   const renderOvertimePolicyForm = () => {
-    const [localPolicies, setLocalPolicies] = useState<any[]>([]);
-
-    useEffect(() => {
-      if (overtimePolicyData && Array.isArray(overtimePolicyData) && overtimePolicyData.length > 0) {
-        setLocalPolicies(overtimePolicyData);
-      }
-    }, [overtimePolicyData]);
-
     const handlePolicyChange = (policyId: string, field: string, value: any) => {
       setLocalPolicies(prev => prev.map(policy => 
         policy.id === policyId ? { ...policy, [field]: value } : policy
