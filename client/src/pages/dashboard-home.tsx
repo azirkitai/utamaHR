@@ -131,6 +131,15 @@ export default function DashboardHome() {
   const [isHolidayModalOpen, setIsHolidayModalOpen] = useState(false);
   const [selectedDateLeaves, setSelectedDateLeaves] = useState<LeaveApplication[]>([]);
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+  const [showSelfieForCard, setShowSelfieForCard] = useState<{ [key: string]: boolean }>({});
+
+  // Function to toggle selfie display for a specific attendance card
+  const toggleSelfieDisplay = (attendanceId: string) => {
+    setShowSelfieForCard(prev => ({
+      ...prev,
+      [attendanceId]: !prev[attendanceId]
+    }));
+  };
 
   // Fetch dashboard data
   const { data: dashboardData, isLoading: isDashboardLoading } = useQuery<DashboardData>({
@@ -576,6 +585,7 @@ export default function DashboardHome() {
                 {todayAttendance.map((attendance) => {
                   const clockInFormat = formatTimeWithColor(attendance.clockInTime);
                   const clockOutFormat = formatTimeWithColor(attendance.clockOutTime);
+                  const showSelfie = showSelfieForCard[attendance.id] || false;
                   
                   return (
                     <div key={attendance.id} className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors border border-gray-200">
@@ -583,17 +593,7 @@ export default function DashboardHome() {
                       <div className="flex items-center space-x-3 mb-3">
                         {/* Profile Image or Selfie */}
                         <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
-                          {attendance.clockInImage ? (
-                            <img 
-                              src={`/objects/${attendance.clockInImage}`} 
-                              alt={attendance.fullName}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                                e.currentTarget.nextElementSibling?.classList?.remove('hidden');
-                              }}
-                            />
-                          ) : attendance.profileImageUrl ? (
+                          {attendance.profileImageUrl ? (
                             <img 
                               src={attendance.profileImageUrl} 
                               alt={attendance.fullName}
@@ -604,7 +604,7 @@ export default function DashboardHome() {
                               }}
                             />
                           ) : null}
-                          <div className={`w-full h-full flex items-center justify-center text-sm font-medium text-gray-600 ${attendance.clockInImage || attendance.profileImageUrl ? 'hidden' : ''}`}>
+                          <div className={`w-full h-full flex items-center justify-center text-sm font-medium text-gray-600 ${attendance.profileImageUrl ? 'hidden' : ''}`}>
                             {attendance.fullName.split(' ').map(n => n[0]).join('').toUpperCase()}
                           </div>
                         </div>
@@ -642,6 +642,38 @@ export default function DashboardHome() {
                           </div>
                         )}
                       </div>
+
+                      {/* Show Selfie Button */}
+                      {attendance.clockInImage && (
+                        <div className="mt-3 pt-2 border-t border-gray-200">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => toggleSelfieDisplay(attendance.id)}
+                            className="w-full text-xs py-1 h-7 hover:bg-blue-50 hover:text-blue-700 border-blue-200"
+                            data-testid={`button-show-selfie-${attendance.id}`}
+                          >
+                            {showSelfie ? 'Hide Selfie' : 'Show Selfie'}
+                          </Button>
+                        </div>
+                      )}
+
+                      {/* Selfie Display Area */}
+                      {attendance.clockInImage && showSelfie && (
+                        <div className="mt-3 pt-2 border-t border-gray-200">
+                          <div className="text-xs text-gray-600 mb-2">Clock In Selfie:</div>
+                          <div className="w-full h-32 rounded-lg overflow-hidden bg-gray-100">
+                            <img 
+                              src={`/objects/${attendance.clockInImage}`} 
+                              alt={`${attendance.fullName} selfie`}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center text-sm text-gray-500">Selfie tidak dapat dipaparkan</div>';
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
