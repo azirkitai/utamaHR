@@ -2124,48 +2124,7 @@ export default function SystemSettingPage() {
         </div>
       </div>
 
-      {/* Form Settings */}
-      <div className="bg-white p-6 rounded-lg border space-y-4">
-        <h4 className="text-lg font-medium text-gray-900">Form Settings</h4>
-        
-        <div className="space-y-4">
-          {/* Auto-save drafts */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h5 className="font-medium text-gray-900">Auto-save Drafts</h5>
-              <p className="text-sm text-gray-500">Automatically save form drafts every 30 seconds</p>
-            </div>
-            <Switch defaultChecked className="data-[state=checked]:bg-blue-900" />
-          </div>
-
-          {/* Required fields validation */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h5 className="font-medium text-gray-900">Required Fields Validation</h5>
-              <p className="text-sm text-gray-500">Validate required fields before submission</p>
-            </div>
-            <Switch defaultChecked className="data-[state=checked]:bg-blue-900" />
-          </div>
-
-          {/* Email notifications */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h5 className="font-medium text-gray-900">Email Notifications</h5>
-              <p className="text-sm text-gray-500">Send email notifications when forms are submitted</p>
-            </div>
-            <Switch defaultChecked className="data-[state=checked]:bg-blue-900" />
-          </div>
-
-          {/* Digital signatures */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h5 className="font-medium text-gray-900">Digital Signatures</h5>
-              <p className="text-sm text-gray-500">Enable digital signature capture for forms</p>
-            </div>
-            <Switch className="data-[state=checked]:bg-blue-900" />
-          </div>
-        </div>
-      </div>
+      
 
       {/* Form Upload & Management */}
       <div className="bg-white p-6 rounded-lg border space-y-4">
