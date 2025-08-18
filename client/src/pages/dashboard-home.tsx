@@ -746,37 +746,67 @@ export default function DashboardHome() {
                     )}
                     
                     {/* Holiday indicator */}
-                    {day.holiday && (
-                      <div 
-                        className="text-xs px-1 py-1 bg-red-100 text-red-800 rounded mb-1 truncate cursor-pointer hover:bg-red-200 transition-colors"
-                        onClick={() => handleHolidayClick(day.holiday!)}
-                        title={`Holiday: ${day.holiday.name} - Klik untuk maklumat lengkap`}
-                      >
-                        🏛️ {day.holiday.name.length > 8 ? day.holiday.name.substring(0, 8) + '...' : day.holiday.name}
-                      </div>
-                    )}
+                    {day.holiday && (() => {
+                      const currentDate = new Date();
+                      const holidayDate = new Date(day.holiday.date);
+                      const isPast = holidayDate < new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+                      
+                      return (
+                        <div 
+                          className={`text-xs px-1 py-1 rounded mb-1 truncate cursor-pointer transition-colors ${
+                            isPast 
+                              ? 'bg-gray-100 text-gray-500 hover:bg-gray-200' 
+                              : 'bg-red-100 text-red-800 hover:bg-red-200'
+                          }`}
+                          onClick={() => handleHolidayClick(day.holiday!)}
+                          title={`Holiday: ${day.holiday.name} - Klik untuk maklumat lengkap`}
+                        >
+                          🏛️ {day.holiday.name.length > 8 ? day.holiday.name.substring(0, 8) + '...' : day.holiday.name}
+                        </div>
+                      );
+                    })()}
 
                     {/* Event indicators */}
-                    {day.events && day.events.length > 0 && (
-                      <div 
-                        className="text-xs px-1 py-1 bg-green-100 text-green-800 rounded mb-1 truncate cursor-pointer hover:bg-green-200 transition-colors"
-                        onClick={() => handleEventClick(day.events!)}
-                        title={`Events: ${day.events!.map(e => e.title).join(', ')} - Klik untuk maklumat lengkap`}
-                      >
-                        📅 {day.events.length > 1 ? `${day.events.length} events` : day.events[0].title.length > 6 ? day.events[0].title.substring(0, 6) + '...' : day.events[0].title}
-                      </div>
-                    )}
+                    {day.events && day.events.length > 0 && (() => {
+                      const currentDate = new Date();
+                      const eventDate = new Date(day.events[0].startDate);
+                      const isPast = eventDate < new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+                      
+                      return (
+                        <div 
+                          className={`text-xs px-1 py-1 rounded mb-1 truncate cursor-pointer transition-colors ${
+                            isPast 
+                              ? 'bg-gray-100 text-gray-500 hover:bg-gray-200' 
+                              : 'bg-green-100 text-green-800 hover:bg-green-200'
+                          }`}
+                          onClick={() => handleEventClick(day.events!)}
+                          title={`Events: ${day.events!.map(e => e.title).join(', ')} - Klik untuk maklumat lengkap`}
+                        >
+                          📅 {day.events.length > 1 ? `${day.events.length} events` : day.events[0].title.length > 6 ? day.events[0].title.substring(0, 6) + '...' : day.events[0].title}
+                        </div>
+                      );
+                    })()}
 
                     {/* Leave indicators */}
-                    {day.leaves && day.leaves.length > 0 && (
-                      <div 
-                        className="text-xs px-1 py-1 bg-yellow-100 text-yellow-800 rounded mb-1 truncate cursor-pointer hover:bg-yellow-200 transition-colors"
-                        onClick={() => handleLeaveClick(day.leaves!)}
-                        title={`Leaves: ${day.leaves!.map(l => l.applicant).join(', ')} - Klik untuk maklumat lengkap`}
-                      >
-                        🏖️ {day.leaves.length} leave{day.leaves.length > 1 ? 's' : ''}
-                      </div>
-                    )}
+                    {day.leaves && day.leaves.length > 0 && (() => {
+                      const currentDate = new Date();
+                      const leaveDate = new Date(day.leaves[0].startDate);
+                      const isPast = leaveDate < new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+                      
+                      return (
+                        <div 
+                          className={`text-xs px-1 py-1 rounded mb-1 truncate cursor-pointer transition-colors ${
+                            isPast 
+                              ? 'bg-gray-100 text-gray-500 hover:bg-gray-200' 
+                              : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
+                          }`}
+                          onClick={() => handleLeaveClick(day.leaves!)}
+                          title={`Leaves: ${day.leaves!.map(l => l.applicant).join(', ')} - Klik untuk maklumat lengkap`}
+                        >
+                          🏖️ {day.leaves.length} leave{day.leaves.length > 1 ? 's' : ''}
+                        </div>
+                      );
+                    })()}
                   </div>
                 ))}
               </div>
@@ -801,33 +831,41 @@ export default function DashboardHome() {
                   <div className="text-sm text-gray-600">No upcoming leave this week</div>
                 ) : (
                   <div className="space-y-3">
-                    {getUpcomingLeaveDates().map((leave, index) => (
-                      <div key={index} className="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg">
-                        <div className={`w-3 h-3 rounded-full ${
-                          leave.status === 'Approved' ? 'bg-green-500' :
-                          leave.status === 'Pending' ? 'bg-yellow-500' :
-                          leave.status === 'First Level Approved' ? 'bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800' :
-                          'bg-red-500'
-                        }`}></div>
-                        <div className="flex-1">
-                          <div className="text-sm font-medium">{leave.applicant}</div>
-                          <div className="text-xs text-gray-600">
-                            {new Date(leave.startDate).toLocaleDateString('en-GB')} - {new Date(leave.endDate).toLocaleDateString('en-GB')}
+                    {getUpcomingLeaveDates().map((leave, index) => {
+                      const currentDate = new Date();
+                      const leaveEndDate = new Date(leave.endDate);
+                      const isPast = leaveEndDate < new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+                      
+                      return (
+                        <div key={index} className={`flex items-center space-x-3 p-2 rounded-lg ${isPast ? 'bg-gray-100' : 'bg-gray-50'}`}>
+                          <div className={`w-3 h-3 rounded-full ${
+                            isPast ? 'bg-gray-400' :
+                            leave.status === 'Approved' ? 'bg-green-500' :
+                            leave.status === 'Pending' ? 'bg-yellow-500' :
+                            leave.status === 'First Level Approved' ? 'bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800' :
+                            'bg-red-500'
+                          }`}></div>
+                          <div className="flex-1">
+                            <div className={`text-sm font-medium ${isPast ? 'text-gray-500' : 'text-gray-900'}`}>{leave.applicant}</div>
+                            <div className={`text-xs ${isPast ? 'text-gray-400' : 'text-gray-600'}`}>
+                              {new Date(leave.startDate).toLocaleDateString('en-GB')} - {new Date(leave.endDate).toLocaleDateString('en-GB')}
+                            </div>
+                            <div className={`text-xs ${isPast ? 'text-gray-400' : 'text-gray-500'}`}>{leave.leaveType}</div>
                           </div>
-                          <div className="text-xs text-gray-500">{leave.leaveType}</div>
+                          <Badge 
+                            className={`text-xs ${
+                              isPast ? 'bg-gray-200 text-gray-500' :
+                              leave.status === 'Approved' ? 'bg-green-100 text-green-800' :
+                              leave.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                              leave.status === 'First Level Approved' ? 'bg-blue-100 text-blue-800' :
+                              'bg-red-100 text-red-800'
+                            }`}
+                          >
+                            {leave.status === 'First Level Approved' ? 'Level 1' : leave.status}
+                          </Badge>
                         </div>
-                        <Badge 
-                          className={`text-xs ${
-                            leave.status === 'Approved' ? 'bg-green-100 text-green-800' :
-                            leave.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                            leave.status === 'First Level Approved' ? 'bg-blue-100 text-blue-800' :
-                            'bg-red-100 text-red-800'
-                          }`}
-                        >
-                          {leave.status === 'First Level Approved' ? 'Level 1' : leave.status}
-                        </Badge>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>
