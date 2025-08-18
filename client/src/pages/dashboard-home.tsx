@@ -1271,7 +1271,7 @@ export default function DashboardHome() {
                   
                   <div className="space-y-4">
                     <div>
-                      <p className="text-sm font-medium text-gray-700 mb-2">Mesej:</p>
+                      <p className="text-sm font-medium text-gray-700 mb-2">Message:</p>
                       <div className="bg-white p-4 rounded-lg border text-base leading-relaxed">
                         {selectedAnnouncement.message}
                       </div>
