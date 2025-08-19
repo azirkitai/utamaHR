@@ -2356,7 +2356,7 @@ export function registerRoutes(app: Express): Server {
 
   // =================== SHIFTS ROUTES ===================
   // Get all shifts
-  app.get("/api/shifts", authenticateToken, async (req, res) => {
+  app.get("/api/shifts", async (req, res) => {
     try {
       const shifts = await storage.getAllShifts();
       res.json(shifts);
@@ -2381,7 +2381,7 @@ export function registerRoutes(app: Express): Server {
   });
 
   // Create new shift
-  app.post("/api/shifts", authenticateToken, async (req, res) => {
+  app.post("/api/shifts", async (req, res) => {
     try {
       const validationResult = insertShiftSchema.safeParse(req.body);
       if (!validationResult.success) {
@@ -2400,7 +2400,7 @@ export function registerRoutes(app: Express): Server {
   });
 
   // Update shift
-  app.put("/api/shifts/:id", authenticateToken, async (req, res) => {
+  app.put("/api/shifts/:id", async (req, res) => {
     try {
       const validationResult = updateShiftSchema.safeParse(req.body);
       if (!validationResult.success) {
@@ -2422,7 +2422,7 @@ export function registerRoutes(app: Express): Server {
   });
 
   // Delete shift
-  app.delete("/api/shifts/:id", authenticateToken, async (req, res) => {
+  app.delete("/api/shifts/:id", async (req, res) => {
     try {
       const success = await storage.deleteShift(req.params.id);
       if (!success) {
