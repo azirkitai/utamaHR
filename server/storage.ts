@@ -4005,7 +4005,7 @@ export class DatabaseStorage implements IStorage {
         }
       });
 
-      // Get overtime totals for current month
+      // Get overtime totals for current month - include all approved statuses
       const currentMonth = new Date().getMonth() + 1;
       const overtimeClaims = await db
         .select()
@@ -4016,7 +4016,10 @@ export class DatabaseStorage implements IStorage {
             eq(claimApplications.claimType, 'overtime'),
             sql`EXTRACT(YEAR FROM ${claimApplications.claimDate}) = ${currentYear}`,
             sql`EXTRACT(MONTH FROM ${claimApplications.claimDate}) = ${currentMonth}`,
-            eq(claimApplications.status, 'Approved')
+            or(
+              eq(claimApplications.status, 'Approved'),
+              eq(claimApplications.status, 'firstLevelApproved')
+            )
           )
         );
 
@@ -4024,12 +4027,20 @@ export class DatabaseStorage implements IStorage {
         return total + parseFloat(claim.totalHours || '0');
       }, 0);
 
+      // Calculate unique days by counting distinct claim dates
+      const uniqueDays = new Set(
+        overtimeClaims.map(claim => {
+          const claimDate = new Date(claim.claimDate);
+          return claimDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+        })
+      ).size;
+
       return {
         financial: totals,
         totalApproved: totalApprovedAmount,
         overtime: {
           hoursThisMonth: totalOvertimeHours,
-          daysThisMonth: overtimeClaims.length
+          daysThisMonth: uniqueDays
         }
       };
     } catch (error) {
