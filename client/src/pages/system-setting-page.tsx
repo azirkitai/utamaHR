@@ -755,7 +755,8 @@ export default function SystemSettingPage() {
         color: shiftData.color,
         breakTimeOut: shiftData.breakTimeOut,
         breakTimeIn: shiftData.breakTimeIn,
-        workdays: JSON.stringify(shiftData.workdays)
+        workdays: JSON.stringify(shiftData.workdays),
+        enableStrictClockIn: shiftData.enableStrictClockIn
       });
       return response.json();
     },
