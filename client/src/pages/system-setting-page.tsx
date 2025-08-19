@@ -702,7 +702,6 @@ export default function SystemSettingPage() {
     color: "#3B82F6", // Default blue color
     breakTimeOut: "12:00", // Default lunch break start
     breakTimeIn: "13:00", // Default lunch break end
-    enableBreakTimeEnforcement: false, // Toggle for break time enforcement
     enableOverwriteSetting: false,
     enableClockInOutSelfie: false,
     enableEarlyLateIndicator: false,
@@ -4619,9 +4618,6 @@ export default function SystemSettingPage() {
                           {shift.breakTimeOut && shift.breakTimeOut !== "none" && (
                             <div className="text-sm text-gray-600">
                               <span className="font-medium">Break:</span> {shift.breakTimeOut} - {shift.breakTimeIn}
-                              {shift.enableBreakTimeEnforcement && (
-                                <span className="ml-1 text-yellow-600 font-medium">(Enforced)</span>
-                              )}
                             </div>
                           )}
                         </div>
@@ -5727,20 +5723,7 @@ export default function SystemSettingPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <div>
-                  <Label className="font-medium">Enforce Break Time</Label>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Users must clock out at the start of break/lunch and clock back in upon return
-                  </p>
-                </div>
-                <Switch
-                  checked={shiftForm.enableBreakTimeEnforcement}
-                  onCheckedChange={(checked) => setShiftForm(prev => ({...prev, enableBreakTimeEnforcement: checked}))}
-                  disabled={shiftForm.breakTimeOut === "none"}
-                  data-testid="switch-break-enforcement"
-                />
-              </div>
+
             </div>
 
             
@@ -5759,7 +5742,6 @@ export default function SystemSettingPage() {
                   color: shiftForm.color,
                   breakTimeOut: shiftForm.breakTimeOut,
                   breakTimeIn: shiftForm.breakTimeIn,
-                  enableBreakTimeEnforcement: shiftForm.enableBreakTimeEnforcement,
                   days: Object.entries(shiftForm.workdays)
                     .filter(([_, type]) => type !== "Off Day")
                     .map(([day, _]) => day),
@@ -5775,7 +5757,6 @@ export default function SystemSettingPage() {
                   color: "#3B82F6", // Reset to default blue color
                   breakTimeOut: "12:00", // Reset to default lunch break start
                   breakTimeIn: "13:00", // Reset to default lunch break end
-                  enableBreakTimeEnforcement: false, // Reset enforcement to false
                   enableOverwriteSetting: false,
                   enableClockInOutSelfie: false,
                   enableEarlyLateIndicator: false,
