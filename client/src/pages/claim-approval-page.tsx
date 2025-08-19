@@ -1051,7 +1051,7 @@ export default function ClaimApprovalPage() {
                       <TableCell>{getStatusBadge(item.status)}</TableCell>
                       <TableCell>{item.reason}</TableCell>
                       <TableCell>{item.startTime} - {item.endTime}</TableCell>
-                      <TableCell className="font-medium">{item.amount ? `RM ${item.amount}` : 'N/A'}</TableCell>
+                      <TableCell className="font-medium">{item.calculatedAmount ? `RM ${item.calculatedAmount}` : 'N/A'}</TableCell>
                       <TableCell>{new Date(item.claimDate).toLocaleDateString()}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
@@ -1299,7 +1299,7 @@ export default function ClaimApprovalPage() {
                     <TableCell>{getStatusBadge(item.status)}</TableCell>
                     <TableCell>{item.reason}</TableCell>
                     <TableCell>{item.startTime} - {item.endTime}</TableCell>
-                    <TableCell className="font-medium">{item.amount ? `RM ${item.amount}` : 'N/A'}</TableCell>
+                    <TableCell className="font-medium">{item.calculatedAmount ? `RM ${item.calculatedAmount}` : 'N/A'}</TableCell>
                     <TableCell>{new Date(item.claimDate).toLocaleDateString()}</TableCell>
                   </TableRow>
                 ))
@@ -1882,7 +1882,7 @@ export default function ClaimApprovalPage() {
                     <div>
                       <label className="font-medium text-gray-700">Amaun:</label>
                       <p className="text-gray-900 font-bold text-lg">
-                        RM {selectedClaimForView.amount || '0.00'}
+                        RM {selectedClaimForView.calculatedAmount || '0.00'}
                       </p>
                     </div>
                   </>
