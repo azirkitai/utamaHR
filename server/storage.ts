@@ -2148,7 +2148,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(claimApplications.dateSubmitted));
   }
 
-  async calculateOvertimeAmount(employeeId: string, totalHours: number): Promise<number> {
+  async calculateOvertimeAmount(employeeId: string, totalHours: number, overtimeDate?: Date, workType?: 'working_day' | 'rest_day' | 'public_holiday'): Promise<number> {
     try {
       // Get employee salary info from Master Salary
       const salaryInfo = await this.getEmployeeSalaryByEmployeeId(employeeId);
@@ -2174,34 +2174,110 @@ export class DatabaseStorage implements IStorage {
         return totalHours * 15.00;
       }
       
-      // Calculate hourly rate using Malaysian Employment Act 1955 formula:
-      // OT sejam = (Gaji sebulan ÷ 26 hari) ÷ Jam kerja sehari × 1.5
-      const dailySalary = monthlySalary / 26; // Gaji sehari
-      const hourlyRate = dailySalary / 8; // Assuming 8 working hours per day
+      // Calculate base rates according to Malaysian Employment Act 1955
+      const normalDailyHours = 8; // Standard working hours per day
+      const dailyRate = parseFloat((monthlySalary / 26).toFixed(2)); // ORP (Ordinary Rate of Pay) daily
+      const hourlyRate = parseFloat((dailyRate / normalDailyHours).toFixed(2)); // HRP (Hourly Rate of Pay)
       
-      // Overtime rate as per Malaysian Employment Act 1955 (1.5x)
-      const overtimeRate = hourlyRate * 1.5;
+      let overtimeAmount = 0;
+      let calculationType = 'working_day'; // Default to working day
       
-      // Calculate total overtime amount
-      const overtimeAmount = totalHours * overtimeRate;
+      // Determine work type if not provided
+      if (!workType && overtimeDate) {
+        const isPublicHoliday = await this.isPublicHoliday(overtimeDate);
+        const isRestDay = await this.isRestDay(overtimeDate); // Sunday is typically rest day
+        
+        if (isPublicHoliday) {
+          calculationType = 'public_holiday';
+        } else if (isRestDay) {
+          calculationType = 'rest_day';
+        } else {
+          calculationType = 'working_day';
+        }
+      } else if (workType) {
+        calculationType = workType;
+      }
       
-      console.log(`=== OVERTIME CALCULATION (MALAYSIAN EMPLOYMENT ACT 1955) ===`);
+      // Calculate overtime amount based on day type
+      switch (calculationType) {
+        case 'working_day':
+          // Working day: 1.5x hourly rate for all overtime hours
+          overtimeAmount = totalHours * hourlyRate * 1.5;
+          break;
+          
+        case 'rest_day':
+          // Rest day calculation
+          if (totalHours <= 8) {
+            // Up to 8 hours: 1x daily rate
+            overtimeAmount = dailyRate;
+          } else {
+            // More than 8 hours: daily rate + overtime for excess hours at 2x hourly rate
+            const basePayment = dailyRate;
+            const overtimeHours = totalHours - 8;
+            const overtimePayment = overtimeHours * hourlyRate * 2.0;
+            overtimeAmount = basePayment + overtimePayment;
+          }
+          break;
+          
+        case 'public_holiday':
+          // Public holiday calculation
+          if (totalHours <= 8) {
+            // Up to 8 hours: 2x daily rate
+            overtimeAmount = dailyRate * 2;
+          } else {
+            // More than 8 hours: 2x daily rate + overtime for excess hours at 3x hourly rate
+            const basePayment = dailyRate * 2;
+            const overtimeHours = totalHours - 8;
+            const overtimePayment = overtimeHours * hourlyRate * 3.0;
+            overtimeAmount = basePayment + overtimePayment;
+          }
+          break;
+      }
+      
+      // Round to 2 decimal places
+      overtimeAmount = parseFloat(overtimeAmount.toFixed(2));
+      
+      console.log(`=== ADVANCED OVERTIME CALCULATION (MALAYSIAN EMPLOYMENT ACT 1955) ===`);
       console.log(`Employee ID: ${employeeId}`);
       console.log(`Master Salary (basic_salary): RM ${salaryInfo.basicSalary || 'NULL'}`);
       console.log(`Monthly salary used: RM ${monthlySalary}`);
-      console.log(`Daily salary (÷26): RM ${dailySalary.toFixed(2)}`);
-      console.log(`Hourly rate (÷8): RM ${hourlyRate.toFixed(2)}`);
-      console.log(`Overtime rate (1.5x): RM ${overtimeRate.toFixed(2)}`);
-      console.log(`Total hours: ${totalHours}`);
-      console.log(`Total overtime amount: RM ${overtimeAmount.toFixed(2)}`);
+      console.log(`Daily rate (ORP): RM ${dailyRate}`);
+      console.log(`Hourly rate (HRP): RM ${hourlyRate}`);
+      console.log(`Overtime date: ${overtimeDate ? overtimeDate.toDateString() : 'Not provided'}`);
+      console.log(`Work type: ${calculationType.toUpperCase()}`);
+      console.log(`Total hours worked: ${totalHours}`);
+      console.log(`Calculated overtime amount: RM ${overtimeAmount}`);
       console.log(`=== END CALCULATION ===`);
       
-      return parseFloat(overtimeAmount.toFixed(2));
+      return overtimeAmount;
     } catch (error) {
       console.error('Error calculating overtime amount:', error);
       // Return default calculation if error occurs
       return totalHours * 15.00;
     }
+  }
+  
+  // Helper method to check if date is a public holiday
+  async isPublicHoliday(date: Date): Promise<boolean> {
+    try {
+      const holidays = await db.select().from(holidays);
+      const dateString = date.toISOString().split('T')[0];
+      
+      return holidays.some(holiday => {
+        const holidayDateString = new Date(holiday.date).toISOString().split('T')[0];
+        return holidayDateString === dateString;
+      });
+    } catch (error) {
+      console.error('Error checking public holiday:', error);
+      return false;
+    }
+  }
+  
+  // Helper method to check if date is a rest day (Sunday)
+  async isRestDay(date: Date): Promise<boolean> {
+    // Sunday = 0, Monday = 1, etc.
+    // In Malaysia, Sunday is typically the rest day
+    return date.getDay() === 0;
   }
 
   // Helper function to check if claim should move to next month based on cutoff date
