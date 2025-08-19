@@ -42,6 +42,17 @@ export default function ClaimApprovalPage() {
   const [activeTab, setActiveTab] = useState("approval");
   const [selectedCategory, setSelectedCategory] = useState<"financial" | "overtime" | null>(null);
 
+  // Check URL parameters for direct navigation
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    
+    if (tabParam === 'financial') {
+      setActiveTab('approval');
+      setSelectedCategory('financial');
+    }
+  }, []);
+
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [bulkAction, setBulkAction] = useState("");
   const [viewModalOpen, setViewModalOpen] = useState(false);
