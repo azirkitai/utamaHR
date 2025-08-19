@@ -4035,12 +4035,42 @@ export class DatabaseStorage implements IStorage {
         })
       ).size;
 
+      // Get overtime totals for all months in current year
+      const allYearOvertimeClaims = await db
+        .select()
+        .from(claimApplications)
+        .where(
+          and(
+            eq(claimApplications.employeeId, employeeId),
+            eq(claimApplications.claimType, 'overtime'),
+            sql`EXTRACT(YEAR FROM ${claimApplications.claimDate}) = ${currentYear}`,
+            or(
+              eq(claimApplications.status, 'Approved'),
+              eq(claimApplications.status, 'firstLevelApproved')
+            )
+          )
+        );
+
+      // Group by month and calculate totals
+      const monthlyTotals: Record<number, number> = {};
+      for (let month = 1; month <= 12; month++) {
+        monthlyTotals[month] = 0;
+      }
+
+      allYearOvertimeClaims.forEach(claim => {
+        const claimDate = new Date(claim.claimDate);
+        const month = claimDate.getMonth() + 1; // JavaScript months are 0-indexed
+        const hours = parseFloat(claim.totalHours || '0');
+        monthlyTotals[month] += hours;
+      });
+
       return {
         financial: totals,
         totalApproved: totalApprovedAmount,
         overtime: {
           hoursThisMonth: totalOvertimeHours,
-          daysThisMonth: uniqueDays
+          daysThisMonth: uniqueDays,
+          monthlyBreakdown: monthlyTotals
         }
       };
     } catch (error) {

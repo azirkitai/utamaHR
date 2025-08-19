@@ -935,43 +935,34 @@ export default function ApplyClaimPage() {
                   <div className="mt-6 bg-white/10 p-4 rounded-lg">
                     <h3 className="text-lg font-semibold mb-4">Detailed Overtime Summary</h3>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                      <div className="bg-white/20 p-3 rounded text-center">
-                        <div className="text-xs text-cyan-100 mb-1">JAN 2025</div>
-                        <div className="text-xl font-bold">0 Hours</div>
-                      </div>
-                      <div className="bg-white/20 p-3 rounded text-center">
-                        <div className="text-xs text-cyan-100 mb-1">FEB 2025</div>
-                        <div className="text-xl font-bold">0 Hours</div>
-                      </div>
-                      <div className="bg-white/20 p-3 rounded text-center">
-                        <div className="text-xs text-cyan-100 mb-1">MAR 2025</div>
-                        <div className="text-xl font-bold">0 Hours</div>
-                      </div>
-                      <div className="bg-white/20 p-3 rounded text-center">
-                        <div className="text-xs text-cyan-100 mb-1">APR 2025</div>
-                        <div className="text-xl font-bold">0 Hours</div>
-                      </div>
-                      <div className="bg-white/20 p-3 rounded text-center">
-                        <div className="text-xs text-cyan-100 mb-1">MAY 2025</div>
-                        <div className="text-xl font-bold">0 Hours</div>
-                      </div>
-                      <div className="bg-white/20 p-3 rounded text-center">
-                        <div className="text-xs text-cyan-100 mb-1">JUN 2025</div>
-                        <div className="text-xl font-bold">0 Hours</div>
-                      </div>
-                      <div className="bg-white/20 p-3 rounded text-center">
-                        <div className="text-xs text-cyan-100 mb-1">JUL 2025</div>
-                        <div className="text-xl font-bold">0 Hours</div>
-                      </div>
-                      <div className="bg-white/20 p-3 rounded text-center">
-                        <div className="text-xs text-cyan-100 mb-1">AUG 2025</div>
-                        <div className="text-xl font-bold">
-                          {isLoadingTotals ? "Loading..." : 
-                           userClaimTotals?.overtime?.hoursThisMonth ? 
-                           `${userClaimTotals.overtime.hoursThisMonth.toFixed(1)} Hours` : '0 Hours'
-                          }
-                        </div>
-                      </div>
+                      {(() => {
+                        const months = [
+                          { key: 1, name: 'JAN 2025' },
+                          { key: 2, name: 'FEB 2025' },
+                          { key: 3, name: 'MAR 2025' },
+                          { key: 4, name: 'APR 2025' },
+                          { key: 5, name: 'MAY 2025' },
+                          { key: 6, name: 'JUN 2025' },
+                          { key: 7, name: 'JUL 2025' },
+                          { key: 8, name: 'AUG 2025' },
+                          { key: 9, name: 'SEP 2025' },
+                          { key: 10, name: 'OCT 2025' },
+                          { key: 11, name: 'NOV 2025' },
+                          { key: 12, name: 'DEC 2025' }
+                        ];
+
+                        return months.map(month => (
+                          <div key={month.key} className="bg-white/20 p-3 rounded text-center">
+                            <div className="text-xs text-cyan-100 mb-1">{month.name}</div>
+                            <div className="text-xl font-bold">
+                              {isLoadingTotals ? "Loading..." : 
+                               userClaimTotals?.overtime?.monthlyBreakdown?.[month.key] ? 
+                               `${userClaimTotals.overtime.monthlyBreakdown[month.key].toFixed(1)} Hours` : '0 Hours'
+                              }
+                            </div>
+                          </div>
+                        ));
+                      })()}
                     </div>
                   </div>
                 )}
