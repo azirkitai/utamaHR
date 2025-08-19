@@ -766,7 +766,7 @@ export default function DashboardHome() {
               {[
                 { name: 'Leave', icon: Calendar, count: pendingStats?.pendingLeave || 0, route: '/approval-leave' },
                 { name: 'Claim', icon: FileText, count: pendingStats?.pendingClaim || 0, route: '/approval-claim' },
-                { name: 'Overtime', icon: Clock, count: pendingStats?.pendingOvertime || 0, route: '/approval-overtime' },
+                { name: 'Overtime', icon: Clock, count: pendingStats?.pendingOvertime || 0, route: '/approval/claim' },
                 { name: 'Payroll', icon: DollarSign, count: pendingStats?.pendingPayroll || 0, route: '/approval-payroll' },
                 { name: 'Voucher', icon: Users, count: pendingStats?.pendingVoucher || 0, route: '/approval-payment' }
               ].map((item) => {
