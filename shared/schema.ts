@@ -411,6 +411,8 @@ export const shifts = pgTable("shifts", {
   breakTimeIn: text("break_time_in").default("none"), // Break end time or "none"
   // Workdays configuration as JSON string
   workdays: text("workdays").default('{"Sunday":"Off Day","Monday":"Full Day","Tuesday":"Full Day","Wednesday":"Full Day","Thursday":"Full Day","Friday":"Full Day","Saturday":"Half Day"}'),
+  // Shift compliance settings
+  enableStrictClockIn: boolean("enable_strict_clock_in").default(false), // Flag late entries for review
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

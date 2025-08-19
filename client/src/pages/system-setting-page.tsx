@@ -669,6 +669,7 @@ export default function SystemSettingPage() {
         enableBreakTime: false,
         enableOvertimeCalculation: false,
         enableLatenessCalculation: false,
+        enableStrictClockIn: false,
       });
       toast({
         title: "Berjaya",
@@ -716,6 +717,7 @@ export default function SystemSettingPage() {
       enableBreakTime: false,
       enableOvertimeCalculation: false,
       enableLatenessCalculation: false,
+      enableStrictClockIn: shift.enableStrictClockIn || false,
     });
     setShowEditShiftDialog(true);
   };
@@ -879,6 +881,7 @@ export default function SystemSettingPage() {
     enableBreakTime: false,
     enableOvertimeCalculation: false,
     enableLatenessCalculation: false,
+    enableStrictClockIn: false,
   });
 
   // Predefined colors for shift selection
@@ -5889,11 +5892,25 @@ export default function SystemSettingPage() {
                   </Select>
                 </div>
               </div>
-
-
             </div>
 
-            
+            {/* Shift Compliance Settings */}
+            <div className="space-y-4">
+              <h4 className="font-medium">Shift Compliance</h4>
+              <p className="text-sm text-gray-500">Configure attendance compliance rules for this shift.</p>
+              
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <Label className="text-sm font-medium">Employees must clock in at their assigned shift start time. Late entries will be flagged for review</Label>
+                </div>
+                <Switch 
+                  checked={shiftForm.enableStrictClockIn || false}
+                  onCheckedChange={(checked) => setShiftForm(prev => ({...prev, enableStrictClockIn: checked}))}
+                  className="data-[state=checked]:bg-blue-900"
+                  data-testid="switch-strict-clock-in"
+                />
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowCreateShiftDialog(false)} data-testid="button-cancel-shift">
@@ -6008,6 +6025,24 @@ export default function SystemSettingPage() {
                     value={shiftForm.breakTimeIn}
                     onChange={(e) => setShiftForm(prev => ({...prev, breakTimeIn: e.target.value}))}
                     data-testid="input-edit-break-time-in"
+                  />
+                </div>
+              </div>
+
+              {/* Shift Compliance Settings */}
+              <div className="space-y-4 mt-6">
+                <h4 className="font-medium">Shift Compliance</h4>
+                <p className="text-sm text-gray-500">Configure attendance compliance rules for this shift.</p>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <Label className="text-sm font-medium">Employees must clock in at their assigned shift start time. Late entries will be flagged for review</Label>
+                  </div>
+                  <Switch 
+                    checked={shiftForm.enableStrictClockIn || false}
+                    onCheckedChange={(checked) => setShiftForm(prev => ({...prev, enableStrictClockIn: checked}))}
+                    className="data-[state=checked]:bg-blue-900"
+                    data-testid="switch-edit-strict-clock-in"
                   />
                 </div>
               </div>
