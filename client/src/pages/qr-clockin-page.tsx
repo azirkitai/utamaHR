@@ -38,9 +38,17 @@ interface TodayAttendanceStatus {
   hasAttendanceToday: boolean;
   clockInTime: string | null;
   clockOutTime: string | null;
+  breakOutTime: string | null;
+  breakInTime: string | null;
   isClockInCompleted: boolean;
   isClockOutCompleted: boolean;
+  isBreakOutCompleted: boolean;
+  isBreakInCompleted: boolean;
   needsClockOut: boolean;
+  needsBreakOut: boolean;
+  needsBreakIn: boolean;
+  nextAction: 'clock-in' | 'break-out' | 'break-in' | 'clock-out' | 'completed';
+  enforceBreakClockOut: boolean; // Based on employee setting
 }
 
 export default function QRClockInPage() {
@@ -287,22 +295,25 @@ export default function QRClockInPage() {
                 </div>
                 <div>
                   <CardTitle className="text-xl text-gray-800">
-                    {attendanceStatus?.needsClockOut ? "Jana QR Clock-Out" : "Jana QR Code"}
+                    {attendanceStatus?.nextAction === 'clock-in' && "Jana QR Clock-In"}
+                    {attendanceStatus?.nextAction === 'break-out' && "Jana QR Break Time"}
+                    {attendanceStatus?.nextAction === 'break-in' && "Jana QR Break Off"}
+                    {attendanceStatus?.nextAction === 'clock-out' && "Jana QR Clock-Out"}
+                    {attendanceStatus?.nextAction === 'completed' && "Jana QR Code"}
                   </CardTitle>
                   <CardDescription>
-                    {attendanceStatus?.needsClockOut 
-                      ? "QR code untuk clock-out pekerja (sah selama 2 minit)"
-                      : attendanceStatus?.isClockOutCompleted
-                      ? "Clock-in dan clock-out sudah selesai untuk hari ini"
-                      : "QR code untuk clock-in pekerja (sah selama 2 minit)"
-                    }
+                    {attendanceStatus?.nextAction === 'clock-in' && "QR code untuk clock-in pekerja (sah selama 2 minit)"}
+                    {attendanceStatus?.nextAction === 'break-out' && "QR code untuk break time - keluar rehat/lunch (sah selama 2 minit)"}
+                    {attendanceStatus?.nextAction === 'break-in' && "QR code untuk break off - balik dari rehat/lunch (sah selama 2 minit)"}
+                    {attendanceStatus?.nextAction === 'clock-out' && "QR code untuk clock-out pekerja (sah selama 2 minit)"}
+                    {attendanceStatus?.nextAction === 'completed' && "Semua kehadiran sudah selesai untuk hari ini"}
                   </CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Show completion message if both clock-in and clock-out are done */}
-              {attendanceStatus?.isClockOutCompleted ? (
+              {/* Show completion message if all attendance is done */}
+              {attendanceStatus?.nextAction === 'completed' ? (
                 <div className="text-center py-8">
                   <div className="mb-4">
                     <div className="w-32 h-32 mx-auto bg-green-100 border-2 border-green-300 rounded-lg flex items-center justify-center">
@@ -313,10 +324,19 @@ export default function QRClockInPage() {
                     <p className="font-medium text-green-700">Kehadiran Hari Ini Selesai</p>
                     <div className="text-sm text-gray-600 space-y-1">
                       <p>Clock-In: {attendanceStatus?.clockInTime ? new Date(attendanceStatus.clockInTime).toLocaleTimeString('ms-MY') : '-'}</p>
+                      {attendanceStatus?.enforceBreakClockOut && (
+                        <>
+                          <p>Break Time: {attendanceStatus?.breakOutTime ? new Date(attendanceStatus.breakOutTime).toLocaleTimeString('ms-MY') : '-'}</p>
+                          <p>Break Off: {attendanceStatus?.breakInTime ? new Date(attendanceStatus.breakInTime).toLocaleTimeString('ms-MY') : '-'}</p>
+                        </>
+                      )}
                       <p>Clock-Out: {attendanceStatus?.clockOutTime ? new Date(attendanceStatus.clockOutTime).toLocaleTimeString('ms-MY') : '-'}</p>
                     </div>
                     <p className="text-green-600 text-sm mt-3">
-                      Anda telah selesai clock-in dan clock-out untuk hari ini
+                      {attendanceStatus?.enforceBreakClockOut 
+                        ? "Anda telah selesai clock-in, break time, break off dan clock-out untuk hari ini"
+                        : "Anda telah selesai clock-in dan clock-out untuk hari ini"
+                      }
                     </p>
                   </div>
                 </div>
@@ -334,27 +354,48 @@ export default function QRClockInPage() {
                     </div>
                   </div>
                   
-                  {attendanceStatus?.needsClockOut && (
-                    <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                      <p className="text-orange-700 text-sm font-medium">Anda sudah Clock-In</p>
-                      <p className="text-orange-600 text-xs">
-                        Clock-In: {attendanceStatus?.clockInTime ? new Date(attendanceStatus.clockInTime).toLocaleTimeString('ms-MY') : '-'}
-                      </p>
+                  {attendanceStatus?.nextAction && attendanceStatus.nextAction !== 'clock-in' && attendanceStatus.nextAction !== 'completed' && (
+                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-blue-700 text-sm font-medium">Status Kehadiran</p>
+                      <div className="text-blue-600 text-xs space-y-1">
+                        {attendanceStatus?.clockInTime && (
+                          <p>✓ Clock-In: {new Date(attendanceStatus.clockInTime).toLocaleTimeString('ms-MY')}</p>
+                        )}
+                        {attendanceStatus?.breakOutTime && (
+                          <p>✓ Break Time: {new Date(attendanceStatus.breakOutTime).toLocaleTimeString('ms-MY')}</p>
+                        )}
+                        {attendanceStatus?.breakInTime && (
+                          <p>✓ Break Off: {new Date(attendanceStatus.breakInTime).toLocaleTimeString('ms-MY')}</p>
+                        )}
+                        <p className="text-blue-700 font-medium">
+                          Seterusnya: {
+                            attendanceStatus?.nextAction === 'break-out' ? 'Break Time' :
+                            attendanceStatus?.nextAction === 'break-in' ? 'Break Off' :
+                            attendanceStatus?.nextAction === 'clock-out' ? 'Clock-Out' : ''
+                          }
+                        </p>
+                      </div>
                     </div>
                   )}
                   
                   <p className="text-gray-600 mb-4">
-                    {attendanceStatus?.needsClockOut 
-                      ? "Klik butang di bawah untuk menjana QR Code clock-out"
-                      : "Klik butang di bawah untuk menjana QR Code baharu"
-                    }
+                    {attendanceStatus?.nextAction === 'clock-in' && "Klik butang di bawah untuk menjana QR Code clock-in"}
+                    {attendanceStatus?.nextAction === 'break-out' && "Klik butang di bawah untuk menjana QR Code break time"}
+                    {attendanceStatus?.nextAction === 'break-in' && "Klik butang di bawah untuk menjana QR Code break off"}
+                    {attendanceStatus?.nextAction === 'clock-out' && "Klik butang di bawah untuk menjana QR Code clock-out"}
                   </p>
                   <Button
                     onClick={() => generateQrMutation.mutate()}
                     disabled={generateQrMutation.isPending}
                     className={`text-white shadow-sm px-6 py-3 ${
-                      attendanceStatus?.needsClockOut
-                        ? 'bg-gradient-to-r from-orange-600 via-orange-700 to-red-700 hover:from-orange-700 hover:via-orange-800 hover:to-red-800'
+                      attendanceStatus?.nextAction === 'clock-in'
+                        ? 'bg-gradient-to-r from-green-600 via-green-700 to-emerald-700 hover:from-green-700 hover:via-green-800 hover:to-emerald-800'
+                        : attendanceStatus?.nextAction === 'break-out'
+                        ? 'bg-gradient-to-r from-amber-600 via-amber-700 to-orange-700 hover:from-amber-700 hover:via-amber-800 hover:to-orange-800'
+                        : attendanceStatus?.nextAction === 'break-in'
+                        ? 'bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 hover:from-blue-700 hover:via-blue-800 hover:to-indigo-800'
+                        : attendanceStatus?.nextAction === 'clock-out'
+                        ? 'bg-gradient-to-r from-red-600 via-red-700 to-rose-700 hover:from-red-700 hover:via-red-800 hover:to-rose-800'
                         : 'bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700'
                     }`}
                     data-testid="button-generate-qr"
@@ -367,7 +408,10 @@ export default function QRClockInPage() {
                     ) : (
                       <>
                         <QrCode className="mr-2 h-4 w-4" />
-                        {attendanceStatus?.needsClockOut ? "Jana QR Clock-Out" : "Jana QR Code Baharu"}
+                        {attendanceStatus?.nextAction === 'clock-in' && "Jana QR Clock-In"}
+                        {attendanceStatus?.nextAction === 'break-out' && "Jana QR Break Time"}
+                        {attendanceStatus?.nextAction === 'break-in' && "Jana QR Break Off"}
+                        {attendanceStatus?.nextAction === 'clock-out' && "Jana QR Clock-Out"}
                       </>
                     )}
                   </Button>

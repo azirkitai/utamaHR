@@ -423,19 +423,43 @@ export const attendanceRecords = pgTable("attendance_records", {
   clockOutTime: timestamp("clock_out_time"),
   clockInImage: text("clock_in_image"), // Image path for clock in
   clockOutImage: text("clock_out_image"), // Image path for clock out
+  
+  // Break time tracking
+  breakOutTime: timestamp("break_out_time"), // When employee starts break/lunch
+  breakInTime: timestamp("break_in_time"), // When employee returns from break/lunch
+  breakOutImage: text("break_out_image"), // Image for break start
+  breakInImage: text("break_in_image"), // Image for break end
+  
   // Location tracking for clock-in
   clockInLatitude: text("clock_in_latitude"), // GPS latitude for clock in
   clockInLongitude: text("clock_in_longitude"), // GPS longitude for clock in
   clockInLocationStatus: text("clock_in_location_status"), // valid, invalid
   clockInDistance: text("clock_in_distance"), // distance from office in meters
   clockInOfficeLocationId: varchar("clock_in_office_location_id").references(() => officeLocations.id),
+  
+  // Location tracking for break-out
+  breakOutLatitude: text("break_out_latitude"),
+  breakOutLongitude: text("break_out_longitude"),
+  breakOutLocationStatus: text("break_out_location_status"),
+  breakOutDistance: text("break_out_distance"),
+  breakOutOfficeLocationId: varchar("break_out_office_location_id").references(() => officeLocations.id),
+  
+  // Location tracking for break-in
+  breakInLatitude: text("break_in_latitude"),
+  breakInLongitude: text("break_in_longitude"),
+  breakInLocationStatus: text("break_in_location_status"),
+  breakInDistance: text("break_in_distance"),
+  breakInOfficeLocationId: varchar("break_in_office_location_id").references(() => officeLocations.id),
+  
   // Location tracking for clock-out
   clockOutLatitude: text("clock_out_latitude"), // GPS latitude for clock out
   clockOutLongitude: text("clock_out_longitude"), // GPS longitude for clock out
   clockOutLocationStatus: text("clock_out_location_status"), // valid, invalid
   clockOutDistance: text("clock_out_distance"), // distance from office in meters
   clockOutOfficeLocationId: varchar("clock_out_office_location_id").references(() => officeLocations.id),
+  
   totalHours: decimal("total_hours", { precision: 4, scale: 2 }).default(sql`0`),
+  totalBreakHours: decimal("total_break_hours", { precision: 4, scale: 2 }).default(sql`0`), // Track break duration
   notes: text("notes"), // Notes for the day
   status: text("status").default("present"), // present, absent, late, early_leave
   createdAt: timestamp("created_at").defaultNow().notNull(),

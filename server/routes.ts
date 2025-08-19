@@ -150,6 +150,164 @@ function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: numbe
   return d;
 }
 
+// Helper function to process break-out (leaving for break/lunch)
+async function processBreakOut(
+  res: any,
+  qrToken: any,
+  todayAttendance: AttendanceRecord,
+  latitude: string,
+  longitude: string,
+  selfieImageUrl: string,
+  storage: any
+) {
+  try {
+    // Get active office locations for validation
+    const activeLocations = await storage.getActiveOfficeLocations();
+    if (activeLocations.length === 0) {
+      return res.status(400).json({ 
+        error: "Tiada lokasi pejabat aktif ditetapkan" 
+      });
+    }
+
+    // Check location for break-out
+    let locationStatus = "invalid";
+    let nearestDistance = Infinity;
+    let nearestLocationId = null;
+
+    for (const location of activeLocations) {
+      const distance = calculateDistance(
+        parseFloat(latitude), 
+        parseFloat(longitude), 
+        parseFloat(location.latitude), 
+        parseFloat(location.longitude)
+      );
+
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearestLocationId = location.id;
+      }
+
+      const maxDistance = parseFloat(location.radius);
+      if (distance <= maxDistance) {
+        locationStatus = "valid";
+        break;
+      }
+    }
+
+    // Process selfie image
+    const objectStorageService = new ObjectStorageService();
+    const selfieImagePath = objectStorageService.normalizeSelfieImagePath(selfieImageUrl);
+
+    // Mark QR token as used
+    await storage.markQrTokenAsUsed(qrToken.token);
+
+    // Update attendance record with break-out information
+    await storage.createOrUpdateAttendanceRecord({
+      employeeId: todayAttendance.employeeId,
+      userId: todayAttendance.userId,
+      date: todayAttendance.date,
+      breakOutTime: new Date(),
+      breakOutImage: selfieImagePath,
+      status: locationStatus === "valid" ? "present" : "invalid_location"
+    });
+
+    const user = await storage.getUser(qrToken.userId);
+    
+    return res.json({
+      success: true,
+      isBreakOut: true,
+      breakOutTime: new Date(),
+      locationStatus: locationStatus,
+      user: {
+        username: user?.username
+      },
+      message: "Break time telah direkodkan"
+    });
+  } catch (error) {
+    console.error("Break-out processing error:", error);
+    return res.status(500).json({ error: "Gagal memproses break time" });
+  }
+}
+
+// Helper function to process break-in (returning from break/lunch)
+async function processBreakIn(
+  res: any,
+  qrToken: any,
+  todayAttendance: AttendanceRecord,
+  latitude: string,
+  longitude: string,
+  selfieImageUrl: string,
+  storage: any
+) {
+  try {
+    // Get active office locations for validation
+    const activeLocations = await storage.getActiveOfficeLocations();
+    if (activeLocations.length === 0) {
+      return res.status(400).json({ 
+        error: "Tiada lokasi pejabat aktif ditetapkan" 
+      });
+    }
+
+    // Check location for break-in
+    let locationStatus = "invalid";
+    let nearestDistance = Infinity;
+    let nearestLocationId = null;
+
+    for (const location of activeLocations) {
+      const distance = calculateDistance(
+        parseFloat(latitude), 
+        parseFloat(longitude), 
+        parseFloat(location.latitude), 
+        parseFloat(location.longitude)
+      );
+
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearestLocationId = location.id;
+      }
+
+      const maxDistance = parseFloat(location.radius);
+      if (distance <= maxDistance) {
+        locationStatus = "valid";
+        break;
+      }
+    }
+
+    // Process selfie image
+    const objectStorageService = new ObjectStorageService();
+    const selfieImagePath = objectStorageService.normalizeSelfieImagePath(selfieImageUrl);
+
+    // Mark QR token as used
+    await storage.markQrTokenAsUsed(qrToken.token);
+
+    // Update attendance record with break-in information
+    await storage.createOrUpdateAttendanceRecord({
+      employeeId: todayAttendance.employeeId,
+      userId: todayAttendance.userId,
+      date: todayAttendance.date,
+      breakInTime: new Date(),
+      breakInImage: selfieImagePath,
+      status: locationStatus === "valid" ? "present" : "invalid_location"
+    });
+
+    const user = await storage.getUser(qrToken.userId);
+    
+    return res.json({
+      success: true,
+      isBreakIn: true,
+      breakInTime: new Date(),
+      locationStatus: locationStatus,
+      user: {
+        username: user?.username
+      },
+      message: "Break off telah direkodkan"
+    });
+  } catch (error) {
+    console.error("Break-in processing error:", error);
+    return res.status(500).json({ error: "Gagal memproses break off" });
+  }
+}
+
 // Helper function to process clock-out
 async function processClockOut(
   res: any,
@@ -1864,19 +2022,35 @@ export function registerRoutes(app: Express): Server {
       console.log("Clock Out Time:", todayAttendance?.clockOutTime);
       console.log("=== END DEBUG ===");
       
-      // If already clocked in today, check if clock out is needed
-      if (todayAttendance && todayAttendance.clockInTime) {
-        if (todayAttendance.clockOutTime) {
-          // Already completed full cycle (clock in + clock out) for today
+      // Determine what action to take based on current attendance status and enforcement settings
+      const enforceBreakClockOut = true; // TODO: Get from employee settings
+      
+      if (todayAttendance) {
+        if (!todayAttendance.clockInTime) {
+          // First action: Clock-In
+          console.log("Processing clock-in for user:", qrToken.userId);
+          // Continue with clock-in logic below
+        } else if (enforceBreakClockOut && !todayAttendance.breakOutTime) {
+          // Second action: Break-Out (leaving for break/lunch)
+          console.log("Processing break-out for user:", qrToken.userId);
+          return await processBreakOut(res, qrToken, todayAttendance, latitude, longitude, selfieImageUrl, storage);
+        } else if (enforceBreakClockOut && !todayAttendance.breakInTime) {
+          // Third action: Break-In (returning from break/lunch)
+          console.log("Processing break-in for user:", qrToken.userId);
+          return await processBreakIn(res, qrToken, todayAttendance, latitude, longitude, selfieImageUrl, storage);
+        } else if (!todayAttendance.clockOutTime) {
+          // Fourth action: Clock-Out
+          console.log("Processing clock-out for user:", qrToken.userId);
+          return await processClockOut(res, qrToken, todayAttendance, latitude, longitude, selfieImageUrl, storage);
+        } else {
+          // All attendance actions completed for today
           return res.status(400).json({ 
-            error: "Anda telah selesai clock-in dan clock-out untuk hari ini",
+            error: enforceBreakClockOut 
+              ? "Anda telah selesai clock-in, break time, break off dan clock-out untuk hari ini"
+              : "Anda telah selesai clock-in dan clock-out untuk hari ini",
             alreadyCompleted: true
           });
         }
-        // Has clock-in but no clock-out, so this should be clock-out
-        // Process as clock-out
-        console.log("Converting clock-in request to clock-out for user:", qrToken.userId);
-        return await processClockOut(res, qrToken, todayAttendance, latitude, longitude, selfieImageUrl, storage);
       }
 
       // Get active office locations
@@ -2008,13 +2182,48 @@ export function registerRoutes(app: Express): Server {
       
       const todayAttendance = await storage.getTodayAttendanceRecord(employee.id, today);
       
+      // Check if break clock-out enforcement is enabled for this employee
+      // For now, we'll assume it's enabled by default - this should come from employee settings
+      const enforceBreakClockOut = true; // TODO: Get from employee settings
+      
+      // Determine attendance status and next action
+      let nextAction = 'clock-in';
+      let needsClockOut = false;
+      let needsBreakOut = false;
+      let needsBreakIn = false;
+      
+      if (todayAttendance) {
+        if (!todayAttendance.clockInTime) {
+          nextAction = 'clock-in';
+        } else if (enforceBreakClockOut && !todayAttendance.breakOutTime) {
+          nextAction = 'break-out';
+          needsBreakOut = true;
+        } else if (enforceBreakClockOut && !todayAttendance.breakInTime) {
+          nextAction = 'break-in';
+          needsBreakIn = true;
+        } else if (!todayAttendance.clockOutTime) {
+          nextAction = 'clock-out';
+          needsClockOut = true;
+        } else {
+          nextAction = 'completed';
+        }
+      }
+      
       res.json({
         hasAttendanceToday: !!todayAttendance,
         clockInTime: todayAttendance?.clockInTime || null,
         clockOutTime: todayAttendance?.clockOutTime || null,
+        breakOutTime: todayAttendance?.breakOutTime || null,
+        breakInTime: todayAttendance?.breakInTime || null,
         isClockInCompleted: !!(todayAttendance && todayAttendance.clockInTime),
         isClockOutCompleted: !!(todayAttendance && todayAttendance.clockOutTime),
-        needsClockOut: !!(todayAttendance && todayAttendance.clockInTime && !todayAttendance.clockOutTime)
+        isBreakOutCompleted: !!(todayAttendance && todayAttendance.breakOutTime),
+        isBreakInCompleted: !!(todayAttendance && todayAttendance.breakInTime),
+        needsClockOut,
+        needsBreakOut,
+        needsBreakIn,
+        nextAction,
+        enforceBreakClockOut
       });
     } catch (error) {
       console.error("Today attendance status error:", error);
