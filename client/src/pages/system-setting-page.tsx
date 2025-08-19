@@ -42,6 +42,7 @@ import {
   Navigation,
   Loader2,
   Trash2,
+  Edit2,
   Eye,
   Download
 } from "lucide-react";
@@ -529,6 +530,8 @@ export default function SystemSettingPage() {
   const [showAssignShiftDialog, setShowAssignShiftDialog] = useState(false);
   const [showUpdateShiftDialog, setShowUpdateShiftDialog] = useState(false);
   const [showCreateShiftDialog, setShowCreateShiftDialog] = useState(false);
+  const [showEditShiftDialog, setShowEditShiftDialog] = useState(false);
+  const [editingShift, setEditingShift] = useState<any>(null);
 
   // Location form state
   const [newLocationForm, setNewLocationForm] = useState({
@@ -683,36 +686,38 @@ export default function SystemSettingPage() {
     }
   });
 
-  const updateShiftMutation = useMutation({
-    mutationFn: async ({ id, shiftData }: { id: string; shiftData: any }) => {
-      const response = await apiRequest("PUT", `/api/shifts/${id}`, {
-        name: shiftData.name,
-        clockInTime: shiftData.clockIn,
-        clockOutTime: shiftData.clockOut,
-        color: shiftData.color,
-        breakTimeOut: shiftData.breakTimeOut,
-        breakTimeIn: shiftData.breakTimeIn
-      });
-      return response.json();
-    },
-    onSuccess: () => {
-      refetchShifts();
-      setShowUpdateShiftDialog(false);
-      toast({
-        title: "Berjaya",
-        description: "Shift berjaya dikemaskini",
-        variant: "default",
-      });
-    },
-    onError: (error: Error) => {
-      console.error("Update shift error:", error);
-      toast({
-        title: "Ralat",
-        description: "Gagal mengemaskini shift",
-        variant: "destructive",
-      });
-    }
-  });
+  // Handle Edit Shift
+  const handleEditShift = (shift: any) => {
+    setEditingShift(shift);
+    setShiftForm({
+      name: shift.name,
+      description: shift.description,
+      clockIn: shift.clockIn,
+      clockOut: shift.clockOut,
+      color: shift.color,
+      breakTimeOut: shift.breakTimeOut,
+      breakTimeIn: shift.breakTimeIn,
+      enableOverwriteSetting: false,
+      enableClockInOutSelfie: false,
+      enableEarlyLateIndicator: false,
+      displayAttendanceConfirmation: false,
+      enableAutoClockOut: false,
+      workdays: shift.workdays ? JSON.parse(shift.workdays) : {
+        Sunday: "Off Day",
+        Monday: "Full Day", 
+        Tuesday: "Full Day",
+        Wednesday: "Full Day",
+        Thursday: "Full Day",
+        Friday: "Full Day",
+        Saturday: "Half Day",
+      },
+      enableGeofencingLocation: false,
+      enableBreakTime: false,
+      enableOvertimeCalculation: false,
+      enableLatenessCalculation: false,
+    });
+    setShowEditShiftDialog(true);
+  };
 
   const deleteShiftMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -732,6 +737,40 @@ export default function SystemSettingPage() {
       toast({
         title: "Ralat",
         description: "Gagal memadamkan shift",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const updateShiftMutation = useMutation({
+    mutationFn: async ({ id, shiftData }: { id: string; shiftData: any }) => {
+      const response = await apiRequest("PUT", `/api/shifts/${id}`, {
+        name: shiftData.name,
+        description: shiftData.description,
+        clockIn: shiftData.clockIn,
+        clockOut: shiftData.clockOut,
+        color: shiftData.color,
+        breakTimeOut: shiftData.breakTimeOut,
+        breakTimeIn: shiftData.breakTimeIn,
+        workdays: JSON.stringify(shiftData.workdays)
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      refetchShifts();
+      setShowEditShiftDialog(false);
+      setEditingShift(null);
+      toast({
+        title: "Berjaya",
+        description: "Shift berjaya dikemaskini",
+        variant: "default",
+      });
+    },
+    onError: (error: Error) => {
+      console.error("Update shift error:", error);
+      toast({
+        title: "Ralat",
+        description: "Gagal mengemaskini shift",
         variant: "destructive",
       });
     }
@@ -4743,18 +4782,29 @@ export default function SystemSettingPage() {
                       </div>
                     </div>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
-                    onClick={() => {
-                      deleteShiftMutation.mutate(shift.id);
-                    }}
-                    data-testid={`button-delete-shift-${shift.id}`}
-                    disabled={deleteShiftMutation.isPending}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200"
+                      onClick={() => handleEditShift(shift)}
+                      data-testid={`button-edit-shift-${shift.id}`}
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                      onClick={() => {
+                        deleteShiftMutation.mutate(shift.id);
+                      }}
+                      data-testid={`button-delete-shift-${shift.id}`}
+                      disabled={deleteShiftMutation.isPending}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))
@@ -5857,6 +5907,134 @@ export default function SystemSettingPage() {
               disabled={createShiftMutation.isPending}
             >
               {createShiftMutation.isPending ? "Menyimpan..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Shift Dialog */}
+      <Dialog open={showEditShiftDialog} onOpenChange={setShowEditShiftDialog}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="bg-gradient-to-r from-blue-800 to-blue-900 bg-clip-text text-transparent">
+              Edit Shift
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            {/* Shift Information */}
+            <div className="space-y-4">
+              <h4 className="font-medium">Shift Information</h4>
+              <p className="text-sm text-gray-500">All employees will comply to this shift information.</p>
+              
+              <div className="space-y-2">
+                <Label>Shift Name</Label>
+                <Input
+                  placeholder="Shift Name"
+                  value={shiftForm.name}
+                  onChange={(e) => setShiftForm(prev => ({...prev, name: e.target.value}))}
+                  data-testid="input-edit-shift-name"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Shift Description</Label>
+                <Textarea
+                  placeholder="Shift Description"
+                  value={shiftForm.description}
+                  onChange={(e) => setShiftForm(prev => ({...prev, description: e.target.value}))}
+                  data-testid="textarea-edit-shift-description"
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Shift Clock In</Label>
+                  <Input
+                    type="time"
+                    value={shiftForm.clockIn}
+                    onChange={(e) => setShiftForm(prev => ({...prev, clockIn: e.target.value}))}
+                    data-testid="input-edit-shift-clock-in"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Shift Clock Out</Label>
+                  <Input
+                    type="time"
+                    value={shiftForm.clockOut}
+                    onChange={(e) => setShiftForm(prev => ({...prev, clockOut: e.target.value}))}
+                    data-testid="input-edit-shift-clock-out"
+                  />
+                </div>
+              </div>
+
+              {/* Shift Color Picker */}
+              <div className="space-y-2">
+                <Label>Shift Color</Label>
+                <p className="text-sm text-gray-500">Choose a color for this shift. This color will be used in roster scheduling.</p>
+                <div className="flex items-center gap-4">
+                  <Input
+                    type="color"
+                    value={shiftForm.color}
+                    onChange={(e) => setShiftForm(prev => ({...prev, color: e.target.value}))}
+                    className="w-16 h-10 p-1 rounded cursor-pointer"
+                    data-testid="input-edit-shift-color"
+                  />
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-6 h-6 rounded-full border-2 border-gray-300"
+                      style={{ backgroundColor: shiftForm.color }}
+                    />
+                    <span className="text-sm text-gray-600">{shiftForm.color}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Break Time Settings */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Break Time Out</Label>
+                  <Input
+                    type="time"
+                    value={shiftForm.breakTimeOut}
+                    onChange={(e) => setShiftForm(prev => ({...prev, breakTimeOut: e.target.value}))}
+                    data-testid="input-edit-break-time-out"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Break Time In</Label>
+                  <Input
+                    type="time"
+                    value={shiftForm.breakTimeIn}
+                    onChange={(e) => setShiftForm(prev => ({...prev, breakTimeIn: e.target.value}))}
+                    data-testid="input-edit-break-time-in"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowEditShiftDialog(false);
+                setEditingShift(null);
+              }}
+              data-testid="button-cancel-edit-shift"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (editingShift) {
+                  updateShiftMutation.mutate({ id: editingShift.id, shiftData: shiftForm });
+                }
+              }}
+              disabled={updateShiftMutation.isPending || !shiftForm.name}
+              className="bg-blue-900 hover:bg-blue-800"
+              data-testid="button-save-edit-shift"
+            >
+              {updateShiftMutation.isPending ? "Menyimpan..." : "Save Changes"}
             </Button>
           </DialogFooter>
         </DialogContent>
