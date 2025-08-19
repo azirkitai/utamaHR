@@ -51,6 +51,8 @@ import {
   insertClockInSchema,
   insertOfficeLocationSchema,
   updateOfficeLocationSchema,
+  insertShiftSchema,
+  updateShiftSchema,
   insertWorkExperienceSchema,
   updateWorkExperienceSchema,
   insertLeaveApplicationSchema,
@@ -2349,6 +2351,87 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Delete office location error:", error);
       res.status(500).json({ error: "Gagal memadamkan lokasi pejabat" });
+    }
+  });
+
+  // =================== SHIFTS ROUTES ===================
+  // Get all shifts
+  app.get("/api/shifts", authenticateToken, async (req, res) => {
+    try {
+      const shifts = await storage.getAllShifts();
+      res.json(shifts);
+    } catch (error) {
+      console.error("Get shifts error:", error);
+      res.status(500).json({ error: "Gagal mendapatkan senarai syif" });
+    }
+  });
+
+  // Get single shift by ID
+  app.get("/api/shifts/:id", authenticateToken, async (req, res) => {
+    try {
+      const shift = await storage.getShift(req.params.id);
+      if (!shift) {
+        return res.status(404).json({ error: "Syif tidak dijumpai" });
+      }
+      res.json(shift);
+    } catch (error) {
+      console.error("Get shift error:", error);
+      res.status(500).json({ error: "Gagal mendapatkan syif" });
+    }
+  });
+
+  // Create new shift
+  app.post("/api/shifts", authenticateToken, async (req, res) => {
+    try {
+      const validationResult = insertShiftSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Data tidak sah", 
+          details: validationResult.error.issues 
+        });
+      }
+
+      const shift = await storage.createShift(validationResult.data);
+      res.status(201).json(shift);
+    } catch (error) {
+      console.error("Create shift error:", error);
+      res.status(500).json({ error: "Gagal mencipta syif" });
+    }
+  });
+
+  // Update shift
+  app.put("/api/shifts/:id", authenticateToken, async (req, res) => {
+    try {
+      const validationResult = updateShiftSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Data tidak sah", 
+          details: validationResult.error.issues 
+        });
+      }
+
+      const shift = await storage.updateShift(req.params.id, validationResult.data);
+      if (!shift) {
+        return res.status(404).json({ error: "Syif tidak dijumpai" });
+      }
+      res.json(shift);
+    } catch (error) {
+      console.error("Update shift error:", error);
+      res.status(500).json({ error: "Gagal mengemaskini syif" });
+    }
+  });
+
+  // Delete shift
+  app.delete("/api/shifts/:id", authenticateToken, async (req, res) => {
+    try {
+      const success = await storage.deleteShift(req.params.id);
+      if (!success) {
+        return res.status(404).json({ error: "Syif tidak dijumpai" });
+      }
+      res.json({ message: "Syif berjaya dipadam" });
+    } catch (error) {
+      console.error("Delete shift error:", error);
+      res.status(500).json({ error: "Gagal memadamkan syif" });
     }
   });
 

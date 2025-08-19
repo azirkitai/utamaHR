@@ -63,6 +63,9 @@ import {
   type OfficeLocation,
   type InsertOfficeLocation,
   type UpdateOfficeLocation,
+  // Shift types
+  type SelectShift,
+  type InsertShift,
   type GroupPolicySetting,
   type InsertGroupPolicySetting,
   type UpdateGroupPolicySetting,
@@ -90,6 +93,7 @@ import {
   workExperiences,
   qrTokens,
   officeLocations,
+  shifts,
   clockInRecords,
   attendanceRecords,
   leaveApplications,
@@ -288,6 +292,13 @@ export interface IStorage {
   updateOfficeLocation(id: string, location: UpdateOfficeLocation): Promise<OfficeLocation | undefined>;
   deleteOfficeLocation(id: string): Promise<boolean>;
   getActiveOfficeLocations(): Promise<OfficeLocation[]>;
+  
+  // =================== SHIFT METHODS ===================
+  getAllShifts(): Promise<SelectShift[]>;
+  getShift(id: string): Promise<SelectShift | undefined>;
+  createShift(shift: InsertShift): Promise<SelectShift>;
+  updateShift(id: string, shift: Partial<InsertShift>): Promise<SelectShift | undefined>;
+  deleteShift(id: string): Promise<boolean>;
   
   // =================== CLOCK-IN METHODS ===================
   createClockInRecord(clockIn: InsertClockIn): Promise<ClockInRecord>;
@@ -904,6 +915,41 @@ export class DatabaseStorage implements IStorage {
 
   async getActiveOfficeLocations(): Promise<OfficeLocation[]> {
     return await db.select().from(officeLocations).where(eq(officeLocations.isActive, "true"));
+  }
+
+  // =================== SHIFT METHODS ===================
+  async getAllShifts(): Promise<SelectShift[]> {
+    return await db.select().from(shifts).orderBy(shifts.createdAt);
+  }
+
+  async getShift(id: string): Promise<SelectShift | undefined> {
+    const [shift] = await db.select().from(shifts).where(eq(shifts.id, id));
+    return shift || undefined;
+  }
+
+  async createShift(insertShift: InsertShift): Promise<SelectShift> {
+    const [shift] = await db
+      .insert(shifts)
+      .values(insertShift)
+      .returning();
+    return shift;
+  }
+
+  async updateShift(id: string, updateShift: Partial<InsertShift>): Promise<SelectShift | undefined> {
+    const [shift] = await db
+      .update(shifts)
+      .set({
+        ...updateShift,
+        updatedAt: new Date()
+      })
+      .where(eq(shifts.id, id))
+      .returning();
+    return shift || undefined;
+  }
+
+  async deleteShift(id: string): Promise<boolean> {
+    const result = await db.delete(shifts).where(eq(shifts.id, id));
+    return (result.rowCount ?? 0) > 0;
   }
 
   // =================== EMPLOYEE DOCUMENTS METHODS ===================

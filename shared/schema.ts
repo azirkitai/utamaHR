@@ -399,6 +399,22 @@ export const officeLocations = pgTable("office_locations", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Shifts table for storing work shift configurations
+export const shifts = pgTable("shifts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(), // Shift name (e.g., "Morning Shift", "Night Shift")
+  description: text("description"), // Optional description
+  clockIn: text("clock_in").notNull(), // Start time (e.g., "08:30")
+  clockOut: text("clock_out").notNull(), // End time (e.g., "17:30")
+  color: text("color").notNull().default("#3B82F6"), // Color code for visual identification
+  breakTimeOut: text("break_time_out").default("none"), // Break start time or "none"
+  breakTimeIn: text("break_time_in").default("none"), // Break end time or "none"
+  // Workdays configuration as JSON string
+  workdays: text("workdays").default('{"Sunday":"Off Day","Monday":"Full Day","Tuesday":"Full Day","Wednesday":"Full Day","Thursday":"Full Day","Friday":"Full Day","Saturday":"Half Day"}'),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Clock-in records
 export const clockInRecords = pgTable("clock_in_records", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -1052,6 +1068,16 @@ export const insertOfficeLocationSchema = createInsertSchema(officeLocations).om
   updatedAt: true,
 });
 export const updateOfficeLocationSchema = insertOfficeLocationSchema.partial();
+
+// Shifts schemas
+export const insertShiftSchema = createInsertSchema(shifts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const updateShiftSchema = insertShiftSchema.partial();
+export type InsertShift = z.infer<typeof insertShiftSchema>;
+export type SelectShift = typeof shifts.$inferSelect;
 
 // Approval Settings schemas
 export const insertApprovalSettingSchema = createInsertSchema(approvalSettings).omit({

@@ -515,7 +515,11 @@ export default function SystemSettingPage() {
     reminderMinutes: "15",
   });
 
-  const [shifts, setShifts] = useState([]);
+  // Shifts data from API (replaced local state)
+  const { data: shifts = [], refetch: refetchShifts } = useQuery({
+    queryKey: ["/api/shifts"],
+    enabled: true
+  });
 
 
 
@@ -615,6 +619,119 @@ export default function SystemSettingPage() {
     },
     onError: (error: Error) => {
       console.error("Update location error:", error);
+    }
+  });
+
+  // Shift mutations
+  const createShiftMutation = useMutation({
+    mutationFn: async (shiftData: any) => {
+      const response = await apiRequest("POST", "/api/shifts", {
+        name: shiftData.name,
+        clockInTime: shiftData.clockIn,
+        clockOutTime: shiftData.clockOut,
+        color: shiftData.color,
+        breakTimeOut: shiftData.breakTimeOut,
+        breakTimeIn: shiftData.breakTimeIn
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      refetchShifts();
+      setShowCreateShiftDialog(false);
+      setShiftForm({
+        name: "",
+        description: "",
+        clockIn: "08:30",
+        clockOut: "17:30",
+        color: "#3B82F6",
+        breakTimeOut: "12:00",
+        breakTimeIn: "13:00",
+        enableOverwriteSetting: false,
+        enableClockInOutSelfie: false,
+        enableEarlyLateIndicator: false,
+        displayAttendanceConfirmation: false,
+        enableAutoClockOut: false,
+        workdays: {
+          Sunday: "Off Day",
+          Monday: "Full Day", 
+          Tuesday: "Full Day",
+          Wednesday: "Full Day",
+          Thursday: "Full Day",
+          Friday: "Full Day",
+          Saturday: "Half Day",
+        },
+        enableGeofencingLocation: false,
+        enableBreakTime: false,
+        enableOvertimeCalculation: false,
+        enableLatenessCalculation: false,
+      });
+      toast({
+        title: "Berjaya",
+        description: "Shift berjaya dicipta",
+        variant: "default",
+      });
+    },
+    onError: (error: Error) => {
+      console.error("Create shift error:", error);
+      toast({
+        title: "Ralat",
+        description: "Gagal mencipta shift",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const updateShiftMutation = useMutation({
+    mutationFn: async ({ id, shiftData }: { id: string; shiftData: any }) => {
+      const response = await apiRequest("PUT", `/api/shifts/${id}`, {
+        name: shiftData.name,
+        clockInTime: shiftData.clockIn,
+        clockOutTime: shiftData.clockOut,
+        color: shiftData.color,
+        breakTimeOut: shiftData.breakTimeOut,
+        breakTimeIn: shiftData.breakTimeIn
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      refetchShifts();
+      setShowUpdateShiftDialog(false);
+      toast({
+        title: "Berjaya",
+        description: "Shift berjaya dikemaskini",
+        variant: "default",
+      });
+    },
+    onError: (error: Error) => {
+      console.error("Update shift error:", error);
+      toast({
+        title: "Ralat",
+        description: "Gagal mengemaskini shift",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const deleteShiftMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest("DELETE", `/api/shifts/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      refetchShifts();
+      toast({
+        title: "Berjaya",
+        description: "Shift berjaya dipadamkan",
+        variant: "default",
+      });
+    },
+    onError: (error: Error) => {
+      console.error("Delete shift error:", error);
+      toast({
+        title: "Ralat",
+        description: "Gagal memadamkan shift",
+        variant: "destructive",
+      });
     }
   });
 
@@ -4610,10 +4727,10 @@ export default function SystemSettingPage() {
                         <h4 className="font-medium text-lg text-gray-900">{shift.name}</h4>
                         <div className="flex items-center gap-4 mt-1">
                           <div className="text-sm text-gray-600">
-                            <span className="font-medium">Start:</span> {shift.clockIn}
+                            <span className="font-medium">Start:</span> {shift.clockInTime}
                           </div>
                           <div className="text-sm text-gray-600">
-                            <span className="font-medium">End:</span> {shift.clockOut}
+                            <span className="font-medium">End:</span> {shift.clockOutTime}
                           </div>
                           {shift.breakTimeOut && shift.breakTimeOut !== "none" && (
                             <div className="text-sm text-gray-600">
@@ -4629,13 +4746,10 @@ export default function SystemSettingPage() {
                     size="sm"
                     className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
                     onClick={() => {
-                      setShifts(prev => prev.filter((s: any) => s.id !== shift.id));
-                      toast({
-                        title: "Success",
-                        description: "Shift deleted successfully",
-                      });
+                      deleteShiftMutation.mutate(shift.id);
                     }}
                     data-testid={`button-delete-shift-${shift.id}`}
+                    disabled={deleteShiftMutation.isPending}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -5734,58 +5848,13 @@ export default function SystemSettingPage() {
             </Button>
             <Button 
               onClick={() => {
-                const newShift = {
-                  id: Date.now(), // Use timestamp for unique ID
-                  name: shiftForm.name || "New Shift",
-                  clockIn: shiftForm.clockIn,
-                  clockOut: shiftForm.clockOut,
-                  color: shiftForm.color,
-                  breakTimeOut: shiftForm.breakTimeOut,
-                  breakTimeIn: shiftForm.breakTimeIn,
-                  days: Object.entries(shiftForm.workdays)
-                    .filter(([_, type]) => type !== "Off Day")
-                    .map(([day, _]) => day),
-                  description: shiftForm.description || "No description available.",
-                };
-                setShifts(prev => [...prev, newShift]);
-                // Reset form
-                setShiftForm({
-                  name: "",
-                  description: "",
-                  clockIn: "08:30",
-                  clockOut: "17:30",
-                  color: "#3B82F6", // Reset to default blue color
-                  breakTimeOut: "12:00", // Reset to default lunch break start
-                  breakTimeIn: "13:00", // Reset to default lunch break end
-                  enableOverwriteSetting: false,
-                  enableClockInOutSelfie: false,
-                  enableEarlyLateIndicator: false,
-                  displayAttendanceConfirmation: false,
-                  enableAutoClockOut: false,
-                  workdays: {
-                    Sunday: "Off Day",
-                    Monday: "Full Day", 
-                    Tuesday: "Full Day",
-                    Wednesday: "Full Day",
-                    Thursday: "Full Day",
-                    Friday: "Full Day",
-                    Saturday: "Half Day",
-                  },
-                  enableGeofencingLocation: false,
-                  enableBreakTime: false,
-                  enableOvertimeCalculation: false,
-                  enableLatenessCalculation: false,
-                });
-                setShowCreateShiftDialog(false);
-                toast({
-                  title: "Success",
-                  description: "Shift created successfully",
-                });
+                createShiftMutation.mutate(shiftForm);
               }}
               className="bg-blue-900 hover:bg-blue-800"
               data-testid="button-save-shift"
+              disabled={createShiftMutation.isPending}
             >
-              Save
+              {createShiftMutation.isPending ? "Menyimpan..." : "Save"}
             </Button>
           </DialogFooter>
         </DialogContent>
