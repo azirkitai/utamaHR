@@ -76,6 +76,12 @@ export default function EmployeeDetailsPage() {
     newPassword: "",
     confirmPassword: ""
   });
+
+  // Attendance location settings state
+  const [locationSettings, setLocationSettings] = useState({
+    allowClockInAnyLocation: true,
+    enforceBreakClockOut: true
+  });
   const [employeeForm, setEmployeeForm] = useState<Partial<Employee>>({});
   const [employmentForm, setEmploymentForm] = useState<Partial<Employment>>({});
   const [contactForm, setContactForm] = useState({
@@ -417,6 +423,42 @@ export default function EmployeeDetailsPage() {
       });
     },
   });
+
+  // Update location settings mutation
+  const updateLocationSettingsMutation = useMutation({
+    mutationFn: async (data: { setting: string; value: boolean }) => {
+      const response = await apiRequest("PUT", `/api/employees/${id}/attendance-settings`, data);
+      return response.json();
+    },
+    onSuccess: (_, variables) => {
+      toast({
+        title: "Berjaya",
+        description: `Tetapan kehadiran telah dikemaskini`,
+      });
+      console.log(`Location setting updated: ${variables.setting} = ${variables.value}`);
+    },
+    onError: () => {
+      toast({
+        title: "Ralat",
+        description: "Gagal mengkemaskini tetapan kehadiran",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handler for location settings switches
+  const handleLocationSettingChange = (setting: 'allowClockInAnyLocation' | 'enforceBreakClockOut', value: boolean) => {
+    setLocationSettings(prev => ({
+      ...prev,
+      [setting]: value
+    }));
+    
+    // Save to backend immediately
+    updateLocationSettingsMutation.mutate({
+      setting,
+      value
+    });
+  };
 
   const handleSaveContact = () => {
     const updatedData = { ...contactForm };
@@ -3041,10 +3083,18 @@ export default function EmployeeDetailsPage() {
                         {/* Policy 1: Clock in from any location */}
                         <div className="flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-lg">
                           <div className="flex-1">
-                            <p className="text-sm font-medium text-gray-700">Users may clock in from any location. GPS geofencing is not enforced.</p>
+                            <p className="text-sm font-medium text-gray-700">
+                              Users may clock in from any location. GPS geofencing is not enforced.
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {locationSettings.allowClockInAnyLocation 
+                                ? "ON: Users can clock in from anywhere" 
+                                : "OFF: GPS location validation required"}
+                            </p>
                           </div>
                           <Switch 
-                            checked={true} 
+                            checked={locationSettings.allowClockInAnyLocation}
+                            onCheckedChange={(checked) => handleLocationSettingChange('allowClockInAnyLocation', checked)}
                             data-testid="switch-clock-in-any-location"
                           />
                         </div>
@@ -3052,10 +3102,18 @@ export default function EmployeeDetailsPage() {
                         {/* Policy 2: Clock out during breaks */}
                         <div className="flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-lg">
                           <div className="flex-1">
-                            <p className="text-sm font-medium text-gray-700">Users must clock out at the start of break/lunch and clock back in upon return.</p>
+                            <p className="text-sm font-medium text-gray-700">
+                              Users must clock out at the start of break/lunch and clock back in upon return.
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {locationSettings.enforceBreakClockOut 
+                                ? "ON: Break clock-out is mandatory" 
+                                : "OFF: Break clock-out is optional"}
+                            </p>
                           </div>
                           <Switch 
-                            checked={true} 
+                            checked={locationSettings.enforceBreakClockOut}
+                            onCheckedChange={(checked) => handleLocationSettingChange('enforceBreakClockOut', checked)}
                             data-testid="switch-break-clock-out"
                           />
                         </div>
