@@ -1277,6 +1277,11 @@ export class DatabaseStorage implements IStorage {
         clockOutTime: attendanceRecords.clockOutTime,
         clockInImage: attendanceRecords.clockInImage,
         clockOutImage: attendanceRecords.clockOutImage,
+        // Break time fields
+        breakOutTime: attendanceRecords.breakOutTime,
+        breakInTime: attendanceRecords.breakInTime,
+        breakOutImage: attendanceRecords.breakOutImage,
+        breakInImage: attendanceRecords.breakInImage,
         totalHours: attendanceRecords.totalHours,
         status: attendanceRecords.status,
         notes: attendanceRecords.notes,

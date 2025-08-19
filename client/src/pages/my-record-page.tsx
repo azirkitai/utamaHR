@@ -1025,6 +1025,11 @@ export default function MyRecordPage() {
               <TableHead>Date</TableHead>
               <TableHead>Clock In</TableHead>
               {showPictures && <TableHead>Clock In Image</TableHead>}
+              {/* Show break columns only if break enforcement is enabled */}
+              <TableHead>Break Time</TableHead>
+              {showPictures && <TableHead>Break Time Image</TableHead>}
+              <TableHead>Break Off</TableHead>
+              {showPictures && <TableHead>Break Off Image</TableHead>}
               <TableHead>Clock Out</TableHead>
               {showPictures && <TableHead>Clock Out Image</TableHead>}
               <TableHead>Total Hour(s)</TableHead>
@@ -1034,13 +1039,13 @@ export default function MyRecordPage() {
           <TableBody>
             {isLoadingAttendance ? (
               <TableRow>
-                <TableCell colSpan={hasAdminAccess ? (showPictures ? 8 : 6) : (showPictures ? 7 : 5)} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={hasAdminAccess ? (showPictures ? 12 : 8) : (showPictures ? 11 : 7)} className="text-center py-8 text-gray-500">
                   Loading attendance records...
                 </TableCell>
               </TableRow>
             ) : attendanceRecords.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={hasAdminAccess ? (showPictures ? 8 : 6) : (showPictures ? 7 : 5)} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={hasAdminAccess ? (showPictures ? 12 : 8) : (showPictures ? 11 : 7)} className="text-center py-8 text-gray-500">
                   No data available in table
                 </TableCell>
               </TableRow>
@@ -1050,6 +1055,8 @@ export default function MyRecordPage() {
                   <TableCell>{index + 1}</TableCell>
                   {hasAdminAccess && <TableCell>{(record as any).employeeName || record.employeeId}</TableCell>}
                   <TableCell>{format(new Date(record.date), 'dd/MM/yyyy')}</TableCell>
+                  
+                  {/* Clock In */}
                   <TableCell>{record.clockInTime ? format(new Date(record.clockInTime), 'HH:mm') : '-'}</TableCell>
                   {showPictures && (
                     <TableCell>
@@ -1065,6 +1072,42 @@ export default function MyRecordPage() {
                       )}
                     </TableCell>
                   )}
+                  
+                  {/* Break Time (keluar rehat/lunch) */}
+                  <TableCell>{(record as any).breakOutTime ? format(new Date((record as any).breakOutTime), 'HH:mm') : '-'}</TableCell>
+                  {showPictures && (
+                    <TableCell>
+                      {(record as any).breakOutImage ? (
+                        <img 
+                          src={(record as any).breakOutImage} 
+                          alt="Break Time" 
+                          className="w-16 h-16 object-cover rounded cursor-pointer hover:scale-110 transition-transform"
+                          onClick={() => window.open((record as any).breakOutImage || '', '_blank')}
+                        />
+                      ) : (
+                        <span className="text-gray-400 text-xs">No image</span>
+                      )}
+                    </TableCell>
+                  )}
+                  
+                  {/* Break Off (balik dari rehat/lunch) */}
+                  <TableCell>{(record as any).breakInTime ? format(new Date((record as any).breakInTime), 'HH:mm') : '-'}</TableCell>
+                  {showPictures && (
+                    <TableCell>
+                      {(record as any).breakInImage ? (
+                        <img 
+                          src={(record as any).breakInImage} 
+                          alt="Break Off" 
+                          className="w-16 h-16 object-cover rounded cursor-pointer hover:scale-110 transition-transform"
+                          onClick={() => window.open((record as any).breakInImage || '', '_blank')}
+                        />
+                      ) : (
+                        <span className="text-gray-400 text-xs">No image</span>
+                      )}
+                    </TableCell>
+                  )}
+                  
+                  {/* Clock Out */}
                   <TableCell>{record.clockOutTime ? format(new Date(record.clockOutTime), 'HH:mm') : '-'}</TableCell>
                   {showPictures && (
                     <TableCell>
@@ -1080,6 +1123,7 @@ export default function MyRecordPage() {
                       )}
                     </TableCell>
                   )}
+                  
                   <TableCell>{record.totalHours ? parseFloat(record.totalHours).toFixed(2) : '0.00'}h</TableCell>
                   <TableCell>
                     <div className="flex gap-1">
