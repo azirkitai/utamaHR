@@ -688,15 +688,16 @@ export default function SystemSettingPage() {
 
   // Handle Edit Shift
   const handleEditShift = (shift: any) => {
+    console.log("Editing shift data:", shift);
     setEditingShift(shift);
     setShiftForm({
-      name: shift.name,
-      description: shift.description,
-      clockIn: shift.clockIn,
-      clockOut: shift.clockOut,
-      color: shift.color,
-      breakTimeOut: shift.breakTimeOut,
-      breakTimeIn: shift.breakTimeIn,
+      name: shift.name || "",
+      description: shift.description || "",
+      clockIn: shift.clockIn || "08:30",
+      clockOut: shift.clockOut || "17:30",
+      color: shift.color || "#3B82F6",
+      breakTimeOut: shift.breakTimeOut || "12:00",
+      breakTimeIn: shift.breakTimeIn || "13:00",
       enableOverwriteSetting: false,
       enableClockInOutSelfie: false,
       enableEarlyLateIndicator: false,
@@ -4768,10 +4769,10 @@ export default function SystemSettingPage() {
                         <h4 className="font-medium text-lg text-gray-900">{shift.name}</h4>
                         <div className="flex items-center gap-4 mt-1">
                           <div className="text-sm text-gray-600">
-                            <span className="font-medium">Start:</span> {shift.clockInTime}
+                            <span className="font-medium">Start:</span> {shift.clockIn}
                           </div>
                           <div className="text-sm text-gray-600">
-                            <span className="font-medium">End:</span> {shift.clockOutTime}
+                            <span className="font-medium">End:</span> {shift.clockOut}
                           </div>
                           {shift.breakTimeOut && shift.breakTimeOut !== "none" && (
                             <div className="text-sm text-gray-600">
