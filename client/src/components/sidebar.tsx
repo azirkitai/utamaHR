@@ -164,18 +164,6 @@ const navigationItems: { category: string; items: SidebarItem[] }[] = [
             icon: <CalendarClock className="w-3 h-3" />,
             href: "/attendance/shift-calendar",
           },
-          {
-            id: "attendance-overtime",
-            label: "Overtime",
-            icon: <ClockIcon className="w-3 h-3" />,
-            href: "/attendance/overtime",
-          },
-          {
-            id: "attendance-lateness",
-            label: "Lateness",
-            icon: <AlertTriangle className="w-3 h-3" />,
-            href: "/attendance/lateness",
-          },
         ],
       },
       {
