@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { ObjectUploader } from "@/components/ObjectUploader";
 
@@ -3036,54 +3037,28 @@ export default function EmployeeDetailsPage() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-6">
+                        {/* Location Policy Text */}
                         <div className="space-y-4">
-                          <div>
-                            <Label className="text-sm font-medium text-gray-700 block mb-2">Last Clock-In Location</Label>
-                            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                              <div className="flex items-center gap-2 mb-2">
-                                <MapPin className="w-4 h-4 text-green-600" />
-                                <span className="font-medium text-green-800">Office Location</span>
-                              </div>
-                              <p className="text-sm text-gray-600">3.1516° N, 101.6942° E</p>
-                              <p className="text-sm text-gray-500">Kuala Lumpur, Malaysia</p>
-                            </div>
-                          </div>
-                          
-                          <div>
-                            <Label className="text-sm font-medium text-gray-700 block mb-2">Clock-In Time</Label>
-                            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                              <div className="flex items-center gap-2">
-                                <Clock className="w-4 h-4 text-blue-600" />
-                                <span className="font-medium text-blue-800">8:30 AM</span>
-                              </div>
-                              <p className="text-sm text-gray-500">Today, 19 August 2025</p>
+                          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <h4 className="font-medium text-blue-800 mb-3">Location Policy</h4>
+                            <div className="space-y-2 text-sm text-blue-700">
+                              <p>1) Users may clock in from any location. GPS geofencing is not enforced.</p>
+                              <p>2) Users must clock out at the start of break/lunch and clock back in upon return.</p>
                             </div>
                           </div>
                         </div>
 
-                        <div className="space-y-4">
+                        {/* Location Tracking Switch */}
+                        <div className="flex items-center justify-between p-4 bg-gray-50 border rounded-lg">
                           <div>
-                            <Label className="text-sm font-medium text-gray-700 block mb-2">Attendance Status</Label>
-                            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                              <div className="flex items-center gap-2">
-                                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                                <span className="font-medium text-green-800">Present - In Office</span>
-                              </div>
-                              <p className="text-sm text-gray-500">Working hours: 8:30 AM - 5:30 PM</p>
-                            </div>
+                            <Label className="text-sm font-medium text-gray-700">Enable Location Tracking</Label>
+                            <p className="text-xs text-gray-500 mt-1">Track GPS location during clock-in/out</p>
                           </div>
-
-                          <div>
-                            <Label className="text-sm font-medium text-gray-700 block mb-2">Location Accuracy</Label>
-                            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                              <div className="flex items-center gap-2">
-                                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                                <span className="font-medium text-blue-800">High Accuracy</span>
-                              </div>
-                              <p className="text-sm text-gray-500">±5 meters from office location</p>
-                            </div>
-                          </div>
+                          <Switch 
+                            checked={true} 
+                            data-testid="switch-location-tracking"
+                          />
                         </div>
                       </div>
                     </CardContent>
