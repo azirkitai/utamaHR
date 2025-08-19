@@ -4575,7 +4575,46 @@ export default function SystemSettingPage() {
           </Button>
         </div>
         <div className="p-4 space-y-4">
-          <p className="text-sm text-gray-500 italic">No shifts available. Click "Create Shift" to add a new shift.</p>
+          {shifts.length === 0 ? (
+            <p className="text-sm text-gray-500 italic">No shifts available. Click "Create Shift" to add a new shift.</p>
+          ) : (
+            shifts.map((shift: any) => (
+              <div key={shift.id} className="border rounded-lg p-4 bg-gray-50">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-4">
+                      <div>
+                        <h4 className="font-medium text-lg text-gray-900">{shift.name}</h4>
+                        <div className="flex items-center gap-4 mt-1">
+                          <div className="text-sm text-gray-600">
+                            <span className="font-medium">Start:</span> {shift.clockIn}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            <span className="font-medium">End:</span> {shift.clockOut}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                    onClick={() => {
+                      setShifts(prev => prev.filter((s: any) => s.id !== shift.id));
+                      toast({
+                        title: "Success",
+                        description: "Shift deleted successfully",
+                      });
+                    }}
+                    data-testid={`button-delete-shift-${shift.id}`}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>
@@ -5588,17 +5627,46 @@ export default function SystemSettingPage() {
             <Button 
               onClick={() => {
                 const newShift = {
-                  id: shifts.length + 1,
+                  id: Date.now(), // Use timestamp for unique ID
                   name: shiftForm.name || "New Shift",
+                  clockIn: shiftForm.clockIn,
+                  clockOut: shiftForm.clockOut,
                   days: Object.entries(shiftForm.workdays)
                     .filter(([_, type]) => type !== "Off Day")
                     .map(([day, _]) => day),
                   description: shiftForm.description || "No description available.",
-                  clockIn: shiftForm.clockIn,
-                  clockOut: shiftForm.clockOut,
                 };
                 setShifts(prev => [...prev, newShift]);
+                // Reset form
+                setShiftForm({
+                  name: "",
+                  description: "",
+                  clockIn: "08:30",
+                  clockOut: "17:30",
+                  enableOverwriteSetting: false,
+                  enableClockInOutSelfie: false,
+                  enableEarlyLateIndicator: false,
+                  displayAttendanceConfirmation: false,
+                  enableAutoClockOut: false,
+                  workdays: {
+                    Sunday: "Off Day",
+                    Monday: "Full Day", 
+                    Tuesday: "Full Day",
+                    Wednesday: "Full Day",
+                    Thursday: "Full Day",
+                    Friday: "Full Day",
+                    Saturday: "Half Day",
+                  },
+                  enableGeofencingLocation: false,
+                  enableBreakTime: false,
+                  enableOvertimeCalculation: false,
+                  enableLatenessCalculation: false,
+                });
                 setShowCreateShiftDialog(false);
+                toast({
+                  title: "Success",
+                  description: "Shift created successfully",
+                });
               }}
               className="bg-blue-900 hover:bg-blue-800"
               data-testid="button-save-shift"
