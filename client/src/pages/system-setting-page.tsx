@@ -699,6 +699,7 @@ export default function SystemSettingPage() {
     description: "",
     clockIn: "08:30",
     clockOut: "17:30",
+    color: "#3B82F6", // Default blue color
     enableOverwriteSetting: false,
     enableClockInOutSelfie: false,
     enableEarlyLateIndicator: false,
@@ -718,6 +719,20 @@ export default function SystemSettingPage() {
     enableOvertimeCalculation: false,
     enableLatenessCalculation: false,
   });
+
+  // Predefined colors for shift selection
+  const shiftColors = [
+    "#3B82F6", // Blue
+    "#EF4444", // Red
+    "#10B981", // Green
+    "#F59E0B", // Yellow
+    "#8B5CF6", // Purple
+    "#F97316", // Orange
+    "#06B6D4", // Cyan
+    "#84CC16", // Lime
+    "#EC4899", // Pink
+    "#6B7280", // Gray
+  ];
 
   // Assign shift state
   const [assignShiftTab, setAssignShiftTab] = useState("role");
@@ -4583,6 +4598,12 @@ export default function SystemSettingPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-4">
+                      {/* Shift Color Indicator */}
+                      <div 
+                        className="w-6 h-6 rounded-full border-2 border-gray-300 shadow-sm flex-shrink-0"
+                        style={{ backgroundColor: shift.color || "#3B82F6" }}
+                        title={`Shift color: ${shift.color || "#3B82F6"}`}
+                      />
                       <div>
                         <h4 className="font-medium text-lg text-gray-900">{shift.name}</h4>
                         <div className="flex items-center gap-4 mt-1">
@@ -5616,6 +5637,33 @@ export default function SystemSettingPage() {
                   />
                 </div>
               </div>
+
+              {/* Shift Color Picker */}
+              <div className="space-y-2">
+                <Label>Shift Color</Label>
+                <p className="text-sm text-gray-500">Choose a color for this shift. This color will be used in roster scheduling.</p>
+                <div className="flex items-center gap-3">
+                  <div 
+                    className="w-8 h-8 rounded-full border-2 border-gray-300 cursor-pointer shadow-sm"
+                    style={{ backgroundColor: shiftForm.color }}
+                    data-testid="current-shift-color"
+                  />
+                  <div className="flex flex-wrap gap-2">
+                    {shiftColors.map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        className={`w-6 h-6 rounded-full border-2 cursor-pointer hover:scale-110 transition-transform ${
+                          shiftForm.color === color ? "border-gray-800 shadow-md" : "border-gray-300"
+                        }`}
+                        style={{ backgroundColor: color }}
+                        onClick={() => setShiftForm(prev => ({...prev, color}))}
+                        data-testid={`color-option-${color}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
 
             
@@ -5631,6 +5679,7 @@ export default function SystemSettingPage() {
                   name: shiftForm.name || "New Shift",
                   clockIn: shiftForm.clockIn,
                   clockOut: shiftForm.clockOut,
+                  color: shiftForm.color,
                   days: Object.entries(shiftForm.workdays)
                     .filter(([_, type]) => type !== "Off Day")
                     .map(([day, _]) => day),
@@ -5643,6 +5692,7 @@ export default function SystemSettingPage() {
                   description: "",
                   clockIn: "08:30",
                   clockOut: "17:30",
+                  color: "#3B82F6", // Reset to default blue color
                   enableOverwriteSetting: false,
                   enableClockInOutSelfie: false,
                   enableEarlyLateIndicator: false,
