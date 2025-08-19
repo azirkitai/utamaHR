@@ -20,13 +20,13 @@ declare global {
 const scryptAsync = promisify(scrypt);
 
 // Helper functions untuk password hashing
-async function hashPassword(password: string): Promise<string> {
+export async function hashPassword(password: string): Promise<string> {
   const salt = randomBytes(16).toString("hex");
   const buf = (await scryptAsync(password, salt, 64)) as Buffer;
   return `${buf.toString("hex")}.${salt}`;
 }
 
-async function comparePasswords(supplied: string, stored: string): Promise<boolean> {
+export async function comparePasswords(supplied: string, stored: string): Promise<boolean> {
   // Handle old plain text passwords (fallback for existing users)
   if (!stored.includes(".")) {
     return supplied === stored;

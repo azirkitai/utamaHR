@@ -2254,10 +2254,10 @@ export class DatabaseStorage implements IStorage {
   // Helper method to check if date is a public holiday
   async isPublicHoliday(date: Date): Promise<boolean> {
     try {
-      const holidays = await db.select().from(holidays);
+      const holidayRecords = await db.select().from(holidays);
       const dateString = date.toISOString().split('T')[0];
       
-      return holidays.some(holiday => {
+      return holidayRecords.some((holiday: any) => {
         const holidayDateString = new Date(holiday.date).toISOString().split('T')[0];
         return holidayDateString === dateString;
       });
@@ -4194,7 +4194,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteHoliday(id: string): Promise<boolean> {
     const result = await db.delete(holidays).where(eq(holidays.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // =================== EVENT METHODS ===================
@@ -4229,11 +4229,6 @@ export class DatabaseStorage implements IStorage {
 
   async deleteEvent(id: string): Promise<boolean> {
     const result = await db.delete(events).where(eq(events.id, id));
-    return result.rowCount > 0;
-  }
-
-  async deleteHoliday(id: string): Promise<boolean> {
-    const result = await db.delete(holidays).where(eq(holidays.id, id));
     return (result.rowCount ?? 0) > 0;
   }
 }
