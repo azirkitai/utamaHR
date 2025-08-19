@@ -515,16 +515,7 @@ export default function SystemSettingPage() {
     reminderMinutes: "15",
   });
 
-  const [shifts, setShifts] = useState([
-    {
-      id: 1,
-      name: "Default Shift",
-      days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-      description: "No description available.",
-      clockIn: "08:30 AM",
-      clockOut: "05:30 PM",
-    }
-  ]);
+  const [shifts, setShifts] = useState([]);
 
 
 
@@ -4584,49 +4575,7 @@ export default function SystemSettingPage() {
           </Button>
         </div>
         <div className="p-4 space-y-4">
-          {shifts.map((shift) => (
-            <div key={shift.id} className="border rounded-lg p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <h4 className="font-medium text-lg">{shift.name}</h4>
-                  <Button variant="link" size="sm" className="text-cyan-600" data-testid={`button-see-more-${shift.id}`}>
-                    See More
-                  </Button>
-                  <Switch defaultChecked className="data-[state=checked]:bg-blue-900" data-testid={`switch-shift-${shift.id}`} />
-                </div>
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setShowAssignShiftDialog(true)}
-                    data-testid={`button-assign-shift-${shift.id}`}
-                  >
-                    <Users className="w-4 h-4 mr-1" />
-                    Assign Shift
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setShowUpdateShiftDialog(true)}
-                    data-testid={`button-update-shift-${shift.id}`}
-                  >
-                    <Settings className="w-4 h-4 mr-1" />
-                    Update Shift
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="flex flex-wrap gap-2 mb-2">
-                {shift.days.map((day, index) => (
-                  <span key={index} className="px-3 py-1 bg-cyan-100 text-cyan-800 rounded-full text-sm">
-                    {day}
-                  </span>
-                ))}
-              </div>
-              
-              <p className="text-sm text-gray-500">{shift.description}</p>
-            </div>
-          ))}
+          <p className="text-sm text-gray-500 italic">No shifts available. Click "Create Shift" to add a new shift.</p>
         </div>
       </div>
     </div>
