@@ -3037,27 +3037,26 @@ export default function EmployeeDetailsPage() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-6">
-                      <div className="space-y-6">
-                        {/* Location Policy Text */}
-                        <div className="space-y-4">
-                          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                            <h4 className="font-medium text-blue-800 mb-3">Location Policy</h4>
-                            <div className="space-y-2 text-sm text-blue-700">
-                              <p>1) Users may clock in from any location. GPS geofencing is not enforced.</p>
-                              <p>2) Users must clock out at the start of break/lunch and clock back in upon return.</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Location Tracking Switch */}
-                        <div className="flex items-center justify-between p-4 bg-gray-50 border rounded-lg">
-                          <div>
-                            <Label className="text-sm font-medium text-gray-700">Enable Location Tracking</Label>
-                            <p className="text-xs text-gray-500 mt-1">Track GPS location during clock-in/out</p>
+                      <div className="space-y-4">
+                        {/* Policy 1: Clock in from any location */}
+                        <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-blue-800">Users may clock in from any location. GPS geofencing is not enforced.</p>
                           </div>
                           <Switch 
                             checked={true} 
-                            data-testid="switch-location-tracking"
+                            data-testid="switch-clock-in-any-location"
+                          />
+                        </div>
+
+                        {/* Policy 2: Clock out during breaks */}
+                        <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-green-800">Users must clock out at the start of break/lunch and clock back in upon return.</p>
+                          </div>
+                          <Switch 
+                            checked={true} 
+                            data-testid="switch-break-clock-out"
                           />
                         </div>
                       </div>
