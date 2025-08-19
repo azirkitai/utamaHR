@@ -5630,58 +5630,7 @@ export default function SystemSettingPage() {
               </div>
             </div>
 
-            {/* Shift Settings */}
-            <div className="space-y-4">
-              <h4 className="font-medium">Shift Setting</h4>
-              <p className="text-sm text-gray-500">All employees will comply to this shift setting.</p>
-              
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label>Enable employee overwrite setting</Label>
-                  <Switch
-                    checked={shiftForm.enableOverwriteSetting}
-                    onCheckedChange={(checked) => setShiftForm(prev => ({...prev, enableOverwriteSetting: checked}))}
-                    data-testid="switch-overwrite-setting"
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <Label>Enable employee clock in/out selfie</Label>
-                  <Switch
-                    checked={shiftForm.enableClockInOutSelfie}
-                    onCheckedChange={(checked) => setShiftForm(prev => ({...prev, enableClockInOutSelfie: checked}))}
-                    data-testid="switch-selfie"
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <Label>Enable early & late indicator</Label>
-                  <Switch
-                    checked={shiftForm.enableEarlyLateIndicator}
-                    onCheckedChange={(checked) => setShiftForm(prev => ({...prev, enableEarlyLateIndicator: checked}))}
-                    data-testid="switch-early-late"
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <Label>Display attendance confirmation before submit</Label>
-                  <Switch
-                    checked={shiftForm.displayAttendanceConfirmation}
-                    onCheckedChange={(checked) => setShiftForm(prev => ({...prev, displayAttendanceConfirmation: checked}))}
-                    data-testid="switch-confirmation"
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <Label>Enable Auto Clock Out</Label>
-                  <Switch
-                    checked={shiftForm.enableAutoClockOut}
-                    onCheckedChange={(checked) => setShiftForm(prev => ({...prev, enableAutoClockOut: checked}))}
-                    data-testid="switch-auto-clock-out"
-                  />
-                </div>
-              </div>
-            </div>
+            
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowCreateShiftDialog(false)} data-testid="button-cancel-shift">
