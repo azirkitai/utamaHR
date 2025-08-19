@@ -85,21 +85,26 @@ export default function SalaryPayrollPage() {
     enabled: !!selectedEmployeeForSummary?.id,
   });
 
-  // Calculate overtime rate based on basic salary and type
+  // Calculate overtime rate based on basic salary and Malaysian Employment Act 1955
   const calculateOvertimeRate = (basicSalary: number, dayType: 'normal' | 'rest' | 'holiday' = 'normal') => {
-    const hourlyRate = basicSalary / 26 / 8; // Basic hourly rate
-    
     if (overtimeRateType === 'custom') {
       return customOvertimeRate;
     }
     
-    // Fixed rate calculation based on Employment Act 1955
-    switch (dayType) {
-      case 'normal': return hourlyRate * 1.5;
-      case 'rest': return hourlyRate * 2.0;
-      case 'holiday': return hourlyRate * 3.0;
-      default: return hourlyRate * 1.5;
+    // Check salary eligibility - only employees earning RM4,000 and below are eligible
+    if (basicSalary > 4000) {
+      return 0; // Not eligible for overtime
     }
+    
+    // Malaysian Employment Act 1955 formula:
+    // ORP (Ordinary Rate of Pay) = Monthly Salary ÷ 26
+    // HRP (Hourly Rate of Pay) = ORP ÷ 8 (daily working hours)
+    const dailyRate = basicSalary / 26; // ORP
+    const hourlyRate = dailyRate / 8; // HRP
+    
+    // Return base hourly rate (standard 1.5x for working days)
+    // Note: This shows the base rate; actual calculation will consider day type in backend
+    return hourlyRate * 1.5;
   };
 
   // Calculate derived values from real salary data

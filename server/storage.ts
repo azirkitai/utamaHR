@@ -2154,9 +2154,8 @@ export class DatabaseStorage implements IStorage {
       const salaryInfo = await this.getEmployeeSalaryByEmployeeId(employeeId);
       
       if (!salaryInfo) {
-        console.log(`No salary info found for employee ${employeeId}, using default rate`);
-        // Default hourly rate if no salary info (RM 15/hour for overtime)
-        return totalHours * 15.00;
+        console.log(`No salary info found for employee ${employeeId}, returning 0 (not eligible)`);
+        return 0;
       }
       
       // Use basic_salary from Master Salary (employee_salaries table) as primary source
@@ -2170,8 +2169,14 @@ export class DatabaseStorage implements IStorage {
       }
       
       if (monthlySalary <= 0) {
-        console.log(`Invalid monthly salary for employee ${employeeId}, using default rate`);
-        return totalHours * 15.00;
+        console.log(`Invalid monthly salary for employee ${employeeId}, returning 0 (not eligible)`);
+        return 0;
+      }
+      
+      // CHECK ELIGIBILITY: Only employees earning RM4,000 and below are eligible for overtime
+      if (monthlySalary > 4000) {
+        console.log(`Employee ${employeeId} salary RM${monthlySalary} exceeds RM4,000 - NOT ELIGIBLE for overtime payment`);
+        return 0;
       }
       
       // Calculate base rates according to Malaysian Employment Act 1955
@@ -2198,62 +2203,46 @@ export class DatabaseStorage implements IStorage {
         calculationType = workType;
       }
       
-      // Calculate overtime amount based on day type
+      // Calculate overtime amount based on day type using EXACT Malaysian Employment Act formulas
       switch (calculationType) {
         case 'working_day':
-          // Working day: 1.5x hourly rate for all overtime hours
-          overtimeAmount = totalHours * hourlyRate * 1.5;
+          // Working day: 1.5x hourly rate for overtime hours
+          // Formula: HRP × OT Hours × 1.5
+          overtimeAmount = hourlyRate * totalHours * 1.5;
           break;
           
         case 'rest_day':
-          // Rest day calculation
-          if (totalHours <= 8) {
-            // Up to 8 hours: 1x daily rate
-            overtimeAmount = dailyRate;
-          } else {
-            // More than 8 hours: daily rate + overtime for excess hours at 2x hourly rate
-            const basePayment = dailyRate;
-            const overtimeHours = totalHours - 8;
-            const overtimePayment = overtimeHours * hourlyRate * 2.0;
-            overtimeAmount = basePayment + overtimePayment;
-          }
+          // Rest day: 2.0x hourly rate for overtime hours
+          // Formula: HRP × OT Hours × 2.0
+          overtimeAmount = hourlyRate * totalHours * 2.0;
           break;
           
         case 'public_holiday':
-          // Public holiday calculation
-          if (totalHours <= 8) {
-            // Up to 8 hours: 2x daily rate
-            overtimeAmount = dailyRate * 2;
-          } else {
-            // More than 8 hours: 2x daily rate + overtime for excess hours at 3x hourly rate
-            const basePayment = dailyRate * 2;
-            const overtimeHours = totalHours - 8;
-            const overtimePayment = overtimeHours * hourlyRate * 3.0;
-            overtimeAmount = basePayment + overtimePayment;
-          }
+          // Public holiday: 3.0x hourly rate for overtime hours
+          // Formula: HRP × OT Hours × 3.0
+          overtimeAmount = hourlyRate * totalHours * 3.0;
           break;
       }
       
       // Round to 2 decimal places
       overtimeAmount = parseFloat(overtimeAmount.toFixed(2));
       
-      console.log(`=== ADVANCED OVERTIME CALCULATION (MALAYSIAN EMPLOYMENT ACT 1955) ===`);
+      console.log(`=== OVERTIME CALCULATION (MALAYSIAN EMPLOYMENT ACT 1955) ===`);
       console.log(`Employee ID: ${employeeId}`);
-      console.log(`Master Salary (basic_salary): RM ${salaryInfo.basicSalary || 'NULL'}`);
-      console.log(`Monthly salary used: RM ${monthlySalary}`);
-      console.log(`Daily rate (ORP): RM ${dailyRate}`);
-      console.log(`Hourly rate (HRP): RM ${hourlyRate}`);
-      console.log(`Overtime date: ${overtimeDate ? overtimeDate.toDateString() : 'Not provided'}`);
-      console.log(`Work type: ${calculationType.toUpperCase()}`);
-      console.log(`Total hours worked: ${totalHours}`);
-      console.log(`Calculated overtime amount: RM ${overtimeAmount}`);
+      console.log(`Monthly Salary: RM ${monthlySalary} ${monthlySalary <= 4000 ? '✓ ELIGIBLE' : '✗ NOT ELIGIBLE'}`);
+      console.log(`Daily Rate (ORP): RM ${dailyRate} (${monthlySalary}/26)`);
+      console.log(`Hourly Rate (HRP): RM ${hourlyRate} (${dailyRate}/8)`);
+      console.log(`Overtime Date: ${overtimeDate ? overtimeDate.toDateString() : 'Not provided'}`);
+      console.log(`Work Type: ${calculationType.toUpperCase()}`);
+      console.log(`Overtime Hours: ${totalHours}`);
+      console.log(`Rate Multiplier: ${calculationType === 'working_day' ? '1.5x' : calculationType === 'rest_day' ? '2.0x' : '3.0x'}`);
+      console.log(`Formula: RM ${hourlyRate} × ${totalHours} × ${calculationType === 'working_day' ? '1.5' : calculationType === 'rest_day' ? '2.0' : '3.0'} = RM ${overtimeAmount}`);
       console.log(`=== END CALCULATION ===`);
       
       return overtimeAmount;
     } catch (error) {
       console.error('Error calculating overtime amount:', error);
-      // Return default calculation if error occurs
-      return totalHours * 15.00;
+      return 0;
     }
   }
   
