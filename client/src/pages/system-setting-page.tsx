@@ -627,11 +627,13 @@ export default function SystemSettingPage() {
     mutationFn: async (shiftData: any) => {
       const response = await apiRequest("POST", "/api/shifts", {
         name: shiftData.name,
-        clockInTime: shiftData.clockIn,
-        clockOutTime: shiftData.clockOut,
+        description: shiftData.description,
+        clockIn: shiftData.clockIn,
+        clockOut: shiftData.clockOut,
         color: shiftData.color,
         breakTimeOut: shiftData.breakTimeOut,
-        breakTimeIn: shiftData.breakTimeIn
+        breakTimeIn: shiftData.breakTimeIn,
+        workdays: JSON.stringify(shiftData.workdays)
       });
       return response.json();
     },
