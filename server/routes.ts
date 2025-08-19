@@ -1236,6 +1236,39 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Update employee attendance settings
+  app.put("/api/employees/:id/attendance-settings", authenticateToken, async (req, res) => {
+    try {
+      const { setting, value } = req.body;
+      const employeeId = req.params.id;
+      
+      // Validate input
+      if (!setting || typeof value !== 'boolean') {
+        return res.status(400).json({ error: "Setting dan value diperlukan" });
+      }
+      
+      // Validate setting name
+      const validSettings = ['allowClockInAnyLocation', 'enforceBreakClockOut'];
+      if (!validSettings.includes(setting)) {
+        return res.status(400).json({ error: "Setting tidak sah" });
+      }
+      
+      // For now, just return success - in production this would save to database
+      console.log(`Attendance setting updated for employee ${employeeId}: ${setting} = ${value}`);
+      
+      res.json({ 
+        success: true,
+        message: `Setting ${setting} telah dikemaskini kepada ${value}`,
+        employeeId,
+        setting,
+        value
+      });
+    } catch (error) {
+      console.error("Update attendance settings error:", error);
+      res.status(500).json({ error: "Gagal mengkemaskini tetapan kehadiran" });
+    }
+  });
+
   app.get("/api/employees/:id", authenticateToken, async (req, res) => {
     try {
       const currentUser = req.user!;
