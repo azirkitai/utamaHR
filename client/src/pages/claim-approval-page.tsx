@@ -50,6 +50,9 @@ export default function ClaimApprovalPage() {
     if (tabParam === 'financial') {
       setActiveTab('approval');
       setSelectedCategory('financial');
+    } else if (tabParam === 'overtime') {
+      setActiveTab('approval');
+      setSelectedCategory('overtime');
     }
   }, []);
 
