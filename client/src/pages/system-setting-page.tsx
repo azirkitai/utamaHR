@@ -6171,6 +6171,21 @@ export default function SystemSettingPage() {
                 <Switch data-testid="switch-update-lateness" />
               </div>
             </div>
+
+            <div className="space-y-4">
+              <h4 className="font-medium">Shift Compliance</h4>
+              <p className="text-sm text-gray-500">Configure strict attendance compliance rules for this shift.</p>
+              
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <Label className="text-sm font-medium">Employees must clock in at their assigned shift start time. Late entries will be flagged for review</Label>
+                </div>
+                <Switch 
+                  className="data-[state=checked]:bg-blue-900"
+                  data-testid="switch-update-strict-clock-in"
+                />
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowUpdateShiftDialog(false)} data-testid="button-cancel-update">

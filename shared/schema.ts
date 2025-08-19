@@ -417,6 +417,18 @@ export const shifts = pgTable("shifts", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Employee Shift Assignments
+export const employeeShifts = pgTable("employee_shifts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  employeeId: varchar("employee_id").notNull().references(() => employees.id),
+  shiftId: varchar("shift_id").notNull().references(() => shifts.id),
+  isActive: boolean("is_active").default(true), // Whether this assignment is currently active
+  startDate: timestamp("start_date").defaultNow().notNull(), // When this shift assignment starts
+  endDate: timestamp("end_date"), // When this shift assignment ends (null = ongoing)
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Clock-in records
 export const clockInRecords = pgTable("clock_in_records", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -480,6 +492,14 @@ export const attendanceRecords = pgTable("attendance_records", {
   totalBreakHours: decimal("total_break_hours", { precision: 4, scale: 2 }).default(sql`0`), // Track break duration
   notes: text("notes"), // Notes for the day
   status: text("status").default("present"), // present, absent, late, early_leave
+  
+  // Shift compliance tracking
+  shiftId: varchar("shift_id").references(() => shifts.id), // Reference to assigned shift
+  isLateClockIn: boolean("is_late_clock_in").default(false), // Flag for late clock-in
+  isLateBreakOut: boolean("is_late_break_out").default(false), // Flag for late break-out
+  clockInRemarks: text("clock_in_remarks"), // Remarks for clock-in compliance
+  breakOutRemarks: text("break_out_remarks"), // Remarks for break compliance
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

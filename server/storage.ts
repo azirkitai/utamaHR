@@ -64,6 +64,8 @@ import {
   type InsertOfficeLocation,
   type UpdateOfficeLocation,
   // Shift types
+  shifts,
+  employeeShifts,
   type SelectShift,
   type InsertShift,
   type GroupPolicySetting,
@@ -321,6 +323,15 @@ export interface IStorage {
   // =================== ATTENDANCE RECORD METHODS ===================
   getAttendanceRecords(params: { dateFrom?: Date; dateTo?: Date; employeeId?: string }): Promise<AttendanceRecord[]>;
   createOrUpdateAttendanceRecord(data: Partial<InsertAttendanceRecord>): Promise<AttendanceRecord>;
+  
+  // =================== SHIFT METHODS ===================
+  getAllShifts(): Promise<SelectShift[]>;
+  getShift(id: string): Promise<SelectShift | undefined>;
+  createShift(shift: InsertShift): Promise<SelectShift>;
+  updateShift(id: string, shift: Partial<InsertShift>): Promise<SelectShift | undefined>;
+  deleteShift(id: string): Promise<boolean>;
+  getEmployeeActiveShift(employeeId: string): Promise<(SelectShift & { employeeShiftId: string }) | null>;
+  assignEmployeeToShift(employeeId: string, shiftId: string): Promise<any>;
 
   // =================== COMPANY LEAVE TYPES METHODS ===================
   getCompanyLeaveTypes(): Promise<CompanyLeaveType[]>;
@@ -950,6 +961,59 @@ export class DatabaseStorage implements IStorage {
   async deleteShift(id: string): Promise<boolean> {
     const result = await db.delete(shifts).where(eq(shifts.id, id));
     return (result.rowCount ?? 0) > 0;
+  }
+
+  async getEmployeeActiveShift(employeeId: string): Promise<(SelectShift & { employeeShiftId: string }) | null> {
+    try {
+      // Join employeeShifts with shifts to get active shift for employee
+      const result = await db
+        .select({
+          id: shifts.id,
+          shiftName: shifts.shiftName,
+          clockIn: shifts.clockIn,
+          clockOut: shifts.clockOut,
+          breakIn: shifts.breakIn,
+          breakOut: shifts.breakOut,
+          backgroundColor: shifts.backgroundColor,
+          textColor: shifts.textColor,
+          enableStrictClockIn: shifts.enableStrictClockIn,
+          createdAt: shifts.createdAt,
+          updatedAt: shifts.updatedAt,
+          employeeShiftId: employeeShifts.id
+        })
+        .from(employeeShifts)
+        .innerJoin(shifts, eq(employeeShifts.shiftId, shifts.id))
+        .where(eq(employeeShifts.employeeId, employeeId))
+        .limit(1);
+
+      return result[0] || null;
+    } catch (error) {
+      console.error("Error getting employee active shift:", error);
+      return null;
+    }
+  }
+
+  async assignEmployeeToShift(employeeId: string, shiftId: string): Promise<any> {
+    try {
+      // Remove existing shift assignment for employee (if any)
+      await db.delete(employeeShifts).where(eq(employeeShifts.employeeId, employeeId));
+      
+      // Assign new shift
+      const [assignment] = await db
+        .insert(employeeShifts)
+        .values({
+          employeeId,
+          shiftId,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning();
+      
+      return assignment;
+    } catch (error) {
+      console.error("Error assigning employee to shift:", error);
+      throw error;
+    }
   }
 
   // =================== EMPLOYEE DOCUMENTS METHODS ===================

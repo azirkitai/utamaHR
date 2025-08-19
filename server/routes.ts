@@ -2113,8 +2113,42 @@ export function registerRoutes(app: Express): Server {
       });
 
       const user = await storage.getUser(qrToken.userId);
-      // Create attendance record for today with location tracking
-      await storage.createOrUpdateAttendanceRecord({
+      // Check shift compliance for this employee
+      const currentTime = new Date();
+      let shiftCompliance = {
+        shiftId: null,
+        isLateClockIn: false,
+        clockInRemarks: null
+      };
+
+      try {
+        // Get employee's active shift assignment
+        const activeShift = await storage.getEmployeeActiveShift(employee.id);
+        if (activeShift && activeShift.enableStrictClockIn) {
+          // Parse shift start time
+          const shiftStartTime = activeShift.clockIn; // e.g., "08:30"
+          const [shiftHour, shiftMinute] = shiftStartTime.split(':').map(Number);
+          
+          // Create shift start time for today
+          const todayShiftStart = new Date(currentTime);
+          todayShiftStart.setHours(shiftHour, shiftMinute, 0, 0);
+          
+          // Check if clock-in is late (allowing 0 minute grace period)
+          if (currentTime > todayShiftStart) {
+            const lateMinutes = Math.floor((currentTime.getTime() - todayShiftStart.getTime()) / (1000 * 60));
+            shiftCompliance.isLateClockIn = true;
+            shiftCompliance.clockInRemarks = `Lewat ${lateMinutes} minit dari masa shift ${shiftStartTime}. Perlu semakan penyelia.`;
+          }
+          
+          shiftCompliance.shiftId = activeShift.id;
+        }
+      } catch (error) {
+        console.error("Shift compliance check error:", error);
+        // Continue with normal clock-in even if shift check fails
+      }
+
+      // Create attendance record for today with location tracking and shift compliance
+      const attendanceRecord = await storage.createOrUpdateAttendanceRecord({
         employeeId: employee.id,
         userId: qrToken.userId,
         date: today,
@@ -2125,16 +2159,24 @@ export function registerRoutes(app: Express): Server {
         clockInDistance: nearestDistance.toString(),
         clockInOfficeLocationId: nearestLocationId,
         clockInImage: selfieImagePath,
-        status: locationStatus === "valid" ? "present" : "invalid_location"
+        status: locationStatus === "valid" ? "present" : "invalid_location",
+        shiftId: shiftCompliance.shiftId,
+        isLateClockIn: shiftCompliance.isLateClockIn,
+        clockInRemarks: shiftCompliance.clockInRemarks
       });
 
       res.json({
         success: true,
         clockInRecord: {
-          id: clockInRecord.id,
-          clockInTime: clockInRecord.clockInTime,
-          locationStatus: clockInRecord.locationStatus,
+          id: attendanceRecord.id,
+          clockInTime: attendanceRecord.clockInTime,
+          locationStatus: attendanceRecord.clockInLocationStatus,
           distance: Math.round(nearestDistance)
+        },
+        shift: {
+          hasShift: !!shiftCompliance.shiftId,
+          isLate: shiftCompliance.isLateClockIn,
+          remarks: shiftCompliance.clockInRemarks
         },
         user: {
           username: user?.username
@@ -2432,6 +2474,32 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Delete shift error:", error);
       res.status(500).json({ error: "Gagal memadamkan syif" });
+    }
+  });
+
+  // Assign employee to shift endpoint
+  app.post("/api/employees/:employeeId/assign-shift", authenticateToken, async (req, res) => {
+    try {
+      const { employeeId } = req.params;
+      const { shiftId } = req.body;
+      
+      const assignment = await storage.assignEmployeeToShift(employeeId, shiftId);
+      res.json(assignment);
+    } catch (error) {
+      console.error("Assign shift error:", error);
+      res.status(500).json({ error: "Gagal mengassign shift kepada pekerja" });
+    }
+  });
+
+  // Get employee's assigned shift
+  app.get("/api/employees/:employeeId/shift", authenticateToken, async (req, res) => {
+    try {
+      const { employeeId } = req.params;
+      const shift = await storage.getEmployeeActiveShift(employeeId);
+      res.json(shift);
+    } catch (error) {
+      console.error("Get employee shift error:", error);
+      res.status(500).json({ error: "Gagal mendapatkan shift pekerja" });
     }
   });
 
