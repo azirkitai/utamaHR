@@ -282,14 +282,48 @@ async function processBreakIn(
     // Mark QR token as used
     await storage.markQrTokenAsUsed(qrToken.token);
 
-    // Update attendance record with break-in information
+    // Check shift compliance for BREAK-OFF only
+    const employee = await storage.getEmployee(todayAttendance.employeeId);
+    const currentTime = new Date();
+    let breakOffCompliance = {
+      isLateBreakOut: false,
+      breakOutRemarks: null
+    };
+
+    try {
+      // Get employee's active shift assignment for break-off compliance
+      const activeShift = await storage.getEmployeeActiveShift(employee.id);
+      if (activeShift && activeShift.enableStrictClockIn && activeShift.breakOut) {
+        // Parse shift break-out time
+        const shiftBreakOutTime = activeShift.breakOut; // e.g., "13:00"
+        const [breakHour, breakMinute] = shiftBreakOutTime.split(':').map(Number);
+        
+        // Create shift break-out time for today
+        const todayBreakOut = new Date(currentTime);
+        todayBreakOut.setHours(breakHour, breakMinute, 0, 0);
+        
+        // Check if break-off is late (BREAK-OFF compliance only)
+        if (currentTime > todayBreakOut) {
+          const lateMinutes = Math.floor((currentTime.getTime() - todayBreakOut.getTime()) / (1000 * 60));
+          breakOffCompliance.isLateBreakOut = true;
+          breakOffCompliance.breakOutRemarks = `Break off lewat ${lateMinutes} minit dari masa yang ditetapkan ${shiftBreakOutTime}. Perlu semakan penyelia.`;
+        }
+      }
+    } catch (error) {
+      console.error("Break-off compliance check error:", error);
+      // Continue with normal break-off even if shift check fails
+    }
+
+    // Update attendance record with break-in information and compliance
     await storage.createOrUpdateAttendanceRecord({
       employeeId: todayAttendance.employeeId,
       userId: todayAttendance.userId,
       date: todayAttendance.date,
       breakInTime: new Date(),
       breakInImage: selfieImagePath,
-      status: locationStatus === "valid" ? "present" : "invalid_location"
+      status: locationStatus === "valid" ? "present" : "invalid_location",
+      isLateBreakOut: breakOffCompliance.isLateBreakOut,
+      breakOutRemarks: breakOffCompliance.breakOutRemarks
     });
 
     const user = await storage.getUser(qrToken.userId);
@@ -2113,7 +2147,7 @@ export function registerRoutes(app: Express): Server {
       });
 
       const user = await storage.getUser(qrToken.userId);
-      // Check shift compliance for this employee
+      // Check shift compliance for CLOCK-IN only
       const currentTime = new Date();
       let shiftCompliance = {
         shiftId: null,
@@ -2125,7 +2159,7 @@ export function registerRoutes(app: Express): Server {
         // Get employee's active shift assignment
         const activeShift = await storage.getEmployeeActiveShift(employee.id);
         if (activeShift && activeShift.enableStrictClockIn) {
-          // Parse shift start time
+          // Parse shift start time for clock-in compliance check
           const shiftStartTime = activeShift.clockIn; // e.g., "08:30"
           const [shiftHour, shiftMinute] = shiftStartTime.split(':').map(Number);
           
@@ -2133,7 +2167,7 @@ export function registerRoutes(app: Express): Server {
           const todayShiftStart = new Date(currentTime);
           todayShiftStart.setHours(shiftHour, shiftMinute, 0, 0);
           
-          // Check if clock-in is late (allowing 0 minute grace period)
+          // Check if clock-in is late (CLOCK-IN compliance only)
           if (currentTime > todayShiftStart) {
             const lateMinutes = Math.floor((currentTime.getTime() - todayShiftStart.getTime()) / (1000 * 60));
             shiftCompliance.isLateClockIn = true;
