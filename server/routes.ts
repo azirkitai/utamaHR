@@ -4145,28 +4145,19 @@ export function registerRoutes(app: Express): Server {
       const { employeeId } = req.params;
       const currentUser = req.user!;
       
-      console.log(`=== GET USER CLAIM TOTALS DEBUG ===`);
-      console.log('Requested Employee ID:', employeeId);
-      console.log('Current User:', { id: currentUser.id, username: currentUser.username, role: currentUser.role });
-      
       // Role-based access control
       const privilegedRoles = ['Super Admin', 'Admin', 'HR Manager'];
       const hasAdminAccess = privilegedRoles.includes(currentUser.role);
-      console.log('Has admin access:', hasAdminAccess);
       
       // If regular user, only allow access to their own totals
       if (!hasAdminAccess) {
         const userEmployee = await storage.getEmployeeByUserId(currentUser.id);
-        console.log('User employee record:', userEmployee?.id);
         if (!userEmployee || userEmployee.id !== employeeId) {
-          console.log('Access denied: employee ID mismatch');
           return res.status(403).json({ error: 'Tidak dibenarkan untuk mengakses jumlah tuntutan pekerja lain' });
         }
       }
       
-      console.log('Fetching claim totals...');
       const claimTotals = await storage.getUserClaimTotals(employeeId);
-      console.log('Claim totals result:', JSON.stringify(claimTotals, null, 2));
       res.json(claimTotals);
     } catch (error) {
       console.error('Error getting user claim totals:', error);

@@ -70,7 +70,12 @@ export default function ApplyClaimPage() {
     queryKey: [`/api/claim-applications/user-totals/${currentUserEmployee?.id}`],
     enabled: !!currentUserEmployee?.id,
     retry: false,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    staleTime: 0, // Always fetch fresh data
   });
+
+
 
   // Create claim application mutation
   const createClaimMutation = useMutation({
@@ -960,7 +965,12 @@ export default function ApplyClaimPage() {
                       </div>
                       <div className="bg-white/20 p-3 rounded text-center">
                         <div className="text-xs text-cyan-100 mb-1">AUG 2025</div>
-                        <div className="text-xl font-bold">0 Hours</div>
+                        <div className="text-xl font-bold">
+                          {isLoadingTotals ? "Loading..." : 
+                           userClaimTotals?.overtime?.hoursThisMonth ? 
+                           `${userClaimTotals.overtime.hoursThisMonth.toFixed(1)} Hours` : '0 Hours'
+                          }
+                        </div>
                       </div>
                     </div>
                   </div>
