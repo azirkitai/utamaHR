@@ -700,6 +700,9 @@ export default function SystemSettingPage() {
     clockIn: "08:30",
     clockOut: "17:30",
     color: "#3B82F6", // Default blue color
+    breakTimeOut: "12:00", // Default lunch break start
+    breakTimeIn: "13:00", // Default lunch break end
+    enableBreakTimeEnforcement: false, // Toggle for break time enforcement
     enableOverwriteSetting: false,
     enableClockInOutSelfie: false,
     enableEarlyLateIndicator: false,
@@ -4613,6 +4616,14 @@ export default function SystemSettingPage() {
                           <div className="text-sm text-gray-600">
                             <span className="font-medium">End:</span> {shift.clockOut}
                           </div>
+                          {shift.breakTimeOut && shift.breakTimeOut !== "none" && (
+                            <div className="text-sm text-gray-600">
+                              <span className="font-medium">Break:</span> {shift.breakTimeOut} - {shift.breakTimeIn}
+                              {shift.enableBreakTimeEnforcement && (
+                                <span className="ml-1 text-yellow-600 font-medium">(Enforced)</span>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -5666,6 +5677,72 @@ export default function SystemSettingPage() {
               </div>
             </div>
 
+            {/* Break Time Settings */}
+            <div className="space-y-4">
+              <h4 className="font-medium">Break Time Settings</h4>
+              <p className="text-sm text-gray-500">Configure break/lunch time for this shift. Staff can be required to comply with these times.</p>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Break Start Time</Label>
+                  <Select 
+                    value={shiftForm.breakTimeOut} 
+                    onValueChange={(value) => setShiftForm(prev => ({...prev, breakTimeOut: value}))}
+                  >
+                    <SelectTrigger data-testid="select-break-start">
+                      <SelectValue placeholder="Select break start" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      <SelectItem value="11:30">11:30</SelectItem>
+                      <SelectItem value="12:00">12:00</SelectItem>
+                      <SelectItem value="12:30">12:30</SelectItem>
+                      <SelectItem value="13:00">13:00</SelectItem>
+                      <SelectItem value="13:30">13:30</SelectItem>
+                      <SelectItem value="14:00">14:00</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Break End Time</Label>
+                  <Select 
+                    value={shiftForm.breakTimeIn} 
+                    onValueChange={(value) => setShiftForm(prev => ({...prev, breakTimeIn: value}))}
+                    disabled={shiftForm.breakTimeOut === "none"}
+                  >
+                    <SelectTrigger data-testid="select-break-end">
+                      <SelectValue placeholder="Select break end" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      <SelectItem value="12:00">12:00</SelectItem>
+                      <SelectItem value="12:30">12:30</SelectItem>
+                      <SelectItem value="13:00">13:00</SelectItem>
+                      <SelectItem value="13:30">13:30</SelectItem>
+                      <SelectItem value="14:00">14:00</SelectItem>
+                      <SelectItem value="14:30">14:30</SelectItem>
+                      <SelectItem value="15:00">15:00</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div>
+                  <Label className="font-medium">Enforce Break Time</Label>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Users must clock out at the start of break/lunch and clock back in upon return
+                  </p>
+                </div>
+                <Switch
+                  checked={shiftForm.enableBreakTimeEnforcement}
+                  onCheckedChange={(checked) => setShiftForm(prev => ({...prev, enableBreakTimeEnforcement: checked}))}
+                  disabled={shiftForm.breakTimeOut === "none"}
+                  data-testid="switch-break-enforcement"
+                />
+              </div>
+            </div>
+
             
           </div>
           <DialogFooter>
@@ -5680,6 +5757,9 @@ export default function SystemSettingPage() {
                   clockIn: shiftForm.clockIn,
                   clockOut: shiftForm.clockOut,
                   color: shiftForm.color,
+                  breakTimeOut: shiftForm.breakTimeOut,
+                  breakTimeIn: shiftForm.breakTimeIn,
+                  enableBreakTimeEnforcement: shiftForm.enableBreakTimeEnforcement,
                   days: Object.entries(shiftForm.workdays)
                     .filter(([_, type]) => type !== "Off Day")
                     .map(([day, _]) => day),
@@ -5693,6 +5773,9 @@ export default function SystemSettingPage() {
                   clockIn: "08:30",
                   clockOut: "17:30",
                   color: "#3B82F6", // Reset to default blue color
+                  breakTimeOut: "12:00", // Reset to default lunch break start
+                  breakTimeIn: "13:00", // Reset to default lunch break end
+                  enableBreakTimeEnforcement: false, // Reset enforcement to false
                   enableOverwriteSetting: false,
                   enableClockInOutSelfie: false,
                   enableEarlyLateIndicator: false,
