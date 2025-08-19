@@ -3039,9 +3039,9 @@ export default function EmployeeDetailsPage() {
                     <CardContent className="p-6">
                       <div className="space-y-4">
                         {/* Policy 1: Clock in from any location */}
-                        <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-lg">
                           <div className="flex-1">
-                            <p className="text-sm font-medium text-blue-800">Users may clock in from any location. GPS geofencing is not enforced.</p>
+                            <p className="text-sm font-medium text-gray-700">Users may clock in from any location. GPS geofencing is not enforced.</p>
                           </div>
                           <Switch 
                             checked={true} 
@@ -3050,9 +3050,9 @@ export default function EmployeeDetailsPage() {
                         </div>
 
                         {/* Policy 2: Clock out during breaks */}
-                        <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-lg">
                           <div className="flex-1">
-                            <p className="text-sm font-medium text-green-800">Users must clock out at the start of break/lunch and clock back in upon return.</p>
+                            <p className="text-sm font-medium text-gray-700">Users must clock out at the start of break/lunch and clock back in upon return.</p>
                           </div>
                           <Switch 
                             checked={true} 
