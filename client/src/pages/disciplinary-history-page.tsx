@@ -168,12 +168,14 @@ export default function DisciplinaryHistoryPage() {
     enabled: !!user && !!hasHRAccess,
   });
 
-  // Query disciplinary records
+  // Query disciplinary records with timestamp to force fresh data
+  const [refreshKey, setRefreshKey] = useState(0);
   const { data: disciplinaryRecords = [], isLoading, refetch: refetchRecords } = useQuery<DisciplinaryRecord[]>({
-    queryKey: ['/api/disciplinary-records'],
+    queryKey: ['/api/disciplinary-records', refreshKey],
     enabled: !!user && !!hasHRAccess,
     staleTime: 0, // Always consider data stale
     cacheTime: 0, // Don't cache
+    refetchOnWindowFocus: true,
   });
 
   // Get selected employee details
@@ -237,10 +239,9 @@ export default function DisciplinaryHistoryPage() {
         description: "Disciplinary record updated successfully",
       });
       closeEditDialog();
-      // Clear cache and force fresh fetch
-      queryClient.removeQueries({ queryKey: ['/api/disciplinary-records'] });
-      await queryClient.refetchQueries({ queryKey: ['/api/disciplinary-records'] });
-      console.log('Data refresh completed');
+      // Force refresh by updating the key
+      setRefreshKey(prev => prev + 1);
+      console.log('Data refresh completed with new key:', refreshKey + 1);
     },
     onError: (error: any) => {
       toast({
