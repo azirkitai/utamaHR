@@ -555,17 +555,49 @@ export default function ShiftCalendarPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  // Save logic - for now just show success message
-                  toast({
-                    title: "Berjaya",
-                    description: "Perubahan shift telah disimpan",
-                  });
+                onClick={async () => {
+                  try {
+                    // Get all manual state changes that need to be saved
+                    const savePromises = Object.entries(manualShiftStates).map(([key, shiftId]) => {
+                      const [employeeId, ...dateParts] = key.split('-');
+                      const assignedDate = dateParts.join('-'); // Reconstruct full ISO date string
+                      
+                      console.log('Saving shift:', { employeeId, shiftId, assignedDate });
+                      
+                      return apiRequest("POST", `/api/employees/${employeeId}/assign-shift`, { 
+                        shiftId: shiftId === "" ? "" : shiftId,
+                        assignedDate 
+                      });
+                    });
+                    
+                    // Execute all saves
+                    await Promise.all(savePromises);
+                    
+                    // Clear manual states after successful save
+                    setManualShiftStates({});
+                    
+                    // Refresh data
+                    queryClient.invalidateQueries({ queryKey: ['/api/employee-shifts'] });
+                    queryClient.invalidateQueries({ queryKey: ['/api/employees'] });
+                    
+                    toast({
+                      title: "Berjaya",
+                      description: `${savePromises.length} perubahan shift telah disimpan ke database`,
+                    });
+                  } catch (error: any) {
+                    console.error('Bulk save error:', error);
+                    toast({
+                      title: "Ralat",
+                      description: error?.message || "Gagal menyimpan perubahan",
+                      variant: "destructive",
+                    });
+                  }
                 }}
                 className="bg-green-100 text-green-700 border-green-300 hover:bg-green-200"
                 data-testid="button-save-shifts"
+                disabled={Object.keys(manualShiftStates).length === 0}
               >
-                Save
+                Save ({Object.keys(manualShiftStates).length})
               </Button>
             )}
             <Button
