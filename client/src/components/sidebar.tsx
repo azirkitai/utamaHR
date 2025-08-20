@@ -104,6 +104,12 @@ const navigationItems: { category: string; items: SidebarItem[] }[] = [
         href: "/calendar",
       },
       {
+        id: "disciplinary-history",
+        label: "Disciplinary History & Add Action",
+        icon: <FileX className="w-4 h-4" />,
+        href: "/disciplinary-history",
+      },
+      {
         id: "forms",
         label: "Forms",
         icon: <FormInput className="w-4 h-4" />,
@@ -115,12 +121,6 @@ const navigationItems: { category: string; items: SidebarItem[] }[] = [
         icon: <TrendingUp className="w-4 h-4" />,
         href: "/performance",
         badge: "★",
-      },
-      {
-        id: "disciplinary-history",
-        label: "Disciplinary History & Add Action",
-        icon: <FileX className="w-4 h-4" />,
-        href: "/disciplinary-history",
       },
       {
         id: "disciplinary-records",
