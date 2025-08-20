@@ -225,34 +225,44 @@ export default function ShiftCalendarPage() {
     updateShiftMutation.mutate({ employeeId, shiftId: finalShiftId });
   }, [updateShiftMutation]);
 
-  // Create memoized cell component to prevent unwanted re-renders
-  const ShiftCell = React.memo(({ 
-    shift, 
-    employeeId, 
-    cellKey 
-  }: {
-    shift: { type: string; label: string; color: string; shiftId?: string };
-    employeeId: string;
-    cellKey: string;
-  }) => {
-    const [localValue, setLocalValue] = useState(() => {
-      const currentShiftId = shift?.shiftId || '';
-      return currentShiftId === '' ? 'no-shift' : currentShiftId;
+  // Create completely isolated dropdown state per employee per day
+  const [dropdownStates, setDropdownStates] = useState<Record<string, string>>({});
+
+  // Initialize dropdown states when data changes
+  useEffect(() => {
+    const newStates: Record<string, string> = {};
+    departments.forEach((department: any) => {
+      department.employees.forEach((employee: any) => {
+        getDayHeaders().forEach((day: any, dayIndex: number) => {
+          const cellKey = `${employee.id}-${day.fullDate}-${dayIndex}`;
+          const shift = getShiftForDay(employee.id, day.fullDate);
+          const currentShiftId = shift?.shiftId || '';
+          newStates[cellKey] = currentShiftId === '' ? 'no-shift' : currentShiftId;
+        });
+      });
     });
+    setDropdownStates(newStates);
+  }, [departments, employeeShifts]);
 
-    // Update local value when shift data changes from backend
-    React.useEffect(() => {
-      const currentShiftId = shift?.shiftId || '';
-      const newValue = currentShiftId === '' ? 'no-shift' : currentShiftId;
-      setLocalValue(newValue);
-    }, [shift?.shiftId]);
-
-    if (editMode) {
+  const renderShiftCell = useCallback((shift: { type: string; label: string; color: string; shiftId?: string }, employeeId?: string, cellKey?: string) => {
+    if (editMode && employeeId && cellKey) {
+      const dropdownKey = `${employeeId}-${cellKey}`;
+      const currentValue = dropdownStates[dropdownKey] || 'no-shift';
+      
       return (
         <Select
-          value={localValue}
+          value={currentValue}
           onValueChange={(shiftId) => {
-            setLocalValue(shiftId); // Update local state immediately
+            console.log('Dropdown change:', { dropdownKey, shiftId, employeeId });
+            // Update only this specific dropdown
+            setDropdownStates(prev => {
+              const newStates = {
+                ...prev,
+                [dropdownKey]: shiftId
+              };
+              console.log('Updated dropdown states:', newStates);
+              return newStates;
+            });
             handleShiftChange(employeeId, shiftId);
           }}
         >
@@ -298,21 +308,7 @@ export default function ShiftCalendarPage() {
         </Badge>
       </div>
     );
-  });
-
-  const renderShiftCell = useCallback((shift: { type: string; label: string; color: string; shiftId?: string }, employeeId?: string, cellKey?: string) => {
-    if (!employeeId || !cellKey) {
-      return null;
-    }
-    
-    return (
-      <ShiftCell 
-        shift={shift} 
-        employeeId={employeeId} 
-        cellKey={cellKey} 
-      />
-    );
-  }, [editMode, shifts, handleShiftChange]);
+  }, [editMode, shifts, handleShiftChange, dropdownStates]);
 
   return (
     <DashboardLayout>
