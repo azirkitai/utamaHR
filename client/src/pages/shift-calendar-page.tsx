@@ -239,32 +239,10 @@ export default function ShiftCalendarPage() {
       [stateKey]: shiftId === "no-shift" ? "" : shiftId
     }));
     
-    // Convert "no-shift" to empty string for backend
-    const finalShiftId = shiftId === "no-shift" ? "" : shiftId;
-    
-    // Make API call with date parameter
-    updateShiftMutation.mutate(
-      { 
-        employeeId, 
-        shiftId: finalShiftId,
-        assignedDate: date.toISOString()
-      },
-      {
-        onSuccess: () => {
-          console.log('Shift updated successfully for date:', date.toISOString());
-          // No toast message here - only show success after Save button
-        },
-        onError: (error) => {
-          console.error('Shift update failed, reverting manual state:', error);
-          // Revert manual state on error
-          setManualShiftStates(prev => {
-            const { [stateKey]: removed, ...rest } = prev;
-            return rest;
-          });
-        }
-      }
-    );
-  }, [updateShiftMutation]);
+    // Don't make individual API calls - just track changes in manual state
+    // API calls will only happen when Save button is pressed
+    console.log('Shift change tracked in manual state:', { employeeId, shiftId, date: date.toISOString() });
+  }, []);
 
   // Independent Shift Cell Component with manual state bypass
   const IndependentShiftCell = React.memo(({
