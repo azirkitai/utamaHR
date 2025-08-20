@@ -1,11 +1,14 @@
 import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { 
   ChevronLeft,
   ChevronRight,
@@ -19,6 +22,10 @@ export default function ShiftCalendarPage() {
   const [viewMode, setViewMode] = useState<"week" | "month">("week");
   const [expandedDepartments, setExpandedDepartments] = useState<string[]>([]);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   // Fetch employees data
   const { data: employees = [], isLoading } = useQuery({
@@ -32,6 +39,30 @@ export default function ShiftCalendarPage() {
 
   const { data: employeeShifts = [] } = useQuery({
     queryKey: ['/api/employee-shifts'],
+  });
+
+  // Mutation for updating employee shift assignment
+  const updateShiftMutation = useMutation({
+    mutationFn: async ({ employeeId, shiftId }: { employeeId: string; shiftId: string }) => {
+      await apiRequest(`/api/employees/${employeeId}/assign-shift`, {
+        method: 'POST',
+        body: { shiftId }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/employee-shifts'] });
+      toast({
+        title: "Success",
+        description: "Shift assignment updated successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update shift assignment",
+        variant: "destructive",
+      });
+    }
   });
 
   // Group employees by department
@@ -162,13 +193,14 @@ export default function ShiftCalendarPage() {
         const workdayStatus = (workdays as any)[dayName] || "Full Day";
         
         if (workdayStatus === "Off Day") {
-          return { type: "off", label: "Off Day", color: "#E5E7EB" };
+          return { type: "off", label: "Off Day", color: "#E5E7EB", shiftId: activeShiftAssignment.shiftId };
         }
         
         return { 
           type: "shift", 
           label: assignedShift.name,
-          color: assignedShift.color || '#6B7280'
+          color: assignedShift.color || '#6B7280',
+          shiftId: activeShiftAssignment.shiftId
         };
       }
     }
@@ -176,13 +208,45 @@ export default function ShiftCalendarPage() {
     // Default for employees without shift assignment
     const dayOfWeek = date.getDay();
     if (dayOfWeek === 0 || dayOfWeek === 6) {
-      return { type: "off", label: "Off Day", color: "#E5E7EB" };
+      return { type: "off", label: "Off Day", color: "#E5E7EB", shiftId: "" };
     }
     
-    return { type: "shift", label: "No Shift", color: "#6B7280" };
+    return { type: "shift", label: "No Shift", color: "#6B7280", shiftId: "" };
   };
 
-  const renderShiftCell = (shift: { type: string; label: string; color: string }) => {
+  const renderShiftCell = (shift: { type: string; label: string; color: string; shiftId?: string }, employeeId?: string) => {
+    if (editMode && employeeId) {
+      // Edit mode: Show dropdown to select shift
+      const currentShiftId = shift?.shiftId || '';
+      
+      return (
+        <Select
+          value={currentShiftId}
+          onValueChange={(shiftId) => {
+            updateShiftMutation.mutate({ employeeId, shiftId });
+          }}
+        >
+          <SelectTrigger className="w-full h-8 text-xs">
+            <SelectValue placeholder="Select shift" />
+          </SelectTrigger>
+          <SelectContent>
+            {(shifts as any[]).map((shiftOption: any) => (
+              <SelectItem key={shiftOption.id} value={shiftOption.id}>
+                <div className="flex items-center space-x-2">
+                  <div 
+                    className="w-3 h-3 rounded"
+                    style={{ backgroundColor: shiftOption.color }}
+                  ></div>
+                  <span>{shiftOption.name}</span>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      );
+    }
+
+    // View mode: Show existing display
     if (shift.type === "off") {
       return (
         <div className="px-2 py-1 text-xs text-center bg-gray-200 text-gray-600 rounded">
@@ -366,7 +430,7 @@ export default function ShiftCalendarPage() {
                           const shift = getShiftForDay(employee.id, day.fullDate);
                           return (
                             <td key={dayIndex} className="p-2 text-center">
-                              {renderShiftCell(shift)}
+                              {renderShiftCell(shift, employee.id)}
                             </td>
                           );
                         })}
@@ -379,17 +443,29 @@ export default function ShiftCalendarPage() {
           </div>
         </div>
 
-        {/* Legend */}
-        <div className="flex flex-wrap items-center gap-4 text-sm">
-          {(shifts as any[]).map((shift: any) => (
-            <div key={shift.id} className="flex items-center space-x-2">
-              <div 
-                className="w-4 h-4 rounded"
-                style={{ backgroundColor: shift.color || '#6B7280' }}
-              ></div>
-              <span className="text-gray-600">{shift.name}</span>
-            </div>
-          ))}
+        {/* Legend and Edit Button */}
+        <div className="flex justify-between items-center">
+          <div className="flex flex-wrap items-center gap-4 text-sm">
+            {(shifts as any[]).map((shift: any) => (
+              <div key={shift.id} className="flex items-center space-x-2">
+                <div 
+                  className="w-4 h-4 rounded"
+                  style={{ backgroundColor: shift.color || '#6B7280' }}
+                ></div>
+                <span className="text-gray-600">{shift.name}</span>
+              </div>
+            ))}
+          </div>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setEditMode(!editMode)}
+            className={`${editMode ? 'bg-red-100 text-red-700 border-red-300 hover:bg-red-200' : 'bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200'}`}
+            data-testid="button-edit-shifts"
+          >
+            {editMode ? 'Exit Edit' : 'Edit Shifts'}
+          </Button>
         </div>
       </div>
     </DashboardLayout>
