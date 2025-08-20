@@ -272,10 +272,24 @@ export default function ManageEmployeePage() {
     try {
       console.log("Downloading template");
       
-      // Call API to download Excel template using apiRequest for proper auth
+      // Get token from localStorage for proper JWT authentication
+      const token = localStorage.getItem('utamahr_token');
+      if (!token) {
+        toast({
+          title: "Authentication Required",
+          description: "Sila log masuk semula",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Call API to download Excel template with proper JWT authentication
       const response = await fetch('/api/download-staff-template', {
         method: 'GET',
-        credentials: 'include', // Include session cookies for authentication
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        credentials: 'include',
       });
 
       if (!response.ok) {
