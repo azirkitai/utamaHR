@@ -1063,12 +1063,17 @@ export default function MyRecordPage() {
                         <span className={`${
                           (record as any).isLateClockIn ? 'text-red-600 font-bold' : 'text-gray-800'
                         }`}>
-                          {new Date(record.clockInTime + 'Z').toLocaleTimeString('en-MY', { 
-                            hour: '2-digit', 
-                            minute: '2-digit', 
-                            timeZone: 'Asia/Kuala_Lumpur',
-                            hour12: false 
-                          })}
+                          {(() => {
+                            // Parse UTC time and convert to Malaysia time
+                            const utcDate = new Date(record.clockInTime);
+                            if (isNaN(utcDate.getTime())) return 'Invalid Date';
+                            return utcDate.toLocaleTimeString('en-MY', { 
+                              hour: '2-digit', 
+                              minute: '2-digit', 
+                              timeZone: 'Asia/Kuala_Lumpur',
+                              hour12: false 
+                            });
+                          })()}
                           {(record as any).isLateClockIn && ' ⚠️'}
                         </span>
                         {(record as any).isLateClockIn && (record as any).clockInRemarks && (
@@ -1076,16 +1081,14 @@ export default function MyRecordPage() {
                             {(record as any).clockInRemarks}
                           </div>
                         )}
-                        {/* DEBUG: SUCCESS! Red indicators working! */}
-                        <div className="text-xs text-green-600 mt-1 border p-1 bg-green-50">
-                          ✅ COMPLIANCE INDICATORS WORKING!<br/>
-                          UTC: {format(new Date(record.clockInTime), 'HH:mm')}<br/>
-                          MYT: {new Date(record.clockInTime + 'Z').toLocaleTimeString('en-MY', { 
-                            hour: '2-digit', 
-                            minute: '2-digit', 
-                            timeZone: 'Asia/Kuala_Lumpur',
-                            hour12: false 
-                          })}<br/>
+                        {/* DEBUG: Check timestamp format */}
+                        <div className="text-xs text-blue-600 mt-1 border p-1 bg-blue-50">
+                          🔍 DEBUG TIMESTAMP:<br/>
+                          RAW: {JSON.stringify(record.clockInTime)}<br/>
+                          TYPE: {typeof record.clockInTime}<br/>
+                          LENGTH: {record.clockInTime?.length || 'N/A'}<br/>
+                          DATE_PARSE: {new Date(record.clockInTime).toString()}<br/>
+                          ISVALID: {!isNaN(new Date(record.clockInTime).getTime()) ? 'TRUE' : 'FALSE'}<br/>
                           Late={record.isLateClockIn ? 'TRUE' : 'FALSE'}
                         </div>
                       </div>
