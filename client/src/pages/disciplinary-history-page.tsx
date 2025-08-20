@@ -229,7 +229,7 @@ export default function DisciplinaryHistoryPage() {
       issuedBy: user?.id,
       issuedByName: user?.username || 'HR',
       attachmentCount: newRecord.attachments.length,
-      attachmentNames: newRecord.attachments.map(f => f.name),
+      attachmentNames: JSON.stringify(newRecord.attachments.map(f => f.name)),
       // Note: In a real implementation, files would be uploaded to server storage first
       // and then the URLs would be included in the submission data
     };
