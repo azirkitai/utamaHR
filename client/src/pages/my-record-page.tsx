@@ -1231,16 +1231,40 @@ export default function MyRecordPage() {
                   
                   {/* Break Off (balik dari rehat/lunch) */}
                   <TableCell>
-                    {(record as any).breakInTime ? (() => {
-                      const utcDate = new Date((record as any).breakInTime);
-                      if (isNaN(utcDate.getTime())) return 'Invalid Date';
-                      return utcDate.toLocaleTimeString('en-MY', { 
-                        hour: '2-digit', 
-                        minute: '2-digit', 
-                        timeZone: 'Asia/Kuala_Lumpur',
-                        hour12: false 
-                      });
-                    })() : '-'}
+                    {(record as any).breakInTime ? (
+                      <div className="space-y-1">
+                        <span className={`${
+                          (record as any).isLateBreakIn ? 'text-red-600 font-bold bg-red-100 px-2 py-1 rounded border-2 border-red-500' : 'text-gray-800'
+                        }`}
+                        style={(record as any).isLateBreakIn ? { 
+                          backgroundColor: '#fee2e2', 
+                          color: '#dc2626', 
+                          fontWeight: 'bold',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          border: '2px solid #ef4444'
+                        } : {}}>
+                          {(() => {
+                            const utcDate = new Date((record as any).breakInTime);
+                            if (isNaN(utcDate.getTime())) return 'Invalid Date';
+                            return utcDate.toLocaleTimeString('en-MY', { 
+                              hour: '2-digit', 
+                              minute: '2-digit', 
+                              timeZone: 'Asia/Kuala_Lumpur',
+                              hour12: false 
+                            });
+                          })()}
+                          {(record as any).isLateBreakIn && ' ⚠️'}
+                        </span>
+                        {(record as any).isLateBreakIn && (record as any).breakInRemarks && (
+                          <div className="text-xs text-red-600 bg-red-50 p-1 rounded border">
+                            {(record as any).breakInRemarks}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      '-'
+                    )}
                   </TableCell>
                   {showPictures && (
                     <TableCell>

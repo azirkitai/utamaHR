@@ -1501,14 +1501,18 @@ export class DatabaseStorage implements IStorage {
   async checkUniversalCompliance(record: any): Promise<{
     isLateClockIn: boolean;
     isLateBreakOut: boolean;
+    isLateBreakIn: boolean;
     clockInRemarks: string | null;
     breakOutRemarks: string | null;
+    breakInRemarks: string | null;
   }> {
     const defaultResult = {
       isLateClockIn: false,
       isLateBreakOut: false,
+      isLateBreakIn: false,
       clockInRemarks: null,
-      breakOutRemarks: null
+      breakOutRemarks: null,
+      breakInRemarks: null
     };
 
     if (!record.employeeId || !record.date) {
@@ -1591,12 +1595,46 @@ export class DatabaseStorage implements IStorage {
       }
     }
 
+    // ========== BREAK-IN COMPLIANCE CHECK ==========
+    if (record.breakInTime && employeeShift.breakTimeIn !== "none") {
+      const breakInTime = new Date(record.breakInTime);
+      const recordDate = new Date(record.date);
+      
+      // Create break end time for comparison (when break should end)
+      const [breakEndHour, breakEndMinute] = employeeShift.breakTimeIn.split(':');
+      
+      // CRITICAL: Convert both times to Malaysia timezone for proper comparison
+      const breakInMalaysiaMillis = breakInTime.getTime() + (8 * 60 * 60 * 1000); // UTC+8
+      const breakInMalaysiaDate = new Date(breakInMalaysiaMillis);
+      
+      // Break end time should be interpreted as Malaysia time on the same date
+      const recordDateMalaysia = new Date(recordDate.getTime() + (8 * 60 * 60 * 1000));
+      const breakEndMalaysiaDate = new Date(recordDateMalaysia);
+      breakEndMalaysiaDate.setHours(parseInt(breakEndHour), parseInt(breakEndMinute), 0, 0);
+      
+      console.log(`🔍 Break-in compliance check - Break end: ${breakEndMalaysiaDate.toISOString()} Break-in: ${breakInMalaysiaDate.toISOString()}`);
+      
+      if (breakInMalaysiaDate > breakEndMalaysiaDate) {
+        const minutesLate = Math.floor((breakInMalaysiaDate.getTime() - breakEndMalaysiaDate.getTime()) / (1000 * 60));
+        console.log(`🚨 LATE BREAK-IN DETECTED: ${minutesLate} minutes late`);
+        
+        result.isLateBreakIn = true;
+        result.breakInRemarks = `Lewat ${minutesLate} minit balik dari rehat ${employeeShift.breakTimeIn}. Perlu semakan penyelia.`;
+        
+        console.log(`🚨 Setting isLateBreakIn=true, remarks: ${result.breakInRemarks}`);
+      } else {
+        console.log(`✅ Break-in on time - no compliance issue`);
+      }
+    }
+
     console.log(`🔍 Final record compliance: {
   id: '${record.id}',
   isLateClockIn: ${result.isLateClockIn},
   isLateBreakOut: ${result.isLateBreakOut},
+  isLateBreakIn: ${result.isLateBreakIn},
   clockInRemarks: '${result.clockInRemarks}',
-  breakOutRemarks: '${result.breakOutRemarks}'
+  breakOutRemarks: '${result.breakOutRemarks}',
+  breakInRemarks: '${result.breakInRemarks}'
 }`);
 
     return result;
@@ -1678,8 +1716,10 @@ export class DatabaseStorage implements IStorage {
           ...record,
           isLateClockIn: compliance.isLateClockIn,
           isLateBreakOut: compliance.isLateBreakOut,
+          isLateBreakIn: compliance.isLateBreakIn,
           clockInRemarks: compliance.clockInRemarks,
-          breakOutRemarks: compliance.breakOutRemarks
+          breakOutRemarks: compliance.breakOutRemarks,
+          breakInRemarks: compliance.breakInRemarks
         };
       })
     );
@@ -1756,8 +1796,10 @@ export class DatabaseStorage implements IStorage {
       .set({
         isLateClockIn: compliance.isLateClockIn,
         isLateBreakOut: compliance.isLateBreakOut,
+        isLateBreakIn: compliance.isLateBreakIn,
         clockInRemarks: compliance.clockInRemarks,
         breakOutRemarks: compliance.breakOutRemarks,
+        breakInRemarks: compliance.breakInRemarks,
         updatedAt: new Date()
       })
       .where(eq(attendanceRecords.id, savedRecord.id))

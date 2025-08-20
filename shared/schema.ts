@@ -501,8 +501,10 @@ export const attendanceRecords = pgTable("attendance_records", {
   shiftId: varchar("shift_id").references(() => shifts.id), // Reference to assigned shift
   isLateClockIn: boolean("is_late_clock_in").default(false), // Flag for late clock-in
   isLateBreakOut: boolean("is_late_break_out").default(false), // Flag for late break-out
+  isLateBreakIn: boolean("is_late_break_in").default(false), // Flag for late break-in
   clockInRemarks: text("clock_in_remarks"), // Remarks for clock-in compliance
   breakOutRemarks: text("break_out_remarks"), // Remarks for break compliance
+  breakInRemarks: text("break_in_remarks"), // Remarks for break-in compliance
   
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
