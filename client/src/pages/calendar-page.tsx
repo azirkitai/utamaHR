@@ -224,6 +224,7 @@ function ShiftCalendarView() {
 
   const { data: shifts = [] } = useQuery({
     queryKey: ['/api/shifts'],
+    refetchInterval: 5000, // Refetch every 5 seconds for real-time sync
   });
 
   const { data: employeeShifts = [] } = useQuery({
@@ -231,7 +232,7 @@ function ShiftCalendarView() {
     refetchInterval: 5000, // Refetch every 5 seconds for real-time sync
   });
 
-  // Debug logging for employee shifts
+  // Debug logging for employee shifts and shifts
   React.useEffect(() => {
     if (employeeShifts.length > 0) {
       console.log('=== EMPLOYEE SHIFTS DATA ===');
@@ -241,6 +242,16 @@ function ShiftCalendarView() {
       console.log('No employee shifts found');
     }
   }, [employeeShifts]);
+
+  React.useEffect(() => {
+    if (shifts.length > 0) {
+      console.log('=== SHIFTS DATA ===');
+      console.log('Total shifts:', shifts.length);
+      console.log('Sample shifts:', shifts.slice(0, 3));
+    } else {
+      console.log('No shifts found');
+    }
+  }, [shifts]);
 
   // Group employees by department
   const employeesByDepartment = employees.reduce((acc: any, employee: any) => {
@@ -399,17 +410,34 @@ function ShiftCalendarView() {
                 <th className="text-left py-3 px-4 font-semibold text-gray-800 bg-gray-50 min-w-[200px]">
                   Employee
                 </th>
-                {dayHeaders.map((day) => (
-                  <th 
-                    key={day.fullDate.toISOString()} 
-                    className="text-center py-3 px-2 font-semibold text-gray-800 bg-gray-50 min-w-[120px]"
-                  >
-                    <div className="flex flex-col items-center">
-                      <span className="text-sm font-bold">{day.dayNumber}</span>
-                      <span className="text-xs text-gray-600">{day.dayName}</span>
-                    </div>
-                  </th>
-                ))}
+                {dayHeaders.map((day) => {
+                  // Check if this date is today for highlighting
+                  const today = new Date();
+                  const isToday = day.fullDate.toDateString() === today.toDateString();
+                  
+                  return (
+                    <th 
+                      key={day.fullDate.toISOString()} 
+                      className={`text-center py-3 px-2 font-semibold min-w-[120px] ${
+                        isToday 
+                          ? 'bg-blue-100 text-blue-800 border-blue-300' 
+                          : 'text-gray-800 bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex flex-col items-center">
+                        <span className={`text-sm font-bold ${isToday ? 'text-blue-900' : ''}`}>
+                          {day.dayNumber}
+                        </span>
+                        <span className={`text-xs ${isToday ? 'text-blue-700' : 'text-gray-600'}`}>
+                          {day.dayName}
+                        </span>
+                        {isToday && (
+                          <div className="w-2 h-2 bg-blue-500 rounded-full mt-1"></div>
+                        )}
+                      </div>
+                    </th>
+                  );
+                })}
               </tr>
             </thead>
             <tbody>
