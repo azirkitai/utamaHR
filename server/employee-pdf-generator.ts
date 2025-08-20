@@ -77,75 +77,29 @@ export class EmployeePDFGenerator {
     };
 
     const addPageHeader = () => {
-      // KLINIK UTAMA logo design based on the image provided
-      const logoX = 20;
-      const logoY = 8;
-      
-      // KLINIK text in red (top line, bold)
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(178, 34, 52); // Red color matching the image
-      doc.text('KLINIK', logoX, logoY + 10);
-      
-      // UTAMA text line with proper color scheme
-      doc.setFontSize(22);
-      doc.setFont('helvetica', 'bold');
-      
-      // UTA in red
-      doc.setTextColor(178, 34, 52); // Red color
-      doc.text('UTA', logoX, logoY + 26);
-      
-      // M in blue - positioned to match the heartbeat integration
-      doc.setTextColor(41, 98, 182); // Blue color
-      doc.text('M', logoX + 38, logoY + 26);
-      
-      // A in red - positioned after the M
-      doc.setTextColor(178, 34, 52); // Red color
-      doc.text('A', logoX + 55, logoY + 26);
-      
-      // Blue underline extending across UTA and continuing to heartbeat
-      doc.setDrawColor(41, 98, 182);
-      doc.setLineWidth(3);
-      doc.line(logoX, logoY + 30, logoX + 70, logoY + 30);
-      
-      // Heartbeat pattern integrated with the underline
-      doc.setLineWidth(3);
-      // Continue line from underline
-      doc.line(logoX + 70, logoY + 30, logoX + 75, logoY + 30);
-      // Heartbeat spike up
-      doc.line(logoX + 75, logoY + 30, logoX + 78, logoY + 18);
-      // Heartbeat spike down
-      doc.line(logoX + 78, logoY + 18, logoX + 82, logoY + 35);
-      // Return to baseline
-      doc.line(logoX + 82, logoY + 35, logoX + 85, logoY + 30);
-      // Continue line
-      doc.line(logoX + 85, logoY + 30, logoX + 95, logoY + 30);
-      
-      // Circle at the end of heartbeat line
-      doc.setFillColor(41, 98, 182);
-      doc.circle(logoX + 97, logoY + 30, 2, 'F');
+      // Simple header without logo
       
       // Title
-      doc.setFontSize(20);
+      doc.setFontSize(24);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(30, 64, 175);
-      doc.text('LAPORAN LENGKAP PEKERJA', 105, 20, { align: 'center' });
+      doc.text('LAPORAN LENGKAP PEKERJA', 105, 18, { align: 'center' });
       
       // Company system name
-      doc.setFontSize(12);
+      doc.setFontSize(14);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(0, 0, 0);
       const systemName = companySettings?.companyShortName || 
         companySettings?.companyName || 
         'KLINIK UTAMA 24 JAM HR SISTEM';
-      doc.text(systemName, 105, 27, { align: 'center' });
+      doc.text(systemName, 105, 28, { align: 'center' });
       
       // Header line
       doc.setDrawColor(30, 64, 175);
       doc.setLineWidth(0.5);
-      doc.line(20, 40, 190, 40);
+      doc.line(20, 35, 190, 35);
       
-      return 45; // Return Y position after header (adjusted for larger logo)
+      return 40; // Return Y position after header
     };
 
     const addSectionHeader = (title: string, yPos: number): number => {
