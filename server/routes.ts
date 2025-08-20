@@ -2158,7 +2158,7 @@ export function registerRoutes(app: Express): Server {
       try {
         // Get employee's active shift assignment
         const activeShift = await storage.getEmployeeActiveShift(employee.id);
-        if (activeShift && activeShift.enableStrictClockIn) {
+        if (activeShift) {
           // Parse shift start time for clock-in compliance check
           const shiftStartTime = activeShift.clockIn; // e.g., "08:30"
           const [shiftHour, shiftMinute] = shiftStartTime.split(':').map(Number);
@@ -2167,7 +2167,7 @@ export function registerRoutes(app: Express): Server {
           const todayShiftStart = new Date(currentTime);
           todayShiftStart.setHours(shiftHour, shiftMinute, 0, 0);
           
-          // Check if clock-in is late (CLOCK-IN compliance only)
+          // Check if clock-in is late (ALWAYS check, not just when enableStrictClockIn is true)
           if (currentTime > todayShiftStart) {
             const lateMinutes = Math.floor((currentTime.getTime() - todayShiftStart.getTime()) / (1000 * 60));
             shiftCompliance.isLateClockIn = true;
