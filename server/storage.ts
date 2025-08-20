@@ -1535,37 +1535,34 @@ export class DatabaseStorage implements IStorage {
       // Create shift start time in Malaysia timezone for the specific date
       const [shiftHour, shiftMinute] = employeeShift.clockIn.split(':');
       
-      // CRITICAL FIX: Create shift start time in Malaysia timezone, then convert to UTC for proper comparison
-      // We need to create the shift time as if it's in Malaysia timezone on the specific date
-      const malaysiaDateStr = recordDate.toLocaleDateString('en-CA'); // YYYY-MM-DD format
-      const malaysiaShiftTimeStr = `${malaysiaDateStr}T${employeeShift.clockIn}:00.000`;
+      // CRITICAL: Convert both times to Malaysia timezone for proper comparison
+      // Clock-in time is stored as UTC, need to convert to Malaysia time
+      const clockInMalaysiaMillis = clockInTime.getTime() + (8 * 60 * 60 * 1000); // UTC+8
+      const clockInMalaysiaDate = new Date(clockInMalaysiaMillis);
       
-      // Create shift start time assuming it's Malaysia timezone, then get equivalent UTC
-      const tempShiftDate = new Date(malaysiaShiftTimeStr);
-      // Convert from Malaysia time to UTC (Malaysia is UTC+8)
-      const shiftStartTimeUTC = new Date(tempShiftDate.getTime() - (8 * 60 * 60 * 1000));
+      // Shift start time should be interpreted as Malaysia time on the same date
+      const recordDateMalaysia = new Date(recordDate.getTime() + (8 * 60 * 60 * 1000));
+      const shiftStartMalaysiaDate = new Date(recordDateMalaysia);
+      shiftStartMalaysiaDate.setHours(parseInt(shiftHour), parseInt(shiftMinute), 0, 0);
       
-      // Convert times to Malaysia timezone for logging
-      const clockInMalaysia = clockInTime.toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur', hour12: false });
-      const shiftStartMalaysia = shiftStartTimeUTC.toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur', hour12: false });
+      console.log(`🔍 TIMEZONE CRITICAL DEBUG - Clock-in UTC: ${clockInTime.toISOString()}`);
+      console.log(`🔍 TIMEZONE CRITICAL DEBUG - Clock-in Malaysia: ${clockInMalaysiaDate.toISOString()}`);
+      console.log(`🔍 TIMEZONE CRITICAL DEBUG - Shift start Malaysia: ${shiftStartMalaysiaDate.toISOString()}`);
+      console.log(`🔍 TIMEZONE CRITICAL DEBUG - Clock-in time: ${clockInMalaysiaDate.getHours()}:${clockInMalaysiaDate.getMinutes().toString().padStart(2, '0')}`);
+      console.log(`🔍 TIMEZONE CRITICAL DEBUG - Shift start time: ${shiftStartMalaysiaDate.getHours()}:${shiftStartMalaysiaDate.getMinutes().toString().padStart(2, '0')}`);
       
-      console.log(`🔍 TIMEZONE FIXED DEBUG - Clock-in UTC: ${clockInTime.toISOString()}`);
-      console.log(`🔍 TIMEZONE FIXED DEBUG - Clock-in Malaysia: ${clockInMalaysia}`);
-      console.log(`🔍 TIMEZONE FIXED DEBUG - Shift start UTC: ${shiftStartTimeUTC.toISOString()}`);
-      console.log(`🔍 TIMEZONE FIXED DEBUG - Shift start Malaysia: ${shiftStartMalaysia}`);
+      console.log(`🔍 CRITICAL FIXED Compliance check - Shift start: ${shiftStartMalaysiaDate.toISOString()} Clock-in: ${clockInMalaysiaDate.toISOString()}`);
       
-      console.log(`🔍 FIXED Compliance check - Shift start: ${shiftStartTimeUTC.toISOString()} Clock-in: ${clockInTime.toISOString()}`);
-      
-      if (clockInTime > shiftStartTimeUTC) {
-        const minutesLate = Math.floor((clockInTime.getTime() - shiftStartTimeUTC.getTime()) / (1000 * 60));
-        console.log(`🚨 LATE DETECTED (TIMEZONE FIXED): ${minutesLate} minutes late`);
+      if (clockInMalaysiaDate > shiftStartMalaysiaDate) {
+        const minutesLate = Math.floor((clockInMalaysiaDate.getTime() - shiftStartMalaysiaDate.getTime()) / (1000 * 60));
+        console.log(`🚨 LATE DETECTED (CRITICAL TIMEZONE FIXED): ${minutesLate} minutes late`);
         
         result.isLateClockIn = true;
         result.clockInRemarks = this.generateStandardComplianceMessage('clock_in', minutesLate, employeeShift.clockIn);
         
         console.log(`🚨 Setting isLateClockIn=true, remarks: ${result.clockInRemarks}`);
       } else {
-        console.log(`✅ On time - no compliance issue (TIMEZONE FIXED)`);
+        console.log(`✅ On time - no compliance issue (CRITICAL TIMEZONE FIXED)`);
       }
     }
 
