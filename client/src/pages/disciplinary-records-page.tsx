@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { DashboardLayout } from "@/components/dashboard-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -99,7 +100,8 @@ export default function DisciplinaryRecordsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-6">
+    <DashboardLayout>
+      <div className="container mx-auto px-4 py-6 space-y-6">
       {/* Header */}
       <div className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
@@ -315,6 +317,7 @@ export default function DisciplinaryRecordsPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }
