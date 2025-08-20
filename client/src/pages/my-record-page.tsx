@@ -41,9 +41,9 @@ export default function MyRecordPage() {
   // Check if user has admin access to view other employees' data
   const hasAdminAccess = (user as any)?.role && ['Super Admin', 'Admin', 'HR Manager', 'PIC'].includes((user as any).role);
 
-  // Fetch attendance records from database
-  const { data: attendanceRecords = [], isLoading: isLoadingAttendance, error: attendanceError } = useQuery({
-    queryKey: ['/api/attendance-records', filters.dateFrom.toISOString(), filters.dateTo.toISOString(), hasAdminAccess ? null : user?.id, Date.now()], // Force refresh
+  // Fetch attendance records from database with simplified approach  
+  const { data: rawAttendanceData, isLoading: isLoadingAttendance, error: attendanceError, refetch: refetchAttendance } = useQuery({
+    queryKey: ['attendance-records', activeTab, user?.id, filters.dateFrom.toISOString(), filters.dateTo.toISOString()],
     queryFn: async () => {
       const params = new URLSearchParams({
         dateFrom: format(filters.dateFrom, 'yyyy-MM-dd'),
@@ -90,9 +90,22 @@ export default function MyRecordPage() {
       return data as AttendanceRecord[];
     },
     enabled: !!user && activeTab === 'attendance',
-    staleTime: 0, // Always treat data as stale to force refresh
-    gcTime: 0  // Don't cache the results (replaces cacheTime)
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
+    staleTime: 0, 
+    gcTime: 0
   });
+
+  // Extract attendance records
+  const attendanceRecords = rawAttendanceData || [];
+
+  // Trigger refetch when switching to attendance tab
+  useEffect(() => {
+    if (activeTab === 'attendance' && user) {
+      console.log('📋 Switching to attendance tab - triggering refetch');
+      refetchAttendance();
+    }
+  }, [activeTab, user, refetchAttendance]);
 
   // Debug loading state
   console.log('🔧 ATTENDANCE DEBUG:', {
