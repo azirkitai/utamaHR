@@ -973,17 +973,9 @@ export class DatabaseStorage implements IStorage {
       const result = await db
         .select({
           id: shifts.id,
-          name: shifts.shiftName,  // Add name field that compliance logic expects
-          shiftName: shifts.shiftName,
+          name: shifts.name,
           clockIn: shifts.clockIn,
           clockOut: shifts.clockOut,
-          breakIn: shifts.breakIn,
-          breakOut: shifts.breakOut,
-          backgroundColor: shifts.backgroundColor,
-          textColor: shifts.textColor,
-          enableStrictClockIn: shifts.enableStrictClockIn,
-          createdAt: shifts.createdAt,
-          updatedAt: shifts.updatedAt,
           employeeShiftId: employeeShifts.id
         })
         .from(employeeShifts)
