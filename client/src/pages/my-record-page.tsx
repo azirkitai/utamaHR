@@ -34,7 +34,7 @@ export default function MyRecordPage() {
   const [showPictures, setShowPictures] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
-    dateFrom: subDays(new Date(), 30),
+    dateFrom: new Date(2025, 0, 1), // Start from January 1, 2025 to include all historical claims
     dateTo: new Date(),
     searchTerm: "",
     pageSize: 10,
@@ -264,6 +264,43 @@ export default function MyRecordPage() {
       
       const data = await response.json();
       console.log('Claim applications fetched:', data.length, 'records');
+      
+      // Debug ALL claim records - ensure we see all 9 records including Siti Nadiah
+      console.log(`🚀 TOTAL CLAIMS RECEIVED:`, data.length);
+      data.forEach((claim: any, index: number) => {
+        console.log(`📋 CLAIM #${index + 1}:`, {
+          id: claim.id,
+          requestorName: claim.requestorName,
+          financialPolicyName: claim.financialPolicyName,
+          status: claim.status,
+          amount: claim.amount,
+          claimDate: claim.claimDate
+        });
+        
+        // Highlight Siti Nadiah's claims
+        if (claim.requestorName && claim.requestorName.toLowerCase().includes('siti nadiah')) {
+          console.log(`🎯 SITI NADIAH CLAIM FOUND #${index + 1}:`, {
+            id: claim.id,
+            status: claim.status,
+            amount: claim.amount,
+            financialPolicyName: claim.financialPolicyName,
+            claimDate: claim.claimDate
+          });
+        }
+      });
+      
+      // Count Siti Nadiah claims specifically
+      const sitiClaims = data.filter((c: any) => c.requestorName && c.requestorName.toLowerCase().includes('siti nadiah'));
+      console.log(`🔢 SITI NADIAH CLAIMS COUNT:`, sitiClaims.length);
+      
+      // Check if rejected claim is present
+      const sitiRejectedClaim = sitiClaims.find((c: any) => c.status.toLowerCase() === 'rejected');
+      if (sitiRejectedClaim) {
+        console.log(`✅ REJECTED CLAIM FOUND:`, sitiRejectedClaim);
+      } else {
+        console.log(`❌ REJECTED CLAIM MISSING in frontend data`);
+      }
+      
       return data as ClaimApplication[];
     },
     enabled: !!user && !!((user as any)?.role) && (hasPrivilegedAccess || !!currentEmployee?.id) && activeTab === 'claim'
@@ -410,6 +447,25 @@ export default function MyRecordPage() {
     // Claim status filter
     const isStatusMatch = filters.claimStatus === 'all-claim-status' || 
       claim.status.toLowerCase() === filters.claimStatus.toLowerCase();
+    
+    // Debug specific filtering for Siti Nadiah's rejected claim
+    if ((claim as any).requestorName && (claim as any).requestorName.toLowerCase().includes('siti nadiah') && claim.status.toLowerCase() === 'rejected') {
+      console.log(`🔍 FILTERING DEBUG - Siti Nadiah Rejected Claim:`, {
+        id: claim.id,
+        claimDate: claim.claimDate,
+        claimDateObj: claimDate,
+        dateFrom: filters.dateFrom,
+        dateTo: filters.dateTo,
+        isDateInRange,
+        claimType: filters.claimType,
+        financialPolicyName: claim.financialPolicyName,
+        isClaimTypeMatch,
+        status: claim.status,
+        claimStatus: filters.claimStatus,
+        isStatusMatch,
+        finalPass: isDateInRange && isClaimTypeMatch && isStatusMatch
+      });
+    }
     
     return isDateInRange && isClaimTypeMatch && isStatusMatch;
   });
