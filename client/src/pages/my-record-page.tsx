@@ -23,6 +23,8 @@ interface FilterState {
   dateTo: Date;
   searchTerm: string;
   pageSize: number;
+  claimType: string;
+  claimStatus: string;
 }
 
 export default function MyRecordPage() {
@@ -35,7 +37,9 @@ export default function MyRecordPage() {
     dateFrom: subDays(new Date(), 30),
     dateTo: new Date(),
     searchTerm: "",
-    pageSize: 10
+    pageSize: 10,
+    claimType: "all-claim-type",
+    claimStatus: "all-claim-status"
   });
 
   // Check if user has admin access to view other employees' data
@@ -385,6 +389,44 @@ export default function MyRecordPage() {
     }
   };
 
+  // Handle filter changes
+  const handleFilterChange = (filterType: 'claimType' | 'claimStatus', value: string) => {
+    setFilters(prev => ({
+      ...prev,
+      [filterType]: value
+    }));
+  };
+
+  // Filter claim applications based on current filters
+  const filteredClaimApplications = claimApplications.filter(claim => {
+    // Date filter
+    const claimDate = new Date(claim.claimDate);
+    const isDateInRange = claimDate >= filters.dateFrom && claimDate <= filters.dateTo;
+    
+    // Claim type filter
+    const isClaimTypeMatch = filters.claimType === 'all-claim-type' || 
+      (claim.financialPolicyName && claim.financialPolicyName.toLowerCase().replace(/\s+/g, '-') === filters.claimType);
+    
+    // Claim status filter
+    const isStatusMatch = filters.claimStatus === 'all-claim-status' || 
+      claim.status.toLowerCase() === filters.claimStatus.toLowerCase();
+    
+    return isDateInRange && isClaimTypeMatch && isStatusMatch;
+  });
+
+  // Apply search term filter to filtered results
+  const searchFilteredClaims = filteredClaimApplications.filter(claim => {
+    if (!filters.searchTerm) return true;
+    
+    const searchLower = filters.searchTerm.toLowerCase();
+    return (
+      ((claim as any).requestorName && (claim as any).requestorName.toLowerCase().includes(searchLower)) ||
+      (claim.financialPolicyName && claim.financialPolicyName.toLowerCase().includes(searchLower)) ||
+      (claim.particulars && claim.particulars.toLowerCase().includes(searchLower)) ||
+      claim.status.toLowerCase().includes(searchLower)
+    );
+  });
+
   // Handle supporting document download
   const handleDocumentDownload = async (documentPath: string, claimId: string, docIndex: number) => {
     try {
@@ -682,7 +724,11 @@ export default function MyRecordPage() {
 
         <div className="space-y-2">
           <label className="text-sm font-medium">Claim Type</label>
-          <Select defaultValue="all-claim-type" data-testid="select-claim-type">
+          <Select 
+            value={filters.claimType} 
+            onValueChange={(value) => handleFilterChange('claimType', value)}
+            data-testid="select-claim-type"
+          >
             <SelectTrigger>
               <SelectValue placeholder="All claim type" />
             </SelectTrigger>
@@ -699,7 +745,11 @@ export default function MyRecordPage() {
 
         <div className="space-y-2">
           <label className="text-sm font-medium">Claim Status</label>
-          <Select defaultValue="all-claim-status" data-testid="select-claim-status">
+          <Select 
+            value={filters.claimStatus} 
+            onValueChange={(value) => handleFilterChange('claimStatus', value)}
+            data-testid="select-claim-status"
+          >
             <SelectTrigger>
               <SelectValue placeholder="All claim status" />
             </SelectTrigger>
@@ -710,12 +760,27 @@ export default function MyRecordPage() {
               <SelectItem value="rejected">Rejected</SelectItem>
               <SelectItem value="review">Review</SelectItem>
               <SelectItem value="closed">Closed</SelectItem>
+              <SelectItem value="paid">Paid</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div className="flex gap-2">
-          <Button className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700" data-testid="button-claim-search">
+          <Button 
+            className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700" 
+            onClick={() => {
+              console.log('🔍 SEARCH FILTERS APPLIED:', {
+                dateFrom: filters.dateFrom,
+                dateTo: filters.dateTo,
+                claimType: filters.claimType,
+                claimStatus: filters.claimStatus,
+                searchTerm: filters.searchTerm,
+                totalResults: searchFilteredClaims.length,
+                originalTotal: claimApplications.length
+              });
+            }}
+            data-testid="button-claim-search"
+          >
             <Search className="h-4 w-4 mr-2" />
             Search
           </Button>
@@ -744,7 +809,13 @@ export default function MyRecordPage() {
         
         <div className="flex items-center gap-2">
           <span className="text-sm">Search:</span>
-          <Input className="w-64" placeholder="Search..." data-testid="input-claim-search" />
+          <Input 
+            className="w-64" 
+            placeholder="Search..." 
+            value={filters.searchTerm}
+            onChange={(e) => setFilters(prev => ({ ...prev, searchTerm: e.target.value }))}
+            data-testid="input-claim-search" 
+          />
         </div>
       </div>
 
@@ -776,20 +847,20 @@ export default function MyRecordPage() {
                   Error loading claims: {claimError.message}
                 </TableCell>
               </TableRow>
-            ) : claimApplications.length === 0 ? (
+            ) : searchFilteredClaims.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={8} className="text-center py-8 text-gray-500">
-                  No claim applications found
+                  No claim applications found matching current filters
                 </TableCell>
               </TableRow>
             ) : (
-              claimApplications.map((claim, index) => {
+              searchFilteredClaims.map((claim, index) => {
                 // Debug log untuk setiap claim record
                 console.log('📋 CLAIM RECORD DEBUG:', {
                   index: index + 1,
                   id: claim.id,
                   requestorName: (claim as any).requestorName,
-                  employeeName: claim.employeeName,
+                  employeeName: (claim as any).employeeName,
                   financialPolicyName: claim.financialPolicyName,
                   claimCategory: claim.claimCategory,
                   status: claim.status,
@@ -817,7 +888,7 @@ export default function MyRecordPage() {
                 return (
                   <TableRow key={claim.id}>
                     <TableCell>{index + 1}</TableCell>
-                    <TableCell>{(claim as any).requestorName || claim.employeeName || 'Unknown Employee'}</TableCell>
+                    <TableCell>{(claim as any).requestorName || (claim as any).employeeName || 'Unknown Employee'}</TableCell>
                     <TableCell className="capitalize">{claim.financialPolicyName || claim.claimCategory}</TableCell>
                     <TableCell>{getStatusBadge(claim.status)}</TableCell>
                     <TableCell>{claim.particulars || 'N/A'}</TableCell>
@@ -867,7 +938,10 @@ export default function MyRecordPage() {
       {/* Pagination */}
       <div className="flex justify-between items-center">
         <span className="text-sm text-gray-500">
-          Showing {claimApplications.length === 0 ? 0 : 1} to {claimApplications.length} of {claimApplications.length} entries
+          Showing {searchFilteredClaims.length === 0 ? 0 : 1} to {searchFilteredClaims.length} of {searchFilteredClaims.length} entries
+          {searchFilteredClaims.length !== claimApplications.length && (
+            <span className="text-blue-600 ml-1">(filtered from {claimApplications.length} total)</span>
+          )}
         </span>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" disabled data-testid="button-claim-previous">
@@ -1470,7 +1544,7 @@ export default function MyRecordPage() {
                         size="sm" 
                         variant="outline"
                         className="h-8 w-8 p-0 hover:bg-blue-50"
-                        onClick={() => handleDownloadPayslip(record.payrollItemId, (record as any).employeeName || 'Employee')}
+                        onClick={() => handleDownloadPayslip(record.payrollItemId || '', (record as any).employeeName || 'Employee')}
                         data-testid={`button-download-payroll-${record.id}`}
                         title="Download Payslip"
                       >
