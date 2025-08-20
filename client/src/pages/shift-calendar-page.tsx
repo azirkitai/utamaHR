@@ -45,10 +45,7 @@ export default function ShiftCalendarPage() {
   const updateShiftMutation = useMutation({
     mutationFn: async ({ employeeId, shiftId }: { employeeId: string; shiftId: string }) => {
       console.log('Updating shift assignment:', { employeeId, shiftId });
-      const response = await apiRequest(`/api/employees/${employeeId}/assign-shift`, {
-        method: 'POST',
-        body: { shiftId }
-      });
+      const response = await apiRequest("POST", `/api/employees/${employeeId}/assign-shift`, { shiftId });
       console.log('Shift assignment response:', response);
       return response;
     },
