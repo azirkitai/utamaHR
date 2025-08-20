@@ -22,7 +22,8 @@ import {
   Upload,
   ChevronDown,
   FileText,
-  AlertTriangle
+  AlertTriangle,
+  X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DashboardLayout } from "@/components/dashboard-layout";
@@ -163,10 +164,39 @@ export default function ManageEmployeePage() {
   });
 
   const filteredEmployees = allEmployees.filter(employee => {
-    const matchesSearch = employee.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      employee.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      employee.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      employee.lastName?.toLowerCase().includes(searchTerm.toLowerCase());
+    // If no search term, show all employees for the current tab
+    if (!searchTerm.trim()) {
+      if (activeTab === "active") {
+        return employee.status === "employed";
+      } else {
+        return employee.status !== "employed";
+      }
+    }
+
+    const searchLower = searchTerm.toLowerCase().trim();
+    
+    // Search in basic employee info
+    const matchesBasicInfo = 
+      employee.fullName?.toLowerCase().includes(searchLower) ||
+      employee.firstName?.toLowerCase().includes(searchLower) ||
+      employee.lastName?.toLowerCase().includes(searchLower) ||
+      employee.id?.toLowerCase().includes(searchLower) ||
+      employee.role?.toLowerCase().includes(searchLower);
+    
+    // Search in employment details
+    const matchesEmployment = 
+      employee.employment?.employeeNo?.toLowerCase().includes(searchLower) ||
+      employee.employment?.company?.toLowerCase().includes(searchLower) ||
+      employee.employment?.designation?.toLowerCase().includes(searchLower) ||
+      employee.employment?.department?.toLowerCase().includes(searchLower);
+    
+    // Search in contact details
+    const matchesContact = 
+      employee.contact?.phoneNumber?.toLowerCase().includes(searchLower) ||
+      employee.contact?.email?.toLowerCase().includes(searchLower) ||
+      employee.contact?.personalEmail?.toLowerCase().includes(searchLower);
+    
+    const matchesSearch = matchesBasicInfo || matchesEmployment || matchesContact;
     
     if (activeTab === "active") {
       return matchesSearch && employee.status === "employed";
@@ -745,17 +775,32 @@ export default function ManageEmployeePage() {
                 <Card>
                   <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-t-lg">
                     <div className="flex items-center justify-between">
-                      <CardTitle>List of Employees</CardTitle>
+                      <div>
+                        <CardTitle>List of Employees</CardTitle>
+                        {searchTerm.trim() && (
+                          <p className="text-sm text-white/80 mt-1">
+                            Menunjukkan {filteredEmployees.length} hasil untuk "{searchTerm}"
+                          </p>
+                        )}
+                      </div>
                       <div className="flex items-center gap-4">
                         <div className="relative">
                           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white w-4 h-4" />
                           <Input
-                            placeholder="Search"
+                            placeholder="Cari nama, jawatan, email, telefon..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-9 w-64 bg-white/20 border-white/30 text-white placeholder:text-white/70"
+                            className="pl-9 pr-10 w-64 bg-white/20 border-white/30 text-white placeholder:text-white/70"
                             data-testid="input-search"
                           />
+                          {searchTerm.trim() && (
+                            <button
+                              onClick={() => setSearchTerm("")}
+                              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/70 hover:text-white"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -824,7 +869,10 @@ export default function ManageEmployeePage() {
                           ) : (
                             <tr>
                               <td colSpan={8} className="text-center py-8 text-gray-500">
-                                No data available in table
+                                {searchTerm.trim() ? 
+                                  `Tiada hasil ditemui untuk "${searchTerm}"` : 
+                                  "Tiada data tersedia dalam jadual"
+                                }
                               </td>
                             </tr>
                           )}
@@ -854,16 +902,31 @@ export default function ManageEmployeePage() {
                 <Card>
                   <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-t-lg">
                     <div className="flex items-center justify-between">
-                      <CardTitle>List of Resigned Employees</CardTitle>
+                      <div>
+                        <CardTitle>List of Resigned Employees</CardTitle>
+                        {searchTerm.trim() && (
+                          <p className="text-sm text-white/80 mt-1">
+                            Menunjukkan {filteredEmployees.filter(e => e.status !== "employed").length} hasil untuk "{searchTerm}"
+                          </p>
+                        )}
+                      </div>
                       <div className="flex items-center gap-4">
                         <div className="relative">
                           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white w-4 h-4" />
                           <Input
-                            placeholder="Search"
+                            placeholder="Cari nama, jawatan, email, telefon..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-9 w-64 bg-white/20 border-white/30 text-white placeholder:text-white/70"
+                            className="pl-9 pr-10 w-64 bg-white/20 border-white/30 text-white placeholder:text-white/70"
                           />
+                          {searchTerm.trim() && (
+                            <button
+                              onClick={() => setSearchTerm("")}
+                              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/70 hover:text-white"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
