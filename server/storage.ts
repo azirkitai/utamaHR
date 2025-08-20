@@ -1498,7 +1498,7 @@ export class DatabaseStorage implements IStorage {
     return `Lewat ${timeDesc} dari ${actionType} ${shiftTime}. Perlu semakan penyelia.`;
   }
 
-  private async checkUniversalCompliance(record: any): Promise<{
+  async checkUniversalCompliance(record: any): Promise<{
     isLateClockIn: boolean;
     isLateBreakOut: boolean;
     clockInRemarks: string | null;
