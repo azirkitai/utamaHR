@@ -15,9 +15,12 @@ import {
   Search,
   Plus,
   ChevronLeft,
+  ChevronDown,
+  ChevronUp,
   CalendarDays,
   Clock,
   Users,
+  User,
   Save,
   Trash2,
   Calendar as CalendarIcon
