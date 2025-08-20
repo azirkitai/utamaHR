@@ -43,7 +43,7 @@ export default function MyRecordPage() {
 
   // Fetch attendance records from database
   const { data: attendanceRecords = [], isLoading: isLoadingAttendance, error: attendanceError } = useQuery({
-    queryKey: ['/api/attendance-records', filters.dateFrom.toISOString(), filters.dateTo.toISOString(), hasAdminAccess ? null : user?.id],
+    queryKey: ['/api/attendance-records', filters.dateFrom.toISOString(), filters.dateTo.toISOString(), hasAdminAccess ? null : user?.id, Date.now()], // Force refresh
     queryFn: async () => {
       const params = new URLSearchParams({
         dateFrom: format(filters.dateFrom, 'yyyy-MM-dd'),
@@ -79,7 +79,14 @@ export default function MyRecordPage() {
       }
       
       const data = await response.json();
-      console.log('Attendance records fetched:', data.length, 'records');
+      console.log('🎯 Attendance records fetched:', data.length, 'records');
+      console.log('🔍 First record compliance fields:', data[0] ? {
+        id: data[0].id,
+        isLateClockIn: data[0].isLateClockIn,
+        clockInRemarks: data[0].clockInRemarks,
+        isLateBreakOut: data[0].isLateBreakOut,
+        breakOutRemarks: data[0].breakOutRemarks
+      } : 'No records');
       return data as AttendanceRecord[];
     },
     enabled: !!user && activeTab === 'attendance'
