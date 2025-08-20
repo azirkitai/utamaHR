@@ -266,9 +266,14 @@ export default function DisciplinaryHistoryPage() {
       });
       closeEditDialog();
       
-      // Also refresh server data in background
-      await refetchRecords();
-      console.log('Local state and server data updated');
+      // Clear local updates and fetch fresh server data
+      setTimeout(async () => {
+        setRecordUpdates({});
+        await queryClient.invalidateQueries({ queryKey: ['/api/disciplinary-records'] });
+        await refetchRecords();
+        setForceUpdate(prev => prev + 1);
+        console.log('Server data refreshed - status should now persist');
+      }, 500);
     },
     onError: (error: any) => {
       toast({

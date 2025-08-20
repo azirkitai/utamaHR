@@ -7927,11 +7927,28 @@ export function registerRoutes(app: Express): Server {
         return res.status(403).json({ error: "Akses ditolak - Hanya HR yang dibenarkan" });
       }
 
-      // For now, return success response since schema not implemented yet
-      // TODO: Implement actual disciplinary record update when schema is ready
+      // Update the record in database
+      const [updatedRecord] = await db.update(disciplinaryRecords)
+        .set({
+          status: req.body.status,
+          followUpRequired: req.body.followUpRequired,
+          followUpDate: req.body.followUpDate,
+          internalNotes: req.body.internalNotes,
+          updatedAt: new Date()
+        })
+        .where(eq(disciplinaryRecords.id, id))
+        .returning();
+
+      if (!updatedRecord) {
+        return res.status(404).json({ error: "Rekod tidak dijumpai" });
+      }
+
+      console.log(`Updated disciplinary record ${id} - new status: ${req.body.status}`);
+      
       res.json({
         success: true,
-        message: "Rekod tatatertib berjaya dikemas kini"
+        message: "Rekod tatatertib berjaya dikemas kini",
+        record: updatedRecord
       });
     } catch (error) {
       console.error("Update disciplinary record error:", error);
