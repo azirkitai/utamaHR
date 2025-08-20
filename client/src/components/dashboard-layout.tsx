@@ -128,11 +128,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
             {/* Right side - User info and actions */}
             <div className="flex items-center space-x-2 md:space-x-4">
-              {/* Search - Hidden on small mobile */}
-              <Button variant="ghost" size="sm" className="hidden sm:flex text-gray-600">
-                <Search className="w-4 h-4" />
-              </Button>
-
               {/* Notifications */}
               <div className="relative">
                 <Button variant="ghost" size="sm" className="text-gray-600">
@@ -143,10 +138,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 </Badge>
               </div>
 
-              {/* Settings - Hidden on small mobile */}
-              <Button variant="ghost" size="sm" className="hidden sm:flex text-gray-600">
-                <Settings className="w-4 h-4" />
-              </Button>
+              
 
               {/* User Menu */}
               <div className="flex items-center space-x-2 md:space-x-3 border-l border-gray-200 pl-2 md:pl-4">
