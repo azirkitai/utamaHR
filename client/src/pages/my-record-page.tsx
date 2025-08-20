@@ -1063,7 +1063,7 @@ export default function MyRecordPage() {
                         <span className={`${
                           (record as any).isLateClockIn ? 'text-red-600 font-bold' : 'text-gray-800'
                         }`}>
-                          {new Date(record.clockInTime).toLocaleTimeString('en-MY', { 
+                          {new Date(record.clockInTime + 'Z').toLocaleTimeString('en-MY', { 
                             hour: '2-digit', 
                             minute: '2-digit', 
                             timeZone: 'Asia/Kuala_Lumpur',
@@ -1080,7 +1080,7 @@ export default function MyRecordPage() {
                         <div className="text-xs text-green-600 mt-1 border p-1 bg-green-50">
                           ✅ COMPLIANCE INDICATORS WORKING!<br/>
                           UTC: {format(new Date(record.clockInTime), 'HH:mm')}<br/>
-                          MYT: {new Date(record.clockInTime).toLocaleTimeString('en-MY', { 
+                          MYT: {new Date(record.clockInTime + 'Z').toLocaleTimeString('en-MY', { 
                             hour: '2-digit', 
                             minute: '2-digit', 
                             timeZone: 'Asia/Kuala_Lumpur',
@@ -1115,7 +1115,7 @@ export default function MyRecordPage() {
                         <span className={`${
                           (record as any).isLateBreakOut ? 'text-red-600 font-bold' : 'text-gray-800'
                         }`}>
-                          {new Date((record as any).breakOutTime).toLocaleTimeString('en-MY', { 
+                          {new Date((record as any).breakOutTime + 'Z').toLocaleTimeString('en-MY', { 
                             hour: '2-digit', 
                             minute: '2-digit', 
                             timeZone: 'Asia/Kuala_Lumpur',
@@ -1149,7 +1149,7 @@ export default function MyRecordPage() {
                   )}
                   
                   {/* Break Off (balik dari rehat/lunch) */}
-                  <TableCell>{(record as any).breakInTime ? new Date((record as any).breakInTime).toLocaleTimeString('en-MY', { 
+                  <TableCell>{(record as any).breakInTime ? new Date((record as any).breakInTime + 'Z').toLocaleTimeString('en-MY', { 
                     hour: '2-digit', 
                     minute: '2-digit', 
                     timeZone: 'Asia/Kuala_Lumpur',
@@ -1171,7 +1171,7 @@ export default function MyRecordPage() {
                   )}
                   
                   {/* Clock Out */}
-                  <TableCell>{record.clockOutTime ? new Date(record.clockOutTime).toLocaleTimeString('en-MY', { 
+                  <TableCell>{record.clockOutTime ? new Date(record.clockOutTime + 'Z').toLocaleTimeString('en-MY', { 
                     hour: '2-digit', 
                     minute: '2-digit', 
                     timeZone: 'Asia/Kuala_Lumpur',
