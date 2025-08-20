@@ -6,6 +6,7 @@ import { generatePayslipPDF } from './payslip-html-generator';
 import { generatePayslipHTML } from './payslip-html-simple';
 import { generatePayslipExcel } from './payslip-excel-generator';
 import { generatePaymentVoucherPDF } from './payment-voucher-pdf-generator';
+import { EmployeePDFGenerator } from './employee-pdf-generator';
 import puppeteer from 'puppeteer';
 import htmlPdf from 'html-pdf-node';
 import Excel from 'exceljs';
@@ -8196,6 +8197,41 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Generate staff template error:", error);
       res.status(500).json({ error: "Gagal menjana template Excel" });
+    }
+  });
+
+  // Download all employees data as PDF report
+  app.get("/api/download-employees-pdf", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      console.log(`Generating employee PDF report for user: ${currentUser.username}`);
+
+      // Check if user has admin privileges
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC', 'Finance/Account'];
+      if (!adminRoles.includes(currentUser.role)) {
+        return res.status(403).json({ error: "Akses ditolak. Hanya admin yang dibenarkan." });
+      }
+
+      // Get all employees data with complete details
+      const employees = await storage.getEmployeesWithDetails();
+      
+      const employeePDFGenerator = new EmployeePDFGenerator();
+      const pdfBuffer = await employeePDFGenerator.generateEmployeeReport(employees);
+
+      // Set response headers for PDF download
+      res.setHeader('Content-Type', 'application/pdf');
+      const currentDate = new Date().toISOString().split('T')[0];
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="Employee_Report_${currentDate}.pdf"`
+      );
+
+      // Send PDF buffer
+      res.send(pdfBuffer);
+      console.log("Employee PDF report generated successfully");
+    } catch (error) {
+      console.error("Generate employee PDF error:", error);
+      res.status(500).json({ error: "Gagal menjana laporan PDF employee" });
     }
   });
 

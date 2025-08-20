@@ -338,6 +338,77 @@ export default function ManageEmployeePage() {
     }
   };
 
+  const downloadEmployeePDF = async () => {
+    try {
+      console.log("Downloading employee PDF report");
+      
+      // Get token from localStorage for proper JWT authentication
+      const token = localStorage.getItem('utamahr_token');
+      if (!token) {
+        toast({
+          title: "Authentication Required",
+          description: "Sila log masuk semula",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Call API to download PDF report with proper JWT authentication
+      const response = await fetch('/api/download-employees-pdf', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        if (response.status === 403) {
+          toast({
+            title: "Akses Ditolak",
+            description: "Hanya admin yang dibenarkan untuk download laporan",
+            variant: "destructive",
+          });
+          return;
+        }
+        throw new Error('Gagal download laporan PDF');
+      }
+
+      // Get the blob from response
+      const blob = await response.blob();
+      
+      // Create download link with current date
+      const currentDate = new Date().toISOString().split('T')[0];
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `Employee_Report_${currentDate}.pdf`;
+      
+      // Trigger download
+      document.body.appendChild(a);
+      a.click();
+      
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast({
+        title: "Laporan PDF Downloaded",
+        description: "Laporan PDF semua employee telah dimuat turun",
+        variant: "default",
+      });
+      
+    } catch (error) {
+      console.error("PDF download error:", error);
+      toast({
+        title: "Download Gagal",
+        description: "Gagal memuat turun laporan PDF",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="min-h-screen bg-gray-50">
@@ -597,7 +668,7 @@ export default function ManageEmployeePage() {
                         <FileText className="w-4 h-4 mr-2" />
                         Download as Excel
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => console.log("Export PDF")}>
+                      <DropdownMenuItem onClick={downloadEmployeePDF}>
                         <FileText className="w-4 h-4 mr-2" />
                         Download as PDF
                       </DropdownMenuItem>
