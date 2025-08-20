@@ -1105,10 +1105,23 @@ export default function MyRecordPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              attendanceRecords.map((record, index) => (
+              attendanceRecords.map((record, index) => {
+                // Force debug for each record rendering
+                const extendedRecord = record as any;
+                const isLate = extendedRecord.isLateClockIn === true;
+                
+                console.log(`🎨 RENDERING Record ${index + 1}:`, {
+                  id: record.id,
+                  date: record.date,
+                  isLateClockIn: extendedRecord.isLateClockIn,
+                  clockInRemarks: extendedRecord.clockInRemarks,
+                  willShowRed: isLate
+                });
+                
+                return (
                 <TableRow key={record.id}>
                   <TableCell>{index + 1}</TableCell>
-                  {hasAdminAccess && <TableCell>{(record as any).employeeName || record.employeeId}</TableCell>}
+                  {hasAdminAccess && <TableCell>{extendedRecord.employeeName || record.employeeId}</TableCell>}
                   <TableCell>{format(new Date(record.date), 'dd/MM/yyyy')}</TableCell>
                   
                   {/* Clock In */}
@@ -1116,7 +1129,7 @@ export default function MyRecordPage() {
                     {record.clockInTime ? (
                       <div className="space-y-1">
                         <span className={`${
-                          (record as any).isLateClockIn ? 'text-red-600 font-bold' : 'text-gray-800'
+                          isLate ? 'text-red-600 font-bold bg-red-100 px-2 py-1 rounded' : 'text-gray-800'
                         }`}>
                           {(() => {
                             // Parse UTC time and convert to Malaysia time
@@ -1129,14 +1142,13 @@ export default function MyRecordPage() {
                               hour12: false 
                             });
                           })()}
-                          {(record as any).isLateClockIn && ' ⚠️'}
+                          {isLate && ' ⚠️'}
                         </span>
-                        {(record as any).isLateClockIn && (record as any).clockInRemarks && (
-                          <div className="text-xs text-red-600 bg-red-50 p-1 rounded border">
-                            {(record as any).clockInRemarks}
+                        {isLate && extendedRecord.clockInRemarks && (
+                          <div className="text-xs text-red-600 bg-red-50 p-1 rounded border mt-1">
+                            {extendedRecord.clockInRemarks}
                           </div>
                         )}
-
                       </div>
                     ) : (
                       '-'
@@ -1281,7 +1293,8 @@ export default function MyRecordPage() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))
+                );
+              })
             )}
           </TableBody>
         </Table>
