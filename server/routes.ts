@@ -7830,6 +7830,28 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Disciplinary Records API endpoints
+  app.get("/api/disciplinary-records/my-records", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      
+      // Get current user's employee record
+      const employee = await storage.getEmployeeByUserId(currentUser.id);
+      if (!employee) {
+        return res.status(404).json({ error: "Employee record tidak dijumpai" });
+      }
+
+      // For now, return empty array since no disciplinary records exist yet
+      // TODO: Implement actual disciplinary records query when schema is ready
+      const userRecords = [];
+
+      res.json(userRecords);
+    } catch (error) {
+      console.error("Get user disciplinary records error:", error);
+      res.status(500).json({ error: "Gagal mengambil rekod tatatertib pengguna" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
