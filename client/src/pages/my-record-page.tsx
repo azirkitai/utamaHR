@@ -41,6 +41,24 @@ export default function MyRecordPage() {
   // Check if user has admin access to view other employees' data
   const hasAdminAccess = (user as any)?.role && ['Super Admin', 'Admin', 'HR Manager', 'PIC'].includes((user as any).role);
 
+  // Fetch financial claim policies for dropdown options
+  const { data: financialClaimPolicies = [] } = useQuery({
+    queryKey: ['/api/financial-claim-policies'],
+    queryFn: async () => {
+      const token = localStorage.getItem('utamahr_token');
+      const response = await fetch('/api/financial-claim-policies', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch financial claim policies');
+      }
+      return response.json();
+    }
+  });
+
   // Fetch attendance records from database with simplified approach  
   const { data: rawAttendanceData, isLoading: isLoadingAttendance, error: attendanceError, refetch: refetchAttendance } = useQuery({
     queryKey: ['attendance-records', activeTab, user?.id, filters.dateFrom.toISOString(), filters.dateTo.toISOString()],
@@ -670,11 +688,11 @@ export default function MyRecordPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all-claim-type">All claim type</SelectItem>
-              <SelectItem value="flight-tix">Flight Tix</SelectItem>
-              <SelectItem value="parking">Parking</SelectItem>
-              <SelectItem value="meal">Meal</SelectItem>
-              <SelectItem value="hotel">Hotel</SelectItem>
-              <SelectItem value="mileage">Mileage (KM)</SelectItem>
+              {financialClaimPolicies.map((policy: any) => (
+                <SelectItem key={policy.id} value={policy.claimName.toLowerCase().replace(/\s+/g, '-')}>
+                  {policy.claimName}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
