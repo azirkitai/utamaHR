@@ -77,49 +77,53 @@ export class EmployeePDFGenerator {
     };
 
     const addPageHeader = () => {
-      // New improved KLINIK UTAMA logo design
+      // KLINIK UTAMA logo design based on the image provided
       const logoX = 20;
       const logoY = 8;
       
-      // KLINIK text in red (top line, smaller)
-      doc.setFontSize(12);
+      // KLINIK text in red (top line, bold)
+      doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(184, 28, 48); // Dark red color
-      doc.text('KLINIK', logoX, logoY + 8);
+      doc.setTextColor(178, 34, 52); // Red color matching the image
+      doc.text('KLINIK', logoX, logoY + 10);
       
-      // UTAMA text with proper spacing (main line, larger)
-      doc.setFontSize(18);
+      // UTAMA text line with proper color scheme
+      doc.setFontSize(22);
       doc.setFont('helvetica', 'bold');
       
       // UTA in red
-      doc.setTextColor(184, 28, 48); // Dark red color
-      doc.text('UTA', logoX, logoY + 20);
+      doc.setTextColor(178, 34, 52); // Red color
+      doc.text('UTA', logoX, logoY + 26);
       
-      // M in blue (with proper spacing)
-      doc.setTextColor(30, 64, 175); // Blue color
-      doc.text('M', logoX + 30, logoY + 20);
+      // M in blue - positioned to match the heartbeat integration
+      doc.setTextColor(41, 98, 182); // Blue color
+      doc.text('M', logoX + 38, logoY + 26);
       
-      // A in red
-      doc.setTextColor(184, 28, 48); // Dark red color
-      doc.text('A', logoX + 42, logoY + 20);
+      // A in red - positioned after the M
+      doc.setTextColor(178, 34, 52); // Red color
+      doc.text('A', logoX + 55, logoY + 26);
       
-      // Enhanced heartbeat line design (blue)
-      doc.setDrawColor(30, 64, 175);
-      doc.setLineWidth(2.5);
+      // Blue underline extending across UTA and continuing to heartbeat
+      doc.setDrawColor(41, 98, 182);
+      doc.setLineWidth(3);
+      doc.line(logoX, logoY + 30, logoX + 70, logoY + 30);
       
-      // Horizontal line leading to heartbeat
-      doc.line(logoX + 55, logoY + 16, logoX + 65, logoY + 16);
+      // Heartbeat pattern integrated with the underline
+      doc.setLineWidth(3);
+      // Continue line from underline
+      doc.line(logoX + 70, logoY + 30, logoX + 75, logoY + 30);
+      // Heartbeat spike up
+      doc.line(logoX + 75, logoY + 30, logoX + 78, logoY + 18);
+      // Heartbeat spike down
+      doc.line(logoX + 78, logoY + 18, logoX + 82, logoY + 35);
+      // Return to baseline
+      doc.line(logoX + 82, logoY + 35, logoX + 85, logoY + 30);
+      // Continue line
+      doc.line(logoX + 85, logoY + 30, logoX + 95, logoY + 30);
       
-      // Heartbeat pattern
-      doc.line(logoX + 65, logoY + 16, logoX + 70, logoY + 16);
-      doc.line(logoX + 70, logoY + 16, logoX + 73, logoY + 10);
-      doc.line(logoX + 73, logoY + 10, logoX + 77, logoY + 22);
-      doc.line(logoX + 77, logoY + 22, logoX + 80, logoY + 16);
-      doc.line(logoX + 80, logoY + 16, logoX + 90, logoY + 16);
-      
-      // Add a small circle at the end
-      doc.setFillColor(30, 64, 175);
-      doc.circle(logoX + 92, logoY + 16, 1.5, 'F');
+      // Circle at the end of heartbeat line
+      doc.setFillColor(41, 98, 182);
+      doc.circle(logoX + 97, logoY + 30, 2, 'F');
       
       // Title
       doc.setFontSize(20);
@@ -133,15 +137,15 @@ export class EmployeePDFGenerator {
       doc.setTextColor(0, 0, 0);
       const systemName = companySettings?.companyShortName || 
         companySettings?.companyName || 
-        'KLINIK UTAMA HR SISTEM';
+        'KLINIK UTAMA 24 JAM HR SISTEM';
       doc.text(systemName, 105, 27, { align: 'center' });
       
       // Header line
       doc.setDrawColor(30, 64, 175);
       doc.setLineWidth(0.5);
-      doc.line(20, 35, 190, 35);
+      doc.line(20, 40, 190, 40);
       
-      return 40; // Return Y position after header
+      return 45; // Return Y position after header (adjusted for larger logo)
     };
 
     const addSectionHeader = (title: string, yPos: number): number => {
