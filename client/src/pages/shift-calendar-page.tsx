@@ -25,11 +25,16 @@ export default function ShiftCalendarPage() {
     queryKey: ['/api/employees'],
   });
 
+  // Fetch shifts data for legend
+  const { data: shifts = [] } = useQuery({
+    queryKey: ['/api/shifts'],
+  });
+
   // Group employees by department
   const departments = React.useMemo(() => {
     const deptMap = new Map();
     
-    employees.forEach((employee: any) => {
+    (employees as any[]).forEach((employee: any) => {
       const deptName = employee.employment?.department || 'Lain-lain';
       const deptId = deptName.toLowerCase().replace(/\s+/g, '-');
       
@@ -295,7 +300,7 @@ export default function ShiftCalendarPage() {
                     </tr>
 
                     {/* Employee Rows */}
-                    {expandedDepartments.includes(department.id) && department.employees.map((employee) => (
+                    {expandedDepartments.includes(department.id) && department.employees.map((employee: any) => (
                       <tr key={employee.id} className="border-b hover:bg-gray-50">
                         <td className="p-4 font-medium text-gray-900">
                           {employee.name}
@@ -318,11 +323,16 @@ export default function ShiftCalendarPage() {
         </div>
 
         {/* Legend */}
-        <div className="flex items-center space-x-6 text-sm">
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 rounded"></div>
-            <span className="text-gray-600">Default Shift</span>
-          </div>
+        <div className="flex flex-wrap items-center gap-4 text-sm">
+          {(shifts as any[]).map((shift: any) => (
+            <div key={shift.id} className="flex items-center space-x-2">
+              <div 
+                className="w-4 h-4 rounded"
+                style={{ backgroundColor: shift.shiftColor || '#6B7280' }}
+              ></div>
+              <span className="text-gray-600">{shift.shiftName}</span>
+            </div>
+          ))}
           <div className="flex items-center space-x-2">
             <div className="w-4 h-4 bg-gray-200 rounded"></div>
             <span className="text-gray-600">Off Day</span>
