@@ -1481,7 +1481,7 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  private generateStandardComplianceMessage(type: 'clock_in' | 'break_out', minutesLate: number, shiftTime: string): string {
+  private generateStandardComplianceMessage(type: 'clock_in' | 'break_out' | 'break_in', minutesLate: number, shiftTime: string): string {
     const hours = Math.floor(minutesLate / 60);
     const minutes = minutesLate % 60;
     
@@ -1494,7 +1494,19 @@ export class DatabaseStorage implements IStorage {
       timeDesc = `${minutes} minit`;
     }
 
-    const actionType = type === 'clock_in' ? 'masa shift' : 'masa rehat';
+    let actionType = "";
+    switch (type) {
+      case 'clock_in':
+        actionType = 'masa shift';
+        break;
+      case 'break_out':
+        actionType = 'masa rehat';
+        break;
+      case 'break_in':
+        actionType = 'masa balik rehat';
+        break;
+    }
+    
     return `Lewat ${timeDesc} dari ${actionType} ${shiftTime}. Perlu semakan penyelia.`;
   }
 
@@ -1619,7 +1631,7 @@ export class DatabaseStorage implements IStorage {
         console.log(`🚨 LATE BREAK-IN DETECTED: ${minutesLate} minutes late`);
         
         result.isLateBreakIn = true;
-        result.breakInRemarks = `Lewat ${minutesLate} minit balik dari rehat ${employeeShift.breakTimeIn}. Perlu semakan penyelia.`;
+        result.breakInRemarks = this.generateStandardComplianceMessage('break_in', minutesLate, employeeShift.breakTimeIn);
         
         console.log(`🚨 Setting isLateBreakIn=true, remarks: ${result.breakInRemarks}`);
       } else {
