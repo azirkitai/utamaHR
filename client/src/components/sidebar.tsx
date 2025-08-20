@@ -30,7 +30,8 @@ import {
   Receipt,
   Bell,
   QrCode,
-  FormInput
+  FormInput,
+  Shield
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
@@ -113,6 +114,12 @@ const navigationItems: { category: string; items: SidebarItem[] }[] = [
         icon: <TrendingUp className="w-4 h-4" />,
         href: "/performance",
         badge: "★",
+      },
+      {
+        id: "disciplinary-records",
+        label: "Disciplinary Records",
+        icon: <Shield className="w-4 h-4" />,
+        href: "/disciplinary-records",
       },
     ],
   },
@@ -220,12 +227,12 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
   // Get user and employee data for role-based access control
-  const { data: user } = useQuery({
+  const { data: user } = useQuery<any>({
     queryKey: ["/api/user"],
     retry: false,
   });
 
-  const { data: currentEmployee } = useQuery({
+  const { data: currentEmployee } = useQuery<any>({
     queryKey: ["/api/user/employee"],
     retry: false,
   });

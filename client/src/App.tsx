@@ -34,6 +34,7 @@ import QRClockInPage from "@/pages/qr-clockin-page";
 import MobileClockInPage from "@/pages/mobile-clockin-page";
 import MobileClockOutPage from "@/pages/mobile-clockout-page";
 import PerformanceEvaluationPage from "@/pages/performance-evaluation-page";
+import DisciplinaryRecordsPage from "@/pages/disciplinary-records-page";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "./lib/protected-route";
 
@@ -53,6 +54,7 @@ function Router() {
       <ProtectedRoute path="/forms" component={FormsPage} />
       <ProtectedRoute path="/performance" component={PerformanceEvaluationPage} />
       <ProtectedRoute path="/evaluation" component={PerformanceEvaluationPage} />
+      <ProtectedRoute path="/disciplinary-records" component={DisciplinaryRecordsPage} />
       <ProtectedRoute path="/manage-employee" component={ManageEmployeePage} />
       <ProtectedRoute path="/approval" component={LeaveApprovalPage} />
       <ProtectedRoute path="/approval/leave" component={LeaveApprovalPage} />
