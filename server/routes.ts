@@ -3046,6 +3046,35 @@ export function registerRoutes(app: Express): Server {
       }
       
       console.log(`Found ${claims.length} claim applications for ${targetEmployeeId || 'all employees'}`);
+      
+      // Debug: Check if Siti Nadiah rejected claim is included
+      const sitiRejectedClaim = claims.find(c => 
+        (c.requestorName && c.requestorName.toLowerCase().includes('siti nadiah')) && 
+        c.status && c.status.toLowerCase() === 'rejected'
+      );
+      
+      if (sitiRejectedClaim) {
+        console.log('✅ FOUND Siti Nadiah rejected claim:', {
+          id: sitiRejectedClaim.id,
+          requestorName: sitiRejectedClaim.requestorName,
+          status: sitiRejectedClaim.status,
+          amount: sitiRejectedClaim.amount,
+          financialPolicyName: sitiRejectedClaim.financialPolicyName
+        });
+      } else {
+        console.log('❌ MISSING Siti Nadiah rejected claim - checking all claims...');
+        claims.forEach((claim, index) => {
+          if (claim.requestorName && claim.requestorName.toLowerCase().includes('siti')) {
+            console.log(`Claim ${index + 1}:`, {
+              id: claim.id,
+              requestorName: claim.requestorName,
+              status: claim.status,
+              amount: claim.amount
+            });
+          }
+        });
+      }
+      
       res.json(claims);
     } catch (error) {
       console.error("Error fetching claim applications:", error);
