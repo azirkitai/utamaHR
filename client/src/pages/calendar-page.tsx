@@ -228,7 +228,19 @@ function ShiftCalendarView() {
 
   const { data: employeeShifts = [] } = useQuery({
     queryKey: ['/api/employee-shifts'],
+    refetchInterval: 5000, // Refetch every 5 seconds for real-time sync
   });
+
+  // Debug logging for employee shifts
+  React.useEffect(() => {
+    if (employeeShifts.length > 0) {
+      console.log('=== EMPLOYEE SHIFTS DATA ===');
+      console.log('Total employee shifts:', employeeShifts.length);
+      console.log('Sample employee shifts:', employeeShifts.slice(0, 3));
+    } else {
+      console.log('No employee shifts found');
+    }
+  }, [employeeShifts]);
 
   // Group employees by department
   const employeesByDepartment = employees.reduce((acc: any, employee: any) => {
@@ -242,13 +254,35 @@ function ShiftCalendarView() {
 
   // Get shift assignment for employee on specific date
   const getShiftForEmployeeDate = (employeeId: string, date: Date) => {
-    const dateStr = date.toISOString();
-    const assignment = employeeShifts.find((es: any) => 
-      es.employeeId === employeeId && es.date === dateStr
-    );
+    // Format date as YYYY-MM-DD to match database format
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
+    
+    // Debug logging
+    console.log(`Looking for shift assignment for employee ${employeeId} on ${dateStr}`);
+    
+    const assignment = employeeShifts.find((es: any) => {
+      // Handle both date formats - ensure we compare dates properly
+      if (!es.assignedDate) return false;
+      
+      let esDateStr = es.assignedDate;
+      if (typeof esDateStr === 'string' && esDateStr.includes('T')) {
+        // If it's ISO format, extract just the date part
+        esDateStr = esDateStr.split('T')[0];
+      }
+      
+      const matches = es.employeeId === employeeId && esDateStr === dateStr;
+      if (matches) {
+        console.log(`Found assignment:`, es);
+      }
+      return matches;
+    });
     
     if (assignment) {
       const shift = shifts.find((s: any) => s.id === assignment.shiftId);
+      console.log(`Found shift:`, shift);
       return shift ? { ...shift, color: assignment.color } : null;
     }
     return null;
