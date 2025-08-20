@@ -20,7 +20,7 @@ export default function PerformanceEvaluationPage() {
         {/* Main Content */}
         <div className="relative z-10 flex items-center justify-center min-h-screen p-6">
           <Card className="max-w-4xl w-full bg-white/95 backdrop-blur-sm shadow-2xl border-0">
-            <CardContent className="p-12 text-center">
+            <CardContent className="p-12 text-center bg-[#5ed7ff]">
               {/* Logo Section */}
               <div className="mb-8 flex justify-center">
                 <div className="relative">
