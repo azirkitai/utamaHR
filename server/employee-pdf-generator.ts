@@ -50,6 +50,7 @@ export class EmployeePDFGenerator {
     
     // Get company settings for logo and company info
     const companySettings = await storage.getCompanySettings();
+    console.log('Company settings retrieved:', companySettings);
     
     const doc = new jsPDF({
       orientation: 'portrait',
