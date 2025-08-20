@@ -273,13 +273,27 @@ export const claimPolicy = pgTable("claim_policy", {
 });
 
 // 11. Disciplinary Table (Disciplinary tab)
-export const disciplinary = pgTable("disciplinary", {
+export const disciplinaryRecords = pgTable("disciplinary_records", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   employeeId: varchar("employee_id").notNull().references(() => employees.id),
   
-  incidentDate: timestamp("incident_date"),
-  type: text("type"), // Warning, Suspension, etc.
-  remarks: text("remarks"),
+  type: text("type").notNull(), // verbal_warning, written_warning, final_warning, suspension, termination
+  severity: text("severity").notNull(), // low, moderate, high, critical
+  subject: text("subject").notNull(),
+  description: text("description"),
+  dateIssued: timestamp("date_issued").notNull(),
+  
+  issuedBy: varchar("issued_by").notNull().references(() => users.id),
+  issuedByName: text("issued_by_name").notNull(),
+  
+  status: text("status").notNull().default("active"), // active, resolved, escalated
+  followUpRequired: boolean("follow_up_required").default(false),
+  followUpDate: timestamp("follow_up_date"),
+  internalNotes: text("internal_notes"),
+  
+  // File attachment info
+  attachmentCount: integer("attachment_count").default(0),
+  attachmentNames: text("attachment_names"), // JSON array of file names
   
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -1015,13 +1029,25 @@ export const insertClaimPolicySchema = createInsertSchema(claimPolicy).omit({
 });
 export const updateClaimPolicySchema = insertClaimPolicySchema.partial();
 
-// Disciplinary schemas
-export const insertDisciplinarySchema = createInsertSchema(disciplinary).omit({
+// Disciplinary Records schemas
+export const insertDisciplinaryRecordSchema = createInsertSchema(disciplinaryRecords).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  // Handle date fields to accept strings and convert to Date objects
+  dateIssued: z.preprocess(
+    (val) => val ? new Date(val as string | Date) : new Date(),
+    z.date()
+  ),
+  followUpDate: z.preprocess(
+    (val) => val ? new Date(val as string | Date) : null,
+    z.date().nullable().optional()
+  ),
 });
-export const updateDisciplinarySchema = insertDisciplinarySchema.partial();
+export const updateDisciplinaryRecordSchema = insertDisciplinaryRecordSchema.partial();
+export type InsertDisciplinaryRecord = z.infer<typeof insertDisciplinaryRecordSchema>;
+export type SelectDisciplinaryRecord = typeof disciplinaryRecords.$inferSelect;
 
 // Company Settings schemas
 export const insertCompanySettingSchema = createInsertSchema(companySettings).omit({

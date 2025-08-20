@@ -123,7 +123,10 @@ import {
   payrollItems,
   payrollDocuments,
   employeeSalaries,
-  forms
+  forms,
+  disciplinaryRecords,
+  insertDisciplinaryRecordSchema,
+  updateDisciplinaryRecordSchema
 } from "@shared/schema";
 
 // Helper function to get month name
@@ -7841,9 +7844,10 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).json({ error: "Employee record tidak dijumpai" });
       }
 
-      // For now, return empty array since no disciplinary records exist yet
-      // TODO: Implement actual disciplinary records query when schema is ready
-      const userRecords = [];
+      // Fetch user's disciplinary records from database
+      const userRecords = await db.select()
+        .from(disciplinaryRecords)
+        .where(eq(disciplinaryRecords.employeeId, employee.id));
 
       res.json(userRecords);
     } catch (error) {
@@ -7863,9 +7867,8 @@ export function registerRoutes(app: Express): Server {
         return res.status(403).json({ error: "Akses ditolak - Hanya HR yang dibenarkan" });
       }
 
-      // For now, return empty array since no disciplinary records schema implemented yet
-      // TODO: Implement actual disciplinary records query when schema is ready
-      const allRecords = [];
+      // Fetch all disciplinary records from database
+      const allRecords = await db.select().from(disciplinaryRecords);
 
       res.json(allRecords);
     } catch (error) {
@@ -7885,29 +7888,18 @@ export function registerRoutes(app: Express): Server {
         return res.status(403).json({ error: "Akses ditolak - Hanya HR yang dibenarkan" });
       }
 
-      // Validate required fields
-      const { employeeId, type, severity, subject, description, dateIssued, status } = req.body;
-      
-      if (!employeeId || !type || !subject) {
-        return res.status(400).json({ error: "Field wajib tidak lengkap" });
-      }
-
-      // For now, return success response since schema not implemented yet
-      // TODO: Implement actual disciplinary record creation when schema is ready
-      const newRecord = {
-        id: `disciplinary-${Date.now()}`,
-        employeeId,
-        type,
-        severity: severity || 'moderate',
-        subject,
-        description: description || '',
-        dateIssued: dateIssued || new Date().toISOString(),
+      // Validate request body using Zod schema
+      const validatedData = insertDisciplinaryRecordSchema.parse({
+        ...req.body,
         issuedBy: currentUser.id,
         issuedByName: currentUser.username || 'HR',
-        status: status || 'active',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
+        dateIssued: req.body.dateIssued || new Date(),
+      });
+
+      // Insert into database
+      const [newRecord] = await db.insert(disciplinaryRecords)
+        .values(validatedData)
+        .returning();
 
       res.status(201).json({
         success: true,
@@ -7916,6 +7908,9 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       console.error("Create disciplinary record error:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ error: "Data tidak sah", details: error.errors });
+      }
       res.status(500).json({ error: "Gagal membuat rekod tatatertib" });
     }
   });

@@ -89,7 +89,7 @@ import {
   equipment,
   leavePolicy,
   claimPolicy,
-  disciplinary,
+  disciplinaryRecords,
   companySettings,
   appSetting,
   workExperiences,
