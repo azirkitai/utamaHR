@@ -169,7 +169,7 @@ export default function DisciplinaryHistoryPage() {
   });
 
   // Query disciplinary records
-  const { data: disciplinaryRecords = [], isLoading } = useQuery<DisciplinaryRecord[]>({
+  const { data: disciplinaryRecords = [], isLoading, refetch: refetchRecords } = useQuery<DisciplinaryRecord[]>({
     queryKey: ['/api/disciplinary-records'],
     enabled: !!user && !!hasHRAccess,
   });
@@ -228,15 +228,14 @@ export default function DisciplinaryHistoryPage() {
     mutationFn: async (data: any) => {
       return apiRequest('PUT', `/api/disciplinary-records/${data.id}`, data);
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({
         title: "Success",
         description: "Disciplinary record updated successfully",
       });
       closeEditDialog();
-      // Invalidate both queries to ensure fresh data
-      queryClient.invalidateQueries({ queryKey: ['/api/disciplinary-records'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/disciplinary-records/my-records'] });
+      // Force immediate refetch of data
+      await refetchRecords();
     },
     onError: (error: any) => {
       toast({
