@@ -1454,6 +1454,12 @@ export class DatabaseStorage implements IStorage {
         clockOutLongitude: attendanceRecords.clockOutLongitude,
         // Employee name field
         employeeName: employees.fullName,
+        // Add compliance fields - CRITICAL FOR FRONTEND
+        isLateClockIn: attendanceRecords.isLateClockIn,
+        isLateBreakOut: attendanceRecords.isLateBreakOut,
+        clockInRemarks: attendanceRecords.clockInRemarks,
+        breakOutRemarks: attendanceRecords.breakOutRemarks,
+        shiftId: attendanceRecords.shiftId,
       })
       .from(attendanceRecords)
       .leftJoin(employees, eq(attendanceRecords.employeeId, employees.id));

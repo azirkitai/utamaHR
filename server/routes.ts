@@ -2370,7 +2370,15 @@ export function registerRoutes(app: Express): Server {
           clockInImage: record.clockInImage,
           clockOutImage: record.clockOutImage,
           totalHours: record.totalHours,
-          status: record.status
+          status: record.status,
+          // Add compliance fields for QR Clock-in page
+          isLateClockIn: record.isLateClockIn,
+          isLateBreakOut: record.isLateBreakOut,
+          clockInRemarks: record.clockInRemarks,
+          breakOutRemarks: record.breakOutRemarks,
+          shiftId: record.shiftId,
+          breakOutTime: record.breakOutTime,
+          breakInTime: record.breakInTime
         }))
       });
     } catch (error) {
