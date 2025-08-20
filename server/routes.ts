@@ -2170,8 +2170,20 @@ export function registerRoutes(app: Express): Server {
           // Check if clock-in is late (ALWAYS check, not just when enableStrictClockIn is true)
           if (currentTime > todayShiftStart) {
             const lateMinutes = Math.floor((currentTime.getTime() - todayShiftStart.getTime()) / (1000 * 60));
+            
+            // Convert minutes to hours and minutes format
+            const lateHours = Math.floor(lateMinutes / 60);
+            const remainingMinutes = lateMinutes % 60;
+            
+            let lateTimeText = '';
+            if (lateHours > 0) {
+              lateTimeText = `${lateHours} jam ${remainingMinutes} minit`;
+            } else {
+              lateTimeText = `${remainingMinutes} minit`;
+            }
+            
             shiftCompliance.isLateClockIn = true;
-            shiftCompliance.clockInRemarks = `Lewat ${lateMinutes} minit dari masa shift ${shiftStartTime}. Perlu semakan penyelia.`;
+            shiftCompliance.clockInRemarks = `Lewat ${lateTimeText} dari masa shift ${shiftStartTime}. Perlu semakan penyelia.`;
           }
           
           shiftCompliance.shiftId = activeShift.id;
