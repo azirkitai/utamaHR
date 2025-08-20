@@ -1134,7 +1134,62 @@ export function registerRoutes(app: Express): Server {
         employeeId: targetEmployeeId
       });
 
-      res.json(records);
+      // UNIVERSAL COMPLIANCE LOGIC - Apply to ALL records automatically
+      const recordsWithCompliance = await Promise.all(records.map(async (record) => {
+        // Initialize compliance fields
+        let isLateClockIn = false;
+        let clockInRemarks = null;
+        
+        // Only check compliance if there's a clock-in time
+        if (record.clockInTime) {
+          try {
+            // Get employee's active shift assignment for the record date
+            const activeShift = await storage.getEmployeeActiveShift(record.employeeId);
+            if (activeShift) {
+              // Parse shift start time for clock-in compliance check
+              const shiftStartTime = activeShift.clockIn; // e.g., "08:30"
+              const [shiftHour, shiftMinute] = shiftStartTime.split(':').map(Number);
+              
+              // Create shift start time for the record date
+              const recordDate = new Date(record.date);
+              const shiftStartDateTime = new Date(recordDate);
+              shiftStartDateTime.setHours(shiftHour, shiftMinute, 0, 0);
+              
+              // Check if clock-in is late (Universal compliance for ALL users)
+              const clockInTime = new Date(record.clockInTime);
+              if (clockInTime > shiftStartDateTime) {
+                const lateMinutes = Math.floor((clockInTime.getTime() - shiftStartDateTime.getTime()) / (1000 * 60));
+                
+                // Convert minutes to hours and minutes format
+                const lateHours = Math.floor(lateMinutes / 60);
+                const remainingMinutes = lateMinutes % 60;
+                
+                let lateTimeText = '';
+                if (lateHours > 0) {
+                  lateTimeText = `${lateHours} jam ${remainingMinutes} minit`;
+                } else {
+                  lateTimeText = `${remainingMinutes} minit`;
+                }
+                
+                isLateClockIn = true;
+                clockInRemarks = `Lewat ${lateTimeText} dari masa shift ${shiftStartTime}. Perlu semakan penyelia.`;
+              }
+            }
+          } catch (error) {
+            console.error("Shift compliance check error for record:", record.id, error);
+            // Continue with normal record even if shift check fails
+          }
+        }
+        
+        // Return record with compliance data
+        return {
+          ...record,
+          isLateClockIn,
+          clockInRemarks
+        };
+      }));
+
+      res.json(recordsWithCompliance);
     } catch (error) {
       console.error("Attendance records error:", error);
       res.status(500).json({ error: "Gagal mengambil rekod kehadiran" });
