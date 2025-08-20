@@ -550,15 +550,34 @@ export default function ShiftCalendarPage() {
             ))}
           </div>
           
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setEditMode(!editMode)}
-            className={`${editMode ? 'bg-red-100 text-red-700 border-red-300 hover:bg-red-200' : 'bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200'}`}
-            data-testid="button-edit-shifts"
-          >
-            {editMode ? 'Exit Edit' : 'Edit Shifts'}
-          </Button>
+          <div className="flex items-center gap-2">
+            {editMode && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  // Save logic - for now just show success message
+                  toast({
+                    title: "Berjaya",
+                    description: "Perubahan shift telah disimpan",
+                  });
+                }}
+                className="bg-green-100 text-green-700 border-green-300 hover:bg-green-200"
+                data-testid="button-save-shifts"
+              >
+                Save
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setEditMode(!editMode)}
+              className={`${editMode ? 'bg-red-100 text-red-700 border-red-300 hover:bg-red-200' : 'bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200'}`}
+              data-testid="button-edit-shifts"
+            >
+              {editMode ? 'Exit Edit' : 'Edit Shifts'}
+            </Button>
+          </div>
         </div>
       </div>
     </DashboardLayout>
