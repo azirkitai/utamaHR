@@ -156,25 +156,25 @@ export default function DisciplinaryHistoryPage() {
   // Query employees for dropdown
   const { data: employees = [] } = useQuery<Employee[]>({
     queryKey: ['/api/employees'],
-    enabled: !!user && hasHRAccess,
+    enabled: !!user && !!hasHRAccess,
   });
 
   // Query disciplinary records
   const { data: disciplinaryRecords = [], isLoading } = useQuery<DisciplinaryRecord[]>({
     queryKey: ['/api/disciplinary-records'],
-    enabled: !!user && hasHRAccess,
+    enabled: !!user && !!hasHRAccess,
   });
 
   // Get selected employee details
-  const selectedEmployee = employees.find(emp => emp.id === selectedEmployeeId);
+  const selectedEmployee = (employees as Employee[]).find((emp: Employee) => emp.id === selectedEmployeeId);
   
   // Filter records for selected employee
-  const employeeRecords = disciplinaryRecords.filter(record => 
+  const employeeRecords = (disciplinaryRecords as DisciplinaryRecord[]).filter((record: DisciplinaryRecord) => 
     record.employeeId === selectedEmployeeId
   );
 
   // Apply search and filters
-  const filteredRecords = employeeRecords.filter(record => {
+  const filteredRecords = employeeRecords.filter((record: DisciplinaryRecord) => {
     const matchesSearch = record.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          record.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = !filterType || filterType === 'all' || record.type === filterType;
@@ -185,27 +185,24 @@ export default function DisciplinaryHistoryPage() {
 
   // Calculate summary stats for selected employee
   const summaryStats = {
-    totalWarnings: employeeRecords.filter(r => r.type === 'written_warning').length,
-    finalWarnings: employeeRecords.filter(r => r.type === 'final_warning').length,
-    suspensions: employeeRecords.filter(r => r.type === 'suspension').length,
-    others: employeeRecords.filter(r => !['written_warning', 'final_warning', 'suspension'].includes(r.type)).length,
+    totalWarnings: employeeRecords.filter((r: DisciplinaryRecord) => r.type === 'written_warning').length,
+    finalWarnings: employeeRecords.filter((r: DisciplinaryRecord) => r.type === 'final_warning').length,
+    suspensions: employeeRecords.filter((r: DisciplinaryRecord) => r.type === 'suspension').length,
+    others: employeeRecords.filter((r: DisciplinaryRecord) => !['written_warning', 'final_warning', 'suspension'].includes(r.type)).length,
   };
 
   // Create new disciplinary record mutation
   const createRecordMutation = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest('/api/disciplinary-records', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
+      return apiRequest('/api/disciplinary-records', 'POST', data);
     },
     onSuccess: () => {
       toast({
         title: "Success",
         description: "Disciplinary record created successfully",
       });
+      resetForm();
       queryClient.invalidateQueries({ queryKey: ['/api/disciplinary-records'] });
-      resetForm(); // Use the resetForm function
     },
     onError: (error: any) => {
       toast({
@@ -213,7 +210,7 @@ export default function DisciplinaryHistoryPage() {
         description: error.message || "Failed to create disciplinary record",
         variant: "destructive",
       });
-    },
+    }
   });
 
   const handleSubmit = () => {
@@ -325,7 +322,7 @@ export default function DisciplinaryHistoryPage() {
                           <SelectValue placeholder="Choose an employee..." />
                         </SelectTrigger>
                         <SelectContent>
-                          {employees.map((employee) => (
+                          {(employees as Employee[]).map((employee: Employee) => (
                             <SelectItem key={employee.id} value={employee.id}>
                               {employee.fullName} - {employee.employment?.employeeNo || 'N/A'}
                             </SelectItem>
@@ -498,19 +495,19 @@ export default function DisciplinaryHistoryPage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {filteredRecords.map((record) => (
+                        {filteredRecords.map((record: DisciplinaryRecord) => (
                           <TableRow key={record.id}>
                             <TableCell>
                               {new Date(record.dateIssued).toLocaleDateString('en-GB')}
                             </TableCell>
                             <TableCell>
-                              <Badge className={severityColors[record.severity]}>
-                                {typeLabels[record.type]}
+                              <Badge className={severityColors[record.severity as keyof typeof severityColors]}>
+                                {typeLabels[record.type as keyof typeof typeLabels]}
                               </Badge>
                             </TableCell>
                             <TableCell>{record.subject}</TableCell>
                             <TableCell>
-                              <Badge className={statusColors[record.status]}>
+                              <Badge className={statusColors[record.status as keyof typeof statusColors]}>
                                 {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
                               </Badge>
                             </TableCell>
@@ -543,8 +540,8 @@ export default function DisciplinaryHistoryPage() {
                                         </div>
                                         <div>
                                           <p className="text-sm font-medium text-muted-foreground">Type</p>
-                                          <Badge className={severityColors[selectedRecord.severity]}>
-                                            {typeLabels[selectedRecord.type]}
+                                          <Badge className={severityColors[selectedRecord.severity as keyof typeof severityColors]}>
+                                            {typeLabels[selectedRecord.type as keyof typeof typeLabels]}
                                           </Badge>
                                         </div>
                                       </div>
@@ -614,7 +611,7 @@ export default function DisciplinaryHistoryPage() {
                         <SelectValue placeholder="Select employee..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {employees.map((employee) => (
+                        {(employees as Employee[]).map((employee: Employee) => (
                           <SelectItem key={employee.id} value={employee.id}>
                             {employee.fullName} - {employee.employment?.employeeNo || 'N/A'}
                           </SelectItem>
