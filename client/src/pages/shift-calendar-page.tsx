@@ -100,53 +100,92 @@ export default function ShiftCalendarPage() {
     }
   }, [departments]);
 
-  // Get week dates
-  const getWeekDates = (date: Date) => {
-    const startOfWeek = new Date(date);
-    const day = startOfWeek.getDay();
-    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
-    startOfWeek.setDate(diff);
+  // Get dates based on view mode
+  const getDatesForView = (date: Date) => {
+    if (viewMode === "week") {
+      const startOfWeek = new Date(date);
+      const day = startOfWeek.getDay();
+      const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+      startOfWeek.setDate(diff);
 
-    const weekDates = [];
-    for (let i = 0; i < 7; i++) {
-      const currentDate = new Date(startOfWeek);
-      currentDate.setDate(startOfWeek.getDate() + i);
-      weekDates.push(currentDate);
+      const weekDates = [];
+      for (let i = 0; i < 7; i++) {
+        const currentDate = new Date(startOfWeek);
+        currentDate.setDate(startOfWeek.getDate() + i);
+        weekDates.push(currentDate);
+      }
+      return weekDates;
+    } else if (viewMode === "month") {
+      const year = date.getFullYear();
+      const month = date.getMonth();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      
+      const monthDates = [];
+      for (let i = 1; i <= daysInMonth; i++) {
+        const currentDate = new Date(year, month, i);
+        monthDates.push(currentDate);
+      }
+      return monthDates;
     }
-    return weekDates;
+    return [];
   };
 
-  const weekDates = getWeekDates(currentWeek);
+  const viewDates = getDatesForView(currentWeek);
 
-  const formatWeekRange = () => {
-    const startDate = weekDates[0];
-    const endDate = weekDates[6];
-    
-    const formatOptions: Intl.DateTimeFormatOptions = { 
-      month: 'short', 
-      day: 'numeric'
-    };
-    
-    const start = startDate.toLocaleDateString('en-US', formatOptions);
-    const end = endDate.toLocaleDateString('en-US', formatOptions);
-    const year = endDate.getFullYear();
-    
-    return `${start} – ${end}, ${year}`;
+  const formatDateRange = () => {
+    if (viewMode === "week") {
+      const startDate = viewDates[0];
+      const endDate = viewDates[6];
+      
+      const formatOptions: Intl.DateTimeFormatOptions = { 
+        month: 'short', 
+        day: 'numeric'
+      };
+      
+      const start = startDate.toLocaleDateString('en-US', formatOptions);
+      const end = endDate.toLocaleDateString('en-US', formatOptions);
+      const year = endDate.getFullYear();
+      
+      return `${start} – ${end}, ${year}`;
+    } else if (viewMode === "month") {
+      const formatOptions: Intl.DateTimeFormatOptions = { 
+        month: 'long', 
+        year: 'numeric'
+      };
+      
+      return currentWeek.toLocaleDateString('en-US', formatOptions);
+    }
+    return "";
   };
 
   const getDayHeaders = () => {
-    const dayNames = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-    return weekDates.map((date, index) => ({
-      dayName: dayNames[index],
-      dayNumber: date.getDate(),
-      fullDate: date
-    }));
+    if (viewMode === "week") {
+      const dayNames = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+      return viewDates.map((date, index) => ({
+        dayName: dayNames[index],
+        dayNumber: date.getDate(),
+        fullDate: date
+      }));
+    } else if (viewMode === "month") {
+      return viewDates.map((date) => ({
+        dayName: date.toLocaleDateString('en-US', { weekday: 'short' })[0], // Just first letter
+        dayNumber: date.getDate(),
+        fullDate: date
+      }));
+    }
+    return [];
   };
 
-  const navigateWeek = (direction: 'prev' | 'next') => {
-    const newWeek = new Date(currentWeek);
-    newWeek.setDate(currentWeek.getDate() + (direction === 'next' ? 7 : -7));
-    setCurrentWeek(newWeek);
+  const navigateView = (direction: 'prev' | 'next') => {
+    const newDate = new Date(currentWeek);
+    
+    if (viewMode === "week") {
+      newDate.setDate(currentWeek.getDate() + (direction === 'next' ? 7 : -7));
+    } else if (viewMode === "month") {
+      newDate.setMonth(currentWeek.getMonth() + (direction === 'next' ? 1 : -1));
+    }
+    
+    setCurrentWeek(newDate);
   };
 
   const toggleDepartment = (departmentId: string) => {
@@ -349,7 +388,7 @@ export default function ShiftCalendarPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => navigateWeek('prev')}
+              onClick={() => navigateView('prev')}
               className="bg-black text-white hover:bg-gray-800"
               data-testid="button-prev-week"
             >
@@ -358,7 +397,7 @@ export default function ShiftCalendarPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => navigateWeek('next')}
+              onClick={() => navigateView('next')}
               className="bg-black text-white hover:bg-gray-800"
               data-testid="button-next-week"
             >
@@ -383,7 +422,7 @@ export default function ShiftCalendarPage() {
                 data-testid="button-date-picker"
               >
                 <CalendarIcon className="w-4 h-4 mr-2" />
-                {formatWeekRange()}
+                {formatDateRange()}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="center">
