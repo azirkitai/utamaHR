@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
@@ -225,18 +225,36 @@ export default function ShiftCalendarPage() {
     updateShiftMutation.mutate({ employeeId, shiftId: finalShiftId });
   }, [updateShiftMutation]);
 
-  const renderShiftCell = useCallback((shift: { type: string; label: string; color: string; shiftId?: string }, employeeId?: string, cellKey?: string) => {
-    if (editMode && employeeId) {
-      // Edit mode: Show dropdown to select shift
+  // Create memoized cell component to prevent unwanted re-renders
+  const ShiftCell = React.memo(({ 
+    shift, 
+    employeeId, 
+    cellKey 
+  }: {
+    shift: { type: string; label: string; color: string; shiftId?: string };
+    employeeId: string;
+    cellKey: string;
+  }) => {
+    const [localValue, setLocalValue] = useState(() => {
       const currentShiftId = shift?.shiftId || '';
-      // Convert empty shiftId to "no-shift" for display
-      const displayValue = currentShiftId === '' ? 'no-shift' : currentShiftId;
-      
+      return currentShiftId === '' ? 'no-shift' : currentShiftId;
+    });
+
+    // Update local value when shift data changes from backend
+    React.useEffect(() => {
+      const currentShiftId = shift?.shiftId || '';
+      const newValue = currentShiftId === '' ? 'no-shift' : currentShiftId;
+      setLocalValue(newValue);
+    }, [shift?.shiftId]);
+
+    if (editMode) {
       return (
         <Select
-          key={`${employeeId}-${cellKey}`}
-          value={displayValue}
-          onValueChange={(shiftId) => handleShiftChange(employeeId, shiftId)}
+          value={localValue}
+          onValueChange={(shiftId) => {
+            setLocalValue(shiftId); // Update local state immediately
+            handleShiftChange(employeeId, shiftId);
+          }}
         >
           <SelectTrigger className="w-full h-8 text-xs">
             <SelectValue placeholder="Select shift" />
@@ -279,6 +297,20 @@ export default function ShiftCalendarPage() {
           {shift.label}
         </Badge>
       </div>
+    );
+  });
+
+  const renderShiftCell = useCallback((shift: { type: string; label: string; color: string; shiftId?: string }, employeeId?: string, cellKey?: string) => {
+    if (!employeeId || !cellKey) {
+      return null;
+    }
+    
+    return (
+      <ShiftCell 
+        shift={shift} 
+        employeeId={employeeId} 
+        cellKey={cellKey} 
+      />
     );
   }, [editMode, shifts, handleShiftChange]);
 
