@@ -96,6 +96,7 @@ import {
   qrTokens,
   officeLocations,
   shifts,
+  employeeShifts,
   clockInRecords,
   attendanceRecords,
   leaveApplications,
@@ -331,6 +332,7 @@ export interface IStorage {
   updateShift(id: string, shift: Partial<InsertShift>): Promise<SelectShift | undefined>;
   deleteShift(id: string): Promise<boolean>;
   getEmployeeActiveShift(employeeId: string): Promise<(SelectShift & { employeeShiftId: string }) | null>;
+  getAllEmployeeShifts(): Promise<any[]>;
   assignEmployeeToShift(employeeId: string, shiftId: string): Promise<any>;
 
   // =================== COMPANY LEAVE TYPES METHODS ===================
@@ -1013,6 +1015,29 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error assigning employee to shift:", error);
       throw error;
+    }
+  }
+
+  async getAllEmployeeShifts(): Promise<any[]> {
+    try {
+      const result = await db
+        .select({
+          id: employeeShifts.id,
+          employeeId: employeeShifts.employeeId,
+          shiftId: employeeShifts.shiftId,
+          isActive: employeeShifts.isActive,
+          startDate: employeeShifts.startDate,
+          endDate: employeeShifts.endDate,
+          createdAt: employeeShifts.createdAt,
+          updatedAt: employeeShifts.updatedAt
+        })
+        .from(employeeShifts)
+        .orderBy(employeeShifts.createdAt);
+      
+      return result;
+    } catch (error) {
+      console.error("Error getting all employee shifts:", error);
+      return [];
     }
   }
 

@@ -30,6 +30,10 @@ export default function ShiftCalendarPage() {
     queryKey: ['/api/shifts'],
   });
 
+  const { data: employeeShifts = [] } = useQuery({
+    queryKey: ['/api/employee-shifts'],
+  });
+
   // Group employees by department
   const departments = React.useMemo(() => {
     const deptMap = new Map();
@@ -119,16 +123,66 @@ export default function ShiftCalendarPage() {
     );
   };
 
-  const getShiftForDay = (employeeId: number, date: Date) => {
-    const dayOfWeek = date.getDay();
-    // Saturday (6) and Sunday (0) are off days
-    if (dayOfWeek === 0 || dayOfWeek === 6) {
-      return { type: "off", label: "Off Day" };
+  const getShiftForDay = (employeeId: string, date: Date) => {
+    // Find active shift assignment for this employee
+    const activeShiftAssignment = (employeeShifts as any[]).find((assignment: any) => 
+      assignment.employeeId === employeeId && 
+      assignment.isActive &&
+      (!assignment.endDate || new Date(assignment.endDate) >= date)
+    );
+    
+    if (activeShiftAssignment) {
+      // Find the actual shift details
+      const assignedShift = (shifts as any[]).find((shift: any) => 
+        shift.id === activeShiftAssignment.shiftId
+      );
+      
+      if (assignedShift) {
+        const dayOfWeek = date.getDay();
+        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const dayName = dayNames[dayOfWeek];
+        
+        // Check workdays configuration for this day
+        let workdays = {};
+        try {
+          workdays = JSON.parse(assignedShift.workdays || '{}');
+        } catch (e) {
+          // Default workdays if parsing fails
+          workdays = {
+            Sunday: "Off Day",
+            Monday: "Full Day", 
+            Tuesday: "Full Day",
+            Wednesday: "Full Day",
+            Thursday: "Full Day",
+            Friday: "Full Day",
+            Saturday: "Half Day"
+          };
+        }
+        
+        const workdayStatus = (workdays as any)[dayName] || "Full Day";
+        
+        if (workdayStatus === "Off Day") {
+          return { type: "off", label: "Off Day", color: "#E5E7EB" };
+        }
+        
+        return { 
+          type: "shift", 
+          label: assignedShift.name || assignedShift.shiftName,
+          color: assignedShift.color || assignedShift.shiftColor || '#6B7280'
+        };
+      }
     }
-    return { type: "default", label: "Default Shift" };
+    
+    // Default for employees without shift assignment
+    const dayOfWeek = date.getDay();
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      return { type: "off", label: "Off Day", color: "#E5E7EB" };
+    }
+    
+    return { type: "shift", label: "No Shift", color: "#6B7280" };
   };
 
-  const renderShiftCell = (shift: { type: string; label: string }) => {
+  const renderShiftCell = (shift: { type: string; label: string; color: string }) => {
     if (shift.type === "off") {
       return (
         <div className="px-2 py-1 text-xs text-center bg-gray-200 text-gray-600 rounded">
@@ -137,7 +191,10 @@ export default function ShiftCalendarPage() {
       );
     }
     return (
-      <div className="px-2 py-1 text-xs text-center bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded">
+      <div 
+        className="px-2 py-1 text-xs text-center text-white rounded"
+        style={{ backgroundColor: shift.color }}
+      >
         {shift.label}
       </div>
     );
