@@ -1129,8 +1129,16 @@ export default function MyRecordPage() {
                     {record.clockInTime ? (
                       <div className="space-y-1">
                         <span className={`${
-                          isLate ? 'text-red-600 font-bold bg-red-100 px-2 py-1 rounded' : 'text-gray-800'
-                        }`}>
+                          isLate ? 'text-red-600 font-bold bg-red-100 px-2 py-1 rounded border-2 border-red-500' : 'text-gray-800'
+                        }`}
+                        style={isLate ? { 
+                          backgroundColor: '#fee2e2', 
+                          color: '#dc2626', 
+                          fontWeight: 'bold',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          border: '2px solid #ef4444'
+                        } : {}}>
                           {(() => {
                             // Parse UTC time and convert to Malaysia time
                             const utcDate = new Date(record.clockInTime);
@@ -1174,8 +1182,16 @@ export default function MyRecordPage() {
                     {(record as any).breakOutTime ? (
                       <div className="space-y-1">
                         <span className={`${
-                          (record as any).isLateBreakOut ? 'text-red-600 font-bold' : 'text-gray-800'
-                        }`}>
+                          (record as any).isLateBreakOut ? 'text-red-600 font-bold bg-red-100 px-2 py-1 rounded border-2 border-red-500' : 'text-gray-800'
+                        }`}
+                        style={(record as any).isLateBreakOut ? { 
+                          backgroundColor: '#fee2e2', 
+                          color: '#dc2626', 
+                          fontWeight: 'bold',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          border: '2px solid #ef4444'
+                        } : {}}>
                           {(() => {
                             const utcDate = new Date((record as any).breakOutTime);
                             if (isNaN(utcDate.getTime())) return 'Invalid Date';
