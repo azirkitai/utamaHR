@@ -784,6 +784,21 @@ export default function MyRecordPage() {
               </TableRow>
             ) : (
               claimApplications.map((claim, index) => {
+                // Debug log untuk setiap claim record
+                console.log('📋 CLAIM RECORD DEBUG:', {
+                  index: index + 1,
+                  id: claim.id,
+                  requestorName: (claim as any).requestorName,
+                  employeeName: claim.employeeName,
+                  financialPolicyName: claim.financialPolicyName,
+                  claimCategory: claim.claimCategory,
+                  status: claim.status,
+                  particulars: claim.particulars,
+                  amount: claim.amount,
+                  claimDate: claim.claimDate,
+                  supportingDocuments: claim.supportingDocuments
+                });
+
                 const getStatusBadge = (status: string) => {
                   switch (status.toLowerCase()) {
                     case 'pending':
