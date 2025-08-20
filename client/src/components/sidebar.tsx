@@ -419,7 +419,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
                           </div>
                           {!isCollapsed && (
                             <>
-                              <span className="flex-1 text-sm font-medium md:text-sm text-xs leading-tight">
+                              <span className="flex-1 text-sm font-medium md:text-sm text-xs leading-tight break-words">
                                 {item.label}
                               </span>
                               {item.badge && (
@@ -461,7 +461,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
                               <div className="flex-shrink-0">
                                 {child.icon}
                               </div>
-                              <span className="text-xs font-medium md:text-xs text-[10px] leading-tight">
+                              <span className="text-xs font-medium md:text-xs text-[10px] leading-tight break-words">
                                 {child.label}
                               </span>
                             </div>
