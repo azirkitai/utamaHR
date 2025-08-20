@@ -72,27 +72,34 @@ export class EmployeePDFGenerator {
     };
 
     const addPageHeader = () => {
-      // Company logo placeholder (you can add actual logo here)
-      doc.setFillColor(30, 64, 175);
-      doc.rect(20, 10, 8, 8, 'F'); // Logo placeholder
+      // Company logo - positioned at top left
+      doc.setFillColor(41, 98, 182);
+      doc.rect(20, 10, 20, 20, 'F'); // Logo background square
       
-      // Title
+      // Logo text inside square
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.text('UTAMA', 30, 18, { align: 'center' });
+      doc.text('HR', 30, 25, { align: 'center' });
+      
+      // Title - moved down to accommodate logo
       doc.setFontSize(20);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(30, 64, 175);
-      doc.text('LAPORAN LENGKAP PEKERJA', 105, 18, { align: 'center' });
+      doc.text('LAPORAN LENGKAP PEKERJA', 105, 20, { align: 'center' });
       
       doc.setFontSize(12);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(0, 0, 0);
-      doc.text('UTAMAHR SISTEM', 105, 25, { align: 'center' });
+      doc.text('UTAMAHR SISTEM', 105, 27, { align: 'center' });
       
       // Header line
       doc.setDrawColor(30, 64, 175);
       doc.setLineWidth(0.5);
-      doc.line(20, 30, 190, 30);
+      doc.line(20, 35, 190, 35);
       
-      return 35; // Return Y position after header
+      return 40; // Return Y position after header
     };
 
     const addSectionHeader = (title: string, yPos: number): number => {
