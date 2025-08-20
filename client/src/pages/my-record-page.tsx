@@ -65,10 +65,12 @@ export default function MyRecordPage() {
         throw new Error('No authentication token found - please login again');
       }
       
-      const response = await fetch(`/api/attendance-records?${params}`, {
+      const response = await fetch(`/api/attendance-records?${params}&_t=${Date.now()}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
         }
       });
       
@@ -80,13 +82,22 @@ export default function MyRecordPage() {
       
       const data = await response.json();
       console.log('🎯 Attendance records fetched:', data.length, 'records');
-      console.log('🔍 First record compliance fields:', data[0] ? {
-        id: data[0].id,
-        isLateClockIn: data[0].isLateClockIn,
-        clockInRemarks: data[0].clockInRemarks,
-        isLateBreakOut: data[0].isLateBreakOut,
-        breakOutRemarks: data[0].breakOutRemarks
-      } : 'No records');
+      
+      // Debug ALL records to ensure compliance data is complete
+      data.forEach((record: any, index: number) => {
+        console.log(`Record ${index + 1}:`, {
+          id: record.id,
+          date: record.date,
+          clockInTime: record.clockInTime,
+          isLateClockIn: record.isLateClockIn,
+          clockInRemarks: record.clockInRemarks
+        });
+        
+        if (record.isLateClockIn) {
+          console.log(`🚨 LATE DETECTED in Record ${index + 1}:`, record.clockInRemarks);
+        }
+      });
+      
       return data as AttendanceRecord[];
     },
     enabled: !!user && activeTab === 'attendance',
