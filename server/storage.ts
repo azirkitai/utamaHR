@@ -1416,6 +1416,178 @@ export class DatabaseStorage implements IStorage {
   }
 
   // =================== ATTENDANCE RECORD METHODS ===================
+  // =================== UNIVERSAL COMPLIANCE CHECKER ===================
+  /**
+   * UNIVERSAL MALAYSIAN EMPLOYMENT ACT COMPLIANCE SYSTEM
+   * Checks ALL users against their individually assigned shifts per date
+   * Covers BOTH clock-in times AND break periods with standardized messaging
+   */
+  private async getEmployeeShiftForDate(employeeId: string, targetDate: Date): Promise<{ shiftId: string; clockIn: string; clockOut: string; breakTimeOut: string; breakTimeIn: string; shiftName: string } | null> {
+    console.log(`🔍 Getting shift assignment for employee ${employeeId} on ${targetDate.toISOString().split('T')[0]}`);
+    
+    // Query employeeShifts table for specific date assignment
+    const dateStr = targetDate.toISOString().split('T')[0];
+    const shiftAssignments = await db
+      .select({
+        shiftId: employeeShifts.shiftId,
+        assignedDate: employeeShifts.assignedDate,
+        isActive: employeeShifts.isActive
+      })
+      .from(employeeShifts)
+      .where(
+        and(
+          eq(employeeShifts.employeeId, employeeId),
+          eq(employeeShifts.isActive, true),
+          sql`DATE(${employeeShifts.assignedDate}) = ${dateStr}`
+        )
+      );
+
+    console.log(`🔍 Found ${shiftAssignments.length} shift assignments for ${dateStr}`);
+    
+    if (shiftAssignments.length === 0) {
+      console.log(`❌ No specific shift assignment found for ${employeeId} on ${dateStr}`);
+      return null;
+    }
+
+    const shiftAssignment = shiftAssignments[0];
+    
+    // Get shift details from shifts table
+    const [shiftDetails] = await db
+      .select({
+        id: shifts.id,
+        name: shifts.name,
+        clockIn: shifts.clockIn,
+        clockOut: shifts.clockOut,
+        breakTimeOut: shifts.breakTimeOut,
+        breakTimeIn: shifts.breakTimeIn
+      })
+      .from(shifts)
+      .where(eq(shifts.id, shiftAssignment.shiftId));
+
+    if (!shiftDetails) {
+      console.log(`❌ No shift details found for shiftId: ${shiftAssignment.shiftId}`);
+      return null;
+    }
+
+    console.log(`✅ Found shift for ${employeeId}: ${shiftDetails.name} (${shiftDetails.clockIn} - ${shiftDetails.clockOut})`);
+    
+    return {
+      shiftId: shiftDetails.id,
+      clockIn: shiftDetails.clockIn,
+      clockOut: shiftDetails.clockOut,
+      breakTimeOut: shiftDetails.breakTimeOut || "none",
+      breakTimeIn: shiftDetails.breakTimeIn || "none",
+      shiftName: shiftDetails.name
+    };
+  }
+
+  private generateStandardComplianceMessage(type: 'clock_in' | 'break_out', minutesLate: number, shiftTime: string): string {
+    const hours = Math.floor(minutesLate / 60);
+    const minutes = minutesLate % 60;
+    
+    let timeDesc = "";
+    if (hours > 0 && minutes > 0) {
+      timeDesc = `${hours} jam ${minutes} minit`;
+    } else if (hours > 0) {
+      timeDesc = `${hours} jam 0 minit`;
+    } else {
+      timeDesc = `${minutes} minit`;
+    }
+
+    const actionType = type === 'clock_in' ? 'masa shift' : 'masa rehat';
+    return `Lewat ${timeDesc} dari ${actionType} ${shiftTime}. Perlu semakan penyelia.`;
+  }
+
+  private async checkUniversalCompliance(record: any): Promise<{
+    isLateClockIn: boolean;
+    isLateBreakOut: boolean;
+    clockInRemarks: string | null;
+    breakOutRemarks: string | null;
+  }> {
+    const defaultResult = {
+      isLateClockIn: false,
+      isLateBreakOut: false,
+      clockInRemarks: null,
+      breakOutRemarks: null
+    };
+
+    if (!record.employeeId || !record.date) {
+      return defaultResult;
+    }
+
+    // Get employee's assigned shift for this specific date
+    const employeeShift = await this.getEmployeeShiftForDate(record.employeeId, new Date(record.date));
+    
+    if (!employeeShift) {
+      console.log(`⚠️ No shift assignment found for employee ${record.employeeId} on ${record.date} - skipping compliance check`);
+      return defaultResult;
+    }
+
+    console.log(`🔍 Checking compliance for employee ${record.employeeId} against shift: ${employeeShift.shiftName} (${employeeShift.clockIn})`);
+    
+    const result = { ...defaultResult };
+
+    // ========== CLOCK-IN COMPLIANCE CHECK ==========
+    if (record.clockInTime && employeeShift.clockIn !== "none") {
+      const clockInTime = new Date(record.clockInTime);
+      const recordDate = new Date(record.date);
+      
+      // Create shift start time for comparison
+      const [shiftHour, shiftMinute] = employeeShift.clockIn.split(':');
+      const shiftStartTime = new Date(recordDate);
+      shiftStartTime.setHours(parseInt(shiftHour), parseInt(shiftMinute), 0, 0);
+      
+      console.log(`🔍 Clock-in compliance check - Shift start: ${shiftStartTime.toISOString()} Clock-in: ${clockInTime.toISOString()}`);
+      
+      if (clockInTime > shiftStartTime) {
+        const minutesLate = Math.floor((clockInTime.getTime() - shiftStartTime.getTime()) / (1000 * 60));
+        console.log(`🚨 LATE DETECTED: ${minutesLate} minutes late`);
+        
+        result.isLateClockIn = true;
+        result.clockInRemarks = this.generateStandardComplianceMessage('clock_in', minutesLate, employeeShift.clockIn);
+        
+        console.log(`🚨 Setting isLateClockIn=true, remarks: ${result.clockInRemarks}`);
+      } else {
+        console.log(`✅ On time - no compliance issue`);
+      }
+    }
+
+    // ========== BREAK-OUT COMPLIANCE CHECK ==========
+    if (record.breakOutTime && employeeShift.breakTimeOut !== "none") {
+      const breakOutTime = new Date(record.breakOutTime);
+      const recordDate = new Date(record.date);
+      
+      // Create break start time for comparison
+      const [breakHour, breakMinute] = employeeShift.breakTimeOut.split(':');
+      const breakStartTime = new Date(recordDate);
+      breakStartTime.setHours(parseInt(breakHour), parseInt(breakMinute), 0, 0);
+      
+      console.log(`🔍 Break-out compliance check - Break start: ${breakStartTime.toISOString()} Break-out: ${breakOutTime.toISOString()}`);
+      
+      if (breakOutTime > breakStartTime) {
+        const minutesLate = Math.floor((breakOutTime.getTime() - breakStartTime.getTime()) / (1000 * 60));
+        console.log(`🚨 LATE BREAK DETECTED: ${minutesLate} minutes late`);
+        
+        result.isLateBreakOut = true;
+        result.breakOutRemarks = this.generateStandardComplianceMessage('break_out', minutesLate, employeeShift.breakTimeOut);
+        
+        console.log(`🚨 Setting isLateBreakOut=true, remarks: ${result.breakOutRemarks}`);
+      } else {
+        console.log(`✅ Break on time - no compliance issue`);
+      }
+    }
+
+    console.log(`🔍 Final record compliance: {
+  id: '${record.id}',
+  isLateClockIn: ${result.isLateClockIn},
+  isLateBreakOut: ${result.isLateBreakOut},
+  clockInRemarks: '${result.clockInRemarks}',
+  breakOutRemarks: '${result.breakOutRemarks}'
+}`);
+
+    return result;
+  }
+
   async getAttendanceRecords(params: { dateFrom?: Date; dateTo?: Date; employeeId?: string }): Promise<any[]> {
     const conditions = [];
     
@@ -1458,11 +1630,6 @@ export class DatabaseStorage implements IStorage {
         clockOutLongitude: attendanceRecords.clockOutLongitude,
         // Employee name field
         employeeName: employees.fullName,
-        // Add compliance fields - CRITICAL FOR FRONTEND
-        isLateClockIn: attendanceRecords.isLateClockIn,
-        isLateBreakOut: attendanceRecords.isLateBreakOut,
-        clockInRemarks: attendanceRecords.clockInRemarks,
-        breakOutRemarks: attendanceRecords.breakOutRemarks,
         shiftId: attendanceRecords.shiftId,
       })
       .from(attendanceRecords)
@@ -1473,7 +1640,38 @@ export class DatabaseStorage implements IStorage {
       ? query.where(and(...conditions))
       : query;
     
-    return await finalQuery.orderBy(desc(attendanceRecords.date));
+    const records = await finalQuery.orderBy(desc(attendanceRecords.date));
+
+    // ========== APPLY UNIVERSAL COMPLIANCE CHECKING ==========
+    console.log(`🔍 Applying universal compliance checks to ${records.length} attendance records...`);
+    
+    const recordsWithCompliance = await Promise.all(
+      records.map(async (record) => {
+        console.log(`🔍 DEBUG shift query result: ${records.length} records found`);
+        
+        // Get employee shift for this date
+        const employeeShift = await this.getEmployeeShiftForDate(record.employeeId, new Date(record.date));
+        
+        if (employeeShift) {
+          console.log(`🔍 DEBUG active shift details: { name: '${employeeShift.shiftName}', clockIn: '${employeeShift.clockIn}', clockOut: '${employeeShift.clockOut}' }`);
+          console.log(`🔍 Active shift for employee ${record.employeeId} : ${employeeShift.shiftName} ${employeeShift.clockIn}`);
+        }
+        
+        // Apply universal compliance check
+        const compliance = await this.checkUniversalCompliance(record);
+        
+        return {
+          ...record,
+          isLateClockIn: compliance.isLateClockIn,
+          isLateBreakOut: compliance.isLateBreakOut,
+          clockInRemarks: compliance.clockInRemarks,
+          breakOutRemarks: compliance.breakOutRemarks
+        };
+      })
+    );
+
+    console.log(`✅ Universal compliance checking completed for ${recordsWithCompliance.length} records`);
+    return recordsWithCompliance;
   }
 
   async getTodayAttendanceRecord(employeeId: string, date: Date): Promise<AttendanceRecord | undefined> {
@@ -1492,6 +1690,8 @@ export class DatabaseStorage implements IStorage {
       throw new Error("EmployeeId, userId, dan date diperlukan");
     }
 
+    console.log(`🔍 Creating/updating attendance record for employee ${data.employeeId} on ${data.date?.toISOString().split('T')[0]}`);
+
     // Check if record exists for today
     const today = data.date;
     const [existingRecord] = await db
@@ -1502,7 +1702,11 @@ export class DatabaseStorage implements IStorage {
         sql`DATE(${attendanceRecords.date}) = DATE(${today.toISOString()})`
       ));
 
+    let savedRecord: AttendanceRecord;
+    
     if (existingRecord) {
+      console.log(`🔄 Updating existing attendance record ${existingRecord.id}`);
+      
       // Update existing record
       const [updatedRecord] = await db
         .update(attendanceRecords)
@@ -1512,8 +1716,10 @@ export class DatabaseStorage implements IStorage {
         })
         .where(eq(attendanceRecords.id, existingRecord.id))
         .returning();
-      return updatedRecord;
+      savedRecord = updatedRecord;
     } else {
+      console.log(`✨ Creating new attendance record`);
+      
       // Create new record
       const [newRecord] = await db
         .insert(attendanceRecords)
@@ -1523,8 +1729,28 @@ export class DatabaseStorage implements IStorage {
           updatedAt: new Date()
         })
         .returning();
-      return newRecord;
+      savedRecord = newRecord;
     }
+
+    // ========== APPLY UNIVERSAL COMPLIANCE CHECK TO SAVED RECORD ==========
+    console.log(`🔍 Applying universal compliance check to saved record...`);
+    const compliance = await this.checkUniversalCompliance(savedRecord);
+    
+    // Update the record with compliance data
+    const [finalRecord] = await db
+      .update(attendanceRecords)
+      .set({
+        isLateClockIn: compliance.isLateClockIn,
+        isLateBreakOut: compliance.isLateBreakOut,
+        clockInRemarks: compliance.clockInRemarks,
+        breakOutRemarks: compliance.breakOutRemarks,
+        updatedAt: new Date()
+      })
+      .where(eq(attendanceRecords.id, savedRecord.id))
+      .returning();
+
+    console.log(`✅ Universal compliance applied - Final record: isLateClockIn=${finalRecord.isLateClockIn}, remarks: "${finalRecord.clockInRemarks}"`);
+    return finalRecord;
   }
 
   // =================== COMPANY LEAVE TYPES METHODS ===================
