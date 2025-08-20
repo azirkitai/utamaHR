@@ -695,7 +695,9 @@ export default function QRClockInPage() {
                           </div>
                           {record.clockOutTime ? (
                             <div className="pl-6 space-y-1">
-                              <p className="text-sm text-gray-800">
+                              <p className={`text-sm ${
+                                record.isLateBreakOut ? 'text-red-600 font-bold' : 'text-gray-800'
+                              }`}>
                                 {(() => {
                                   const utcDate = new Date(record.clockOutTime);
                                   if (isNaN(utcDate.getTime())) return 'Invalid Date';
@@ -706,7 +708,14 @@ export default function QRClockInPage() {
                                     timeZone: 'Asia/Kuala_Lumpur'
                                   });
                                 })()}
+                                {record.isLateBreakOut && ' ⚠️'}
                               </p>
+                              {record.isLateBreakOut && record.breakOutRemarks && (
+                                <div className="text-xs text-red-600 bg-red-50 p-1 rounded border">
+                                  <AlertTriangle className="h-3 w-3 inline mr-1" />
+                                  {record.breakOutRemarks}
+                                </div>
+                              )}
                               {record.clockOutLocationStatus && (
                                 <Badge 
                                   variant={record.clockOutLocationStatus === "valid" ? "success" : "destructive"}
