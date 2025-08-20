@@ -225,45 +225,47 @@ export default function ShiftCalendarPage() {
     updateShiftMutation.mutate({ employeeId, shiftId: finalShiftId });
   }, [updateShiftMutation]);
 
-  // Create completely isolated dropdown state per employee per day
-  const [dropdownStates, setDropdownStates] = useState<Record<string, string>>({});
-
-  // Initialize dropdown states when data changes
-  useEffect(() => {
-    const newStates: Record<string, string> = {};
-    departments.forEach((department: any) => {
-      department.employees.forEach((employee: any) => {
-        getDayHeaders().forEach((day: any, dayIndex: number) => {
-          const cellKey = `${employee.id}-${day.fullDate}-${dayIndex}`;
-          const shift = getShiftForDay(employee.id, day.fullDate);
-          const currentShiftId = shift?.shiftId || '';
-          newStates[cellKey] = currentShiftId === '' ? 'no-shift' : currentShiftId;
-        });
-      });
+  // Independent Shift Cell Component - completely isolated
+  const IndependentShiftCell = React.memo(({
+    employeeId,
+    dayDate,
+    dayIndex,
+    shift,
+    editMode,
+    shifts,
+    onShiftChange
+  }: {
+    employeeId: string;
+    dayDate: Date;
+    dayIndex: number;
+    shift: { type: string; label: string; color: string; shiftId?: string };
+    editMode: boolean;
+    shifts: any[];
+    onShiftChange: (employeeId: string, shiftId: string) => void;
+  }) => {
+    // Each cell has its own completely isolated state
+    const [localShiftValue, setLocalShiftValue] = useState(() => {
+      const currentShiftId = shift?.shiftId || '';
+      return currentShiftId === '' ? 'no-shift' : currentShiftId;
     });
-    setDropdownStates(newStates);
-  }, [departments, employeeShifts]);
 
-  const renderShiftCell = useCallback((shift: { type: string; label: string; color: string; shiftId?: string }, employeeId?: string, cellKey?: string) => {
-    if (editMode && employeeId && cellKey) {
-      const dropdownKey = `${employeeId}-${cellKey}`;
-      const currentValue = dropdownStates[dropdownKey] || 'no-shift';
-      
+    // Only update when the backend shift data changes for this specific cell
+    useEffect(() => {
+      const currentShiftId = shift?.shiftId || '';
+      const newValue = currentShiftId === '' ? 'no-shift' : currentShiftId;
+      setLocalShiftValue(newValue);
+    }, [shift?.shiftId]);
+
+    const uniqueId = `${employeeId}-${dayDate.toISOString()}-${dayIndex}`;
+
+    if (editMode) {
       return (
         <Select
-          value={currentValue}
-          onValueChange={(shiftId) => {
-            console.log('Dropdown change:', { dropdownKey, shiftId, employeeId });
-            // Update only this specific dropdown
-            setDropdownStates(prev => {
-              const newStates = {
-                ...prev,
-                [dropdownKey]: shiftId
-              };
-              console.log('Updated dropdown states:', newStates);
-              return newStates;
-            });
-            handleShiftChange(employeeId, shiftId);
+          value={localShiftValue}
+          onValueChange={(newShiftId) => {
+            console.log(`Cell ${uniqueId} changing from ${localShiftValue} to ${newShiftId}`);
+            setLocalShiftValue(newShiftId);
+            onShiftChange(employeeId, newShiftId);
           }}
         >
           <SelectTrigger className="w-full h-8 text-xs">
@@ -276,7 +278,7 @@ export default function ShiftCalendarPage() {
                 <span>No Shift</span>
               </div>
             </SelectItem>
-            {(shifts as any[]).map((shiftOption: any) => (
+            {shifts.map((shiftOption: any) => (
               <SelectItem key={shiftOption.id} value={shiftOption.id}>
                 <div className="flex items-center space-x-2">
                   <div 
@@ -308,7 +310,7 @@ export default function ShiftCalendarPage() {
         </Badge>
       </div>
     );
-  }, [editMode, shifts, handleShiftChange, dropdownStates]);
+  });
 
   return (
     <DashboardLayout>
@@ -474,10 +476,19 @@ export default function ShiftCalendarPage() {
                         </td>
                         {getDayHeaders().map((day, dayIndex) => {
                           const shift = getShiftForDay(employee.id, day.fullDate);
-                          const cellKey = `${day.fullDate}-${dayIndex}`;
+                          const uniqueKey = `cell-${employee.id}-${day.fullDate}-${dayIndex}`;
                           return (
-                            <td key={dayIndex} className="p-2 text-center">
-                              {renderShiftCell(shift, employee.id, cellKey)}
+                            <td key={uniqueKey} className="p-2 text-center">
+                              <IndependentShiftCell
+                                key={uniqueKey}
+                                employeeId={employee.id}
+                                dayDate={day.fullDate}
+                                dayIndex={dayIndex}
+                                shift={shift}
+                                editMode={editMode}
+                                shifts={shifts}
+                                onShiftChange={handleShiftChange}
+                              />
                             </td>
                           );
                         })}
