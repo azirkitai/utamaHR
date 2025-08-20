@@ -89,7 +89,18 @@ export default function MyRecordPage() {
       } : 'No records');
       return data as AttendanceRecord[];
     },
-    enabled: !!user && activeTab === 'attendance'
+    enabled: !!user && activeTab === 'attendance',
+    staleTime: 0, // Always treat data as stale to force refresh
+    gcTime: 0  // Don't cache the results (replaces cacheTime)
+  });
+
+  // Debug loading state
+  console.log('🔧 ATTENDANCE DEBUG:', {
+    activeTab,
+    user: !!user,
+    isLoadingAttendance,
+    attendanceRecordsLength: attendanceRecords.length,
+    attendanceError: attendanceError?.message
   });
 
   // Fetch leave applications from database 
