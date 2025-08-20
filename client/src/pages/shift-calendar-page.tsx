@@ -224,19 +224,23 @@ export default function ShiftCalendarPage() {
     if (editMode && employeeId) {
       // Edit mode: Show dropdown to select shift
       const currentShiftId = shift?.shiftId || '';
+      // Convert empty shiftId to "no-shift" for display
+      const displayValue = currentShiftId === '' ? 'no-shift' : currentShiftId;
       
       return (
         <Select
-          value={currentShiftId}
+          value={displayValue}
           onValueChange={(shiftId) => {
-            updateShiftMutation.mutate({ employeeId, shiftId });
+            // Convert "no-shift" to empty string for backend
+            const finalShiftId = shiftId === "no-shift" ? "" : shiftId;
+            updateShiftMutation.mutate({ employeeId, shiftId: finalShiftId });
           }}
         >
           <SelectTrigger className="w-full h-8 text-xs">
             <SelectValue placeholder="Select shift" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">
+            <SelectItem value="no-shift">
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 rounded bg-gray-300"></div>
                 <span>No Shift</span>
