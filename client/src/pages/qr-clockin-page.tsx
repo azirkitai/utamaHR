@@ -251,13 +251,16 @@ export default function QRClockInPage() {
   };
 
   const formatDateTime = (dateTime: string) => {
-    return new Date(dateTime).toLocaleString('ms-MY', {
+    const utcDate = new Date(dateTime);
+    if (isNaN(utcDate.getTime())) return 'Invalid Date';
+    return utcDate.toLocaleString('ms-MY', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-      second: '2-digit'
+      second: '2-digit',
+      timeZone: 'Asia/Kuala_Lumpur'
     });
   };
 
@@ -329,14 +332,30 @@ export default function QRClockInPage() {
                   <div className="space-y-2">
                     <p className="font-medium text-green-700">Kehadiran Hari Ini Selesai</p>
                     <div className="text-sm text-gray-600 space-y-1">
-                      <p>Clock-In: {attendanceStatus?.clockInTime ? new Date(attendanceStatus.clockInTime).toLocaleTimeString('ms-MY') : '-'}</p>
+                      <p>Clock-In: {attendanceStatus?.clockInTime ? (() => {
+                        const utcDate = new Date(attendanceStatus.clockInTime);
+                        if (isNaN(utcDate.getTime())) return 'Invalid Date';
+                        return utcDate.toLocaleTimeString('ms-MY', { timeZone: 'Asia/Kuala_Lumpur' });
+                      })() : '-'}</p>
                       {attendanceStatus?.enforceBreakClockOut && (
                         <>
-                          <p>Break Time: {attendanceStatus?.breakOutTime ? new Date(attendanceStatus.breakOutTime).toLocaleTimeString('ms-MY') : '-'}</p>
-                          <p>Break Off: {attendanceStatus?.breakInTime ? new Date(attendanceStatus.breakInTime).toLocaleTimeString('ms-MY') : '-'}</p>
+                          <p>Break Time: {attendanceStatus?.breakOutTime ? (() => {
+                            const utcDate = new Date(attendanceStatus.breakOutTime);
+                            if (isNaN(utcDate.getTime())) return 'Invalid Date';
+                            return utcDate.toLocaleTimeString('ms-MY', { timeZone: 'Asia/Kuala_Lumpur' });
+                          })() : '-'}</p>
+                          <p>Break Off: {attendanceStatus?.breakInTime ? (() => {
+                            const utcDate = new Date(attendanceStatus.breakInTime);
+                            if (isNaN(utcDate.getTime())) return 'Invalid Date';
+                            return utcDate.toLocaleTimeString('ms-MY', { timeZone: 'Asia/Kuala_Lumpur' });
+                          })() : '-'}</p>
                         </>
                       )}
-                      <p>Clock-Out: {attendanceStatus?.clockOutTime ? new Date(attendanceStatus.clockOutTime).toLocaleTimeString('ms-MY') : '-'}</p>
+                      <p>Clock-Out: {attendanceStatus?.clockOutTime ? (() => {
+                        const utcDate = new Date(attendanceStatus.clockOutTime);
+                        if (isNaN(utcDate.getTime())) return 'Invalid Date';
+                        return utcDate.toLocaleTimeString('ms-MY', { timeZone: 'Asia/Kuala_Lumpur' });
+                      })() : '-'}</p>
                     </div>
                     <p className="text-green-600 text-sm mt-3">
                       {attendanceStatus?.enforceBreakClockOut 
@@ -624,11 +643,16 @@ export default function QRClockInPage() {
                               <p className={`text-sm ${
                                 record.isLateClockIn ? 'text-red-600 font-bold' : 'text-gray-800'
                               }`}>
-                                {new Date(record.clockInTime).toLocaleTimeString('ms-MY', {
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                  second: '2-digit'
-                                })}
+                                {(() => {
+                                  const utcDate = new Date(record.clockInTime);
+                                  if (isNaN(utcDate.getTime())) return 'Invalid Date';
+                                  return utcDate.toLocaleTimeString('ms-MY', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    second: '2-digit',
+                                    timeZone: 'Asia/Kuala_Lumpur'
+                                  });
+                                })()}
                                 {record.isLateClockIn && ' ⚠️'}
                               </p>
                               {record.isLateClockIn && record.clockInRemarks && (
@@ -672,11 +696,16 @@ export default function QRClockInPage() {
                           {record.clockOutTime ? (
                             <div className="pl-6 space-y-1">
                               <p className="text-sm text-gray-800">
-                                {new Date(record.clockOutTime).toLocaleTimeString('ms-MY', {
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                  second: '2-digit'
-                                })}
+                                {(() => {
+                                  const utcDate = new Date(record.clockOutTime);
+                                  if (isNaN(utcDate.getTime())) return 'Invalid Date';
+                                  return utcDate.toLocaleTimeString('ms-MY', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    second: '2-digit',
+                                    timeZone: 'Asia/Kuala_Lumpur'
+                                  });
+                                })()}
                               </p>
                               {record.clockOutLocationStatus && (
                                 <Badge 

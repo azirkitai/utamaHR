@@ -1081,16 +1081,7 @@ export default function MyRecordPage() {
                             {(record as any).clockInRemarks}
                           </div>
                         )}
-                        {/* DEBUG: Check timestamp format */}
-                        <div className="text-xs text-blue-600 mt-1 border p-1 bg-blue-50">
-                          🔍 DEBUG TIMESTAMP:<br/>
-                          RAW: {JSON.stringify(record.clockInTime)}<br/>
-                          TYPE: {typeof record.clockInTime}<br/>
-                          LENGTH: {record.clockInTime?.length || 'N/A'}<br/>
-                          DATE_PARSE: {new Date(record.clockInTime).toString()}<br/>
-                          ISVALID: {!isNaN(new Date(record.clockInTime).getTime()) ? 'TRUE' : 'FALSE'}<br/>
-                          Late={record.isLateClockIn ? 'TRUE' : 'FALSE'}
-                        </div>
+
                       </div>
                     ) : (
                       '-'
@@ -1118,12 +1109,16 @@ export default function MyRecordPage() {
                         <span className={`${
                           (record as any).isLateBreakOut ? 'text-red-600 font-bold' : 'text-gray-800'
                         }`}>
-                          {new Date((record as any).breakOutTime + 'Z').toLocaleTimeString('en-MY', { 
-                            hour: '2-digit', 
-                            minute: '2-digit', 
-                            timeZone: 'Asia/Kuala_Lumpur',
-                            hour12: false 
-                          })}
+                          {(() => {
+                            const utcDate = new Date((record as any).breakOutTime);
+                            if (isNaN(utcDate.getTime())) return 'Invalid Date';
+                            return utcDate.toLocaleTimeString('en-MY', { 
+                              hour: '2-digit', 
+                              minute: '2-digit', 
+                              timeZone: 'Asia/Kuala_Lumpur',
+                              hour12: false 
+                            });
+                          })()}
                           {(record as any).isLateBreakOut && ' ⚠️'}
                         </span>
                         {(record as any).isLateBreakOut && (record as any).breakOutRemarks && (
@@ -1152,12 +1147,18 @@ export default function MyRecordPage() {
                   )}
                   
                   {/* Break Off (balik dari rehat/lunch) */}
-                  <TableCell>{(record as any).breakInTime ? new Date((record as any).breakInTime + 'Z').toLocaleTimeString('en-MY', { 
-                    hour: '2-digit', 
-                    minute: '2-digit', 
-                    timeZone: 'Asia/Kuala_Lumpur',
-                    hour12: false 
-                  }) : '-'}</TableCell>
+                  <TableCell>
+                    {(record as any).breakInTime ? (() => {
+                      const utcDate = new Date((record as any).breakInTime);
+                      if (isNaN(utcDate.getTime())) return 'Invalid Date';
+                      return utcDate.toLocaleTimeString('en-MY', { 
+                        hour: '2-digit', 
+                        minute: '2-digit', 
+                        timeZone: 'Asia/Kuala_Lumpur',
+                        hour12: false 
+                      });
+                    })() : '-'}
+                  </TableCell>
                   {showPictures && (
                     <TableCell>
                       {(record as any).breakInImage ? (
@@ -1174,12 +1175,18 @@ export default function MyRecordPage() {
                   )}
                   
                   {/* Clock Out */}
-                  <TableCell>{record.clockOutTime ? new Date(record.clockOutTime + 'Z').toLocaleTimeString('en-MY', { 
-                    hour: '2-digit', 
-                    minute: '2-digit', 
-                    timeZone: 'Asia/Kuala_Lumpur',
-                    hour12: false 
-                  }) : '-'}</TableCell>
+                  <TableCell>
+                    {record.clockOutTime ? (() => {
+                      const utcDate = new Date(record.clockOutTime);
+                      if (isNaN(utcDate.getTime())) return 'Invalid Date';
+                      return utcDate.toLocaleTimeString('en-MY', { 
+                        hour: '2-digit', 
+                        minute: '2-digit', 
+                        timeZone: 'Asia/Kuala_Lumpur',
+                        hour12: false 
+                      });
+                    })() : '-'}
+                  </TableCell>
                   {showPictures && (
                     <TableCell>
                       {record.clockOutImage ? (
