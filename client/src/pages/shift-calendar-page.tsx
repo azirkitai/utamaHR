@@ -589,6 +589,11 @@ export default function ShiftCalendarPage() {
                       title: "Berjaya",
                       description: `${savePromises.length} perubahan shift telah disimpan ke database`,
                     });
+                    
+                    // Exit edit mode after 5 seconds
+                    setTimeout(() => {
+                      setEditMode(false);
+                    }, 5000);
                   } catch (error: any) {
                     console.error('Bulk save error:', error);
                     toast({
