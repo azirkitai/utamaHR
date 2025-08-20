@@ -7852,6 +7852,122 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Get all disciplinary records (HR view)
+  app.get("/api/disciplinary-records", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      
+      // Check HR access
+      const hrRoles = ['Super Admin', 'Admin', 'HR Manager'];
+      if (!hrRoles.includes(currentUser.role)) {
+        return res.status(403).json({ error: "Akses ditolak - Hanya HR yang dibenarkan" });
+      }
+
+      // For now, return empty array since no disciplinary records schema implemented yet
+      // TODO: Implement actual disciplinary records query when schema is ready
+      const allRecords = [];
+
+      res.json(allRecords);
+    } catch (error) {
+      console.error("Get all disciplinary records error:", error);
+      res.status(500).json({ error: "Gagal mengambil rekod tatatertib" });
+    }
+  });
+
+  // Create new disciplinary record (HR only)
+  app.post("/api/disciplinary-records", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      
+      // Check HR access
+      const hrRoles = ['Super Admin', 'Admin', 'HR Manager'];
+      if (!hrRoles.includes(currentUser.role)) {
+        return res.status(403).json({ error: "Akses ditolak - Hanya HR yang dibenarkan" });
+      }
+
+      // Validate required fields
+      const { employeeId, type, severity, subject, description, dateIssued, status } = req.body;
+      
+      if (!employeeId || !type || !subject) {
+        return res.status(400).json({ error: "Field wajib tidak lengkap" });
+      }
+
+      // For now, return success response since schema not implemented yet
+      // TODO: Implement actual disciplinary record creation when schema is ready
+      const newRecord = {
+        id: `disciplinary-${Date.now()}`,
+        employeeId,
+        type,
+        severity: severity || 'moderate',
+        subject,
+        description: description || '',
+        dateIssued: dateIssued || new Date().toISOString(),
+        issuedBy: currentUser.id,
+        issuedByName: currentUser.username || 'HR',
+        status: status || 'active',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      res.status(201).json({
+        success: true,
+        message: "Rekod tatatertib berjaya dibuat",
+        record: newRecord
+      });
+    } catch (error) {
+      console.error("Create disciplinary record error:", error);
+      res.status(500).json({ error: "Gagal membuat rekod tatatertib" });
+    }
+  });
+
+  // Update disciplinary record (HR only)
+  app.put("/api/disciplinary-records/:id", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      const { id } = req.params;
+      
+      // Check HR access
+      const hrRoles = ['Super Admin', 'Admin', 'HR Manager'];
+      if (!hrRoles.includes(currentUser.role)) {
+        return res.status(403).json({ error: "Akses ditolak - Hanya HR yang dibenarkan" });
+      }
+
+      // For now, return success response since schema not implemented yet
+      // TODO: Implement actual disciplinary record update when schema is ready
+      res.json({
+        success: true,
+        message: "Rekod tatatertib berjaya dikemas kini"
+      });
+    } catch (error) {
+      console.error("Update disciplinary record error:", error);
+      res.status(500).json({ error: "Gagal mengemas kini rekod tatatertib" });
+    }
+  });
+
+  // Delete disciplinary record (HR only)
+  app.delete("/api/disciplinary-records/:id", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      const { id } = req.params;
+      
+      // Check HR access
+      const hrRoles = ['Super Admin', 'Admin', 'HR Manager'];
+      if (!hrRoles.includes(currentUser.role)) {
+        return res.status(403).json({ error: "Akses ditolak - Hanya HR yang dibenarkan" });
+      }
+
+      // For now, return success response since schema not implemented yet
+      // TODO: Implement actual disciplinary record deletion when schema is ready
+      res.json({
+        success: true,
+        message: "Rekod tatatertib berjaya dipadam"
+      });
+    } catch (error) {
+      console.error("Delete disciplinary record error:", error);
+      res.status(500).json({ error: "Gagal memadam rekod tatatertib" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

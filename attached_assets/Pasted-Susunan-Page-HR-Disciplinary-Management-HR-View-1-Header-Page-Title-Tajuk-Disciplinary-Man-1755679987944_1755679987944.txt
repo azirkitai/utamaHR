@@ -1,0 +1,105 @@
+Susunan Page HR (Disciplinary Management – HR View)
+1. Header / Page Title
+
+Tajuk: “Disciplinary Management”
+
+Sub-ayat: “Manage and record disciplinary actions, warning letters, and related documents for employees.”
+
+2. Employee Information Panel (atas / kiri)
+
+HR boleh pilih pekerja tertentu untuk lihat/tambah rekod:
+
+Dropdown / search box: Select Employee
+
+Bila pilih, keluar info asas pekerja:
+
+Nama penuh
+
+Staff ID
+
+Jawatan
+
+Department
+
+Status (Active / Probation / Resigned)
+
+(Opsyen: letak gambar profile staff juga)
+
+3. Summary Cards (atas tengah)
+
+Macam dashboard kecil:
+
+Total Warnings: 2
+
+Final Warnings: 1
+
+Suspensions: 0
+
+Other Actions: 0
+
+4. Main Table – Employee Disciplinary Records
+Date	Type of Action	Reason	Status	Document	Actions
+12/03/2025	Warning Letter	Late attendance	Closed	📎 View	✏️ Edit / 🗑 Delete
+05/05/2025	Final Warning	Not following SOP	Active	📎 View	✏️ Edit / 🗑 Delete
+
+👉 Ada kolum Actions khas untuk HR (edit/delete), yang user biasa tak nampak.
+
+5. Add New Record Section (tab asing)
+
+Tab khas “Add Disciplinary Action”:
+
+Form Fields:
+
+Select Employee
+
+Date
+
+Type of Action (Warning, Final Warning, Suspension, Termination, etc.)
+
+Reason / Description
+
+Upload Document (Surat PDF/JPG)
+
+Status (Active / Closed)
+
+Button: Save Record
+
+👉 Bila save, automatik masuk table rekod pekerja.
+
+6. Document Viewer / Storage
+
+HR boleh klik View Document → pop-up preview (PDF / image).
+
+Ada pilihan: Replace / Upload New Version.
+
+7. Remarks / Internal Notes
+
+Ruang nota untuk HR sahaja (user tak nampak).
+
+Contoh: “Employee counselled on 10/05/2025. Next review in 3 months.”
+
+8. Action Buttons (di bawah / atas table)
+
+Add Record (shortcut ke tab tambah)
+
+Export Records (Excel/PDF untuk audit)
+
+Filter Records (by date, by type, by status)
+
+📌 Ringkasnya, Page HR ada:
+
+Header (tajuk + penerangan)
+
+Employee selector + info panel
+
+Summary cards (ringkasan tindakan)
+
+Table view semua rekod (boleh edit/delete)
+
+Tab Add Disciplinary Action (untuk tambah rekod baru)
+
+Document viewer & upload manager
+
+Internal notes (HR only)
+
+Export & filter tools
