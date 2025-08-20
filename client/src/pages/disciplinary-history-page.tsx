@@ -168,21 +168,27 @@ export default function DisciplinaryHistoryPage() {
     enabled: !!user && !!hasHRAccess,
   });
 
+  // Local state for disciplinary records to manage updates
+  const [localRecords, setLocalRecords] = useState<DisciplinaryRecord[]>([]);
+  
   // Query disciplinary records
-  const [refreshKey, setRefreshKey] = useState(0);
   const { data: disciplinaryRecords = [], isLoading, refetch: refetchRecords } = useQuery<DisciplinaryRecord[]>({
     queryKey: ['/api/disciplinary-records'],
     enabled: !!user && !!hasHRAccess,
-    staleTime: 0, // Always consider data stale
-    cacheTime: 0, // Don't cache
-    refetchOnWindowFocus: true,
+    staleTime: 0,
+    onSuccess: (data: DisciplinaryRecord[]) => {
+      setLocalRecords(data);
+    }
   });
+
+  // Use local records for display
+  const recordsToDisplay = localRecords.length > 0 ? localRecords : disciplinaryRecords;
 
   // Get selected employee details
   const selectedEmployee = (employees as Employee[]).find((emp: Employee) => emp.id === selectedEmployeeId);
   
   // Filter records for selected employee
-  const employeeRecords = (disciplinaryRecords as DisciplinaryRecord[]).filter((record: DisciplinaryRecord) => 
+  const employeeRecords = (recordsToDisplay as DisciplinaryRecord[]).filter((record: DisciplinaryRecord) => 
     record.employeeId === selectedEmployeeId
   );
 
@@ -233,16 +239,32 @@ export default function DisciplinaryHistoryPage() {
       return apiRequest('PUT', `/api/disciplinary-records/${data.id}`, data);
     },
     onSuccess: async (updatedRecord) => {
-      console.log('Update successful, refreshing data...');
+      console.log('Update successful, updating local state...');
+      
+      // Update local state immediately with proper typing
+      setLocalRecords(prev => 
+        prev.map(record => 
+          record.id === editingRecord?.id 
+            ? { 
+                ...record, 
+                status: editData.status as DisciplinaryRecord['status'],
+                followUpRequired: editData.followUpRequired,
+                followUpDate: editData.followUpDate,
+                internalNotes: editData.internalNotes
+              }
+            : record
+        )
+      );
+      
       toast({
-        title: "Success",
+        title: "Success", 
         description: "Disciplinary record updated successfully",
       });
       closeEditDialog();
-      // Force refresh by invalidating and refetching
-      await queryClient.invalidateQueries({ queryKey: ['/api/disciplinary-records'] });
+      
+      // Also refresh server data in background
       await refetchRecords();
-      console.log('Data refresh completed');
+      console.log('Local state and server data updated');
     },
     onError: (error: any) => {
       toast({
