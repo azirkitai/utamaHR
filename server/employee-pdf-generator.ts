@@ -3,159 +3,265 @@ import { jsPDF } from 'jspdf';
 interface EmployeeWithDetails {
   id: string;
   fullName: string;
-  role: string | null;
+  firstName?: string;
+  lastName?: string;
+  nric?: string;
+  nricOld?: string;
+  dateOfBirth?: string;
+  placeOfBirth?: string;
+  gender?: string;
+  staffId?: string;
+  role: string;
   status: string;
   employment?: {
-    designation: string | null;
-    department: string | null;
+    company?: string;
+    department?: string;
+    designation?: string;
+    employmentStatus?: string;
+    dateJoining?: string;
+    employeeNo?: string;
   };
   contact?: {
-    phoneNumber: string | null;
-    mobileNumber: string | null;
-    email: string | null;
-    personalEmail: string | null;
+    email?: string;
+    personalEmail?: string;
+    phoneNumber?: string;
+    mobileNumber?: string;
+    address?: string;
+    mailingAddress?: string;
+    emergencyContactName?: string;
+    emergencyContactPhone?: string;
+    emergencyContactRelationship?: string;
+  };
+  payroll?: {
+    basicSalary?: number;
+    bankName?: string;
+    accountNumber?: string;
+    epfNumber?: string;
+    socsoNumber?: string;
+    eisNumber?: string;
+    pcbNumber?: string;
   };
 }
 
 export class EmployeePDFGenerator {
-  async generateEmployeeReport(employees: EmployeeWithDetails[]): Promise<Buffer> {
-    console.log(`🔄 Generating PDF report for ${employees.length} employees`);
+  static async generateEmployeeReport(employees: EmployeeWithDetails[]): Promise<Buffer> {
+    console.log(`🔄 Generating comprehensive PDF report for ${employees.length} employees`);
     
-    // Create PDF using jsPDF
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
       format: 'a4'
     });
 
-    // Add title and header
-    doc.setFontSize(18);
-    doc.setFont('helvetica', 'bold');
-    doc.text('LAPORAN MAKLUMAT PEKERJA', 105, 15, { align: 'center' });
-    
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'normal');
-    doc.text('UTAMAHR SISTEM', 105, 22, { align: 'center' });
-    
-    // Add date and summary
-    doc.setFontSize(10);
     const today = new Date().toLocaleDateString('ms-MY');
-    doc.text(`Tarikh: ${today}`, 20, 32);
-    doc.text(`Jumlah Pekerja: ${employees.length}`, 150, 32);
     
-    // Draw table headers
-    const startY = 42;
-    const rowHeight = 8;
-    const colWidths = [15, 40, 25, 30, 30, 35, 25]; // Column widths
-    const colX = [10, 25, 65, 90, 120, 150, 185]; // X positions for columns
-    
-    // Table headers
-    doc.setFillColor(30, 64, 175); // Blue background
-    doc.rect(10, startY, 200, rowHeight, 'F'); // Header background
-    
-    doc.setTextColor(255, 255, 255); // White text
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
-    
-    // Header texts
-    doc.text('No.', colX[0] + 2, startY + 5);
-    doc.text('Nama Penuh', colX[1] + 2, startY + 5);
-    doc.text('Staff ID', colX[2] + 2, startY + 5);
-    doc.text('Jawatan', colX[3] + 2, startY + 5);
-    doc.text('Jabatan', colX[4] + 2, startY + 5);
-    doc.text('Email', colX[5] + 2, startY + 5);
-    doc.text('Telefon', colX[6] + 2, startY + 5);
-    
-    // Reset text color for content
-    doc.setTextColor(0, 0, 0);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    
-    let currentY = startY + rowHeight;
-    
-    // Add employee data in table format
-    employees.forEach((employee, index) => {
-      // Check if we need a new page
-      if (currentY > 270) {
-        doc.addPage();
-        
-        // Redraw headers on new page
-        doc.setFillColor(30, 64, 175);
-        doc.rect(10, 20, 200, rowHeight, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(9);
-        
-        doc.text('No.', colX[0] + 2, 25);
-        doc.text('Nama Penuh', colX[1] + 2, 25);
-        doc.text('Staff ID', colX[2] + 2, 25);
-        doc.text('Jawatan', colX[3] + 2, 25);
-        doc.text('Jabatan', colX[4] + 2, 25);
-        doc.text('Email', colX[5] + 2, 25);
-        doc.text('Telefon', colX[6] + 2, 25);
-        
-        doc.setTextColor(0, 0, 0);
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
-        currentY = 28;
+    // Helper functions
+    const formatValue = (value: any): string => {
+      if (value === null || value === undefined || value === '') return 'N/A';
+      if (typeof value === 'string' && value.trim() === '') return 'N/A';
+      return String(value);
+    };
+
+    const formatDate = (dateStr: string | null | undefined): string => {
+      if (!dateStr) return 'N/A';
+      try {
+        return new Date(dateStr).toLocaleDateString('ms-MY');
+      } catch {
+        return 'N/A';
+      }
+    };
+
+    const addPageHeader = () => {
+      // Company logo placeholder (you can add actual logo here)
+      doc.setFillColor(30, 64, 175);
+      doc.rect(20, 10, 8, 8, 'F'); // Logo placeholder
+      
+      // Title
+      doc.setFontSize(20);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 64, 175);
+      doc.text('LAPORAN LENGKAP PEKERJA', 105, 18, { align: 'center' });
+      
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      doc.text('UTAMAHR SISTEM', 105, 25, { align: 'center' });
+      
+      // Header line
+      doc.setDrawColor(30, 64, 175);
+      doc.setLineWidth(0.5);
+      doc.line(20, 30, 190, 30);
+      
+      return 35; // Return Y position after header
+    };
+
+    const addSectionHeader = (title: string, yPos: number): number => {
+      doc.setFillColor(240, 245, 255);
+      doc.rect(20, yPos, 170, 6, 'F');
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 64, 175);
+      doc.text(title, 22, yPos + 4);
+      return yPos + 8;
+    };
+
+    const addTableRow = (label: string, value: string | undefined | null, yPos: number, isEven: boolean = false): number => {
+      if (isEven) {
+        doc.setFillColor(248, 250, 252);
+        doc.rect(20, yPos, 170, 5, 'F');
       }
       
-      // Alternating row colors
-      if (index % 2 === 0) {
-        doc.setFillColor(248, 250, 252); // Light gray
-        doc.rect(10, currentY, 200, rowHeight, 'F');
-      }
+      // Draw borders
+      doc.setDrawColor(220, 220, 220);
+      doc.setLineWidth(0.1);
+      doc.rect(20, yPos, 60, 5); // Label column
+      doc.rect(80, yPos, 110, 5); // Value column
       
-      // Draw cell borders
-      for (let i = 0; i < colX.length; i++) {
-        const width = i < colX.length - 1 ? colX[i + 1] - colX[i] : 210 - colX[i];
-        doc.rect(colX[i], currentY, width, rowHeight);
-      }
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      doc.text(label, 22, yPos + 3.5);
+      doc.text(formatValue(value), 82, yPos + 3.5);
       
-      // Add employee data
-      const truncateText = (text: string, maxLength: number) => {
-        return text && text.length > maxLength ? text.substring(0, maxLength - 3) + '...' : text || '-';
-      };
-      
-      doc.text(String(index + 1), colX[0] + 2, currentY + 5);
-      doc.text(truncateText(employee.fullName || 'Tiada Nama', 18), colX[1] + 2, currentY + 5);
-      doc.text(truncateText(employee.staffId || '-', 12), colX[2] + 2, currentY + 5);
-      doc.text(truncateText(employee.employment?.designation || '-', 14), colX[3] + 2, currentY + 5);
-      doc.text(truncateText(employee.employment?.department || '-', 14), colX[4] + 2, currentY + 5);
-      doc.text(truncateText(employee.contact?.email || '-', 16), colX[5] + 2, currentY + 5);
-      doc.text(truncateText(employee.contact?.phoneNumber || '-', 12), colX[6] + 2, currentY + 5);
-      
-      currentY += rowHeight;
-    });
-    
-    // Add summary section at the bottom
-    currentY += 10;
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Ringkasan: Jumlah ${employees.length} pekerja dalam laporan ini`, 20, currentY + 5);
-    
-    const activeCount = employees.filter(emp => emp.status === 'employed').length;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.text(`- Pekerja Aktif: ${activeCount}`, 25, currentY + 12);
-    doc.text(`- Pekerja Tidak Aktif: ${employees.length - activeCount}`, 25, currentY + 18);
-    
-    // Add footer
-    const pageCount = doc.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
+      return yPos + 5;
+    };
+
+    const addPageFooter = (pageNum: number, totalPages: number) => {
       doc.setFontSize(8);
       doc.setTextColor(100, 100, 100);
-      doc.text(`Halaman ${i} daripada ${pageCount}`, 105, 285, { align: 'center' });
-      doc.text('Dijana oleh UtamaHR Sistem', 105, 290, { align: 'center' });
-      doc.text(`Tarikh: ${today}`, 105, 295, { align: 'center' });
-    }
-    
-    // Return PDF as buffer
-    const pdfOutput = doc.output('arraybuffer');
-    console.log(`✅ PDF report generated successfully`);
-    
-    return Buffer.from(pdfOutput);
-  }
+      doc.text(`Laporan dijana oleh UtamaHR Sistem pada ${today}`, 105, 285, { align: 'center' });
+      doc.text(`Halaman ${pageNum} daripada ${totalPages}`, 105, 290, { align: 'center' });
+    };
 
+    // Generate report for each employee
+    employees.forEach((employee, index) => {
+      if (index > 0) doc.addPage();
+      
+      let yPos = addPageHeader();
+      
+      // Employee header
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 64, 175);
+      doc.text(`PEKERJA ${index + 1}: ${employee.fullName || 'Tiada Nama'}`, 20, yPos);
+      yPos += 10;
+      
+      // Section 1: Maklumat Peribadi
+      yPos = addSectionHeader('1. MAKLUMAT PERIBADI', yPos);
+      yPos = addTableRow('Nama Penuh', employee.fullName, yPos, false);
+      yPos = addTableRow('No. IC / NRIC', employee.nric || employee.nricOld, yPos, true);
+      yPos = addTableRow('Tarikh Lahir', formatDate(employee.dateOfBirth), yPos, false);
+      yPos = addTableRow('Tempat Lahir', employee.placeOfBirth, yPos, true);
+      yPos = addTableRow('Jantina', employee.gender, yPos, false);
+      yPos = addTableRow('Alamat Tetap', employee.contact?.address, yPos, true);
+      yPos = addTableRow('Alamat Surat-Menyurat', employee.contact?.mailingAddress, yPos, false);
+      yPos += 5;
+
+      // Section 2: Maklumat Pekerjaan
+      yPos = addSectionHeader('2. MAKLUMAT PEKERJAAN', yPos);
+      yPos = addTableRow('Staff ID', employee.staffId, yPos, false);
+      yPos = addTableRow('No. Pekerja', employee.employment?.employeeNo, yPos, true);
+      yPos = addTableRow('Jawatan', employee.employment?.designation, yPos, false);
+      yPos = addTableRow('Jabatan', employee.employment?.department, yPos, true);
+      yPos = addTableRow('Syarikat', employee.employment?.company, yPos, false);
+      yPos = addTableRow('Status Pekerjaan', employee.employment?.employmentStatus, yPos, true);
+      yPos = addTableRow('Tarikh Mula Kerja', formatDate(employee.employment?.dateJoining), yPos, false);
+      yPos += 5;
+
+      // Check if need new page
+      if (yPos > 200) {
+        doc.addPage();
+        yPos = addPageHeader();
+      }
+
+      // Section 3: Maklumat Perhubungan
+      yPos = addSectionHeader('3. MAKLUMAT PERHUBUNGAN', yPos);
+      yPos = addTableRow('Telefon Pejabat', employee.contact?.phoneNumber, yPos, false);
+      yPos = addTableRow('Telefon Bimbit', employee.contact?.mobileNumber, yPos, true);
+      yPos = addTableRow('Email Rasmi', employee.contact?.email, yPos, false);
+      yPos = addTableRow('Email Peribadi', employee.contact?.personalEmail, yPos, true);
+      yPos += 5;
+
+      // Section 4: Maklumat Kecemasan
+      yPos = addSectionHeader('4. MAKLUMAT KECEMASAN', yPos);
+      yPos = addTableRow('Nama Untuk Dihubungi', employee.contact?.emergencyContactName, yPos, false);
+      yPos = addTableRow('No. Telefon Kecemasan', employee.contact?.emergencyContactPhone, yPos, true);
+      yPos = addTableRow('Hubungan', employee.contact?.emergencyContactRelationship, yPos, false);
+      yPos += 5;
+
+      // Section 5: Maklumat HR/Payroll
+      yPos = addSectionHeader('5. MAKLUMAT HR/PAYROLL', yPos);
+      yPos = addTableRow('Gaji Asas', employee.payroll?.basicSalary ? `RM ${employee.payroll.basicSalary.toFixed(2)}` : 'N/A', yPos, false);
+      yPos = addTableRow('Nama Bank', employee.payroll?.bankName, yPos, true);
+      yPos = addTableRow('No. Akaun Bank', employee.payroll?.accountNumber, yPos, false);
+      yPos = addTableRow('No. KWSP', employee.payroll?.epfNumber, yPos, true);
+      yPos = addTableRow('No. SOCSO', employee.payroll?.socsoNumber, yPos, false);
+      yPos = addTableRow('No. EIS', employee.payroll?.eisNumber, yPos, true);
+      yPos = addTableRow('No. PCB', employee.payroll?.pcbNumber, yPos, false);
+
+      // Add status indicator
+      yPos += 10;
+      if (employee.status === 'employed') {
+        doc.setFillColor(76, 175, 80); // Green for employed
+      } else {
+        doc.setFillColor(244, 67, 54); // Red for others
+      }
+      doc.rect(20, yPos, 170, 6, 'F');
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.text(`STATUS: ${employee.status?.toUpperCase() || 'TIDAK DIKETAHUI'}`, 105, yPos + 4, { align: 'center' });
+    });
+
+    // Add summary page
+    doc.addPage();
+    let yPos = addPageHeader();
+    
+    yPos = addSectionHeader('RINGKASAN LAPORAN', yPos);
+    
+    const activeCount = employees.filter(emp => emp.status === 'employed').length;
+    const probationCount = employees.filter(emp => emp.employment?.employmentStatus === 'Probation').length;
+    const resignedCount = employees.filter(emp => emp.status === 'resigned').length;
+    
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0, 0, 0);
+    
+    yPos += 5;
+    doc.text(`Jumlah Keseluruhan Pekerja: ${employees.length}`, 20, yPos);
+    yPos += 8;
+    doc.text(`Pekerja Aktif: ${activeCount}`, 20, yPos);
+    yPos += 6;
+    doc.text(`Pekerja Dalam Percubaan: ${probationCount}`, 20, yPos);
+    yPos += 6;
+    doc.text(`Pekerja Berhenti: ${resignedCount}`, 20, yPos);
+    
+    // Department breakdown
+    const departments = employees.reduce((acc, emp) => {
+      const dept = emp.employment?.department || 'Tiada Jabatan';
+      acc[dept] = (acc[dept] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    yPos += 15;
+    yPos = addSectionHeader('PECAHAN MENGIKUT JABATAN', yPos);
+    yPos += 5;
+    
+    Object.entries(departments).forEach(([dept, count]) => {
+      doc.text(`${dept}: ${count} orang`, 20, yPos);
+      yPos += 6;
+    });
+
+    // Add footers to all pages
+    const totalPages = doc.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      addPageFooter(i, totalPages);
+    }
+
+    const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
+    
+    console.log('✅ Comprehensive PDF report generated successfully');
+    return pdfBuffer;
+  }
 }
