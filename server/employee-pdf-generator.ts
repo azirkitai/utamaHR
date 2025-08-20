@@ -77,40 +77,49 @@ export class EmployeePDFGenerator {
     };
 
     const addPageHeader = () => {
-      // Company logo recreation from your design - "KLINIK UTAMA" style
-      const logoWidth = 40;
-      const logoHeight = 16;
+      // New improved KLINIK UTAMA logo design
       const logoX = 20;
       const logoY = 8;
       
-      // KLINIK text in red
-      doc.setFontSize(10);
+      // KLINIK text in red (top line, smaller)
+      doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(220, 38, 38); // Red color
-      doc.text('KLINIK', logoX, logoY + 6);
+      doc.setTextColor(184, 28, 48); // Dark red color
+      doc.text('KLINIK', logoX, logoY + 8);
       
-      // UTAMA text - UTA in red, MA in red
-      doc.setFontSize(16);
+      // UTAMA text with proper spacing (main line, larger)
+      doc.setFontSize(18);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(220, 38, 38); // Red color
-      doc.text('UTA', logoX, logoY + 16);
       
-      // Blue M and heartbeat line
-      doc.setTextColor(41, 98, 182); // Blue color
-      doc.text('M', logoX + 20, logoY + 16);
+      // UTA in red
+      doc.setTextColor(184, 28, 48); // Dark red color
+      doc.text('UTA', logoX, logoY + 20);
       
-      // Red A
-      doc.setTextColor(220, 38, 38); // Red color
-      doc.text('A', logoX + 27, logoY + 16);
+      // M in blue (with proper spacing)
+      doc.setTextColor(30, 64, 175); // Blue color
+      doc.text('M', logoX + 30, logoY + 20);
       
-      // Simple heartbeat line (blue)
-      doc.setDrawColor(41, 98, 182);
-      doc.setLineWidth(2);
-      doc.line(logoX + 34, logoY + 12, logoX + 38, logoY + 12);
-      doc.line(logoX + 38, logoY + 12, logoX + 40, logoY + 8);
-      doc.line(logoX + 40, logoY + 8, logoX + 42, logoY + 16);
-      doc.line(logoX + 42, logoY + 16, logoX + 44, logoY + 12);
-      doc.line(logoX + 44, logoY + 12, logoX + 48, logoY + 12);
+      // A in red
+      doc.setTextColor(184, 28, 48); // Dark red color
+      doc.text('A', logoX + 42, logoY + 20);
+      
+      // Enhanced heartbeat line design (blue)
+      doc.setDrawColor(30, 64, 175);
+      doc.setLineWidth(2.5);
+      
+      // Horizontal line leading to heartbeat
+      doc.line(logoX + 55, logoY + 16, logoX + 65, logoY + 16);
+      
+      // Heartbeat pattern
+      doc.line(logoX + 65, logoY + 16, logoX + 70, logoY + 16);
+      doc.line(logoX + 70, logoY + 16, logoX + 73, logoY + 10);
+      doc.line(logoX + 73, logoY + 10, logoX + 77, logoY + 22);
+      doc.line(logoX + 77, logoY + 22, logoX + 80, logoY + 16);
+      doc.line(logoX + 80, logoY + 16, logoX + 90, logoY + 16);
+      
+      // Add a small circle at the end
+      doc.setFillColor(30, 64, 175);
+      doc.circle(logoX + 92, logoY + 16, 1.5, 'F');
       
       // Title
       doc.setFontSize(20);
