@@ -1108,7 +1108,7 @@ export default function MyRecordPage() {
               attendanceRecords.map((record, index) => {
                 // Force debug for each record rendering
                 const extendedRecord = record as any;
-                const isLate = extendedRecord.isLateClockIn === true;
+                const isLate = Boolean(extendedRecord.isLateClockIn);
                 
                 console.log(`🎨 RENDERING Record ${index + 1}:`, {
                   id: record.id,
