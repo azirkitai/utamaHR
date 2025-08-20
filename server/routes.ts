@@ -8213,7 +8213,7 @@ export function registerRoutes(app: Express): Server {
       }
 
       // Get all employees data with complete details
-      const employees = await storage.getEmployeesWithDetails();
+      const employees = await storage.getAllEmployeesWithDetails();
       
       const employeePDFGenerator = new EmployeePDFGenerator();
       const pdfBuffer = await employeePDFGenerator.generateEmployeeReport(employees);
