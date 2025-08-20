@@ -1063,7 +1063,12 @@ export default function MyRecordPage() {
                         <span className={`${
                           (record as any).isLateClockIn ? 'text-red-600 font-bold' : 'text-gray-800'
                         }`}>
-                          {format(new Date(record.clockInTime), 'HH:mm')}
+                          {new Date(record.clockInTime).toLocaleTimeString('en-MY', { 
+                            hour: '2-digit', 
+                            minute: '2-digit', 
+                            timeZone: 'Asia/Kuala_Lumpur',
+                            hour12: false 
+                          })}
                           {(record as any).isLateClockIn && ' ⚠️'}
                         </span>
                         {(record as any).isLateClockIn && (record as any).clockInRemarks && (
@@ -1071,12 +1076,17 @@ export default function MyRecordPage() {
                             {(record as any).clockInRemarks}
                           </div>
                         )}
-                        {/* DEBUG INFO - REMOVE AFTER TESTING */}
-                        <div className="text-xs text-blue-500 mt-1 border p-1">
-                          RAW TIME: {record.clockInTime}<br/>
-                          DISPLAY TIME: {format(new Date(record.clockInTime), 'HH:mm')}<br/>
-                          isLate={(record as any).isLateClockIn ? 'TRUE' : 'FALSE'}<br/>
-                          remarks={(record as any).clockInRemarks || 'NONE'}
+                        {/* DEBUG: SUCCESS! Red indicators working! */}
+                        <div className="text-xs text-green-600 mt-1 border p-1 bg-green-50">
+                          ✅ COMPLIANCE INDICATORS WORKING!<br/>
+                          UTC: {format(new Date(record.clockInTime), 'HH:mm')}<br/>
+                          MYT: {new Date(record.clockInTime).toLocaleTimeString('en-MY', { 
+                            hour: '2-digit', 
+                            minute: '2-digit', 
+                            timeZone: 'Asia/Kuala_Lumpur',
+                            hour12: false 
+                          })}<br/>
+                          Late={record.isLateClockIn ? 'TRUE' : 'FALSE'}
                         </div>
                       </div>
                     ) : (
@@ -1105,7 +1115,12 @@ export default function MyRecordPage() {
                         <span className={`${
                           (record as any).isLateBreakOut ? 'text-red-600 font-bold' : 'text-gray-800'
                         }`}>
-                          {format(new Date((record as any).breakOutTime), 'HH:mm')}
+                          {new Date((record as any).breakOutTime).toLocaleTimeString('en-MY', { 
+                            hour: '2-digit', 
+                            minute: '2-digit', 
+                            timeZone: 'Asia/Kuala_Lumpur',
+                            hour12: false 
+                          })}
                           {(record as any).isLateBreakOut && ' ⚠️'}
                         </span>
                         {(record as any).isLateBreakOut && (record as any).breakOutRemarks && (
@@ -1134,7 +1149,12 @@ export default function MyRecordPage() {
                   )}
                   
                   {/* Break Off (balik dari rehat/lunch) */}
-                  <TableCell>{(record as any).breakInTime ? format(new Date((record as any).breakInTime), 'HH:mm') : '-'}</TableCell>
+                  <TableCell>{(record as any).breakInTime ? new Date((record as any).breakInTime).toLocaleTimeString('en-MY', { 
+                    hour: '2-digit', 
+                    minute: '2-digit', 
+                    timeZone: 'Asia/Kuala_Lumpur',
+                    hour12: false 
+                  }) : '-'}</TableCell>
                   {showPictures && (
                     <TableCell>
                       {(record as any).breakInImage ? (
@@ -1151,7 +1171,12 @@ export default function MyRecordPage() {
                   )}
                   
                   {/* Clock Out */}
-                  <TableCell>{record.clockOutTime ? format(new Date(record.clockOutTime), 'HH:mm') : '-'}</TableCell>
+                  <TableCell>{record.clockOutTime ? new Date(record.clockOutTime).toLocaleTimeString('en-MY', { 
+                    hour: '2-digit', 
+                    minute: '2-digit', 
+                    timeZone: 'Asia/Kuala_Lumpur',
+                    hour12: false 
+                  }) : '-'}</TableCell>
                   {showPictures && (
                     <TableCell>
                       {record.clockOutImage ? (
