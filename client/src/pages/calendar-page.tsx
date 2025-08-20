@@ -282,8 +282,23 @@ function ShiftCalendarView() {
     
     if (assignment) {
       const shift = shifts.find((s: any) => s.id === assignment.shiftId);
-      console.log(`Found shift:`, shift);
-      return shift ? { ...shift, color: assignment.color } : null;
+      console.log(`Found shift for assignment ${assignment.shiftId}:`, shift);
+      if (shift) {
+        // Use shift's own color if available, otherwise use a default color
+        const shiftWithColor = { 
+          ...shift, 
+          color: shift.color || assignment.color || '#3B82F6',
+          startTime: shift.clockIn || shift.startTime,
+          endTime: shift.clockOut || shift.endTime
+        };
+        console.log(`Final shift with color and times:`, {
+          name: shiftWithColor.name,
+          color: shiftWithColor.color,
+          startTime: shiftWithColor.startTime,
+          endTime: shiftWithColor.endTime
+        });
+        return shiftWithColor;
+      }
     }
     return null;
   };
