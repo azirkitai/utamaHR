@@ -8215,8 +8215,7 @@ export function registerRoutes(app: Express): Server {
       // Get all employees data with complete details
       const employees = await storage.getAllEmployeesWithDetails();
       
-      const employeePDFGenerator = new EmployeePDFGenerator();
-      const pdfBuffer = await employeePDFGenerator.generateEmployeeReport(employees);
+      const pdfBuffer = await EmployeePDFGenerator.generateEmployeeReport(employees);
 
       // Set response headers for PDF download
       res.setHeader('Content-Type', 'application/pdf');
