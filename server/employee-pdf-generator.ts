@@ -1,4 +1,5 @@
 import { jsPDF } from 'jspdf';
+import { storage } from './storage';
 
 interface EmployeeWithDetails {
   id: string;
@@ -47,6 +48,9 @@ export class EmployeePDFGenerator {
   static async generateEmployeeReport(employees: EmployeeWithDetails[]): Promise<Buffer> {
     console.log(`🔄 Generating comprehensive PDF report for ${employees.length} employees`);
     
+    // Get company settings for logo and company info
+    const companySettings = await storage.getCompanySettings();
+    
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
@@ -76,14 +80,19 @@ export class EmployeePDFGenerator {
       doc.setFillColor(41, 98, 182);
       doc.rect(20, 10, 20, 20, 'F'); // Logo background square
       
-      // Logo text inside square
-      doc.setFontSize(10);
+      // Logo text inside square - using real company name if available
+      doc.setFontSize(8);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(255, 255, 255);
-      doc.text('UTAMA', 30, 18, { align: 'center' });
-      doc.text('HR', 30, 25, { align: 'center' });
+      if (companySettings?.companyName) {
+        const companyName = companySettings.companyName.substring(0, 8); // Limit to fit in square
+        doc.text(companyName, 30, 20, { align: 'center' });
+      } else {
+        doc.text('UTAMA', 30, 18, { align: 'center' });
+        doc.text('HR', 30, 25, { align: 'center' });
+      }
       
-      // Title - moved down to accommodate logo
+      // Title with company name if available
       doc.setFontSize(20);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(30, 64, 175);
@@ -92,7 +101,10 @@ export class EmployeePDFGenerator {
       doc.setFontSize(12);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(0, 0, 0);
-      doc.text('UTAMAHR SISTEM', 105, 27, { align: 'center' });
+      const systemName = companySettings?.companyName ? 
+        `${companySettings.companyName} HR SISTEM` : 
+        'UTAMAHR SISTEM';
+      doc.text(systemName, 105, 27, { align: 'center' });
       
       // Header line
       doc.setDrawColor(30, 64, 175);
