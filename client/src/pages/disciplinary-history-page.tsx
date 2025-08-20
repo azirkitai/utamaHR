@@ -51,6 +51,8 @@ interface DisciplinaryRecord {
   followUpRequired: boolean;
   followUpDate?: string;
   attachments?: string[];
+  attachmentNames?: string;
+  attachmentCount?: number;
   internalNotes?: string;
   createdAt: string;
   updatedAt: string;
@@ -96,6 +98,13 @@ export default function DisciplinaryHistoryPage() {
   
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
   const [selectedRecord, setSelectedRecord] = useState<DisciplinaryRecord | null>(null);
+  const [editingRecord, setEditingRecord] = useState<DisciplinaryRecord | null>(null);
+  const [editData, setEditData] = useState({
+    status: '',
+    followUpRequired: false,
+    followUpDate: '',
+    internalNotes: ''
+  });
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
@@ -213,6 +222,47 @@ export default function DisciplinaryHistoryPage() {
       });
     }
   });
+
+  // Update disciplinary record mutation
+  const updateRecordMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest('PUT', `/api/disciplinary-records/${data.id}`, data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Disciplinary record updated successfully",
+      });
+      setEditingRecord(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/disciplinary-records'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update disciplinary record",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleEdit = (record: DisciplinaryRecord) => {
+    setEditingRecord(record);
+    setEditData({
+      status: record.status,
+      followUpRequired: record.followUpRequired,
+      followUpDate: record.followUpDate || '',
+      internalNotes: record.internalNotes || ''
+    });
+  };
+
+  const handleUpdateSubmit = () => {
+    if (!editingRecord) return;
+    
+    updateRecordMutation.mutate({
+      id: editingRecord.id,
+      ...editData
+    });
+  };
 
   const handleSubmit = () => {
     if (!newRecord.employeeId || !newRecord.type || !newRecord.subject) {
@@ -594,9 +644,86 @@ export default function DisciplinaryHistoryPage() {
                             </TableCell>
                             <TableCell>
                               <div className="flex gap-2">
-                                <Button variant="outline" size="sm" data-testid={`button-edit-${record.id}`}>
-                                  <Edit className="h-3 w-3" />
-                                </Button>
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button variant="outline" size="sm" onClick={() => handleEdit(record)} data-testid={`button-edit-${record.id}`}>
+                                      <Edit className="h-3 w-3" />
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent className="max-w-md">
+                                    <DialogHeader>
+                                      <DialogTitle>Edit Disciplinary Record</DialogTitle>
+                                      <DialogDescription>
+                                        Update record status and follow-up information
+                                      </DialogDescription>
+                                    </DialogHeader>
+                                    {editingRecord && (
+                                      <div className="space-y-4">
+                                        <div>
+                                          <Label htmlFor="edit-status">Status</Label>
+                                          <Select value={editData.status} onValueChange={(value) => 
+                                            setEditData(prev => ({ ...prev, status: value }))
+                                          }>
+                                            <SelectTrigger>
+                                              <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                              <SelectItem value="active">Active</SelectItem>
+                                              <SelectItem value="resolved">Resolved</SelectItem>
+                                              <SelectItem value="appealed">Appealed</SelectItem>
+                                              <SelectItem value="closed">Closed</SelectItem>
+                                            </SelectContent>
+                                          </Select>
+                                        </div>
+
+                                        <div className="flex items-center space-x-2">
+                                          <input
+                                            type="checkbox"
+                                            id="edit-follow-up"
+                                            checked={editData.followUpRequired}
+                                            onChange={(e) => setEditData(prev => ({ ...prev, followUpRequired: e.target.checked }))}
+                                          />
+                                          <Label htmlFor="edit-follow-up">Follow-up required</Label>
+                                        </div>
+
+                                        {editData.followUpRequired && (
+                                          <div>
+                                            <Label htmlFor="edit-follow-up-date">Follow-up Date</Label>
+                                            <Input
+                                              type="date"
+                                              value={editData.followUpDate}
+                                              onChange={(e) => setEditData(prev => ({ ...prev, followUpDate: e.target.value }))}
+                                            />
+                                          </div>
+                                        )}
+
+                                        <div>
+                                          <Label htmlFor="edit-notes">Internal Notes</Label>
+                                          <Textarea
+                                            value={editData.internalNotes}
+                                            onChange={(e) => setEditData(prev => ({ ...prev, internalNotes: e.target.value }))}
+                                            rows={3}
+                                            placeholder="Add internal notes..."
+                                          />
+                                        </div>
+
+                                        <div className="flex gap-2 pt-4">
+                                          <Button 
+                                            onClick={handleUpdateSubmit}
+                                            disabled={updateRecordMutation.isPending}
+                                            className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white"
+                                          >
+                                            <Save className="h-4 w-4 mr-2" />
+                                            {updateRecordMutation.isPending ? 'Updating...' : 'Update Record'}
+                                          </Button>
+                                          <Button variant="outline" onClick={() => setEditingRecord(null)}>
+                                            Cancel
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </DialogContent>
+                                </Dialog>
                                 <Button variant="outline" size="sm" data-testid={`button-delete-${record.id}`}>
                                   <Trash2 className="h-3 w-3" />
                                 </Button>
