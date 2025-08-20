@@ -564,6 +564,29 @@ export default function DisciplinaryHistoryPage() {
                                           <p className="text-sm text-gray-600">{selectedRecord.internalNotes}</p>
                                         </div>
                                       )}
+                                      {selectedRecord.attachmentNames && JSON.parse(selectedRecord.attachmentNames).length > 0 && (
+                                        <div>
+                                          <p className="text-sm font-medium text-muted-foreground mb-2">Attached Documents</p>
+                                          <div className="space-y-2">
+                                            {JSON.parse(selectedRecord.attachmentNames).map((fileName: string, index: number) => (
+                                              <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
+                                                <FileText className="h-4 w-4 text-blue-600" />
+                                                <span className="text-sm font-medium">{fileName}</span>
+                                                <div className="ml-auto flex gap-1">
+                                                  <Button variant="ghost" size="sm" className="h-6 px-2">
+                                                    <Eye className="h-3 w-3 mr-1" />
+                                                    <span className="text-xs">View</span>
+                                                  </Button>
+                                                  <Button variant="ghost" size="sm" className="h-6 px-2">
+                                                    <Download className="h-3 w-3 mr-1" />
+                                                    <span className="text-xs">Download</span>
+                                                  </Button>
+                                                </div>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      )}
                                     </div>
                                   )}
                                 </DialogContent>
