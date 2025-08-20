@@ -181,8 +181,9 @@ export default function DisciplinaryHistoryPage() {
     }
   });
 
-  // Use local records for display
+  // Use local records for display and force re-render with key
   const recordsToDisplay = localRecords.length > 0 ? localRecords : disciplinaryRecords;
+  const [renderKey, setRenderKey] = useState(0);
 
   // Get selected employee details
   const selectedEmployee = (employees as Employee[]).find((emp: Employee) => emp.id === selectedEmployeeId);
@@ -241,9 +242,9 @@ export default function DisciplinaryHistoryPage() {
     onSuccess: async (updatedRecord) => {
       console.log('Update successful, updating local state...');
       
-      // Update local state immediately with proper typing
-      setLocalRecords(prev => 
-        prev.map(record => 
+      // Update local state immediately - Force UI refresh
+      setLocalRecords(prev => {
+        const updatedRecords = prev.map(record => 
           record.id === editingRecord?.id 
             ? { 
                 ...record, 
@@ -253,8 +254,12 @@ export default function DisciplinaryHistoryPage() {
                 internalNotes: editData.internalNotes
               }
             : record
-        )
-      );
+        );
+        console.log('Local state updated, new status:', editData.status);
+        // Force component re-render
+        setRenderKey(prev => prev + 1);
+        return updatedRecords;
+      });
       
       toast({
         title: "Success", 
@@ -585,7 +590,7 @@ export default function DisciplinaryHistoryPage() {
                           <TableHead>Actions</TableHead>
                         </TableRow>
                       </TableHeader>
-                      <TableBody>
+                      <TableBody key={renderKey}>
                         {filteredRecords.map((record: DisciplinaryRecord) => (
                           <TableRow key={record.id}>
                             <TableCell>
@@ -598,13 +603,19 @@ export default function DisciplinaryHistoryPage() {
                             </TableCell>
                             <TableCell>{record.subject}</TableCell>
                             <TableCell>
-                              <Badge className={statusColors[record.status as keyof typeof statusColors]}>
+                              <Badge 
+                                key={`${record.id}-${record.status}`}
+                                className={statusColors[record.status as keyof typeof statusColors]}
+                              >
                                 {record.status === 'active' ? 'Active' : 
                                  record.status === 'resolved' ? 'Resolved' : 
                                  record.status === 'appealed' ? 'Appealed' : 
                                  record.status === 'closed' ? 'Closed' : 
                                  String(record.status).charAt(0).toUpperCase() + String(record.status).slice(1)}
                               </Badge>
+                              <div className="text-xs text-gray-500 mt-1">
+                                DEBUG: {record.status}
+                              </div>
                             </TableCell>
                             <TableCell>
                               <Dialog>
