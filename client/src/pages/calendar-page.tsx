@@ -441,15 +441,6 @@ function ShiftCalendarView() {
             >
               <ChevronRight className="w-4 h-4" />
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentWeek(new Date())}
-              className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white hover:opacity-90"
-              data-testid="button-today"
-            >
-              Today
-            </Button>
           </div>
 
           <Popover open={showDatePicker} onOpenChange={setShowDatePicker}>
