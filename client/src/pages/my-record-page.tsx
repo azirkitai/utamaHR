@@ -468,7 +468,19 @@ export default function MyRecordPage() {
               </Select>
             </div>
             <div className="flex gap-2">
-              <Button className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700" data-testid="button-overtime-search">
+              <Button 
+                className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700" 
+                onClick={() => {
+                  console.log('🔍 OVERTIME SEARCH FILTERS APPLIED:', {
+                    dateFrom: filters.dateFrom,
+                    dateTo: filters.dateTo,
+                    overtimeStatus: filters.overtimeStatus,
+                    totalResults: filteredOvertimeApplications.length,
+                    originalTotal: overtimeClaims.length
+                  });
+                }}
+                data-testid="button-overtime-search"
+              >
                 <Search className="h-4 w-4 mr-2" />
                 Search
               </Button>
@@ -687,6 +699,51 @@ export default function MyRecordPage() {
     }
     
     return isDateInRange && isClaimTypeMatch && isStatusMatch;
+  });
+
+  // Filter overtime applications based on current filters
+  const filteredOvertimeApplications = overtimeClaims.filter(overtime => {
+    // Date filter - check multiple possible date fields
+    const overtimeDate = overtime.claimDate ? new Date(overtime.claimDate) : 
+                        overtime.overtimeDate ? new Date(overtime.overtimeDate) :
+                        overtime.date ? new Date(overtime.date) : null;
+    
+    const isDateInRange = overtimeDate ? (overtimeDate >= filters.dateFrom && overtimeDate <= filters.dateTo) : true;
+    
+    // Status filter
+    const isStatusMatch = filters.overtimeStatus === 'all-overtime-status' || 
+      overtime.status.toLowerCase() === filters.overtimeStatus.toLowerCase();
+    
+    console.log(`🔍 OVERTIME FILTERING DEBUG:`, {
+      id: overtime.id,
+      claimDate: overtime.claimDate,
+      overtimeDate: overtime.overtimeDate,
+      date: overtime.date,
+      finalDate: overtimeDate,
+      dateFrom: filters.dateFrom,
+      dateTo: filters.dateTo,
+      isDateInRange,
+      status: overtime.status,
+      overtimeStatus: filters.overtimeStatus,
+      isStatusMatch,
+      finalPass: isDateInRange && isStatusMatch
+    });
+    
+    return isDateInRange && isStatusMatch;
+  });
+
+  // Apply search term filter to filtered overtime results
+  const searchFilteredOvertime = filteredOvertimeApplications.filter(overtime => {
+    if (!filters.searchTerm) return true;
+    
+    const searchLower = filters.searchTerm.toLowerCase();
+    return (
+      (overtime.requestorName && overtime.requestorName.toLowerCase().includes(searchLower)) ||
+      (overtime.employeeName && overtime.employeeName.toLowerCase().includes(searchLower)) ||
+      (overtime.reason && overtime.reason.toLowerCase().includes(searchLower)) ||
+      (overtime.remarks && overtime.remarks.toLowerCase().includes(searchLower)) ||
+      overtime.status.toLowerCase().includes(searchLower)
+    );
   });
 
   // Apply search term filter to filtered results
@@ -1155,7 +1212,13 @@ export default function MyRecordPage() {
         
         <div className="flex items-center gap-2">
           <span className="text-sm">Search:</span>
-          <Input className="w-64" placeholder="Search..." data-testid="input-overtime-search" />
+          <Input 
+            className="w-64" 
+            placeholder="Search..." 
+            value={filters.searchTerm}
+            onChange={(e) => setFilters(prev => ({ ...prev, searchTerm: e.target.value }))}
+            data-testid="input-overtime-search" 
+          />
         </div>
       </div>
 
@@ -1180,14 +1243,14 @@ export default function MyRecordPage() {
                   Loading overtime records...
                 </TableCell>
               </TableRow>
-            ) : overtimeClaims.length === 0 ? (
+            ) : searchFilteredOvertime.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                   No overtime records found
                 </TableCell>
               </TableRow>
             ) : (
-              overtimeClaims.map((overtime: any, index: number) => (
+              searchFilteredOvertime.map((overtime: any, index: number) => (
                 <TableRow key={overtime.id}>
                   <TableCell data-testid={`overtime-row-${index}-no`}>{index + 1}</TableCell>
                   <TableCell data-testid={`overtime-row-${index}-applicant`}>{overtime.requestorName || overtime.employeeName || '-'}</TableCell>
@@ -1220,7 +1283,7 @@ export default function MyRecordPage() {
       {/* Pagination */}
       <div className="flex justify-between items-center">
         <span className="text-sm text-gray-500">
-          Showing {overtimeClaims.length > 0 ? '1' : '0'} to {overtimeClaims.length} of {overtimeClaims.length} entries
+          Showing {searchFilteredOvertime.length > 0 ? '1' : '0'} to {searchFilteredOvertime.length} of {searchFilteredOvertime.length} entries
         </span>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" disabled data-testid="button-overtime-previous">
