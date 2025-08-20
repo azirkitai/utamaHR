@@ -965,12 +965,15 @@ export class DatabaseStorage implements IStorage {
     return (result.rowCount ?? 0) > 0;
   }
 
-  async getEmployeeActiveShift(employeeId: string): Promise<(SelectShift & { employeeShiftId: string }) | null> {
+  async getEmployeeActiveShift(employeeId: string): Promise<any | null> {
     try {
+      console.log('🔍 DEBUG getEmployeeActiveShift for employee:', employeeId);
+      
       // Join employeeShifts with shifts to get active shift for employee
       const result = await db
         .select({
           id: shifts.id,
+          name: shifts.shiftName,  // Add name field that compliance logic expects
           shiftName: shifts.shiftName,
           clockIn: shifts.clockIn,
           clockOut: shifts.clockOut,
@@ -987,6 +990,15 @@ export class DatabaseStorage implements IStorage {
         .innerJoin(shifts, eq(employeeShifts.shiftId, shifts.id))
         .where(eq(employeeShifts.employeeId, employeeId))
         .limit(1);
+
+      console.log('🔍 DEBUG shift query result:', result.length, 'records found');
+      if (result[0]) {
+        console.log('🔍 DEBUG active shift details:', {
+          name: result[0].name,
+          clockIn: result[0].clockIn,
+          clockOut: result[0].clockOut
+        });
+      }
 
       return result[0] || null;
     } catch (error) {
