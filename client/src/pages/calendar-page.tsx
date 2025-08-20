@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,8 +19,11 @@ import {
   Clock,
   Users,
   Save,
-  Trash2
+  Trash2,
+  Calendar as CalendarIcon
 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { useAuth } from "@/hooks/use-auth";
@@ -111,6 +114,334 @@ const employees: Employee[] = [
     ]
   }
 ];
+
+// Shift Calendar View Component (read-only version without edit button)
+function ShiftCalendarView() {
+  const [currentWeek, setCurrentWeek] = useState(new Date());
+  const [viewMode, setViewMode] = useState<"week" | "month">("week");
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [expandedDepartments, setExpandedDepartments] = useState<string[]>([]);
+
+  // Get dates based on view mode
+  const getDatesForView = (date: Date) => {
+    if (viewMode === "week") {
+      const startOfWeek = new Date(date);
+      const day = startOfWeek.getDay();
+      const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+      startOfWeek.setDate(diff);
+
+      const weekDates = [];
+      for (let i = 0; i < 7; i++) {
+        const currentDate = new Date(startOfWeek);
+        currentDate.setDate(startOfWeek.getDate() + i);
+        weekDates.push(currentDate);
+      }
+      return weekDates;
+    } else if (viewMode === "month") {
+      const year = date.getFullYear();
+      const month = date.getMonth();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      
+      const monthDates = [];
+      for (let i = 1; i <= daysInMonth; i++) {
+        const currentDate = new Date(year, month, i);
+        monthDates.push(currentDate);
+      }
+      return monthDates;
+    }
+    return [];
+  };
+
+  const viewDates = getDatesForView(currentWeek);
+
+  const formatDateRange = () => {
+    if (viewMode === "week") {
+      const startDate = viewDates[0];
+      const endDate = viewDates[6];
+      
+      const formatOptions: Intl.DateTimeFormatOptions = { 
+        month: 'short', 
+        day: 'numeric'
+      };
+      
+      const start = startDate.toLocaleDateString('en-US', formatOptions);
+      const end = endDate.toLocaleDateString('en-US', formatOptions);
+      const year = endDate.getFullYear();
+      
+      return `${start} – ${end}, ${year}`;
+    } else if (viewMode === "month") {
+      const formatOptions: Intl.DateTimeFormatOptions = { 
+        month: 'long', 
+        year: 'numeric'
+      };
+      
+      return currentWeek.toLocaleDateString('en-US', formatOptions);
+    }
+    return "";
+  };
+
+  const getDayHeaders = () => {
+    if (viewMode === "week") {
+      const dayNames = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+      return viewDates.map((date, index) => ({
+        dayName: dayNames[index],
+        dayNumber: date.getDate(),
+        fullDate: date
+      }));
+    } else if (viewMode === "month") {
+      return viewDates.map((date) => ({
+        dayName: date.toLocaleDateString('en-US', { weekday: 'short' })[0], // Just first letter
+        dayNumber: date.getDate(),
+        fullDate: date
+      }));
+    }
+    return [];
+  };
+
+  const navigateView = (direction: 'prev' | 'next') => {
+    const newDate = new Date(currentWeek);
+    
+    if (viewMode === "week") {
+      newDate.setDate(currentWeek.getDate() + (direction === 'next' ? 7 : -7));
+    } else if (viewMode === "month") {
+      newDate.setMonth(currentWeek.getMonth() + (direction === 'next' ? 1 : -1));
+    }
+    
+    setCurrentWeek(newDate);
+  };
+
+  // Fetch data
+  const { data: employees = [] } = useQuery({
+    queryKey: ['/api/employees'],
+  });
+
+  const { data: departments = [] } = useQuery({
+    queryKey: ['/api/departments'],
+  });
+
+  const { data: shifts = [] } = useQuery({
+    queryKey: ['/api/shifts'],
+  });
+
+  const { data: employeeShifts = [] } = useQuery({
+    queryKey: ['/api/employee-shifts'],
+  });
+
+  // Group employees by department
+  const employeesByDepartment = employees.reduce((acc: any, employee: any) => {
+    const dept = employee.employment?.department || 'No Department';
+    if (!acc[dept]) {
+      acc[dept] = [];
+    }
+    acc[dept].push(employee);
+    return acc;
+  }, {});
+
+  // Get shift assignment for employee on specific date
+  const getShiftForEmployeeDate = (employeeId: string, date: Date) => {
+    const dateStr = date.toISOString();
+    const assignment = employeeShifts.find((es: any) => 
+      es.employeeId === employeeId && es.date === dateStr
+    );
+    
+    if (assignment) {
+      const shift = shifts.find((s: any) => s.id === assignment.shiftId);
+      return shift ? { ...shift, color: assignment.color } : null;
+    }
+    return null;
+  };
+
+  const dayHeaders = getDayHeaders();
+
+  return (
+    <Card>
+      <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-t-lg">
+        <CardTitle>Shift Calendar</CardTitle>
+      </CardHeader>
+      <CardContent className="p-6">
+        {/* Header Controls */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigateView('prev')}
+              className="bg-black text-white hover:bg-gray-800"
+              data-testid="button-prev-view"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigateView('next')}
+              className="bg-black text-white hover:bg-gray-800"
+              data-testid="button-next-view"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentWeek(new Date())}
+              className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white hover:opacity-90"
+              data-testid="button-today"
+            >
+              Today
+            </Button>
+          </div>
+
+          <Popover open={showDatePicker} onOpenChange={setShowDatePicker}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="text-xl font-bold text-gray-900 border-gray-300 hover:bg-gray-50 h-auto py-2 px-4"
+                data-testid="button-date-picker"
+              >
+                <CalendarIcon className="w-4 h-4 mr-2" />
+                {formatDateRange()}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="center">
+              <Calendar
+                mode="single"
+                selected={currentWeek}
+                onSelect={(date) => {
+                  if (date) {
+                    setCurrentWeek(date);
+                    setShowDatePicker(false);
+                  }
+                }}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+
+          <div className="flex items-center space-x-2">
+            <Button
+              variant={viewMode === "week" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewMode("week")}
+              className={viewMode === "week" ? "bg-black text-white" : ""}
+              data-testid="button-week-view"
+            >
+              week
+            </Button>
+            <Button
+              variant={viewMode === "month" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewMode("month")}
+              className={viewMode === "month" ? "bg-black text-white" : ""}
+              data-testid="button-month-view"
+            >
+              month
+            </Button>
+          </div>
+        </div>
+
+        {/* Shift Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="border-b-2 border-gray-300">
+                <th className="text-left py-3 px-4 font-semibold text-gray-800 bg-gray-50 min-w-[200px]">
+                  Employee
+                </th>
+                {dayHeaders.map((day) => (
+                  <th 
+                    key={day.fullDate.toISOString()} 
+                    className="text-center py-3 px-2 font-semibold text-gray-800 bg-gray-50 min-w-[120px]"
+                  >
+                    <div className="flex flex-col items-center">
+                      <span className="text-sm font-bold">{day.dayNumber}</span>
+                      <span className="text-xs text-gray-600">{day.dayName}</span>
+                    </div>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(employeesByDepartment).map(([department, deptEmployees]: [string, any[]]) => (
+                <React.Fragment key={department}>
+                  {/* Department Header */}
+                  <tr className="border-b bg-gray-100">
+                    <td colSpan={dayHeaders.length + 1} className="py-3 px-4">
+                      <div className="flex items-center">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            if (expandedDepartments.includes(department)) {
+                              setExpandedDepartments(prev => prev.filter(d => d !== department));
+                            } else {
+                              setExpandedDepartments(prev => [...prev, department]);
+                            }
+                          }}
+                          className="p-0 h-auto text-left font-semibold text-gray-800"
+                        >
+                          {expandedDepartments.includes(department) ? (
+                            <ChevronDown className="w-4 h-4 mr-2" />
+                          ) : (
+                            <ChevronRight className="w-4 h-4 mr-2" />
+                          )}
+                          {department} ({deptEmployees.length})
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+
+                  {/* Employee Rows */}
+                  {expandedDepartments.includes(department) && deptEmployees.map((employee: any) => (
+                    <tr key={employee.id} className="border-b hover:bg-gray-50">
+                      <td className="py-3 px-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <User className="w-4 h-4 text-blue-600" />
+                          </div>
+                          <div>
+                            <div className="font-medium text-gray-900">
+                              {employee.fullName}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {employee.employment?.designation}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      {dayHeaders.map((day) => {
+                        const shift = getShiftForEmployeeDate(employee.id, day.fullDate);
+                        return (
+                          <td key={day.fullDate.toISOString()} className="py-2 px-2 text-center">
+                            {shift ? (
+                              <div 
+                                className="px-3 py-2 rounded-lg text-xs font-medium text-white shadow-sm"
+                                style={{ backgroundColor: shift.color || '#3B82F6' }}
+                                title={`${shift.name} (${shift.startTime} - ${shift.endTime})`}
+                              >
+                                <div className="font-semibold">{shift.name}</div>
+                                <div className="text-xs opacity-90">
+                                  {shift.startTime}-{shift.endTime}
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="px-3 py-2 rounded-lg text-xs font-medium bg-gray-200 text-gray-600">
+                                Off Day
+                              </div>
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function CalendarPage() {
   const { user } = useAuth();
@@ -1136,74 +1467,7 @@ export default function CalendarPage() {
               </TabsContent>
 
               <TabsContent value="shift">
-                <Card>
-                  <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-t-lg">
-                    <CardTitle>Shift Calendar</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    {/* Shift Header */}
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center gap-4">
-                        <Button variant="ghost" size="sm">
-                          <ChevronLeft className="w-4 h-4" />
-                        </Button>
-                        <h2 className="text-xl font-semibold">{currentWeek}</h2>
-                        <Button variant="ghost" size="sm">
-                          <ChevronRight className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button variant="default" size="sm" data-testid="button-week-view">week</Button>
-                        <Button variant="outline" size="sm" data-testid="button-month-shift-view">month</Button>
-                      </div>
-                    </div>
-
-                    {/* Shift Table */}
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b">
-                            <th className="text-left py-3 px-4 font-medium text-gray-700">Employee</th>
-                            <th className="text-center py-3 px-4 font-medium text-gray-700">4 M</th>
-                            <th className="text-center py-3 px-4 font-medium text-gray-700">5 T</th>
-                            <th className="text-center py-3 px-4 font-medium text-gray-700">6 W</th>
-                            <th className="text-center py-3 px-4 font-medium text-gray-700">7 T</th>
-                            <th className="text-center py-3 px-4 font-medium text-gray-700">8 F</th>
-                            <th className="text-center py-3 px-4 font-medium text-gray-700">9 S</th>
-                            <th className="text-center py-3 px-4 font-medium text-gray-700">10 S</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr className="border-b">
-                            <td colSpan={8} className="py-2 px-4 bg-gray-100">
-                              <div className="flex items-center">
-                                <Checkbox className="mr-2" />
-                                <span className="font-medium">Human Resource</span>
-                              </div>
-                            </td>
-                          </tr>
-                          {employees.map(employee => (
-                            <tr key={employee.id} className="border-b">
-                              <td className="py-2 px-4">{employee.name}</td>
-                              {employee.shifts.map((shift, index) => (
-                                <td key={index} className="py-2 px-4 text-center">
-                                  <span className={cn(
-                                    "px-2 py-1 rounded text-xs",
-                                    shift.type === "Default Shift" 
-                                      ? "bg-blue-100 text-blue-800" 
-                                      : "bg-gray-100 text-gray-800"
-                                  )}>
-                                    {shift.shift}
-                                  </span>
-                                </td>
-                              ))}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </CardContent>
-                </Card>
+                <ShiftCalendarView />
               </TabsContent>
             </Tabs>
           </div>
