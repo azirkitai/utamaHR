@@ -117,16 +117,16 @@ const navigationItems: { category: string; items: SidebarItem[] }[] = [
         badge: "★",
       },
       {
-        id: "disciplinary-records",
-        label: "Disciplinary Records",
-        icon: <Shield className="w-4 h-4" />,
-        href: "/disciplinary-records",
-      },
-      {
         id: "disciplinary-history",
         label: "Disciplinary History & Add Action",
         icon: <FileX className="w-4 h-4" />,
         href: "/disciplinary-history",
+      },
+      {
+        id: "disciplinary-records",
+        label: "Disciplinary Records",
+        icon: <Shield className="w-4 h-4" />,
+        href: "/disciplinary-records",
       },
     ],
   },

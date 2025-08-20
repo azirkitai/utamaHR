@@ -121,22 +121,19 @@ export default function DisciplinaryHistoryPage() {
   // Query disciplinary records
   const { data: disciplinaryRecords = [], isLoading } = useQuery<DisciplinaryRecord[]>({
     queryKey: ['/api/disciplinary-records'],
-    enabled: !!user && hasPrivilegedAccess,
+    enabled: Boolean(user && hasPrivilegedAccess),
   });
 
   // Query employees for dropdown
   const { data: employees = [] } = useQuery<any[]>({
     queryKey: ['/api/employees'],
-    enabled: !!user && hasPrivilegedAccess,
+    enabled: Boolean(user && hasPrivilegedAccess),
   });
 
   // Create disciplinary action mutation
   const createActionMutation = useMutation({
     mutationFn: async (data: DisciplinaryActionFormData) => {
-      return apiRequest('/api/disciplinary-records', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
+      return apiRequest('/api/disciplinary-records', 'POST', data);
     },
     onSuccess: () => {
       toast({
@@ -157,7 +154,7 @@ export default function DisciplinaryHistoryPage() {
   });
 
   // Filter records based on search and filters
-  const filteredRecords = disciplinaryRecords.filter(record => {
+  const filteredRecords = (disciplinaryRecords as DisciplinaryRecord[]).filter((record: DisciplinaryRecord) => {
     const matchesSearch = record.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          record.subject.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesEmployee = !selectedEmployee || record.employeeId === selectedEmployee;
