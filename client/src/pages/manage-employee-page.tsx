@@ -268,9 +268,62 @@ export default function ManageEmployeePage() {
     }
   };
 
-  const downloadTemplate = () => {
-    // Download template logic
-    console.log("Downloading template");
+  const downloadTemplate = async () => {
+    try {
+      console.log("Downloading template");
+      
+      // Call API to download Excel template
+      const response = await fetch('/api/download-staff-template', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (!response.ok) {
+        if (response.status === 403) {
+          toast({
+            title: "Akses Ditolak",
+            description: "Hanya admin yang dibenarkan untuk download template",
+            variant: "destructive",
+          });
+          return;
+        }
+        throw new Error('Gagal download template');
+      }
+
+      // Get the blob from response
+      const blob = await response.blob();
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = 'Staff_Import_Template.xlsx';
+      
+      // Trigger download
+      document.body.appendChild(a);
+      a.click();
+      
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast({
+        title: "Template Downloaded",
+        description: "Template Excel untuk import staff telah dimuat turun",
+        variant: "default",
+      });
+      
+    } catch (error) {
+      console.error("Download template error:", error);
+      toast({
+        title: "Download Gagal",
+        description: "Gagal memuat turun template Excel",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

@@ -8,6 +8,7 @@ import { generatePayslipExcel } from './payslip-excel-generator';
 import { generatePaymentVoucherPDF } from './payment-voucher-pdf-generator';
 import puppeteer from 'puppeteer';
 import htmlPdf from 'html-pdf-node';
+import Excel from 'exceljs';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import multer from 'multer';
@@ -8067,6 +8068,134 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Delete disciplinary record error:", error);
       res.status(500).json({ error: "Gagal memadam rekod tatatertib" });
+    }
+  });
+
+  // Generate Excel template for bulk staff import
+  app.get("/api/download-staff-template", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      
+      // Check if user has admin access
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager'];
+      if (!adminRoles.includes(currentUser.role)) {
+        return res.status(403).json({ error: "Akses ditolak - Hanya admin yang dibenarkan" });
+      }
+
+      console.log("Generating staff import template for user:", currentUser.username);
+
+      // Create new Excel workbook
+      const workbook = new Excel.Workbook();
+      const worksheet = workbook.addWorksheet('Staff Import Template');
+
+      // Define column headers based on database schema
+      const headers = [
+        'username', 'password', 'role', 'firstName', 'lastName', 'fullName',
+        'nric', 'dateOfBirth', 'placeOfBirth', 'gender', 'race', 'religion',
+        'bloodType', 'educationLevel', 'maritalStatus', 'nationality', 'bumiStatus',
+        'familyMembers', 'staffId', 'drivingLicenseNumber', 'drivingClass', 'drivingExpiryDate',
+        'status', 'company', 'branch', 'branchLocation', 'designation', 'department',
+        'dateJoining', 'dateOfSign', 'employmentType', 'employmentStatus', 'okuStatus',
+        'phoneNumber', 'mobileNumber', 'email', 'personalEmail', 'address', 'mailingAddress',
+        'emergencyContactName', 'emergencyContactPhone'
+      ];
+
+      // Add headers to worksheet
+      worksheet.addRow(headers);
+
+      // Style the header row
+      const headerRow = worksheet.getRow(1);
+      headerRow.font = { bold: true, color: { argb: 'FFFFFF' } };
+      headerRow.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: '1F2937' } // Dark gray background
+      };
+
+      // Auto-fit columns
+      headers.forEach((header, index) => {
+        const column = worksheet.getColumn(index + 1);
+        column.width = Math.max(header.length + 2, 15);
+      });
+
+      // Add sample data row for guidance
+      const sampleData = [
+        'john.doe', 'password123', 'Staff/Employee', 'John', 'Doe', 'John Doe',
+        '123456789012', '1990-01-01', 'Kuala Lumpur', 'Male', 'Malay', 'Islam',
+        'O+', 'Degree', 'Single', 'Malaysian', 'Yes',
+        '0', 'EMP001', 'D1234567', 'B2', '2025-12-31',
+        'employed', 'UTAMA HR', 'HQ', 'Kuala Lumpur', 'Software Engineer', 'IT',
+        '2024-01-01', '2024-01-01', 'Permanent', 'Employed', 'No',
+        '0123456789', '0123456789', 'john.doe@company.com', 'john@personal.com', 
+        'Jalan ABC, Kuala Lumpur', 'Jalan ABC, Kuala Lumpur',
+        'Jane Doe', '0123456788'
+      ];
+
+      worksheet.addRow(sampleData);
+
+      // Style the sample data row
+      const sampleRow = worksheet.getRow(2);
+      sampleRow.font = { italic: true, color: { argb: '6B7280' } };
+
+      // Add instructions worksheet
+      const instructionsSheet = workbook.addWorksheet('Instructions');
+      const instructions = [
+        ['ARAHAN UNTUK IMPORT STAFF SECARA BULK'],
+        [''],
+        ['1. Gunakan sheet "Staff Import Template" untuk input data staff'],
+        ['2. Padam baris sample data (baris ke-2) sebelum import'],
+        ['3. Pastikan format data mengikut contoh yang diberikan'],
+        ['4. Field yang WAJIB diisi:'],
+        ['   - username (unik)'],
+        ['   - password'],
+        ['   - role (pilihan: Super Admin, Admin, HR Manager, PIC, Finance/Account, Staff/Employee)'],
+        ['   - firstName'],
+        ['   - lastName'],
+        ['   - email'],
+        [''],
+        ['5. Format tarikh: YYYY-MM-DD (contoh: 2024-12-31)'],
+        ['6. Field gender: Male/Female'],
+        ['7. Field status: employed/terminated'],
+        ['8. Field employmentStatus: Employed/Terminated'],
+        ['9. Field okuStatus: Yes/No'],
+        ['10. Field bumiStatus: Yes/No'],
+        [''],
+        ['NOTA:'],
+        ['- Jika field tidak diisi, sistem akan gunakan nilai default'],
+        ['- Username mesti unik dalam sistem'],
+        ['- Email mesti format yang sah'],
+        ['- Pastikan data peribadi adalah tepat dan terkini']
+      ];
+
+      instructions.forEach((instruction, index) => {
+        instructionsSheet.addRow(instruction);
+        if (index === 0) {
+          const titleRow = instructionsSheet.getRow(index + 1);
+          titleRow.font = { bold: true, size: 14 };
+        }
+      });
+
+      // Auto-fit instruction column
+      instructionsSheet.getColumn(1).width = 60;
+
+      // Set response headers for file download
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      );
+      res.setHeader(
+        'Content-Disposition',
+        'attachment; filename="Staff_Import_Template.xlsx"'
+      );
+
+      // Write workbook to response
+      await workbook.xlsx.write(res);
+      res.end();
+
+      console.log("Staff import template generated successfully");
+    } catch (error) {
+      console.error("Generate staff template error:", error);
+      res.status(500).json({ error: "Gagal menjana template Excel" });
     }
   });
 
