@@ -25,6 +25,7 @@ interface FilterState {
   pageSize: number;
   claimType: string;
   claimStatus: string;
+  overtimeStatus: string;
 }
 
 export default function MyRecordPage() {
@@ -39,7 +40,8 @@ export default function MyRecordPage() {
     searchTerm: "",
     pageSize: 10,
     claimType: "all-claim-type",
-    claimStatus: "all-claim-status"
+    claimStatus: "all-claim-status",
+    overtimeStatus: "all-overtime-status"
   });
 
   // Check if user has admin access to view other employees' data
@@ -448,14 +450,17 @@ export default function MyRecordPage() {
             {renderDatePeriodFilter('overtime')}
             <div className="space-y-2">
               <label className="text-sm font-medium">Overtime Status</label>
-              <Select defaultValue="all-overtime-status" data-testid="select-overtime-status">
+              <Select 
+                value={filters.overtimeStatus} 
+                onValueChange={(value) => setFilters(prev => ({ ...prev, overtimeStatus: value }))}
+                data-testid="select-overtime-status"
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="All overtime status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all-overtime-status">All overtime status</SelectItem>
-                  <SelectItem value="new">New</SelectItem>
-                  <SelectItem value="review">Review</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="approved">Approved</SelectItem>
                   <SelectItem value="cancelled">Cancelled</SelectItem>
                   <SelectItem value="deleted">Deleted</SelectItem>
