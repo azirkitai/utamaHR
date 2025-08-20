@@ -118,6 +118,104 @@ const employees: Employee[] = [
   }
 ];
 
+// Shift Compliance Cell Component
+function ShiftComplianceCell({ employee, shift, date }: { employee: any; shift: any; date: Date }) {
+  // Fetch attendance record for this employee on this date
+  const { data: attendanceRecord } = useQuery({
+    queryKey: [`/api/attendance-records/${employee.id}/${date.toISOString().split('T')[0]}`],
+    enabled: !!employee.id,
+  });
+
+  // Check if shift compliance is enabled
+  const isComplianceEnabled = shift.enableStrictClockIn;
+
+  // Helper function to compare times
+  const isTimeAfter = (time1: string, time2: string) => {
+    if (!time1 || !time2) return false;
+    const [hours1, minutes1] = time1.split(':').map(Number);
+    const [hours2, minutes2] = time2.split(':').map(Number);
+    return hours1 > hours2 || (hours1 === hours2 && minutes1 > minutes2);
+  };
+
+  // Check compliance status
+  const getComplianceStatus = () => {
+    if (!isComplianceEnabled || !attendanceRecord) {
+      return { isCompliant: true, remarks: [] };
+    }
+
+    const remarks = [];
+    let isCompliant = true;
+
+    // Check clock in compliance
+    if (attendanceRecord.clockInTime && shift.clockIn) {
+      const clockInTime = new Date(attendanceRecord.clockInTime).toTimeString().slice(0, 5);
+      if (isTimeAfter(clockInTime, shift.clockIn)) {
+        isCompliant = false;
+        remarks.push(`Clock In Late: ${clockInTime} (Should be ${shift.clockIn})`);
+      }
+    }
+
+    // Check break out compliance (only if break time is set and not "none")
+    if (attendanceRecord.breakOutTime && shift.breakTimeOut && shift.breakTimeOut !== "none") {
+      const breakOutTime = new Date(attendanceRecord.breakOutTime).toTimeString().slice(0, 5);
+      if (isTimeAfter(breakOutTime, shift.breakTimeOut)) {
+        isCompliant = false;
+        remarks.push(`Break Out Late: ${breakOutTime} (Should be ${shift.breakTimeOut})`);
+      }
+    }
+
+    return { isCompliant, remarks };
+  };
+
+  const complianceStatus = getComplianceStatus();
+
+  return (
+    <div 
+      className={`px-3 py-2 rounded-lg text-xs font-medium text-white shadow-sm relative ${
+        !complianceStatus.isCompliant ? 'ring-2 ring-red-400' : ''
+      }`}
+      style={{ backgroundColor: shift.color || '#3B82F6' }}
+      title={`${shift.name} (${shift.startTime} - ${shift.endTime})${
+        complianceStatus.remarks.length > 0 ? '\n\nCompliance Issues:\n' + complianceStatus.remarks.join('\n') : ''
+      }`}
+    >
+      {/* Compliance warning indicator */}
+      {!complianceStatus.isCompliant && (
+        <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border border-white flex items-center justify-center">
+          <span className="text-white text-xs font-bold">!</span>
+        </div>
+      )}
+      
+      <div className="font-semibold">{shift.name}</div>
+      <div className="text-xs opacity-90">
+        {shift.startTime}-{shift.endTime}
+      </div>
+      
+      {/* Show compliance status */}
+      {isComplianceEnabled && attendanceRecord && (
+        <div className="mt-1 text-xs">
+          {attendanceRecord.clockInTime && (
+            <div className={`${
+              attendanceRecord.isLateClockIn ? 'text-red-200 font-bold' : 'text-green-200'
+            }`}>
+              In: {new Date(attendanceRecord.clockInTime).toTimeString().slice(0, 5)}
+              {attendanceRecord.isLateClockIn && ' ⚠️'}
+            </div>
+          )}
+          {attendanceRecord.breakOutTime && (
+            <div className={`${
+              attendanceRecord.isLateBreakOut ? 'text-red-200 font-bold' : 'text-yellow-200'
+            }`}>
+              Break: {new Date(attendanceRecord.breakOutTime).toTimeString().slice(0, 5)}
+              {attendanceRecord.isLateBreakOut && ' ⚠️'}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Shift Calendar View Component (read-only version without edit button)
 function ShiftCalendarView() {
   const [currentWeek, setCurrentWeek] = useState(new Date());
@@ -493,16 +591,11 @@ function ShiftCalendarView() {
                         return (
                           <td key={day.fullDate.toISOString()} className="py-2 px-2 text-center">
                             {shift ? (
-                              <div 
-                                className="px-3 py-2 rounded-lg text-xs font-medium text-white shadow-sm"
-                                style={{ backgroundColor: shift.color || '#3B82F6' }}
-                                title={`${shift.name} (${shift.startTime} - ${shift.endTime})`}
-                              >
-                                <div className="font-semibold">{shift.name}</div>
-                                <div className="text-xs opacity-90">
-                                  {shift.startTime}-{shift.endTime}
-                                </div>
-                              </div>
+                              <ShiftComplianceCell 
+                                employee={employee} 
+                                shift={shift} 
+                                date={day.fullDate} 
+                              />
                             ) : (
                               <div className="px-3 py-2 rounded-lg text-xs font-medium bg-gray-200 text-gray-600">
                                 Off Day

@@ -2309,6 +2309,28 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Get attendance record for specific employee and date (for compliance checking)
+  app.get("/api/attendance-records/:employeeId/:date", authenticateToken, async (req, res) => {
+    try {
+      const { employeeId, date } = req.params;
+      
+      // Parse the date and set to start of day
+      const targetDate = new Date(date);
+      targetDate.setHours(0, 0, 0, 0);
+      
+      const attendanceRecord = await storage.getTodayAttendanceRecord(employeeId, targetDate);
+      
+      if (!attendanceRecord) {
+        return res.status(404).json({ message: "No attendance record found for this date" });
+      }
+      
+      res.json(attendanceRecord);
+    } catch (error) {
+      console.error("Error fetching attendance record:", error);
+      res.status(500).json({ error: "Failed to fetch attendance record" });
+    }
+  });
+
   // Get user's clock-in history
   app.get("/api/clockin-history", authenticateToken, async (req, res) => {
     try {
