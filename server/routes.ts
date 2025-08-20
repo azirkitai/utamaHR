@@ -1135,16 +1135,21 @@ export function registerRoutes(app: Express): Server {
       });
 
       // UNIVERSAL COMPLIANCE LOGIC - Apply to ALL records automatically
+      console.log('🔍 UNIVERSAL COMPLIANCE DEBUG - Processing', records.length, 'attendance records');
       const recordsWithCompliance = await Promise.all(records.map(async (record) => {
         // Initialize compliance fields
         let isLateClockIn = false;
         let clockInRemarks = null;
+        
+        console.log('🔍 Processing record:', record.id, 'Date:', record.date, 'Clock-in:', record.clockInTime);
         
         // Only check compliance if there's a clock-in time
         if (record.clockInTime) {
           try {
             // Get employee's active shift assignment for the record date
             const activeShift = await storage.getEmployeeActiveShift(record.employeeId);
+            console.log('🔍 Active shift for employee', record.employeeId, ':', activeShift?.name, activeShift?.clockIn);
+            
             if (activeShift) {
               // Parse shift start time for clock-in compliance check
               const shiftStartTime = activeShift.clockIn; // e.g., "08:30"
@@ -1157,8 +1162,11 @@ export function registerRoutes(app: Express): Server {
               
               // Check if clock-in is late (Universal compliance for ALL users)
               const clockInTime = new Date(record.clockInTime);
+              console.log('🔍 Compliance check - Shift start:', shiftStartDateTime.toISOString(), 'Clock-in:', clockInTime.toISOString());
+              
               if (clockInTime > shiftStartDateTime) {
                 const lateMinutes = Math.floor((clockInTime.getTime() - shiftStartDateTime.getTime()) / (1000 * 60));
+                console.log('🚨 LATE DETECTED:', lateMinutes, 'minutes late');
                 
                 // Convert minutes to hours and minutes format
                 const lateHours = Math.floor(lateMinutes / 60);
@@ -1173,20 +1181,35 @@ export function registerRoutes(app: Express): Server {
                 
                 isLateClockIn = true;
                 clockInRemarks = `Lewat ${lateTimeText} dari masa shift ${shiftStartTime}. Perlu semakan penyelia.`;
+                console.log('🚨 Setting isLateClockIn=true, remarks:', clockInRemarks);
+              } else {
+                console.log('✅ On time - no compliance issue');
               }
+            } else {
+              console.log('⚠️ No active shift found for employee', record.employeeId);
             }
           } catch (error) {
             console.error("Shift compliance check error for record:", record.id, error);
             // Continue with normal record even if shift check fails
           }
+        } else {
+          console.log('⚠️ No clock-in time for record:', record.id);
         }
         
         // Return record with compliance data
-        return {
+        const finalRecord = {
           ...record,
           isLateClockIn,
           clockInRemarks
         };
+        
+        console.log('🔍 Final record compliance:', {
+          id: record.id,
+          isLateClockIn: finalRecord.isLateClockIn,
+          clockInRemarks: finalRecord.clockInRemarks
+        });
+        
+        return finalRecord;
       }));
 
       res.json(recordsWithCompliance);
@@ -2421,9 +2444,56 @@ export function registerRoutes(app: Express): Server {
         employeeId: employee.id,
         dateFrom: thirtyDaysAgo
       });
-      
-      res.json({
-        attendanceRecords: attendanceRecords.map(record => ({
+
+      // UNIVERSAL COMPLIANCE LOGIC - Apply to ALL records automatically (same as /api/attendance-records)
+      const recordsWithCompliance = await Promise.all(attendanceRecords.map(async (record) => {
+        // Initialize compliance fields
+        let isLateClockIn = false;
+        let clockInRemarks = null;
+        
+        // Only check compliance if there's a clock-in time
+        if (record.clockInTime) {
+          try {
+            // Get employee's active shift assignment for the record date
+            const activeShift = await storage.getEmployeeActiveShift(record.employeeId);
+            if (activeShift) {
+              // Parse shift start time for clock-in compliance check
+              const shiftStartTime = activeShift.clockIn; // e.g., "08:30"
+              const [shiftHour, shiftMinute] = shiftStartTime.split(':').map(Number);
+              
+              // Create shift start time for the record date
+              const recordDate = new Date(record.date);
+              const shiftStartDateTime = new Date(recordDate);
+              shiftStartDateTime.setHours(shiftHour, shiftMinute, 0, 0);
+              
+              // Check if clock-in is late (Universal compliance for ALL users)
+              const clockInTime = new Date(record.clockInTime);
+              if (clockInTime > shiftStartDateTime) {
+                const lateMinutes = Math.floor((clockInTime.getTime() - shiftStartDateTime.getTime()) / (1000 * 60));
+                
+                // Convert minutes to hours and minutes format
+                const lateHours = Math.floor(lateMinutes / 60);
+                const remainingMinutes = lateMinutes % 60;
+                
+                let lateTimeText = '';
+                if (lateHours > 0) {
+                  lateTimeText = `${lateHours} jam ${remainingMinutes} minit`;
+                } else {
+                  lateTimeText = `${remainingMinutes} minit`;
+                }
+                
+                isLateClockIn = true;
+                clockInRemarks = `Lewat ${lateTimeText} dari masa shift ${shiftStartTime}. Perlu semakan penyelia.`;
+              }
+            }
+          } catch (error) {
+            console.error("Shift compliance check error for record:", record.id, error);
+            // Continue with normal record even if shift check fails
+          }
+        }
+        
+        // Return record with compliance data
+        return {
           id: record.id,
           date: record.date,
           clockInTime: record.clockInTime,
@@ -2438,15 +2508,19 @@ export function registerRoutes(app: Express): Server {
           clockOutImage: record.clockOutImage,
           totalHours: record.totalHours,
           status: record.status,
-          // Add compliance fields for QR Clock-in page
-          isLateClockIn: record.isLateClockIn,
+          // Universal compliance fields applied to ALL records
+          isLateClockIn,
           isLateBreakOut: record.isLateBreakOut,
-          clockInRemarks: record.clockInRemarks,
+          clockInRemarks,
           breakOutRemarks: record.breakOutRemarks,
           shiftId: record.shiftId,
           breakOutTime: record.breakOutTime,
           breakInTime: record.breakInTime
-        }))
+        };
+      }));
+      
+      res.json({
+        attendanceRecords: recordsWithCompliance
       });
     } catch (error) {
       console.error("Attendance history error:", error);
