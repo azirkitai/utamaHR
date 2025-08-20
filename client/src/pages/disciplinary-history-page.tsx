@@ -172,6 +172,8 @@ export default function DisciplinaryHistoryPage() {
   const { data: disciplinaryRecords = [], isLoading, refetch: refetchRecords } = useQuery<DisciplinaryRecord[]>({
     queryKey: ['/api/disciplinary-records'],
     enabled: !!user && !!hasHRAccess,
+    staleTime: 0, // Always consider data stale
+    cacheTime: 0, // Don't cache
   });
 
   // Get selected employee details
@@ -228,14 +230,17 @@ export default function DisciplinaryHistoryPage() {
     mutationFn: async (data: any) => {
       return apiRequest('PUT', `/api/disciplinary-records/${data.id}`, data);
     },
-    onSuccess: async () => {
+    onSuccess: async (updatedRecord) => {
+      console.log('Update successful, refreshing data...');
       toast({
         title: "Success",
         description: "Disciplinary record updated successfully",
       });
       closeEditDialog();
-      // Force immediate refetch of data
-      await refetchRecords();
+      // Clear cache and force fresh fetch
+      queryClient.removeQueries({ queryKey: ['/api/disciplinary-records'] });
+      await queryClient.refetchQueries({ queryKey: ['/api/disciplinary-records'] });
+      console.log('Data refresh completed');
     },
     onError: (error: any) => {
       toast({
