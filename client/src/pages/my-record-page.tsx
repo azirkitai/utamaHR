@@ -100,8 +100,15 @@ export default function MyRecordPage() {
     user: !!user,
     isLoadingAttendance,
     attendanceRecordsLength: attendanceRecords.length,
-    attendanceError: attendanceError?.message
+    attendanceError: attendanceError?.message,
+    queryEnabled: !!user && activeTab === 'attendance'
   });
+
+  // Force debug of actual data
+  if (activeTab === 'attendance' && attendanceRecords.length > 0) {
+    console.log('✅ ATTENDANCE DATA READY:', attendanceRecords.length, 'records');
+    console.log('🎯 Late clock-in found:', attendanceRecords.filter(r => (r as any).isLateClockIn));
+  }
 
   // Fetch leave applications from database 
   const { data: leaveApplications = [], isLoading: isLoadingLeave, error: leaveError } = useQuery({
@@ -1055,7 +1062,13 @@ export default function MyRecordPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoadingAttendance ? (
+            {activeTab !== 'attendance' ? (
+              <TableRow>
+                <TableCell colSpan={hasAdminAccess ? (showPictures ? 12 : 8) : (showPictures ? 11 : 7)} className="text-center py-8 text-gray-500">
+                  Click Attendance tab to view records...
+                </TableCell>
+              </TableRow>
+            ) : isLoadingAttendance ? (
               <TableRow>
                 <TableCell colSpan={hasAdminAccess ? (showPictures ? 12 : 8) : (showPictures ? 11 : 7)} className="text-center py-8 text-gray-500">
                   Loading attendance records...
