@@ -1532,10 +1532,18 @@ export class DatabaseStorage implements IStorage {
       const clockInTime = new Date(record.clockInTime);
       const recordDate = new Date(record.date);
       
-      // Create shift start time for comparison
+      // Create shift start time for comparison using Malaysia timezone
       const [shiftHour, shiftMinute] = employeeShift.clockIn.split(':');
       const shiftStartTime = new Date(recordDate);
       shiftStartTime.setHours(parseInt(shiftHour), parseInt(shiftMinute), 0, 0);
+      
+      // Convert times to Malaysia timezone for comparison
+      const clockInMalaysia = clockInTime.toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur' });
+      const shiftStartMalaysia = shiftStartTime.toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur' });
+      
+      console.log(`🔍 TIMEZONE DEBUG - Clock-in UTC: ${clockInTime.toISOString()}`);
+      console.log(`🔍 TIMEZONE DEBUG - Clock-in Malaysia: ${clockInMalaysia}`);
+      console.log(`🔍 TIMEZONE DEBUG - Shift start Malaysia: ${shiftStartMalaysia}`);
       
       console.log(`🔍 Clock-in compliance check - Shift start: ${shiftStartTime.toISOString()} Clock-in: ${clockInTime.toISOString()}`);
       
