@@ -2519,8 +2519,18 @@ export function registerRoutes(app: Express): Server {
       
       console.log("Assign shift request:", { employeeId, shiftId, assignedDate });
       
-      // Parse date if provided, otherwise use current date
-      const targetDate = assignedDate ? new Date(assignedDate) : new Date();
+      // Validate and parse date safely
+      let targetDate = new Date();
+      if (assignedDate) {
+        const parsedDate = new Date(assignedDate);
+        if (isNaN(parsedDate.getTime())) {
+          console.error("Invalid date format:", assignedDate);
+          return res.status(400).json({ error: "Format tarikh tidak sah" });
+        }
+        targetDate = parsedDate;
+      }
+      
+      console.log("Target date parsed:", targetDate);
       
       const assignment = await storage.assignEmployeeToShift(employeeId, shiftId, targetDate);
       res.json(assignment);

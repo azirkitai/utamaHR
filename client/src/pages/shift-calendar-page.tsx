@@ -563,6 +563,7 @@ export default function ShiftCalendarPage() {
                       const assignedDate = dateParts.join('-'); // Reconstruct full ISO date string
                       
                       console.log('Saving shift:', { employeeId, shiftId, assignedDate });
+                      console.log('Date type:', typeof assignedDate, 'Date value:', assignedDate);
                       
                       return apiRequest("POST", `/api/employees/${employeeId}/assign-shift`, { 
                         shiftId: shiftId === "" ? "" : shiftId,

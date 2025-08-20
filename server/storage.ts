@@ -1001,6 +1001,12 @@ export class DatabaseStorage implements IStorage {
       
       // Use provided date or current date if not specified
       const targetDate = assignedDate || new Date();
+      
+      // Validate date
+      if (isNaN(targetDate.getTime())) {
+        throw new Error("Invalid date provided");
+      }
+      
       targetDate.setHours(0, 0, 0, 0); // Normalize to start of day
       
       // Remove existing shift assignment for this employee on this specific date
