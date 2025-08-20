@@ -964,9 +964,9 @@ export default function ClaimApprovalPage() {
                       </TableCell>
                       <TableCell>{index + 1}</TableCell>
                       <TableCell className="font-medium">{getEmployeeName(item.employeeId)}</TableCell>
-                      <TableCell>{item.claimType}</TableCell>
+                      <TableCell>{item.financialPolicyName || item.claimType || 'N/A'}</TableCell>
                       <TableCell>{getStatusBadge(item.status)}</TableCell>
-                      <TableCell>{item.financialPolicyName || item.reason}</TableCell>
+                      <TableCell>{item.particulars || item.reason || 'N/A'}</TableCell>
                       <TableCell className="font-medium">{item.amount ? `RM ${item.amount}` : 'N/A'}</TableCell>
                       <TableCell>{new Date(item.claimDate).toLocaleDateString()}</TableCell>
                       <TableCell>
@@ -1276,9 +1276,9 @@ export default function ClaimApprovalPage() {
                   <TableRow key={item.id}>
                     <TableCell>{index + 1}</TableCell>
                     <TableCell className="font-medium">{getEmployeeName(item.employeeId)}</TableCell>
-                    <TableCell>{item.claimType}</TableCell>
+                    <TableCell>{item.financialPolicyName || item.claimType || 'N/A'}</TableCell>
                     <TableCell>{getStatusBadge(item.status)}</TableCell>
-                    <TableCell>{item.financialPolicyName || item.reason}</TableCell>
+                    <TableCell>{item.particulars || item.reason || 'N/A'}</TableCell>
                     <TableCell className="font-medium">{item.amount ? `RM ${item.amount}` : 'N/A'}</TableCell>
                     <TableCell>{new Date(item.claimDate).toLocaleDateString()}</TableCell>
                   </TableRow>
