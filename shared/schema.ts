@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, integer, decimal, boolean, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, decimal, boolean, unique, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -422,12 +422,16 @@ export const employeeShifts = pgTable("employee_shifts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   employeeId: varchar("employee_id").notNull().references(() => employees.id),
   shiftId: varchar("shift_id").notNull().references(() => shifts.id),
+  assignedDate: timestamp("assigned_date"), // SPECIFIC DATE for this shift assignment (nullable for migration)
   isActive: boolean("is_active").default(true), // Whether this assignment is currently active
   startDate: timestamp("start_date").defaultNow().notNull(), // When this shift assignment starts
   endDate: timestamp("end_date"), // When this shift assignment ends (null = ongoing)
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  // Unique constraint: one employee can only have one shift per specific date
+  uniqueEmployeeDateShift: uniqueIndex("unique_employee_date_shift").on(table.employeeId, table.assignedDate),
+}));
 
 // Clock-in records
 export const clockInRecords = pgTable("clock_in_records", {

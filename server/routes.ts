@@ -2515,9 +2515,14 @@ export function registerRoutes(app: Express): Server {
   app.post("/api/employees/:employeeId/assign-shift", authenticateToken, async (req, res) => {
     try {
       const { employeeId } = req.params;
-      const { shiftId } = req.body;
+      const { shiftId, assignedDate } = req.body;
       
-      const assignment = await storage.assignEmployeeToShift(employeeId, shiftId);
+      console.log("Assign shift request:", { employeeId, shiftId, assignedDate });
+      
+      // Parse date if provided, otherwise use current date
+      const targetDate = assignedDate ? new Date(assignedDate) : new Date();
+      
+      const assignment = await storage.assignEmployeeToShift(employeeId, shiftId, targetDate);
       res.json(assignment);
     } catch (error) {
       console.error("Assign shift error:", error);

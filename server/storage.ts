@@ -199,7 +199,7 @@ import {
   type UpdateEvent,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, count, sql, asc, ilike, or, gte, lte, inArray, not, isNull } from "drizzle-orm";
+import { eq, and, desc, count, sql, asc, ilike, or, gte, lte, inArray, not, isNull, isNotNull } from "drizzle-orm";
 
 export interface IStorage {
   // =================== USER METHODS ===================
@@ -995,22 +995,34 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async assignEmployeeToShift(employeeId: string, shiftId: string): Promise<any> {
+  async assignEmployeeToShift(employeeId: string, shiftId: string, assignedDate?: Date): Promise<any> {
     try {
-      // Remove existing shift assignment for employee (if any)
-      await db.delete(employeeShifts).where(eq(employeeShifts.employeeId, employeeId));
+      console.log("Assigning shift:", { employeeId, shiftId, assignedDate });
+      
+      // Use provided date or current date if not specified
+      const targetDate = assignedDate || new Date();
+      targetDate.setHours(0, 0, 0, 0); // Normalize to start of day
+      
+      // Remove existing shift assignment for this employee on this specific date
+      await db.delete(employeeShifts).where(
+        and(
+          eq(employeeShifts.employeeId, employeeId),
+          eq(employeeShifts.assignedDate, targetDate)
+        )
+      );
       
       // If shiftId is empty, just remove the assignment (no new assignment)
       if (!shiftId || shiftId.trim() === '') {
-        return { message: "Shift assignment removed successfully" };
+        return { message: "Shift assignment removed successfully", date: targetDate };
       }
       
-      // Assign new shift
+      // Assign new shift for this specific date
       const [assignment] = await db
         .insert(employeeShifts)
         .values({
           employeeId,
           shiftId,
+          assignedDate: targetDate,
           isActive: true,
           startDate: new Date(),
           createdAt: new Date(),
@@ -1018,6 +1030,7 @@ export class DatabaseStorage implements IStorage {
         })
         .returning();
       
+      console.log("Shift assignment created:", assignment);
       return assignment;
     } catch (error) {
       console.error("Error assigning employee to shift:", error);
@@ -1032,6 +1045,7 @@ export class DatabaseStorage implements IStorage {
           id: employeeShifts.id,
           employeeId: employeeShifts.employeeId,
           shiftId: employeeShifts.shiftId,
+          assignedDate: employeeShifts.assignedDate,
           isActive: employeeShifts.isActive,
           startDate: employeeShifts.startDate,
           endDate: employeeShifts.endDate,
@@ -1039,7 +1053,8 @@ export class DatabaseStorage implements IStorage {
           updatedAt: employeeShifts.updatedAt
         })
         .from(employeeShifts)
-        .orderBy(employeeShifts.createdAt);
+        .where(isNotNull(employeeShifts.assignedDate)) // Only get records with assigned dates
+        .orderBy(employeeShifts.assignedDate, employeeShifts.createdAt);
       
       return result;
     } catch (error) {

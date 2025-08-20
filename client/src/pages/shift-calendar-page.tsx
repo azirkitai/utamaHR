@@ -158,17 +158,25 @@ export default function ShiftCalendarPage() {
   };
 
   const getShiftForDay = (employeeId: string, date: Date) => {
-    // Find active shift assignment for this employee
-    const activeShiftAssignment = (employeeShifts as any[]).find((assignment: any) => 
-      assignment.employeeId === employeeId && 
-      assignment.isActive &&
-      (!assignment.endDate || new Date(assignment.endDate) >= date)
-    );
+    // Normalize date to start of day for comparison
+    const targetDate = new Date(date);
+    targetDate.setHours(0, 0, 0, 0);
     
-    if (activeShiftAssignment) {
+    // Find shift assignment for this employee on this specific date
+    const specificShiftAssignment = (employeeShifts as any[]).find((assignment: any) => {
+      if (assignment.employeeId !== employeeId) return false;
+      if (!assignment.assignedDate) return false;
+      
+      const assignedDate = new Date(assignment.assignedDate);
+      assignedDate.setHours(0, 0, 0, 0);
+      
+      return assignedDate.getTime() === targetDate.getTime();
+    });
+    
+    if (specificShiftAssignment) {
       // Find the actual shift details
       const assignedShift = (shifts as any[]).find((shift: any) => 
-        shift.id === activeShiftAssignment.shiftId
+        shift.id === specificShiftAssignment.shiftId
       );
       
       if (assignedShift) {
@@ -196,19 +204,19 @@ export default function ShiftCalendarPage() {
         const workdayStatus = (workdays as any)[dayName] || "Full Day";
         
         if (workdayStatus === "Off Day") {
-          return { type: "off", label: "Off Day", color: "#E5E7EB", shiftId: activeShiftAssignment.shiftId };
+          return { type: "off", label: "Off Day", color: "#E5E7EB", shiftId: specificShiftAssignment.shiftId };
         }
         
         return { 
           type: "shift", 
           label: assignedShift.name,
           color: assignedShift.color || '#6B7280',
-          shiftId: activeShiftAssignment.shiftId
+          shiftId: specificShiftAssignment.shiftId
         };
       }
     }
     
-    // Default for employees without shift assignment
+    // Default for employees without shift assignment on this date
     const dayOfWeek = date.getDay();
     if (dayOfWeek === 0 || dayOfWeek === 6) {
       return { type: "off", label: "Off Day", color: "#E5E7EB", shiftId: "" };
@@ -217,15 +225,15 @@ export default function ShiftCalendarPage() {
     return { type: "shift", label: "No Shift", color: "#6B7280", shiftId: "" };
   };
 
-  // Manual state management to completely bypass React Query cache issues
+  // Manual state management to handle per-date shift assignments
   const [manualShiftStates, setManualShiftStates] = useState<Record<string, string>>({});
 
-  // Memoized mutation handler that updates manual state immediately
-  const handleShiftChange = useCallback((employeeId: string, shiftId: string) => {
-    console.log('Handling shift change:', { employeeId, shiftId });
+  // Memoized mutation handler that updates manual state immediately for specific date
+  const handleShiftChange = useCallback((employeeId: string, shiftId: string, date: Date) => {
+    console.log('Handling shift change:', { employeeId, shiftId, date });
     
-    // Update manual state immediately for responsive UI
-    const stateKey = `${employeeId}`;
+    // Create unique key for employee + date combination
+    const stateKey = `${employeeId}-${date.toISOString()}`;
     setManualShiftStates(prev => ({
       ...prev,
       [stateKey]: shiftId === "no-shift" ? "" : shiftId
@@ -234,12 +242,16 @@ export default function ShiftCalendarPage() {
     // Convert "no-shift" to empty string for backend
     const finalShiftId = shiftId === "no-shift" ? "" : shiftId;
     
-    // Make API call without cache invalidation
+    // Make API call with date parameter
     updateShiftMutation.mutate(
-      { employeeId, shiftId: finalShiftId },
+      { 
+        employeeId, 
+        shiftId: finalShiftId,
+        assignedDate: date.toISOString()
+      },
       {
         onSuccess: () => {
-          console.log('Shift updated successfully, manual state already updated');
+          console.log('Shift updated successfully for date:', date.toISOString());
         },
         onError: (error) => {
           console.error('Shift update failed, reverting manual state:', error);
@@ -270,7 +282,7 @@ export default function ShiftCalendarPage() {
     shift: { type: string; label: string; color: string; shiftId?: string };
     editMode: boolean;
     shifts: any[];
-    onShiftChange: (employeeId: string, shiftId: string) => void;
+    onShiftChange: (employeeId: string, shiftId: string, date: Date) => void;
     manualState?: string;
   }) => {
     const uniqueId = `${employeeId}-${dayDate.toISOString()}-${dayIndex}`;
@@ -287,7 +299,7 @@ export default function ShiftCalendarPage() {
           value={displayValue}
           onValueChange={(newShiftId) => {
             console.log(`Cell ${uniqueId} changing from ${displayValue} to ${newShiftId}`);
-            onShiftChange(employeeId, newShiftId);
+            onShiftChange(employeeId, newShiftId, dayDate);
           }}
         >
           <SelectTrigger className="w-full h-8 text-xs">
@@ -510,7 +522,7 @@ export default function ShiftCalendarPage() {
                                 editMode={editMode}
                                 shifts={shifts as any[]}
                                 onShiftChange={handleShiftChange}
-                                manualState={manualShiftStates[employee.id]}
+                                manualState={manualShiftStates[`${employee.id}-${day.fullDate.toISOString()}`]}
                               />
                             </td>
                           );
