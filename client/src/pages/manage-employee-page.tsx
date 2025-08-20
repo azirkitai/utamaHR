@@ -833,8 +833,16 @@ export default function ManageEmployeePage() {
                                 <td className="py-3 px-4">{index + 1}</td>
                                 <td className="py-3 px-4">
                                   <div className="flex items-center">
-                                    <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center mr-3">
-                                      <span className="text-xs text-gray-600">👤</span>
+                                    <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center mr-3 overflow-hidden">
+                                      {employee.profileImageUrl ? (
+                                        <img
+                                          src={employee.profileImageUrl}
+                                          alt={employee.fullName}
+                                          className="w-full h-full object-cover rounded-full"
+                                        />
+                                      ) : (
+                                        <span className="text-xs text-gray-600">👤</span>
+                                      )}
                                     </div>
                                     {employee.fullName}
                                   </div>
