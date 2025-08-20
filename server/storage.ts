@@ -1000,12 +1000,19 @@ export class DatabaseStorage implements IStorage {
       // Remove existing shift assignment for employee (if any)
       await db.delete(employeeShifts).where(eq(employeeShifts.employeeId, employeeId));
       
+      // If shiftId is empty, just remove the assignment (no new assignment)
+      if (!shiftId || shiftId.trim() === '') {
+        return { message: "Shift assignment removed successfully" };
+      }
+      
       // Assign new shift
       const [assignment] = await db
         .insert(employeeShifts)
         .values({
           employeeId,
           shiftId,
+          isActive: true,
+          startDate: new Date(),
           createdAt: new Date(),
           updatedAt: new Date()
         })

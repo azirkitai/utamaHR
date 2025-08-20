@@ -44,22 +44,28 @@ export default function ShiftCalendarPage() {
   // Mutation for updating employee shift assignment
   const updateShiftMutation = useMutation({
     mutationFn: async ({ employeeId, shiftId }: { employeeId: string; shiftId: string }) => {
-      await apiRequest(`/api/employees/${employeeId}/assign-shift`, {
+      console.log('Updating shift assignment:', { employeeId, shiftId });
+      const response = await apiRequest(`/api/employees/${employeeId}/assign-shift`, {
         method: 'POST',
         body: { shiftId }
       });
+      console.log('Shift assignment response:', response);
+      return response;
     },
     onSuccess: () => {
+      console.log('Shift assignment successful, invalidating cache');
       queryClient.invalidateQueries({ queryKey: ['/api/employee-shifts'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/employees'] });
       toast({
-        title: "Success",
-        description: "Shift assignment updated successfully",
+        title: "Berjaya",
+        description: "Shift telah dikemaskini",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error('Shift assignment error:', error);
       toast({
-        title: "Error",
-        description: "Failed to update shift assignment",
+        title: "Ralat",
+        description: error?.message || "Gagal mengubah shift",
         variant: "destructive",
       });
     }
@@ -230,6 +236,12 @@ export default function ShiftCalendarPage() {
             <SelectValue placeholder="Select shift" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="">
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 rounded bg-gray-300"></div>
+                <span>No Shift</span>
+              </div>
+            </SelectItem>
             {(shifts as any[]).map((shiftOption: any) => (
               <SelectItem key={shiftOption.id} value={shiftOption.id}>
                 <div className="flex items-center space-x-2">
