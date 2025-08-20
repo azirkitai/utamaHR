@@ -272,12 +272,10 @@ export default function ManageEmployeePage() {
     try {
       console.log("Downloading template");
       
-      // Call API to download Excel template
+      // Call API to download Excel template using apiRequest for proper auth
       const response = await fetch('/api/download-staff-template', {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+        credentials: 'include', // Include session cookies for authentication
       });
 
       if (!response.ok) {
