@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -233,8 +233,10 @@ export default function DisciplinaryHistoryPage() {
         title: "Success",
         description: "Disciplinary record updated successfully",
       });
-      setEditingRecord(null);
+      closeEditDialog();
+      // Invalidate both queries to ensure fresh data
       queryClient.invalidateQueries({ queryKey: ['/api/disciplinary-records'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/disciplinary-records/my-records'] });
     },
     onError: (error: any) => {
       toast({
@@ -261,6 +263,16 @@ export default function DisciplinaryHistoryPage() {
     updateRecordMutation.mutate({
       id: editingRecord.id,
       ...editData
+    });
+  };
+
+  const closeEditDialog = () => {
+    setEditingRecord(null);
+    setEditData({
+      status: '',
+      followUpRequired: false,
+      followUpDate: '',
+      internalNotes: ''
     });
   };
 
@@ -559,7 +571,11 @@ export default function DisciplinaryHistoryPage() {
                             <TableCell>{record.subject}</TableCell>
                             <TableCell>
                               <Badge className={statusColors[record.status as keyof typeof statusColors]}>
-                                {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+                                {record.status === 'active' ? 'Active' : 
+                                 record.status === 'resolved' ? 'Resolved' : 
+                                 record.status === 'appealed' ? 'Appealed' : 
+                                 record.status === 'closed' ? 'Closed' : 
+                                 String(record.status).charAt(0).toUpperCase() + String(record.status).slice(1)}
                               </Badge>
                             </TableCell>
                             <TableCell>
@@ -644,7 +660,7 @@ export default function DisciplinaryHistoryPage() {
                             </TableCell>
                             <TableCell>
                               <div className="flex gap-2">
-                                <Dialog>
+                                <Dialog open={editingRecord?.id === record.id} onOpenChange={(open) => !open && closeEditDialog()}>
                                   <DialogTrigger asChild>
                                     <Button variant="outline" size="sm" onClick={() => handleEdit(record)} data-testid={`button-edit-${record.id}`}>
                                       <Edit className="h-3 w-3" />
@@ -716,7 +732,7 @@ export default function DisciplinaryHistoryPage() {
                                             <Save className="h-4 w-4 mr-2" />
                                             {updateRecordMutation.isPending ? 'Updating...' : 'Update Record'}
                                           </Button>
-                                          <Button variant="outline" onClick={() => setEditingRecord(null)}>
+                                          <Button variant="outline" onClick={closeEditDialog}>
                                             Cancel
                                           </Button>
                                         </div>
