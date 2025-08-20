@@ -77,34 +77,54 @@ export class EmployeePDFGenerator {
     };
 
     const addPageHeader = () => {
-      // Company logo - positioned at top left
-      doc.setFillColor(41, 98, 182);
-      doc.rect(20, 10, 20, 20, 'F'); // Logo background square
+      // Company logo recreation from your design - "KLINIK UTAMA" style
+      const logoWidth = 40;
+      const logoHeight = 16;
+      const logoX = 20;
+      const logoY = 8;
       
-      // Logo text inside square - using real company name if available
-      doc.setFontSize(8);
+      // KLINIK text in red
+      doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(255, 255, 255);
-      if (companySettings?.companyName) {
-        const companyName = companySettings.companyName.substring(0, 8); // Limit to fit in square
-        doc.text(companyName, 30, 20, { align: 'center' });
-      } else {
-        doc.text('UTAMA', 30, 18, { align: 'center' });
-        doc.text('HR', 30, 25, { align: 'center' });
-      }
+      doc.setTextColor(220, 38, 38); // Red color
+      doc.text('KLINIK', logoX, logoY + 6);
       
-      // Title with company name if available
+      // UTAMA text - UTA in red, MA in red
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(220, 38, 38); // Red color
+      doc.text('UTA', logoX, logoY + 16);
+      
+      // Blue M and heartbeat line
+      doc.setTextColor(41, 98, 182); // Blue color
+      doc.text('M', logoX + 20, logoY + 16);
+      
+      // Red A
+      doc.setTextColor(220, 38, 38); // Red color
+      doc.text('A', logoX + 27, logoY + 16);
+      
+      // Simple heartbeat line (blue)
+      doc.setDrawColor(41, 98, 182);
+      doc.setLineWidth(2);
+      doc.line(logoX + 34, logoY + 12, logoX + 38, logoY + 12);
+      doc.line(logoX + 38, logoY + 12, logoX + 40, logoY + 8);
+      doc.line(logoX + 40, logoY + 8, logoX + 42, logoY + 16);
+      doc.line(logoX + 42, logoY + 16, logoX + 44, logoY + 12);
+      doc.line(logoX + 44, logoY + 12, logoX + 48, logoY + 12);
+      
+      // Title
       doc.setFontSize(20);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(30, 64, 175);
       doc.text('LAPORAN LENGKAP PEKERJA', 105, 20, { align: 'center' });
       
+      // Company system name
       doc.setFontSize(12);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(0, 0, 0);
-      const systemName = companySettings?.companyName ? 
-        `${companySettings.companyName} HR SISTEM` : 
-        'UTAMAHR SISTEM';
+      const systemName = companySettings?.companyShortName || 
+        companySettings?.companyName || 
+        'KLINIK UTAMA HR SISTEM';
       doc.text(systemName, 105, 27, { align: 'center' });
       
       // Header line
