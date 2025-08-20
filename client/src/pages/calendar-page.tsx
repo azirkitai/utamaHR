@@ -1205,73 +1205,7 @@ export default function CalendarPage() {
                   </Dialog>
                   )}
 
-                  {canAccessHolidayButtons() && (
-                    <Dialog open={isAddHolidayOpen} onOpenChange={setIsAddHolidayOpen}>
-                      <DialogTrigger asChild>
-                        <Button 
-                          className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700 text-white"
-                          data-testid="button-add-holiday"
-                        >
-                          Add Holiday
-                        </Button>
-                      </DialogTrigger>
-                    <DialogContent aria-describedby="add-holiday-description">
-                      <DialogHeader>
-                        <DialogTitle>Create New Holiday</DialogTitle>
-                      </DialogHeader>
-                      <p id="add-holiday-description" className="sr-only">
-                        Add a new company holiday with name and date.
-                      </p>
-                      
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="description" className="text-sm font-medium">Description</Label>
-                          <Input
-                            id="description"
-                            placeholder="Event Description"
-                            value={holidayDescription}
-                            onChange={(e) => setHolidayDescription(e.target.value)}
-                            className="mt-1"
-                            data-testid="input-holiday-description"
-                          />
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="date" className="text-sm font-medium">Date</Label>
-                          <Input
-                            id="date"
-                            type="date"
-                            placeholder="Holiday Data"
-                            value={holidayDate}
-                            onChange={(e) => setHolidayDate(e.target.value)}
-                            className="mt-1"
-                            data-testid="input-holiday-date"
-                          />
-                        </div>
-                        
-
-                      </div>
-                      
-                      <DialogFooter className="gap-2">
-                        <Button 
-                          variant="outline" 
-                          onClick={() => setIsAddHolidayOpen(false)}
-                          data-testid="button-cancel-holiday"
-                        >
-                          Cancel
-                        </Button>
-                        <Button 
-                          onClick={handleAddHoliday}
-                          disabled={!holidayDescription || !holidayDate}
-                          className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
-                          data-testid="button-save-holiday"
-                        >
-                          Save
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                  )}
+                  
 
                   {canAccessAddEvent() && (
                     <Dialog open={isAddEventOpen} onOpenChange={setIsAddEventOpen}>
