@@ -194,7 +194,8 @@ export default function DisciplinaryHistoryPage() {
   // Create new disciplinary record mutation
   const createRecordMutation = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest('/api/disciplinary-records', 'POST', data);
+      const response = await apiRequest('POST', '/api/disciplinary-records', data);
+      return response.json();
     },
     onSuccess: () => {
       toast({
