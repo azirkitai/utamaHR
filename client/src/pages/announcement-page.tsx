@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
@@ -503,9 +503,12 @@ export default function AnnouncementPage() {
                         Add Announcement
                       </Button>
                     </DialogTrigger>
-                  <DialogContent className="max-w-2xl">
+                  <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>Create New Announcement</DialogTitle>
+                      <DialogDescription>
+                        Create a new announcement to share with employees
+                      </DialogDescription>
                     </DialogHeader>
                     
                     <div className="space-y-4">
@@ -975,11 +978,14 @@ export default function AnnouncementPage() {
 
         {/* Edit Announcement Dialog */}
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-xl font-semibold text-gray-900">
                 Edit Announcement
               </DialogTitle>
+              <DialogDescription>
+                Edit the selected announcement
+              </DialogDescription>
             </DialogHeader>
             
             <div className="space-y-4">
