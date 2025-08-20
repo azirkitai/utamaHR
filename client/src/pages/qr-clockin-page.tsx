@@ -7,7 +7,7 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { QrCode, Clock, MapPin, Camera, Smartphone, RefreshCw, CheckCircle, AlertCircle } from "lucide-react";
+import { QrCode, Clock, MapPin, Camera, Smartphone, RefreshCw, CheckCircle, AlertCircle, AlertTriangle } from "lucide-react";
 import QRCodeLib from "qrcode";
 
 interface QrToken {
@@ -32,6 +32,12 @@ interface AttendanceRecord {
   clockOutImage?: string;
   totalHours: string | null;
   status: string;
+  // Compliance fields
+  isLateClockIn?: boolean;
+  isLateBreakOut?: boolean;
+  clockInRemarks?: string;
+  breakOutRemarks?: string;
+  shiftId?: string;
 }
 
 interface TodayAttendanceStatus {
@@ -615,13 +621,22 @@ export default function QRClockInPage() {
                           </div>
                           {record.clockInTime ? (
                             <div className="pl-6 space-y-1">
-                              <p className="text-sm text-gray-800">
+                              <p className={`text-sm ${
+                                record.isLateClockIn ? 'text-red-600 font-bold' : 'text-gray-800'
+                              }`}>
                                 {new Date(record.clockInTime).toLocaleTimeString('ms-MY', {
                                   hour: '2-digit',
                                   minute: '2-digit',
                                   second: '2-digit'
                                 })}
+                                {record.isLateClockIn && ' ⚠️'}
                               </p>
+                              {record.isLateClockIn && record.clockInRemarks && (
+                                <div className="text-xs text-red-600 bg-red-50 p-1 rounded border">
+                                  <AlertTriangle className="h-3 w-3 inline mr-1" />
+                                  {record.clockInRemarks}
+                                </div>
+                              )}
                               {record.clockInLocationStatus && (
                                 <Badge 
                                   variant={record.clockInLocationStatus === "valid" ? "success" : "destructive"}

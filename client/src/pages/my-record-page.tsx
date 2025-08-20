@@ -1057,7 +1057,25 @@ export default function MyRecordPage() {
                   <TableCell>{format(new Date(record.date), 'dd/MM/yyyy')}</TableCell>
                   
                   {/* Clock In */}
-                  <TableCell>{record.clockInTime ? format(new Date(record.clockInTime), 'HH:mm') : '-'}</TableCell>
+                  <TableCell>
+                    {record.clockInTime ? (
+                      <div className="space-y-1">
+                        <span className={`${
+                          (record as any).isLateClockIn ? 'text-red-600 font-bold' : 'text-gray-800'
+                        }`}>
+                          {format(new Date(record.clockInTime), 'HH:mm')}
+                          {(record as any).isLateClockIn && ' ⚠️'}
+                        </span>
+                        {(record as any).isLateClockIn && (record as any).clockInRemarks && (
+                          <div className="text-xs text-red-600 bg-red-50 p-1 rounded border">
+                            {(record as any).clockInRemarks}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      '-'
+                    )}
+                  </TableCell>
                   {showPictures && (
                     <TableCell>
                       {record.clockInImage ? (
@@ -1074,7 +1092,25 @@ export default function MyRecordPage() {
                   )}
                   
                   {/* Break Time (keluar rehat/lunch) */}
-                  <TableCell>{(record as any).breakOutTime ? format(new Date((record as any).breakOutTime), 'HH:mm') : '-'}</TableCell>
+                  <TableCell>
+                    {(record as any).breakOutTime ? (
+                      <div className="space-y-1">
+                        <span className={`${
+                          (record as any).isLateBreakOut ? 'text-red-600 font-bold' : 'text-gray-800'
+                        }`}>
+                          {format(new Date((record as any).breakOutTime), 'HH:mm')}
+                          {(record as any).isLateBreakOut && ' ⚠️'}
+                        </span>
+                        {(record as any).isLateBreakOut && (record as any).breakOutRemarks && (
+                          <div className="text-xs text-red-600 bg-red-50 p-1 rounded border">
+                            {(record as any).breakOutRemarks}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      '-'
+                    )}
+                  </TableCell>
                   {showPictures && (
                     <TableCell>
                       {(record as any).breakOutImage ? (
