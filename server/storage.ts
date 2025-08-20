@@ -1532,31 +1532,40 @@ export class DatabaseStorage implements IStorage {
       const clockInTime = new Date(record.clockInTime);
       const recordDate = new Date(record.date);
       
-      // Create shift start time for comparison using Malaysia timezone
+      // Create shift start time in Malaysia timezone for the specific date
       const [shiftHour, shiftMinute] = employeeShift.clockIn.split(':');
-      const shiftStartTime = new Date(recordDate);
-      shiftStartTime.setHours(parseInt(shiftHour), parseInt(shiftMinute), 0, 0);
       
-      // Convert times to Malaysia timezone for comparison
-      const clockInMalaysia = clockInTime.toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur' });
-      const shiftStartMalaysia = shiftStartTime.toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur' });
+      // CRITICAL FIX: Create shift start time in Malaysia timezone, then convert to UTC for proper comparison
+      // We need to create the shift time as if it's in Malaysia timezone on the specific date
+      const malaysiaDateStr = recordDate.toLocaleDateString('en-CA'); // YYYY-MM-DD format
+      const malaysiaShiftTimeStr = `${malaysiaDateStr}T${employeeShift.clockIn}:00.000`;
       
-      console.log(`🔍 TIMEZONE DEBUG - Clock-in UTC: ${clockInTime.toISOString()}`);
-      console.log(`🔍 TIMEZONE DEBUG - Clock-in Malaysia: ${clockInMalaysia}`);
-      console.log(`🔍 TIMEZONE DEBUG - Shift start Malaysia: ${shiftStartMalaysia}`);
+      // Create shift start time assuming it's Malaysia timezone, then get equivalent UTC
+      const tempShiftDate = new Date(malaysiaShiftTimeStr);
+      // Convert from Malaysia time to UTC (Malaysia is UTC+8)
+      const shiftStartTimeUTC = new Date(tempShiftDate.getTime() - (8 * 60 * 60 * 1000));
       
-      console.log(`🔍 Clock-in compliance check - Shift start: ${shiftStartTime.toISOString()} Clock-in: ${clockInTime.toISOString()}`);
+      // Convert times to Malaysia timezone for logging
+      const clockInMalaysia = clockInTime.toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur', hour12: false });
+      const shiftStartMalaysia = shiftStartTimeUTC.toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur', hour12: false });
       
-      if (clockInTime > shiftStartTime) {
-        const minutesLate = Math.floor((clockInTime.getTime() - shiftStartTime.getTime()) / (1000 * 60));
-        console.log(`🚨 LATE DETECTED: ${minutesLate} minutes late`);
+      console.log(`🔍 TIMEZONE FIXED DEBUG - Clock-in UTC: ${clockInTime.toISOString()}`);
+      console.log(`🔍 TIMEZONE FIXED DEBUG - Clock-in Malaysia: ${clockInMalaysia}`);
+      console.log(`🔍 TIMEZONE FIXED DEBUG - Shift start UTC: ${shiftStartTimeUTC.toISOString()}`);
+      console.log(`🔍 TIMEZONE FIXED DEBUG - Shift start Malaysia: ${shiftStartMalaysia}`);
+      
+      console.log(`🔍 FIXED Compliance check - Shift start: ${shiftStartTimeUTC.toISOString()} Clock-in: ${clockInTime.toISOString()}`);
+      
+      if (clockInTime > shiftStartTimeUTC) {
+        const minutesLate = Math.floor((clockInTime.getTime() - shiftStartTimeUTC.getTime()) / (1000 * 60));
+        console.log(`🚨 LATE DETECTED (TIMEZONE FIXED): ${minutesLate} minutes late`);
         
         result.isLateClockIn = true;
         result.clockInRemarks = this.generateStandardComplianceMessage('clock_in', minutesLate, employeeShift.clockIn);
         
         console.log(`🚨 Setting isLateClockIn=true, remarks: ${result.clockInRemarks}`);
       } else {
-        console.log(`✅ On time - no compliance issue`);
+        console.log(`✅ On time - no compliance issue (TIMEZONE FIXED)`);
       }
     }
 

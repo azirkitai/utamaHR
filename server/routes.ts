@@ -1979,6 +1979,34 @@ export function registerRoutes(app: Express): Server {
 
   // QR Code Clock-In System Routes
 
+  // ==============================================
+  // TEST: Universal Compliance Re-Run
+  // ==============================================
+  app.post("/api/re-run-compliance", authenticateToken, async (req, res) => {
+    try {
+      console.log(`🔄 RE-RUNNING universal compliance for all attendance records...`);
+      
+      // Get all attendance records
+      const allRecords = await storage.getAllAttendanceRecords();
+      let processedCount = 0;
+      
+      for (const record of allRecords) {
+        console.log(`🔄 Re-running compliance for record ${record.id} on ${record.date}`);
+        await storage.createOrUpdateAttendanceRecord(record);
+        processedCount++;
+      }
+      
+      console.log(`✅ Re-ran compliance for ${processedCount} attendance records`);
+      res.json({ 
+        success: true, 
+        message: `Compliance re-run completed for ${processedCount} records` 
+      });
+    } catch (error) {
+      console.error("Error re-running compliance:", error);
+      res.status(500).json({ error: "Gagal re-run compliance check" });
+    }
+  });
+
   // Generate QR code token for desktop portal
   app.post("/api/qr-generate", authenticateToken, async (req, res) => {
     try {
