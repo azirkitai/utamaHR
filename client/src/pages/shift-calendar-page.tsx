@@ -3,17 +3,21 @@ import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
   ChevronLeft,
   ChevronRight,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Calendar as CalendarIcon
 } from "lucide-react";
 
 export default function ShiftCalendarPage() {
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [viewMode, setViewMode] = useState<"week" | "month">("week");
   const [expandedDepartments, setExpandedDepartments] = useState<string[]>(["human-resource"]);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Sample data
   const departments = [
@@ -153,11 +157,42 @@ export default function ShiftCalendarPage() {
             >
               <ChevronRight className="w-4 h-4" />
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentWeek(new Date())}
+              className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white hover:opacity-90"
+              data-testid="button-today"
+            >
+              Today
+            </Button>
           </div>
 
-          <div className="text-xl font-bold text-gray-900">
-            {formatWeekRange()}
-          </div>
+          <Popover open={showDatePicker} onOpenChange={setShowDatePicker}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="text-xl font-bold text-gray-900 border-gray-300 hover:bg-gray-50 h-auto py-2 px-4"
+                data-testid="button-date-picker"
+              >
+                <CalendarIcon className="w-4 h-4 mr-2" />
+                {formatWeekRange()}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="center">
+              <Calendar
+                mode="single"
+                selected={currentWeek}
+                onSelect={(date) => {
+                  if (date) {
+                    setCurrentWeek(date);
+                    setShowDatePicker(false);
+                  }
+                }}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
 
           <div className="flex items-center space-x-2">
             <Button
