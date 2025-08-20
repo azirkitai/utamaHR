@@ -702,7 +702,7 @@ export default function MyRecordPage() {
   });
 
   // Filter overtime applications based on current filters
-  const filteredOvertimeApplications = overtimeClaims.filter(overtime => {
+  const filteredOvertimeApplications = overtimeClaims.filter((overtime: any) => {
     // Date filter - check multiple possible date fields
     const overtimeDate = overtime.claimDate ? new Date(overtime.claimDate) : 
                         overtime.overtimeDate ? new Date(overtime.overtimeDate) :
@@ -733,7 +733,7 @@ export default function MyRecordPage() {
   });
 
   // Apply search term filter to filtered overtime results
-  const searchFilteredOvertime = filteredOvertimeApplications.filter(overtime => {
+  const searchFilteredOvertime = filteredOvertimeApplications.filter((overtime: any) => {
     if (!filters.searchTerm) return true;
     
     const searchLower = filters.searchTerm.toLowerCase();
@@ -1250,31 +1250,69 @@ export default function MyRecordPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              searchFilteredOvertime.map((overtime: any, index: number) => (
+              searchFilteredOvertime.map((overtime: any, index: number) => {
+                console.log(`📋 OVERTIME RECORD ${index + 1}:`, {
+                  id: overtime.id,
+                  requestorName: overtime.requestorName,
+                  employeeName: overtime.employeeName,
+                  employee: overtime.employee,
+                  status: overtime.status,
+                  reason: overtime.reason,
+                  remarks: overtime.remarks,
+                  additionalDescription: overtime.additionalDescription,
+                  totalHours: overtime.totalHours,
+                  hours: overtime.hours,
+                  calculatedAmount: overtime.calculatedAmount,
+                  amount: overtime.amount,
+                  claimDate: overtime.claimDate,
+                  overtimeDate: overtime.overtimeDate,
+                  date: overtime.date,
+                  fullRecord: overtime
+                });
+                
+                return (
                 <TableRow key={overtime.id}>
                   <TableCell data-testid={`overtime-row-${index}-no`}>{index + 1}</TableCell>
-                  <TableCell data-testid={`overtime-row-${index}-applicant`}>{overtime.requestorName || overtime.employeeName || '-'}</TableCell>
+                  <TableCell data-testid={`overtime-row-${index}-applicant`}>
+                    {overtime.requestorName || overtime.employeeName || overtime.employee?.fullName || '-'}
+                  </TableCell>
                   <TableCell data-testid={`overtime-row-${index}-status`}>
                     <Badge 
-                      variant={overtime.status === 'Approved' ? 'default' : 
-                              overtime.status === 'Rejected' ? 'destructive' :
-                              overtime.status === 'Approved [Level 1]' ? 'secondary' : 'outline'}
-                      className={overtime.status === 'Approved' ? 'bg-green-100 text-green-800 border-green-200' : ''}
+                      variant={
+                        overtime.status === 'approved' || overtime.status === 'Approved' ? 'default' : 
+                        overtime.status === 'rejected' || overtime.status === 'Rejected' ? 'destructive' :
+                        overtime.status === 'firstLevelApproved' || overtime.status === 'Approved [Level 1]' ? 'secondary' : 'outline'
+                      }
+                      className={
+                        overtime.status === 'approved' || overtime.status === 'Approved' ? 'bg-green-100 text-green-800 border-green-200' : 
+                        overtime.status === 'rejected' || overtime.status === 'Rejected' ? 'bg-red-100 text-red-800 border-red-200' :
+                        overtime.status === 'firstLevelApproved' ? 'bg-blue-100 text-blue-800 border-blue-200' : ''
+                      }
                     >
-                      {overtime.status}
+                      {overtime.status === 'pending' || overtime.status === 'Pending' ? 'Menunggu' :
+                       overtime.status === 'approved' || overtime.status === 'Approved' ? 'Diluluskan' :
+                       overtime.status === 'rejected' || overtime.status === 'Rejected' ? 'Ditolak' :
+                       overtime.status === 'firstLevelApproved' ? 'Lulus Tahap 1' :
+                       overtime.status}
                     </Badge>
                   </TableCell>
-                  <TableCell data-testid={`overtime-row-${index}-reason`}>{overtime.reason || overtime.remarks || '-'}</TableCell>
-                  <TableCell data-testid={`overtime-row-${index}-hours`}>{overtime.totalHours || overtime.hours || '-'} hours</TableCell>
+                  <TableCell data-testid={`overtime-row-${index}-reason`}>
+                    {overtime.reason || overtime.remarks || overtime.additionalDescription || 'Kerja lebih masa'}
+                  </TableCell>
+                  <TableCell data-testid={`overtime-row-${index}-hours`}>
+                    {overtime.totalHours || overtime.hours || '0'} jam
+                  </TableCell>
                   <TableCell data-testid={`overtime-row-${index}-amount`}>
-                    {overtime.amount ? `RM ${parseFloat(overtime.amount).toFixed(2)}` : '-'}
+                    RM {overtime.calculatedAmount ? parseFloat(overtime.calculatedAmount).toFixed(2) : 
+                         overtime.amount ? parseFloat(overtime.amount).toFixed(2) : '0.00'}
                   </TableCell>
                   <TableCell data-testid={`overtime-row-${index}-date`}>
                     {overtime.claimDate ? format(new Date(overtime.claimDate), 'dd/MM/yyyy') : 
                      overtime.overtimeDate ? format(new Date(overtime.overtimeDate), 'dd/MM/yyyy') : '-'}
                   </TableCell>
                 </TableRow>
-              ))
+                );
+              })
             )}
           </TableBody>
         </Table>
