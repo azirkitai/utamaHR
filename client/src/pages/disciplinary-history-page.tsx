@@ -30,7 +30,9 @@ import {
   Filter,
   Download,
   Upload,
-  Save
+  Save,
+  X,
+  Paperclip
 } from "lucide-react";
 
 interface DisciplinaryRecord {
@@ -109,8 +111,44 @@ export default function DisciplinaryHistoryPage() {
     status: "active",
     followUpRequired: false,
     followUpDate: "",
-    internalNotes: ""
+    internalNotes: "",
+    attachments: [] as File[]
   });
+
+  // File upload handlers
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      const newFiles = Array.from(files);
+      setNewRecord(prev => ({ 
+        ...prev, 
+        attachments: [...prev.attachments, ...newFiles] 
+      }));
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setNewRecord(prev => ({
+      ...prev,
+      attachments: prev.attachments.filter((_, i) => i !== index)
+    }));
+  };
+
+  const resetForm = () => {
+    setNewRecord({
+      employeeId: "",
+      type: "",
+      severity: "",
+      subject: "",
+      description: "",
+      dateIssued: new Date().toISOString().split('T')[0],
+      status: "active",
+      followUpRequired: false,
+      followUpDate: "",
+      internalNotes: "",
+      attachments: [] as File[]
+    });
+  };
 
   // Check if user has HR access
   const hasHRAccess = user?.role && ['Super Admin', 'Admin', 'HR Manager'].includes(user.role);
@@ -167,19 +205,7 @@ export default function DisciplinaryHistoryPage() {
         description: "Disciplinary record created successfully",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/disciplinary-records'] });
-      // Reset form
-      setNewRecord({
-        employeeId: "",
-        type: "",
-        severity: "",
-        subject: "",
-        description: "",
-        dateIssued: new Date().toISOString().split('T')[0],
-        status: "active",
-        followUpRequired: false,
-        followUpDate: "",
-        internalNotes: ""
-      });
+      resetForm(); // Use the resetForm function
     },
     onError: (error: any) => {
       toast({
@@ -200,11 +226,20 @@ export default function DisciplinaryHistoryPage() {
       return;
     }
 
-    createRecordMutation.mutate({
+    const submissionData = {
       ...newRecord,
       issuedBy: user?.id,
       issuedByName: user?.username || 'HR',
-    });
+      attachmentCount: newRecord.attachments.length,
+      attachmentNames: newRecord.attachments.map(f => f.name),
+      // Note: In a real implementation, files would be uploaded to server storage first
+      // and then the URLs would be included in the submission data
+    };
+
+    // Remove the actual File objects from submission (they can't be JSON stringified)
+    const { attachments, ...dataToSubmit } = submissionData;
+
+    createRecordMutation.mutate(dataToSubmit);
   };
 
   if (!hasHRAccess) {
@@ -664,6 +699,67 @@ export default function DisciplinaryHistoryPage() {
                     rows={3}
                     data-testid="textarea-new-notes"
                   />
+                </div>
+
+                {/* File Upload Section */}
+                <div className="space-y-3">
+                  <Label className="flex items-center gap-2">
+                    <Paperclip className="h-4 w-4" />
+                    Formal Letter Attachments
+                  </Label>
+                  
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-gray-400 transition-colors">
+                    <div className="text-center">
+                      <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                      <Label htmlFor="file-upload" className="cursor-pointer">
+                        <span className="text-sm text-gray-600">
+                          Click to upload formal letters or drag and drop
+                        </span>
+                        <p className="text-xs text-gray-500 mt-1">
+                          PDF, DOC, DOCX files up to 10MB
+                        </p>
+                      </Label>
+                      <input
+                        id="file-upload"
+                        type="file"
+                        className="hidden"
+                        multiple
+                        accept=".pdf,.doc,.docx"
+                        onChange={handleFileUpload}
+                        data-testid="input-file-upload"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Display uploaded files */}
+                  {newRecord.attachments.length > 0 && (
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Uploaded Files:</Label>
+                      {newRecord.attachments.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-blue-600" />
+                            <span className="text-sm truncate max-w-xs" title={file.name}>
+                              {file.name}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                            </span>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeFile(index)}
+                            className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                            data-testid={`button-remove-file-${index}`}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
