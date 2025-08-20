@@ -3082,6 +3082,61 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Get overtime claims for My Record page
+  app.get("/api/claim-applications/overtime/my-record/:employeeId", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      const { employeeId } = req.params;
+      
+      console.log('=== OVERTIME CLAIMS RBAC DEBUG ===');
+      console.log('User ID:', currentUser.id);
+      console.log('User Role:', currentUser.role);
+      console.log('Requested Employee ID:', employeeId);
+      
+      // Role-based access control 
+      const privilegedRoles = ['Super Admin', 'Admin', 'HR Manager'];
+      const hasAdminAccess = privilegedRoles.includes(currentUser.role);
+      console.log('Has Admin Access:', hasAdminAccess);
+      
+      let targetEmployeeId = employeeId;
+      
+      // If user has admin access and requests 'all', fetch all overtime claims
+      if (hasAdminAccess && employeeId === 'all') {
+        targetEmployeeId = undefined; // This will fetch all overtime claims
+      }
+      // If regular user, only allow access to their own overtime claims
+      else if (!hasAdminAccess) {
+        const userEmployee = await storage.getEmployeeByUserId(currentUser.id);
+        if (!userEmployee || userEmployee.id !== employeeId) {
+          return res.status(403).json({ error: 'Tidak dibenarkan untuk mengakses rekod overtime pekerja lain' });
+        }
+      }
+      
+      console.log('Final Target Employee ID for Overtime:', targetEmployeeId);
+      console.log('=== END OVERTIME CLAIMS RBAC DEBUG ===');
+      
+      let overtimeClaims;
+      if (targetEmployeeId === undefined) {
+        // Fetch all OVERTIME claims for admin users
+        overtimeClaims = await storage.getAllClaimApplicationsWithDetails({
+          claimType: 'overtime'
+        });
+      } else {
+        // Fetch specific employee OVERTIME claims
+        overtimeClaims = await storage.getClaimApplicationsByEmployee(targetEmployeeId, {
+          claimType: 'overtime'
+        });
+      }
+      
+      console.log(`Found ${overtimeClaims.length} overtime claim applications for ${targetEmployeeId || 'all employees'}`);
+      
+      res.json(overtimeClaims);
+    } catch (error) {
+      console.error("Get overtime claims error:", error);
+      res.status(500).json({ error: "Gagal mendapatkan rekod overtime claims" });
+    }
+  });
+
   // Get all claim applications for approval (admin view)
   app.get("/api/claim-applications", authenticateToken, async (req, res) => {
     try {

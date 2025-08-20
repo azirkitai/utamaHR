@@ -306,6 +306,43 @@ export default function MyRecordPage() {
     enabled: !!user && !!((user as any)?.role) && (hasPrivilegedAccess || !!currentEmployee?.id) && activeTab === 'claim'
   });
 
+  // Fetch overtime claims for My Record page
+  const { data: overtimeClaims = [], isLoading: isLoadingOvertime, error: overtimeError } = useQuery({
+    queryKey: ['/api/claim-applications/overtime/my-record', hasPrivilegedAccess ? 'all' : currentEmployee?.id, filters.dateFrom.toISOString(), filters.dateTo.toISOString()],
+    queryFn: async () => {
+      const token = localStorage.getItem('utamahr_token');
+      if (!token) throw new Error('No authentication token found');
+      
+      let employeeIdParam;
+      if (hasPrivilegedAccess) {
+        employeeIdParam = 'all';
+      } else {
+        if (!currentEmployee?.id) return [];
+        employeeIdParam = currentEmployee.id;
+      }
+      
+      console.log('Fetching overtime claims for employee:', employeeIdParam);
+      
+      const response = await fetch(`/api/claim-applications/overtime/my-record/${employeeIdParam}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Overtime claims API error:', errorData);
+        throw new Error(errorData.error || 'Failed to fetch overtime claims');
+      }
+      
+      const data = await response.json();
+      console.log('Overtime claims fetched:', data.length, 'records');
+      return data;
+    },
+    enabled: !!user && !!((user as any)?.role) && (hasPrivilegedAccess || !!currentEmployee?.id) && activeTab === 'overtime'
+  });
+
   // Fetch user payroll records for My Record page
   const { data: userPayrollRecords = [], isLoading: isLoadingPayroll, error: payrollError } = useQuery({
     queryKey: ['/api/user/payroll-records'],
@@ -342,6 +379,9 @@ export default function MyRecordPage() {
   }
   if (leaveError) {
     console.error('Leave applications query error:', leaveError);
+  }
+  if (overtimeError) {
+    console.error('Overtime claims query error:', overtimeError);
   }
   if (payrollError) {
     console.error('User payroll records query error:', payrollError);
@@ -1121,18 +1161,54 @@ export default function MyRecordPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow>
-              <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                No data available in table
-              </TableCell>
-            </TableRow>
+            {isLoadingOvertime ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                  Loading overtime records...
+                </TableCell>
+              </TableRow>
+            ) : overtimeClaims.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                  No overtime records found
+                </TableCell>
+              </TableRow>
+            ) : (
+              overtimeClaims.map((overtime: any, index: number) => (
+                <TableRow key={overtime.id}>
+                  <TableCell data-testid={`overtime-row-${index}-no`}>{index + 1}</TableCell>
+                  <TableCell data-testid={`overtime-row-${index}-applicant`}>{overtime.requestorName || overtime.employeeName || '-'}</TableCell>
+                  <TableCell data-testid={`overtime-row-${index}-status`}>
+                    <Badge 
+                      variant={overtime.status === 'Approved' ? 'default' : 
+                              overtime.status === 'Rejected' ? 'destructive' :
+                              overtime.status === 'Approved [Level 1]' ? 'secondary' : 'outline'}
+                      className={overtime.status === 'Approved' ? 'bg-green-100 text-green-800 border-green-200' : ''}
+                    >
+                      {overtime.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell data-testid={`overtime-row-${index}-reason`}>{overtime.reason || overtime.remarks || '-'}</TableCell>
+                  <TableCell data-testid={`overtime-row-${index}-hours`}>{overtime.totalHours || overtime.hours || '-'} hours</TableCell>
+                  <TableCell data-testid={`overtime-row-${index}-amount`}>
+                    {overtime.amount ? `RM ${parseFloat(overtime.amount).toFixed(2)}` : '-'}
+                  </TableCell>
+                  <TableCell data-testid={`overtime-row-${index}-date`}>
+                    {overtime.claimDate ? format(new Date(overtime.claimDate), 'dd/MM/yyyy') : 
+                     overtime.overtimeDate ? format(new Date(overtime.overtimeDate), 'dd/MM/yyyy') : '-'}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
 
       {/* Pagination */}
       <div className="flex justify-between items-center">
-        <span className="text-sm text-gray-500">Showing 0 to 0 of 0 entries</span>
+        <span className="text-sm text-gray-500">
+          Showing {overtimeClaims.length > 0 ? '1' : '0'} to {overtimeClaims.length} of {overtimeClaims.length} entries
+        </span>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" disabled data-testid="button-overtime-previous">
             Previous
