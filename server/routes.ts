@@ -7927,15 +7927,21 @@ export function registerRoutes(app: Express): Server {
         return res.status(403).json({ error: "Akses ditolak - Hanya HR yang dibenarkan" });
       }
 
+      // Prepare update data
+      const updateData: any = {
+        status: req.body.status,
+        followUpRequired: req.body.followUpRequired,
+        internalNotes: req.body.internalNotes,
+      };
+
+      // Only include followUpDate if it's provided and valid
+      if (req.body.followUpDate && req.body.followUpDate.trim()) {
+        updateData.followUpDate = new Date(req.body.followUpDate);
+      }
+
       // Update the record in database
       const [updatedRecord] = await db.update(disciplinaryRecords)
-        .set({
-          status: req.body.status,
-          followUpRequired: req.body.followUpRequired,
-          followUpDate: req.body.followUpDate,
-          internalNotes: req.body.internalNotes,
-          updatedAt: new Date()
-        })
+        .set(updateData)
         .where(eq(disciplinaryRecords.id, id))
         .returning();
 
