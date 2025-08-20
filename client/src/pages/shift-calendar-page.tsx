@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
@@ -217,7 +217,15 @@ export default function ShiftCalendarPage() {
     return { type: "shift", label: "No Shift", color: "#6B7280", shiftId: "" };
   };
 
-  const renderShiftCell = (shift: { type: string; label: string; color: string; shiftId?: string }, employeeId?: string) => {
+  // Memoized mutation handler to prevent re-renders
+  const handleShiftChange = useCallback((employeeId: string, shiftId: string) => {
+    console.log('Handling shift change:', { employeeId, shiftId });
+    // Convert "no-shift" to empty string for backend
+    const finalShiftId = shiftId === "no-shift" ? "" : shiftId;
+    updateShiftMutation.mutate({ employeeId, shiftId: finalShiftId });
+  }, [updateShiftMutation]);
+
+  const renderShiftCell = useCallback((shift: { type: string; label: string; color: string; shiftId?: string }, employeeId?: string, cellKey?: string) => {
     if (editMode && employeeId) {
       // Edit mode: Show dropdown to select shift
       const currentShiftId = shift?.shiftId || '';
@@ -226,12 +234,9 @@ export default function ShiftCalendarPage() {
       
       return (
         <Select
+          key={`${employeeId}-${cellKey}`}
           value={displayValue}
-          onValueChange={(shiftId) => {
-            // Convert "no-shift" to empty string for backend
-            const finalShiftId = shiftId === "no-shift" ? "" : shiftId;
-            updateShiftMutation.mutate({ employeeId, shiftId: finalShiftId });
-          }}
+          onValueChange={(shiftId) => handleShiftChange(employeeId, shiftId)}
         >
           <SelectTrigger className="w-full h-8 text-xs">
             <SelectValue placeholder="Select shift" />
@@ -259,23 +264,23 @@ export default function ShiftCalendarPage() {
       );
     }
 
-    // View mode: Show existing display
-    if (shift.type === "off") {
-      return (
-        <div className="px-2 py-1 text-xs text-center bg-gray-200 text-gray-600 rounded">
-          {shift.label}
-        </div>
-      );
-    }
+    // View mode: Show shift badge
     return (
-      <div 
-        className="px-2 py-1 text-xs text-center text-white rounded"
-        style={{ backgroundColor: shift.color }}
-      >
-        {shift.label}
+      <div className="flex items-center justify-center">
+        <Badge
+          variant="secondary"
+          className="text-xs px-2 py-1 min-w-20"
+          style={{
+            backgroundColor: shift.color,
+            color: '#fff',
+            borderColor: shift.color,
+          }}
+        >
+          {shift.label}
+        </Badge>
       </div>
     );
-  };
+  }, [editMode, shifts, handleShiftChange]);
 
   return (
     <DashboardLayout>
@@ -441,9 +446,10 @@ export default function ShiftCalendarPage() {
                         </td>
                         {getDayHeaders().map((day, dayIndex) => {
                           const shift = getShiftForDay(employee.id, day.fullDate);
+                          const cellKey = `${day.fullDate}-${dayIndex}`;
                           return (
                             <td key={dayIndex} className="p-2 text-center">
-                              {renderShiftCell(shift, employee.id)}
+                              {renderShiftCell(shift, employee.id, cellKey)}
                             </td>
                           );
                         })}
