@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,26 +17,45 @@ import {
 export default function ShiftCalendarPage() {
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [viewMode, setViewMode] = useState<"week" | "month">("week");
-  const [expandedDepartments, setExpandedDepartments] = useState<string[]>(["human-resource"]);
+  const [expandedDepartments, setExpandedDepartments] = useState<string[]>([]);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  // Sample data
-  const departments = [
-    {
-      id: "human-resource",
-      name: "Human Resource",
-      employees: [
-        {
-          id: 1,
-          name: "SITI NADIAH SABRI"
-        },
-        {
-          id: 2,
-          name: "madrah samsi"
-        }
-      ]
+  // Fetch employees data
+  const { data: employees = [], isLoading } = useQuery({
+    queryKey: ['/api/employees'],
+  });
+
+  // Group employees by department
+  const departments = React.useMemo(() => {
+    const deptMap = new Map();
+    
+    employees.forEach((employee: any) => {
+      const deptName = employee.employment?.department || 'Lain-lain';
+      const deptId = deptName.toLowerCase().replace(/\s+/g, '-');
+      
+      if (!deptMap.has(deptId)) {
+        deptMap.set(deptId, {
+          id: deptId,
+          name: deptName.toUpperCase(),
+          employees: []
+        });
+      }
+      
+      deptMap.get(deptId).employees.push({
+        id: employee.id,
+        name: employee.fullName || `${employee.firstName} ${employee.lastName}`.trim()
+      });
+    });
+    
+    return Array.from(deptMap.values());
+  }, [employees]);
+
+  // Auto-expand first department
+  React.useEffect(() => {
+    if (departments.length > 0 && expandedDepartments.length === 0) {
+      setExpandedDepartments([departments[0].id]);
     }
-  ];
+  }, [departments]);
 
   // Get week dates
   const getWeekDates = (date: Date) => {
@@ -238,7 +258,19 @@ export default function ShiftCalendarPage() {
 
               {/* Table Body */}
               <tbody>
-                {departments.map((department) => (
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={8} className="p-8 text-center text-gray-500">
+                      Loading employees...
+                    </td>
+                  </tr>
+                ) : departments.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="p-8 text-center text-gray-500">
+                      No employees found
+                    </td>
+                  </tr>
+                ) : departments.map((department) => (
                   <React.Fragment key={department.id}>
                     {/* Department Header Row */}
                     <tr className="bg-gray-100 border-b">
