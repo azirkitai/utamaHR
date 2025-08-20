@@ -167,8 +167,8 @@ export default function ShiftCalendarPage() {
         
         return { 
           type: "shift", 
-          label: assignedShift.name || assignedShift.shiftName,
-          color: assignedShift.color || assignedShift.shiftColor || '#6B7280'
+          label: assignedShift.name,
+          color: assignedShift.color || '#6B7280'
         };
       }
     }
@@ -385,9 +385,9 @@ export default function ShiftCalendarPage() {
             <div key={shift.id} className="flex items-center space-x-2">
               <div 
                 className="w-4 h-4 rounded"
-                style={{ backgroundColor: shift.shiftColor || '#6B7280' }}
+                style={{ backgroundColor: shift.color || '#6B7280' }}
               ></div>
-              <span className="text-gray-600">{shift.shiftName}</span>
+              <span className="text-gray-600">{shift.name}</span>
             </div>
           ))}
           <div className="flex items-center space-x-2">
