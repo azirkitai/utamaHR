@@ -252,6 +252,7 @@ export default function ShiftCalendarPage() {
       {
         onSuccess: () => {
           console.log('Shift updated successfully for date:', date.toISOString());
+          // No toast message here - only show success after Save button
         },
         onError: (error) => {
           console.error('Shift update failed, reverting manual state:', error);
@@ -559,8 +560,11 @@ export default function ShiftCalendarPage() {
                   try {
                     // Get all manual state changes that need to be saved
                     const savePromises = Object.entries(manualShiftStates).map(([key, shiftId]) => {
-                      const [employeeId, ...dateParts] = key.split('-');
-                      const assignedDate = dateParts.join('-'); // Reconstruct full ISO date string
+                      // Key format: employeeId-ISODateString
+                      // UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (36 chars including dashes)
+                      // So we extract first 36 chars as employeeId, rest as date
+                      const employeeId = key.substring(0, 36);
+                      const assignedDate = key.substring(37); // Skip the dash after UUID
                       
                       console.log('Saving shift:', { employeeId, shiftId, assignedDate });
                       console.log('Date type:', typeof assignedDate, 'Date value:', assignedDate);
