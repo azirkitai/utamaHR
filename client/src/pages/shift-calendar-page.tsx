@@ -217,15 +217,43 @@ export default function ShiftCalendarPage() {
     return { type: "shift", label: "No Shift", color: "#6B7280", shiftId: "" };
   };
 
-  // Memoized mutation handler to prevent re-renders
+  // Manual state management to completely bypass React Query cache issues
+  const [manualShiftStates, setManualShiftStates] = useState<Record<string, string>>({});
+
+  // Memoized mutation handler that updates manual state immediately
   const handleShiftChange = useCallback((employeeId: string, shiftId: string) => {
     console.log('Handling shift change:', { employeeId, shiftId });
+    
+    // Update manual state immediately for responsive UI
+    const stateKey = `${employeeId}`;
+    setManualShiftStates(prev => ({
+      ...prev,
+      [stateKey]: shiftId === "no-shift" ? "" : shiftId
+    }));
+    
     // Convert "no-shift" to empty string for backend
     const finalShiftId = shiftId === "no-shift" ? "" : shiftId;
-    updateShiftMutation.mutate({ employeeId, shiftId: finalShiftId });
+    
+    // Make API call without cache invalidation
+    updateShiftMutation.mutate(
+      { employeeId, shiftId: finalShiftId },
+      {
+        onSuccess: () => {
+          console.log('Shift updated successfully, manual state already updated');
+        },
+        onError: (error) => {
+          console.error('Shift update failed, reverting manual state:', error);
+          // Revert manual state on error
+          setManualShiftStates(prev => {
+            const { [stateKey]: removed, ...rest } = prev;
+            return rest;
+          });
+        }
+      }
+    );
   }, [updateShiftMutation]);
 
-  // Independent Shift Cell Component - completely isolated
+  // Independent Shift Cell Component with manual state bypass
   const IndependentShiftCell = React.memo(({
     employeeId,
     dayDate,
@@ -233,7 +261,8 @@ export default function ShiftCalendarPage() {
     shift,
     editMode,
     shifts,
-    onShiftChange
+    onShiftChange,
+    manualState
   }: {
     employeeId: string;
     dayDate: Date;
@@ -242,29 +271,22 @@ export default function ShiftCalendarPage() {
     editMode: boolean;
     shifts: any[];
     onShiftChange: (employeeId: string, shiftId: string) => void;
+    manualState?: string;
   }) => {
-    // Each cell has its own completely isolated state
-    const [localShiftValue, setLocalShiftValue] = useState(() => {
-      const currentShiftId = shift?.shiftId || '';
-      return currentShiftId === '' ? 'no-shift' : currentShiftId;
-    });
-
-    // Only update when the backend shift data changes for this specific cell
-    useEffect(() => {
-      const currentShiftId = shift?.shiftId || '';
-      const newValue = currentShiftId === '' ? 'no-shift' : currentShiftId;
-      setLocalShiftValue(newValue);
-    }, [shift?.shiftId]);
-
     const uniqueId = `${employeeId}-${dayDate.toISOString()}-${dayIndex}`;
+    
+    // Use manual state if available, otherwise use shift data
+    const currentShiftId = manualState !== undefined ? manualState : (shift?.shiftId || '');
+    const displayValue = currentShiftId === '' ? 'no-shift' : currentShiftId;
+
+    console.log(`Cell ${uniqueId} rendering with value: ${displayValue} (manual: ${manualState}, shift: ${shift?.shiftId})`);
 
     if (editMode) {
       return (
         <Select
-          value={localShiftValue}
+          value={displayValue}
           onValueChange={(newShiftId) => {
-            console.log(`Cell ${uniqueId} changing from ${localShiftValue} to ${newShiftId}`);
-            setLocalShiftValue(newShiftId);
+            console.log(`Cell ${uniqueId} changing from ${displayValue} to ${newShiftId}`);
             onShiftChange(employeeId, newShiftId);
           }}
         >
@@ -486,8 +508,9 @@ export default function ShiftCalendarPage() {
                                 dayIndex={dayIndex}
                                 shift={shift}
                                 editMode={editMode}
-                                shifts={shifts}
+                                shifts={shifts as any[]}
                                 onShiftChange={handleShiftChange}
+                                manualState={manualShiftStates[employee.id]}
                               />
                             </td>
                           );
