@@ -163,7 +163,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     {currentEmployee?.fullName || user?.username || 'UTAMA HR'}
                   </div>
                   <div className="text-xs text-gray-500">
-                    {currentEmployee?.role || user?.role || 'Staff'}
+                    {user?.role || currentEmployee?.role || 'Staff'}
                   </div>
                 </div>
                 
