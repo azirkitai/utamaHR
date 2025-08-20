@@ -168,22 +168,23 @@ export default function DisciplinaryHistoryPage() {
     enabled: !!user && !!hasHRAccess,
   });
 
-  // Local state for disciplinary records to manage updates
-  const [localRecords, setLocalRecords] = useState<DisciplinaryRecord[]>([]);
+  // Direct state management for immediate updates
+  const [recordUpdates, setRecordUpdates] = useState<Record<string, Partial<DisciplinaryRecord>>>({});
   
   // Query disciplinary records
   const { data: disciplinaryRecords = [], isLoading, refetch: refetchRecords } = useQuery<DisciplinaryRecord[]>({
     queryKey: ['/api/disciplinary-records'],
     enabled: !!user && !!hasHRAccess,
     staleTime: 0,
-    onSuccess: (data: DisciplinaryRecord[]) => {
-      setLocalRecords(data);
-    }
   });
 
-  // Use local records for display and force re-render with key
-  const recordsToDisplay = localRecords.length > 0 ? localRecords : disciplinaryRecords;
-  const [renderKey, setRenderKey] = useState(0);
+  // Apply local updates to records for display
+  const recordsToDisplay = disciplinaryRecords.map(record => ({
+    ...record,
+    ...recordUpdates[record.id]
+  }));
+
+  const [forceUpdate, setForceUpdate] = useState(0);
 
   // Get selected employee details
   const selectedEmployee = (employees as Employee[]).find((emp: Employee) => emp.id === selectedEmployeeId);
@@ -242,24 +243,22 @@ export default function DisciplinaryHistoryPage() {
     onSuccess: async (updatedRecord) => {
       console.log('Update successful, updating local state...');
       
-      // Update local state immediately - Force UI refresh
-      setLocalRecords(prev => {
-        const updatedRecords = prev.map(record => 
-          record.id === editingRecord?.id 
-            ? { 
-                ...record, 
-                status: editData.status as DisciplinaryRecord['status'],
-                followUpRequired: editData.followUpRequired,
-                followUpDate: editData.followUpDate,
-                internalNotes: editData.internalNotes
-              }
-            : record
-        );
-        console.log('Local state updated, new status:', editData.status);
-        // Force component re-render
-        setRenderKey(prev => prev + 1);
-        return updatedRecords;
-      });
+      // Apply immediate update to specific record
+      if (editingRecord?.id) {
+        setRecordUpdates(prev => ({
+          ...prev,
+          [editingRecord.id]: {
+            status: editData.status as DisciplinaryRecord['status'],
+            followUpRequired: editData.followUpRequired,
+            followUpDate: editData.followUpDate,
+            internalNotes: editData.internalNotes
+          }
+        }));
+        
+        // Force immediate re-render
+        setForceUpdate(prev => prev + 1);
+        console.log('FORCE UPDATE: Status changed to', editData.status);
+      }
       
       toast({
         title: "Success", 
@@ -590,9 +589,9 @@ export default function DisciplinaryHistoryPage() {
                           <TableHead>Actions</TableHead>
                         </TableRow>
                       </TableHeader>
-                      <TableBody key={renderKey}>
-                        {filteredRecords.map((record: DisciplinaryRecord) => (
-                          <TableRow key={record.id}>
+                      <TableBody key={`tbody-${forceUpdate}`}>
+                        {filteredRecords.map((record: DisciplinaryRecord, index: number) => (
+                          <TableRow key={`${record.id}-${forceUpdate}-${index}`}>
                             <TableCell>
                               {new Date(record.dateIssued).toLocaleDateString('en-GB')}
                             </TableCell>
@@ -602,9 +601,8 @@ export default function DisciplinaryHistoryPage() {
                               </Badge>
                             </TableCell>
                             <TableCell>{record.subject}</TableCell>
-                            <TableCell>
+                            <TableCell key={`status-${record.id}-${record.status}-${forceUpdate}`}>
                               <Badge 
-                                key={`${record.id}-${record.status}`}
                                 className={statusColors[record.status as keyof typeof statusColors]}
                               >
                                 {record.status === 'active' ? 'Active' : 
@@ -614,7 +612,7 @@ export default function DisciplinaryHistoryPage() {
                                  String(record.status).charAt(0).toUpperCase() + String(record.status).slice(1)}
                               </Badge>
                               <div className="text-xs text-gray-500 mt-1">
-                                DEBUG: {record.status}
+                                DEBUG: {record.status} | Update: {forceUpdate}
                               </div>
                             </TableCell>
                             <TableCell>
