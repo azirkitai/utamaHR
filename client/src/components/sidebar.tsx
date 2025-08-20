@@ -31,7 +31,8 @@ import {
   Bell,
   QrCode,
   FormInput,
-  Shield
+  Shield,
+  FileX
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
@@ -120,6 +121,12 @@ const navigationItems: { category: string; items: SidebarItem[] }[] = [
         label: "Disciplinary Records",
         icon: <Shield className="w-4 h-4" />,
         href: "/disciplinary-records",
+      },
+      {
+        id: "disciplinary-history",
+        label: "Disciplinary History & Add Action",
+        icon: <FileX className="w-4 h-4" />,
+        href: "/disciplinary-history",
       },
     ],
   },
