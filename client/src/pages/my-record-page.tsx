@@ -1071,6 +1071,10 @@ export default function MyRecordPage() {
                             {(record as any).clockInRemarks}
                           </div>
                         )}
+                        {/* DEBUG INFO - REMOVE AFTER TESTING */}
+                        <div className="text-xs text-blue-500 mt-1">
+                          DEBUG: isLate={(record as any).isLateClockIn ? 'TRUE' : 'FALSE'}, remarks={(record as any).clockInRemarks || 'NONE'}
+                        </div>
                       </div>
                     ) : (
                       '-'
