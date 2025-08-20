@@ -135,20 +135,50 @@ export default function ClaimApprovalPage() {
       let allEmployeeClaims: any[] = [];
       
       if (selectedCategory === 'financial') {
-        // For financial summary - show only financial claims
-        const employeeFinancialClaims = (financialClaimsData || []).filter((claim: any) => 
+        // For financial summary - use SAME filtered data as summary table
+        const baseClaimsForSummary = (financialClaimsData || []).filter((claim: any) => {
+          return ['pending', 'Pending', 'firstLevelApproved', 'First Level Approved', 'approved', 'Approved'].includes(claim.status);
+        });
+        
+        // Apply the same filters used in summary calculation
+        const filteredClaimsForSummary = applyFilters(baseClaimsForSummary, 'financial');
+        
+        // Filter only for this specific employee
+        const employeeFinancialClaims = filteredClaimsForSummary.filter((claim: any) => 
           claim.employeeId === employeeId
         );
         allEmployeeClaims = employeeFinancialClaims.map((claim: any) => ({ ...claim, type: 'financial' }));
-        console.log('Financial claims for employee:', allEmployeeClaims);
+        
+        console.log('🔍 MODAL DATA DEBUG - Financial claims for employee:', {
+          employeeId,
+          employeeName,
+          totalRawClaims: (financialClaimsData || []).filter((claim: any) => claim.employeeId === employeeId).length,
+          filteredClaims: allEmployeeClaims.length,
+          claimStatuses: allEmployeeClaims.map((c: any) => c.status)
+        });
         
       } else if (selectedCategory === 'overtime') {
-        // For overtime summary - show only overtime claims
-        const employeeOvertimeClaims = (overtimeClaimsFromDB || []).filter((claim: any) => 
+        // For overtime summary - use SAME filtered data as summary table
+        const baseOvertimeForSummary = (overtimeClaimsFromDB || []).filter(claim => 
+          ['Pending', 'firstLevelApproved', 'Approved'].includes(claim.status)
+        );
+        
+        // Apply the same filters used in summary calculation
+        const filteredOvertimeForSummary = applyFilters(baseOvertimeForSummary, 'overtime');
+        
+        // Filter only for this specific employee
+        const employeeOvertimeClaims = filteredOvertimeForSummary.filter((claim: any) => 
           claim.employeeId === employeeId
         );
         allEmployeeClaims = employeeOvertimeClaims.map((claim: any) => ({ ...claim, type: 'overtime' }));
-        console.log('Overtime claims for employee:', allEmployeeClaims);
+        
+        console.log('🔍 MODAL DATA DEBUG - Overtime claims for employee:', {
+          employeeId,
+          employeeName,
+          totalRawClaims: (overtimeClaimsFromDB || []).filter((claim: any) => claim.employeeId === employeeId).length,
+          filteredClaims: allEmployeeClaims.length,
+          claimStatuses: allEmployeeClaims.map((c: any) => c.status)
+        });
         
       } else {
         // For mixed category - show both (should not happen in current design)
@@ -695,6 +725,15 @@ export default function ClaimApprovalPage() {
       const pendingAmount = pendingClaims.reduce((total: number, claim: any) => total + (parseFloat(claim.amount) || 0), 0);
       const totalAmount = group.claims.reduce((total: number, claim: any) => total + (parseFloat(claim.amount) || 0), 0);
       
+      console.log(`📊 FINANCIAL SUMMARY - ${employeeName}:`, {
+        totalClaims: group.claims.length,
+        pendingClaims: pendingClaims.length,
+        approvedClaims: approvedClaims.length,
+        allStatuses: group.claims.map((c: any) => c.status),
+        pendingAmount,
+        totalAmount
+      });
+
       return {
         id: index + 1,
         name: employeeName,
@@ -743,6 +782,15 @@ export default function ClaimApprovalPage() {
       const pendingAmount = pendingClaims.reduce((total: number, claim: any) => total + (parseFloat(claim.amount) || 0), 0);
       const approvedAmount = approvedClaims.reduce((total: number, claim: any) => total + (parseFloat(claim.amount) || 0), 0);
       
+      console.log(`📊 OVERTIME SUMMARY - ${employeeName}:`, {
+        totalClaims: group.claims.length,
+        pendingClaims: pendingClaims.length,
+        approvedClaims: approvedClaims.length,
+        allStatuses: group.claims.map((c: any) => c.status),
+        pendingAmount,
+        approvedAmount
+      });
+
       return {
         id: index + 1,
         name: employeeName,
