@@ -816,6 +816,9 @@ export default function MyRecordPage() {
     );
   });
 
+  // Variable for PDF download function (matching PDF function naming)
+  const searchFilteredOvertimes = searchFilteredOvertime;
+
   // Apply search term filter to filtered results
   const searchFilteredClaims = filteredClaimApplications.filter(claim => {
     if (!filters.searchTerm) return true;
@@ -1153,6 +1156,290 @@ export default function MyRecordPage() {
       console.log('✅ Claim record PDF generated and downloaded successfully');
     } catch (error) {
       console.error('❌ Error generating claim record PDF:', error);
+      console.error('❌ Full error stack:', error.stack);
+      console.error('❌ Error message:', error.message);
+    }
+  };
+
+  const handleOvertimeRecordPDFDownload = async () => {
+    console.log('🔄 Starting overtime record PDF generation...');
+    
+    try {
+      if (!user || !currentEmployee) {
+        console.error('❌ User or employee data not available');
+        return;
+      }
+
+      // Create PDF using pdf-lib
+      const pdfDoc = await PDFDocument.create();
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+      const page = pdfDoc.addPage([595.28, 841.89]); // A4 size
+      const { width, height } = page.getSize();
+
+      let yPosition = height - 50;
+
+      // Company Header
+      page.drawText('UTAMA MEDGROUP', {
+        x: (width - boldFont.widthOfTextAtSize('UTAMA MEDGROUP', 20)) / 2,
+        y: yPosition,
+        size: 20,
+        font: boldFont,
+        color: rgb(0, 0, 0),
+      });
+
+      yPosition -= 30;
+      page.drawText('OVERTIME APPLICATIONS REPORT', {
+        x: (width - boldFont.widthOfTextAtSize('OVERTIME APPLICATIONS REPORT', 16)) / 2,
+        y: yPosition,
+        size: 16,
+        font: boldFont,
+        color: rgb(0, 0, 0),
+      });
+
+      yPosition -= 40;
+      
+      // Employee Information Box
+      const employeeName = currentEmployee.name || user.username || 'Unknown';
+      const employeeId = currentEmployee.nric || currentEmployee.id || 'N/A';
+      
+      page.drawRectangle({
+        x: 50,
+        y: yPosition - 60,
+        width: width - 100,
+        height: 60,
+        color: rgb(0.95, 0.95, 0.95),
+        borderColor: rgb(0.8, 0.8, 0.8),
+        borderWidth: 1,
+      });
+
+      page.drawText('Employee Information', {
+        x: 60,
+        y: yPosition - 20,
+        size: 12,
+        font: boldFont,
+        color: rgb(0, 0, 0),
+      });
+
+      page.drawText(`Name: ${employeeName}`, {
+        x: 60,
+        y: yPosition - 35,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+
+      page.drawText(`IC Number: ${employeeId}`, {
+        x: 60,
+        y: yPosition - 50,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+
+      yPosition -= 90;
+
+      // Period Information
+      page.drawText(`Report Period: ${format(filters.dateFrom, 'dd/MM/yyyy')} - ${format(filters.dateTo, 'dd/MM/yyyy')}`, {
+        x: 50,
+        y: yPosition,
+        size: 12,
+        font: boldFont,
+        color: rgb(0, 0, 0),
+      });
+
+      yPosition -= 30;
+
+      // Table Header Background
+      const headerHeight = 25;
+      page.drawRectangle({
+        x: 40,
+        y: yPosition - headerHeight,
+        width: width - 80,
+        height: headerHeight,
+        color: rgb(0.2, 0.4, 0.8),
+      });
+
+      // Table Headers
+      const headers = ['No.', 'Applicant', 'Status', 'Total Hours', 'Amount', 'Date'];
+      const columnWidths = [30, 120, 80, 70, 70, 95];
+      let xPosition = 50;
+
+      headers.forEach((header, index) => {
+        page.drawText(header, {
+          x: xPosition,
+          y: yPosition - 18,
+          size: 10,
+          font: boldFont,
+          color: rgb(1, 1, 1),
+        });
+        xPosition += columnWidths[index];
+      });
+
+      yPosition -= headerHeight + 10;
+
+      // Table Data with borders
+      searchFilteredOvertimes.forEach((overtime, index) => {
+        if (yPosition < 150) {
+          // Add new page if needed
+          const newPage = pdfDoc.addPage([595.28, 841.89]);
+          yPosition = height - 50;
+        }
+
+        const rowHeight = 25;
+
+        // Alternating row background
+        if (index % 2 === 0) {
+          page.drawRectangle({
+            x: 40,
+            y: yPosition - rowHeight,
+            width: width - 80,
+            height: rowHeight,
+            color: rgb(0.98, 0.98, 0.98),
+          });
+        }
+
+        // Row border
+        page.drawRectangle({
+          x: 40,
+          y: yPosition - rowHeight,
+          width: width - 80,
+          height: rowHeight,
+          borderColor: rgb(0.9, 0.9, 0.9),
+          borderWidth: 0.5,
+        });
+
+        // Data cells
+        const requestorName = overtime.requestorName || 'N/A';
+        const amount = overtime.amount ? `RM ${parseFloat(overtime.amount).toFixed(2)}` : 'RM 0.00';
+        
+        const rowData = [
+          (index + 1).toString(),
+          requestorName,
+          overtime.status || 'Unknown',
+          '0 jam', // Default hours since not available
+          amount,
+          format(new Date(overtime.claimDate), 'dd/MM/yyyy')
+        ];
+
+        xPosition = 50;
+        rowData.forEach((data, colIndex) => {
+          const textColor = colIndex === 2 ? // Status column
+            (overtime.status === 'approved' || overtime.status === 'Paid' ? rgb(0, 0.6, 0) :
+             overtime.status === 'Rejected' ? rgb(0.8, 0, 0) :
+             rgb(0.8, 0.6, 0)) : rgb(0, 0, 0);
+
+          // Truncate text if too long
+          let displayText = data;
+          if (data.length > 15 && (colIndex === 1)) {
+            displayText = data.substring(0, 12) + '...';
+          }
+
+          page.drawText(displayText, {
+            x: xPosition + 5,
+            y: yPosition - 15,
+            size: 9,
+            font: font,
+            color: textColor,
+          });
+          xPosition += columnWidths[colIndex];
+        });
+
+        yPosition -= rowHeight;
+      });
+
+      // Summary Section
+      yPosition -= 30;
+      const summaryBoxHeight = 60;
+      page.drawRectangle({
+        x: 50,
+        y: yPosition - summaryBoxHeight,
+        width: width - 100,
+        height: summaryBoxHeight,
+        color: rgb(0.95, 0.95, 0.95),
+        borderColor: rgb(0.8, 0.8, 0.8),
+        borderWidth: 1,
+      });
+
+      page.drawText('Overtime Summary', {
+        x: 60,
+        y: yPosition - 20,
+        size: 12,
+        font: boldFont,
+        color: rgb(0, 0, 0),
+      });
+
+      const totalOvertimes = searchFilteredOvertimes.length;
+      const approvedOvertimes = searchFilteredOvertimes.filter(o => o.status === 'approved' || o.status === 'Paid').length;
+      const pendingOvertimes = searchFilteredOvertimes.filter(o => o.status === 'pending' || o.status === 'Pending').length;
+      const rejectedOvertimes = searchFilteredOvertimes.filter(o => o.status === 'Rejected').length;
+      const totalAmount = searchFilteredOvertimes.reduce((sum, overtime) => sum + parseFloat(overtime.amount || '0'), 0);
+
+      page.drawText(`Total Applications: ${totalOvertimes}`, {
+        x: 60,
+        y: yPosition - 35,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+
+      page.drawText(`Approved: ${approvedOvertimes}`, {
+        x: 200,
+        y: yPosition - 35,
+        size: 10,
+        font: font,
+        color: rgb(0, 0.6, 0),
+      });
+
+      page.drawText(`Pending: ${pendingOvertimes}`, {
+        x: 300,
+        y: yPosition - 35,
+        size: 10,
+        font: font,
+        color: rgb(0.8, 0.6, 0),
+      });
+
+      page.drawText(`Rejected: ${rejectedOvertimes}`, {
+        x: 400,
+        y: yPosition - 35,
+        size: 10,
+        font: font,
+        color: rgb(0.8, 0, 0),
+      });
+
+      page.drawText(`Total Amount: RM ${totalAmount.toFixed(2)}`, {
+        x: 60,
+        y: yPosition - 50,
+        size: 10,
+        font: boldFont,
+        color: rgb(0, 0, 0),
+      });
+
+      // Footer
+      yPosition -= 100;
+      page.drawText(`Generated on: ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}`, {
+        x: 50,
+        y: 50,
+        size: 8,
+        font: font,
+        color: rgb(0.5, 0.5, 0.5),
+      });
+
+      // Save and download PDF
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Overtime_Report_${employeeName}_${format(filters.dateFrom, 'dd-MM-yyyy')}_to_${format(filters.dateTo, 'dd-MM-yyyy')}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      console.log('✅ Overtime record PDF generated and downloaded successfully');
+    } catch (error) {
+      console.error('❌ Error generating overtime record PDF:', error);
       console.error('❌ Full error stack:', error.stack);
       console.error('❌ Error message:', error.message);
     }
@@ -1727,6 +2014,123 @@ export default function MyRecordPage() {
     </div>
   );
 
+  // Render overtime filter section
+  const renderOvertimeFilterSection = () => (
+    <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-4 p-4 border rounded-lg bg-gray-50">
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Date Period</label>
+        <Popover open={showDatePicker} onOpenChange={setShowDatePicker}>
+          <PopoverTrigger asChild>
+            <Button 
+              variant="outline" 
+              className={cn(
+                "w-full justify-start text-left font-normal",
+                !filters.dateFrom && "text-muted-foreground"
+              )}
+              data-testid="button-overtime-date-period"
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {filters.dateFrom && filters.dateTo 
+                ? `${format(filters.dateFrom, "dd/MM/yyyy")} - ${format(filters.dateTo, "dd/MM/yyyy")}`
+                : "Select date range"
+              }
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <div className="p-3 space-y-3">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">From Date</label>
+                <Calendar
+                  mode="single"
+                  selected={filters.dateFrom}
+                  onSelect={(date) => date && setFilters(prev => ({ ...prev, dateFrom: date }))}
+                  initialFocus
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">To Date</label>
+                <Calendar
+                  mode="single"
+                  selected={filters.dateTo}
+                  onSelect={(date) => date && setFilters(prev => ({ ...prev, dateTo: date }))}
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" onClick={() => setShowDatePicker(false)}>
+                  Apply
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => {
+                    setFilters(prev => ({
+                      ...prev,
+                      dateFrom: new Date(2025, 0, 1),
+                      dateTo: new Date()
+                    }));
+                    setShowDatePicker(false);
+                  }}
+                >
+                  Reset
+                </Button>
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Overtime Status</label>
+        <Select 
+          value={filters.overtimeStatus} 
+          onValueChange={(value) => setFilters(prev => ({ ...prev, overtimeStatus: value }))}
+          data-testid="select-overtime-status"
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="All overtime status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all-overtime-status">All overtime status</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="approved">Approved</SelectItem>
+            <SelectItem value="Rejected">Rejected</SelectItem>
+            <SelectItem value="firstLevelApproved">First Level Approved</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="flex gap-2">
+        <Button className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700" data-testid="button-overtime-search">
+          <Search className="h-4 w-4 mr-2" />
+          Search
+        </Button>
+        {/* Download Button - only show for Overtime tab */}
+        {activeTab === "overtime" && (
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" data-testid="button-overtime-download">
+                <Download className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-48">
+              <div className="space-y-2">
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start" 
+                  data-testid="button-overtime-download-pdf"
+                  onClick={handleOvertimeRecordPDFDownload}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download as PDF
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+        )}
+      </div>
+    </div>
+  );
+
   const renderLeaveTab = () => (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 p-4 rounded-lg text-white">
@@ -2017,7 +2421,7 @@ export default function MyRecordPage() {
       </div>
       
       {/* Filters */}
-      {renderFilterSection('overtime')}
+      {renderOvertimeFilterSection()}
 
       {/* Show entries and search */}
       <div className="flex justify-between items-center">
