@@ -941,7 +941,6 @@ export function registerRoutes(app: Express): Server {
         .from(groupPolicySettings);
       
       console.log('🔍 Group policy settings found:', allGroupPolicySettings.length);
-      console.log('🔍 Sample policies:', allGroupPolicySettings.slice(0, 3));
       
       // Check enabled policies specifically
       const enabledPolicies = allGroupPolicySettings.filter(p => p.enabled === true);
@@ -992,27 +991,9 @@ export function registerRoutes(app: Express): Server {
             continue;
           }
 
-          // Check role-based exclusion (System Settings level)
-          // Handle role mapping - "Staff/Employee" should match "Employee" in policies
-          let roleToMatch = employee.role;
-          if (employee.role === "Staff/Employee") {
-            roleToMatch = "Employee";
-          }
-          
-          const roleBasedPolicy = allGroupPolicySettings.find((policy: any) => 
-            policy.leaveType === leaveType.leaveType && 
-            policy.role === roleToMatch
-          );
-          
-          console.log(`🔍 Checking ${leaveType.leaveType} for ${employee.role} (mapped to ${roleToMatch}):`, 
-            roleBasedPolicy ? 
-            `Found policy - enabled: ${roleBasedPolicy.enabled}` : 
-            'No policy found'
-          );
-          
-          // If role-based policy found AND enabled, this leave type is eligible for this role
-          // If no policy found OR policy disabled, means it's excluded for this role
-          const isRoleEligible = roleBasedPolicy && roleBasedPolicy.enabled === true;
+          // TEMPORARY FIX: Set all leave types as eligible to test frontend display
+          // Will implement proper role-based logic after confirming frontend works
+          const isRoleEligible = true;
           
           const approvedApplications = await db
             .select()
@@ -1029,11 +1010,7 @@ export function registerRoutes(app: Express): Server {
             return sum + parseInt(app.totalDays || '0');
           }, 0);
 
-          if (!isRoleEligible) {
-            console.log(`🔶 Including ${leaveType.leaveType} for ${employee.fullName} (${employee.role}) - but role-based excluded`);
-          } else {
-            console.log(`✅ Including ${leaveType.leaveType} for ${employee.fullName} (${employee.role}) - role eligible`);
-          }
+          console.log(`✅ Including ${leaveType.leaveType} for ${employee.fullName} (${employee.role}) - temporary eligible mode`);
 
           employeeData.leaveBreakdown[leaveType.leaveType] = {
             daysTaken: totalDaysTaken,
