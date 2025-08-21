@@ -1687,12 +1687,8 @@ export default function EmployeeDetailsPage() {
                                 <SelectValue placeholder="Select department" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="Human Resources">Human Resources</SelectItem>
-                                <SelectItem value="Information Technology">Information Technology</SelectItem>
-                                <SelectItem value="Finance">Finance</SelectItem>
-                                <SelectItem value="Marketing">Marketing</SelectItem>
-                                <SelectItem value="Operations">Operations</SelectItem>
-                                <SelectItem value="Sales">Sales</SelectItem>
+                                <SelectItem value="human-resource">Human Resource</SelectItem>
+                                <SelectItem value="it">Information Technology</SelectItem>
                               </SelectContent>
                             </Select>
                           ) : (
@@ -1800,9 +1796,12 @@ export default function EmployeeDetailsPage() {
                                   <SelectValue placeholder="Select supervisor" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="Ahmad Rahman">Ahmad Rahman</SelectItem>
-                                  <SelectItem value="Siti Nurhaliza">Siti Nurhaliza</SelectItem>
-                                  <SelectItem value="Tan Wei Ming">Tan Wei Ming</SelectItem>
+                                  <SelectItem value="AZIRKITAI">AZIRKITAI</SelectItem>
+                                  <SelectItem value="SITI NADIAH SABRI">SITI NADIAH SABRI</SelectItem>
+                                  <SelectItem value="SYED IDRUS HASSIM">SYED IDRUS HASSIM</SelectItem>
+                                  <SelectItem value="SYED MUHYAZIR HASSIM">SYED MUHYAZIR HASSIM</SelectItem>
+                                  <SelectItem value="kamal ludin">kamal ludin</SelectItem>
+                                  <SelectItem value="maryam  maisarah">maryam  maisarah</SelectItem>
                                 </SelectContent>
                               </Select>
                             ) : (
@@ -1819,9 +1818,12 @@ export default function EmployeeDetailsPage() {
                                   <SelectValue placeholder="Select supervisor" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="Ahmad Rahman">Ahmad Rahman</SelectItem>
-                                  <SelectItem value="Siti Nurhaliza">Siti Nurhaliza</SelectItem>
-                                  <SelectItem value="Tan Wei Ming">Tan Wei Ming</SelectItem>
+                                  <SelectItem value="AZIRKITAI">AZIRKITAI</SelectItem>
+                                  <SelectItem value="SITI NADIAH SABRI">SITI NADIAH SABRI</SelectItem>
+                                  <SelectItem value="SYED IDRUS HASSIM">SYED IDRUS HASSIM</SelectItem>
+                                  <SelectItem value="SYED MUHYAZIR HASSIM">SYED MUHYAZIR HASSIM</SelectItem>
+                                  <SelectItem value="kamal ludin">kamal ludin</SelectItem>
+                                  <SelectItem value="maryam  maisarah">maryam  maisarah</SelectItem>
                                 </SelectContent>
                               </Select>
                             ) : (
@@ -1845,9 +1847,12 @@ export default function EmployeeDetailsPage() {
                                   <SelectValue placeholder="Select supervisor" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="Ahmad Rahman">Ahmad Rahman</SelectItem>
-                                  <SelectItem value="Siti Nurhaliza">Siti Nurhaliza</SelectItem>
-                                  <SelectItem value="Tan Wei Ming">Tan Wei Ming</SelectItem>
+                                  <SelectItem value="AZIRKITAI">AZIRKITAI</SelectItem>
+                                  <SelectItem value="SITI NADIAH SABRI">SITI NADIAH SABRI</SelectItem>
+                                  <SelectItem value="SYED IDRUS HASSIM">SYED IDRUS HASSIM</SelectItem>
+                                  <SelectItem value="SYED MUHYAZIR HASSIM">SYED MUHYAZIR HASSIM</SelectItem>
+                                  <SelectItem value="kamal ludin">kamal ludin</SelectItem>
+                                  <SelectItem value="maryam  maisarah">maryam  maisarah</SelectItem>
                                 </SelectContent>
                               </Select>
                             ) : (
@@ -1864,9 +1869,12 @@ export default function EmployeeDetailsPage() {
                                   <SelectValue placeholder="Select supervisor" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="Ahmad Rahman">Ahmad Rahman</SelectItem>
-                                  <SelectItem value="Siti Nurhaliza">Siti Nurhaliza</SelectItem>
-                                  <SelectItem value="Tan Wei Ming">Tan Wei Ming</SelectItem>
+                                  <SelectItem value="AZIRKITAI">AZIRKITAI</SelectItem>
+                                  <SelectItem value="SITI NADIAH SABRI">SITI NADIAH SABRI</SelectItem>
+                                  <SelectItem value="SYED IDRUS HASSIM">SYED IDRUS HASSIM</SelectItem>
+                                  <SelectItem value="SYED MUHYAZIR HASSIM">SYED MUHYAZIR HASSIM</SelectItem>
+                                  <SelectItem value="kamal ludin">kamal ludin</SelectItem>
+                                  <SelectItem value="maryam  maisarah">maryam  maisarah</SelectItem>
                                 </SelectContent>
                               </Select>
                             ) : (
@@ -1890,9 +1898,12 @@ export default function EmployeeDetailsPage() {
                                   <SelectValue placeholder="Select supervisor" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="Ahmad Rahman">Ahmad Rahman</SelectItem>
-                                  <SelectItem value="Siti Nurhaliza">Siti Nurhaliza</SelectItem>
-                                  <SelectItem value="Tan Wei Ming">Tan Wei Ming</SelectItem>
+                                  <SelectItem value="AZIRKITAI">AZIRKITAI</SelectItem>
+                                  <SelectItem value="SITI NADIAH SABRI">SITI NADIAH SABRI</SelectItem>
+                                  <SelectItem value="SYED IDRUS HASSIM">SYED IDRUS HASSIM</SelectItem>
+                                  <SelectItem value="SYED MUHYAZIR HASSIM">SYED MUHYAZIR HASSIM</SelectItem>
+                                  <SelectItem value="kamal ludin">kamal ludin</SelectItem>
+                                  <SelectItem value="maryam  maisarah">maryam  maisarah</SelectItem>
                                 </SelectContent>
                               </Select>
                             ) : (
@@ -1909,9 +1920,12 @@ export default function EmployeeDetailsPage() {
                                   <SelectValue placeholder="Select supervisor" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="Ahmad Rahman">Ahmad Rahman</SelectItem>
-                                  <SelectItem value="Siti Nurhaliza">Siti Nurhaliza</SelectItem>
-                                  <SelectItem value="Tan Wei Ming">Tan Wei Ming</SelectItem>
+                                  <SelectItem value="AZIRKITAI">AZIRKITAI</SelectItem>
+                                  <SelectItem value="SITI NADIAH SABRI">SITI NADIAH SABRI</SelectItem>
+                                  <SelectItem value="SYED IDRUS HASSIM">SYED IDRUS HASSIM</SelectItem>
+                                  <SelectItem value="SYED MUHYAZIR HASSIM">SYED MUHYAZIR HASSIM</SelectItem>
+                                  <SelectItem value="kamal ludin">kamal ludin</SelectItem>
+                                  <SelectItem value="maryam  maisarah">maryam  maisarah</SelectItem>
                                 </SelectContent>
                               </Select>
                             ) : (
@@ -1935,9 +1949,12 @@ export default function EmployeeDetailsPage() {
                                   <SelectValue placeholder="Select supervisor" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="Ahmad Rahman">Ahmad Rahman</SelectItem>
-                                  <SelectItem value="Siti Nurhaliza">Siti Nurhaliza</SelectItem>
-                                  <SelectItem value="Tan Wei Ming">Tan Wei Ming</SelectItem>
+                                  <SelectItem value="AZIRKITAI">AZIRKITAI</SelectItem>
+                                  <SelectItem value="SITI NADIAH SABRI">SITI NADIAH SABRI</SelectItem>
+                                  <SelectItem value="SYED IDRUS HASSIM">SYED IDRUS HASSIM</SelectItem>
+                                  <SelectItem value="SYED MUHYAZIR HASSIM">SYED MUHYAZIR HASSIM</SelectItem>
+                                  <SelectItem value="kamal ludin">kamal ludin</SelectItem>
+                                  <SelectItem value="maryam  maisarah">maryam  maisarah</SelectItem>
                                 </SelectContent>
                               </Select>
                             ) : (
@@ -1954,9 +1971,12 @@ export default function EmployeeDetailsPage() {
                                   <SelectValue placeholder="Select supervisor" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="Ahmad Rahman">Ahmad Rahman</SelectItem>
-                                  <SelectItem value="Siti Nurhaliza">Siti Nurhaliza</SelectItem>
-                                  <SelectItem value="Tan Wei Ming">Tan Wei Ming</SelectItem>
+                                  <SelectItem value="AZIRKITAI">AZIRKITAI</SelectItem>
+                                  <SelectItem value="SITI NADIAH SABRI">SITI NADIAH SABRI</SelectItem>
+                                  <SelectItem value="SYED IDRUS HASSIM">SYED IDRUS HASSIM</SelectItem>
+                                  <SelectItem value="SYED MUHYAZIR HASSIM">SYED MUHYAZIR HASSIM</SelectItem>
+                                  <SelectItem value="kamal ludin">kamal ludin</SelectItem>
+                                  <SelectItem value="maryam  maisarah">maryam  maisarah</SelectItem>
                                 </SelectContent>
                               </Select>
                             ) : (
@@ -2022,11 +2042,12 @@ export default function EmployeeDetailsPage() {
                               <SelectValue placeholder="Select EA person in charge" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="Ahmad Rahman">Ahmad Rahman</SelectItem>
-                              <SelectItem value="Siti Nurhaliza">Siti Nurhaliza</SelectItem>
-                              <SelectItem value="Tan Wei Ming">Tan Wei Ming</SelectItem>
-                              <SelectItem value="Lim Swee Hock">Lim Swee Hock</SelectItem>
-                              <SelectItem value="Fatimah Zahra">Fatimah Zahra</SelectItem>
+                              <SelectItem value="AZIRKITAI">AZIRKITAI</SelectItem>
+                              <SelectItem value="SITI NADIAH SABRI">SITI NADIAH SABRI</SelectItem>
+                              <SelectItem value="SYED IDRUS HASSIM">SYED IDRUS HASSIM</SelectItem>
+                              <SelectItem value="SYED MUHYAZIR HASSIM">SYED MUHYAZIR HASSIM</SelectItem>
+                              <SelectItem value="kamal ludin">kamal ludin</SelectItem>
+                              <SelectItem value="maryam  maisarah">maryam  maisarah</SelectItem>
                             </SelectContent>
                           </Select>
                         ) : (
