@@ -1223,25 +1223,25 @@ export class DatabaseStorage implements IStorage {
         // Find employee's role entitlement
         const employeePolicy = groupPolicies.find(gp => gp.role === mappedRole);
         
+        // Calculate used leave days from approved applications for this employee and leave type
+        const approvedApplications = await db.select()
+          .from(leaveApplications)
+          .where(
+            and(
+              eq(leaveApplications.employeeId, employeeId),
+              eq(leaveApplications.leaveType, leaveType.leaveType),
+              eq(leaveApplications.status, 'Approved')
+            )
+          );
+
+        // Sum up total days used from approved applications
+        const totalUsedDays = approvedApplications.reduce((sum, app) => {
+          return sum + (Number(app.totalDays) || 0);
+        }, 0);
+
         if (employeePolicy && employeePolicy.enabled) {
           console.log(`✅ Found policy for ${leaveType.leaveType}: ${employeePolicy.entitlementDays} days`);
           
-          // Calculate used leave days from approved applications for this employee and leave type
-          const approvedApplications = await db.select()
-            .from(leaveApplications)
-            .where(
-              and(
-                eq(leaveApplications.employeeId, employeeId),
-                eq(leaveApplications.leaveType, leaveType.leaveType),
-                eq(leaveApplications.status, 'Approved')
-              )
-            );
-
-          // Sum up total days used from approved applications
-          const totalUsedDays = approvedApplications.reduce((sum, app) => {
-            return sum + (Number(app.totalDays) || 0);
-          }, 0);
-
           // Calculate actual balance: entitlement - used days
           const actualBalance = Math.max(0, (employeePolicy.entitlementDays || 0) - totalUsedDays);
           
@@ -1266,6 +1266,25 @@ export class DatabaseStorage implements IStorage {
           });
         } else {
           console.log(`❌ No policy found for ${leaveType.leaveType} and role ${mappedRole}`);
+          
+          // Still include this leave type but mark as not accessible for this role
+          const [policySettings] = await db.select()
+            .from(leavePolicySettings)
+            .where(eq(leavePolicySettings.leaveType, leaveType.id));
+
+          result.push({
+            id: leaveType.id,
+            leaveType: leaveType.leaveType,
+            entitlement: 0, // No entitlement for this role
+            balance: 0, // No balance available
+            usedDays: totalUsedDays, // Still track if any used (shouldn't be any)
+            remarks: `No entitlement set for ${mappedRole} role`,
+            action: "❌",
+            included: false, // Not included for this role
+            isRestricted: true, // Flag to show this is restricted
+            groupPolicy: null,
+            policySettings: policySettings[0] || null
+          });
         }
       }
 
