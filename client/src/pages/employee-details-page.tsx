@@ -308,6 +308,21 @@ export default function EmployeeDetailsPage() {
     }
   }, [employment, companySettings]);
 
+  // Initialize contact form when contact data loads
+  useEffect(() => {
+    if (contactData) {
+      setContactForm({
+        phoneNumber: contactData.phoneNumber || "",
+        email: contactData.email || "",
+        personalEmail: contactData.personalEmail || "",
+        address: contactData.address || "",
+        mailingAddress: contactData.mailingAddress || "",
+        emergencyContactName: contactData.emergencyContactName || "",
+        emergencyContactPhone: contactData.emergencyContactPhone || ""
+      });
+    }
+  }, [contactData]);
+
   // Update employee mutation
   const updateEmployeeMutation = useMutation({
     mutationFn: async (data: UpdateEmployee) => {
@@ -621,7 +636,7 @@ export default function EmployeeDetailsPage() {
   // Update contact mutation
   const updateContactMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("PUT", `/api/employees/${id}`, data);
+      const response = await apiRequest("PUT", `/api/contact/${id}`, data);
       return response.json();
     },
     onSuccess: () => {
@@ -630,6 +645,7 @@ export default function EmployeeDetailsPage() {
         description: "Maklumat contact telah dikemaskini",
       });
       setIsEditingContact(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/contact", id] });
       queryClient.invalidateQueries({ queryKey: ["/api/employees", id] });
     },
     onError: () => {

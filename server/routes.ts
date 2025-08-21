@@ -1861,6 +1861,68 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Save/update contact details for an employee
+  app.put("/api/contact/:employeeId", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      const employeeId = req.params.employeeId;
+      
+      // Get the employee to check authorization
+      const employee = await storage.getEmployee(employeeId);
+      if (!employee) {
+        return res.status(404).json({ error: "Pekerja tidak dijumpai" });
+      }
+      
+      // Role-based access control
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC', 'Finance/Account'];
+      if (adminRoles.includes(currentUser.role)) {
+        // Admin roles can update any employee contact
+      } else {
+        // Regular employees can only update their own contact
+        if (employee.userId !== currentUser.id) {
+          return res.status(403).json({ error: "Tidak dibenarkan mengemaskini maklumat contact pekerja lain" });
+        }
+      }
+
+      // Check if contact already exists
+      const existingContact = await storage.getContactByEmployeeId(employeeId);
+      
+      let updatedContact;
+      if (existingContact) {
+        // Update existing contact
+        updatedContact = await storage.updateContact(existingContact.id, {
+          phoneNumber: req.body.phoneNumber,
+          email: req.body.email,
+          personalEmail: req.body.personalEmail,
+          address: req.body.address,
+          mailingAddress: req.body.mailingAddress,
+          emergencyContactName: req.body.emergencyContactName,
+          emergencyContactPhone: req.body.emergencyContactPhone
+        });
+      } else {
+        // Create new contact
+        updatedContact = await storage.createContact({
+          employeeId: employeeId,
+          phoneNumber: req.body.phoneNumber,
+          email: req.body.email,
+          personalEmail: req.body.personalEmail,
+          address: req.body.address,
+          mailingAddress: req.body.mailingAddress,
+          emergencyContactName: req.body.emergencyContactName,
+          emergencyContactPhone: req.body.emergencyContactPhone
+        });
+      }
+      
+      res.json({ 
+        message: "Maklumat contact berjaya dikemaskini",
+        data: updatedContact 
+      });
+    } catch (error) {
+      console.error("Update contact error:", error);
+      res.status(500).json({ error: "Gagal mengemaskini maklumat contact" });
+    }
+  });
+
   app.post("/api/employees/:id/reset-password", authenticateToken, async (req, res) => {
     try {
       const currentUser = req.user!;
