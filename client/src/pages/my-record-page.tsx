@@ -3189,7 +3189,7 @@ export default function MyRecordPage() {
                         </span>
                         {isLate && extendedRecord.clockInRemarks && (
                           <div className="text-xs text-red-600 bg-red-50 p-1 rounded border mt-1">
-                            {extendedRecord.clockInRemarks}
+                            ({extendedRecord.clockInRemarks.split(' dari masa')[0]})
                           </div>
                         )}
                       </div>
@@ -3247,7 +3247,7 @@ export default function MyRecordPage() {
                         </span>
                         {(record as any).isLateBreakOut && (record as any).breakOutRemarks && (
                           <div className="text-xs text-red-600 bg-red-50 p-1 rounded border">
-                            {(record as any).breakOutRemarks}
+                            ({(record as any).breakOutRemarks.split(' dari masa')[0]})
                           </div>
                         )}
                       </div>
@@ -3305,7 +3305,7 @@ export default function MyRecordPage() {
                         </span>
                         {(record as any).isLateBreakIn && (record as any).breakInRemarks && (
                           <div className="text-xs text-red-600 bg-red-50 p-1 rounded border">
-                            {(record as any).breakInRemarks}
+                            ({(record as any).breakInRemarks.split(' dari masa')[0]})
                           </div>
                         )}
                       </div>
