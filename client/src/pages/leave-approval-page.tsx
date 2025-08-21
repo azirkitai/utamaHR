@@ -541,8 +541,70 @@ export default function LeaveApprovalPage() {
       );
     }
 
+    // Calculate grand totals for all employees
+    const grandTotals = carryForwardRecords.reduce((totals: any, employeeData: any) => {
+      employeeData.carryForwardRecords.forEach((record: any) => {
+        totals.entitlement += Number(record.entitlementDays);
+        totals.used += Number(record.usedDays);
+        totals.remaining += Number(record.remainingDays);
+        totals.carriedForward += Number(record.carriedForwardDays);
+      });
+      return totals;
+    }, { entitlement: 0, used: 0, remaining: 0, carriedForward: 0 });
+
+    // Get unique leave types across all employees
+    const allLeaveTypes = new Set();
+    carryForwardRecords.forEach((employeeData: any) => {
+      employeeData.carryForwardRecords.forEach((record: any) => {
+        allLeaveTypes.add(record.leaveType);
+      });
+    });
+
     return (
       <div className="space-y-6 p-6">
+        {/* Grand Summary Card */}
+        <div className="bg-gradient-to-r from-emerald-50 to-cyan-50 border border-emerald-200 rounded-lg shadow-sm overflow-hidden">
+          <div className="bg-gradient-to-r from-emerald-600 to-cyan-600 text-white p-4">
+            <h3 className="text-xl font-bold">Baki Keseluruhan Semua Jenis Cuti ({selectedYear})</h3>
+            <p className="text-emerald-100 text-sm">
+              {carryForwardRecords.length} Pekerja • {allLeaveTypes.size} Jenis Cuti
+            </p>
+          </div>
+          <div className="p-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-emerald-600 mb-2">
+                  {grandTotals.entitlement.toFixed(1)}
+                </div>
+                <div className="text-gray-700 font-medium">Jumlah Kelayakan</div>
+                <div className="text-xs text-gray-500 mt-1">Total Entitlement Days</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-orange-600 mb-2">
+                  {grandTotals.used.toFixed(1)}
+                </div>
+                <div className="text-gray-700 font-medium">Jumlah Digunakan</div>
+                <div className="text-xs text-gray-500 mt-1">Total Used Days</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-blue-600 mb-2">
+                  {grandTotals.remaining.toFixed(1)}
+                </div>
+                <div className="text-gray-700 font-medium">Jumlah Baki</div>
+                <div className="text-xs text-gray-500 mt-1">Total Remaining Days</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-cyan-600 mb-2">
+                  {grandTotals.carriedForward.toFixed(1)}
+                </div>
+                <div className="text-gray-700 font-medium">Jumlah Dibawa Hadapan</div>
+                <div className="text-xs text-gray-500 mt-1">Total Carried Forward</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Employee Cards */}
         {carryForwardRecords.map((employeeData: any, empIndex: number) => (
           <div key={employeeData.employee.id} className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
             {/* Employee Header */}
@@ -550,7 +612,6 @@ export default function LeaveApprovalPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-medium">{employeeData.employee.fullName}</h3>
-                  <p className="text-cyan-100 text-sm">Staff ID: {employeeData.employee.staffId}</p>
                 </div>
                 <div className="text-right">
                   <span className="bg-cyan-100 text-cyan-800 px-3 py-1 rounded-full text-sm font-medium">
