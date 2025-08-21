@@ -334,15 +334,26 @@ export default function AttendanceTimesheetPage() {
   };
 
   // Calculate period-based attendance statistics for Summary tab
-  const summaryData = Array.isArray(employees) ? employees.map((employee: any, index: number) => {
-    const employeeRecords = Array.isArray(attendanceRecords) ? attendanceRecords.filter((record: any) => record.employeeId === employee.id) : [];
+  const summaryData = Array.isArray(employees) ? employees.map((employee: any) => {
+    // Get attendance records for this employee within the selected date range
+    const employeeRecords = Array.isArray(attendanceRecords) ? 
+      attendanceRecords.filter((record: any) => {
+        if (record.employeeId !== employee.id) return false;
+        
+        // Check if record date is within the selected range
+        const recordDate = new Date(record.date);
+        const fromDate = new Date(summaryDateFrom);
+        const toDate = new Date(summaryDateTo);
+        
+        return recordDate >= fromDate && recordDate <= toDate;
+      }) : [];
     
-    // Filter by department if selected
+    // Apply department filter
     if (summaryDepartment !== 'all' && employee.department !== summaryDepartment) {
       return null;
     }
     
-    // Filter by specific employee if selected
+    // Apply specific employee filter
     if (summaryEmployee !== 'all' && employee.id !== summaryEmployee) {
       return null;
     }
@@ -350,14 +361,18 @@ export default function AttendanceTimesheetPage() {
     const presentDays = employeeRecords.filter((record: any) => record.clockInTime).length;
     const totalWorkingDays = getWorkingDaysInPeriod(summaryDateFrom, summaryDateTo);
     const absentDays = Math.max(0, totalWorkingDays - presentDays);
-    const lateDays = employeeRecords.filter((record: any) => record.isLateClockIn).length;
+    const lateDays = employeeRecords.filter((record: any) => record.isLateClockIn === true).length;
     const earlyClockOutDays = employeeRecords.filter((record: any) => 
       record.clockOutTime && isEarlyClockOut(record.clockOutTime, record.shiftId)
     ).length;
     
+
+    
+    const employeeName = `${employee.firstName || ''} ${employee.lastName || ''}`.trim();
+    
     return {
       id: employee.id,
-      employee: `${employee.firstName} ${employee.lastName}`.trim(),
+      employee: employeeName || 'Unknown Employee',
       present: presentDays,
       absent: absentDays,
       late: lateDays,
@@ -790,26 +805,29 @@ export default function AttendanceTimesheetPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              summaryData.filter(Boolean).map((item, index) => item && (
-                <TableRow key={item.id}>
-                  <TableCell>{index + 1}</TableCell>
-                  <TableCell className="font-medium">{item.employee}</TableCell>
-                  <TableCell>{item.present}</TableCell>
-                  <TableCell>{item.absent}</TableCell>
-                  <TableCell>{item.late}</TableCell>
-                  <TableCell>{item.earlyClockOut}</TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button size="sm" variant="outline" data-testid={`button-view-${item.id}`}>
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      <Button size="sm" variant="outline" data-testid={`button-details-${item.id}`}>
-                        <Clock className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
+              summaryData.filter(Boolean).map((item, index) => {
+                if (!item) return null;
+                return (
+                  <TableRow key={item.id} data-testid={`summary-row-${item.id}`}>
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell className="font-medium">{item.employee}</TableCell>
+                    <TableCell className="text-center">{item.present}</TableCell>
+                    <TableCell className="text-center">{item.absent}</TableCell>
+                    <TableCell className="text-center">{item.late}</TableCell>
+                    <TableCell className="text-center">{item.earlyClockOut}</TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button size="sm" variant="outline" data-testid={`button-view-${item.id}`}>
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button size="sm" variant="outline" data-testid={`button-details-${item.id}`}>
+                          <Clock className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>
