@@ -234,6 +234,13 @@ export default function EmployeeDetailsPage() {
     return authorizedRoles.includes(currentUser.role);
   };
 
+  // Check if current user has privileged access for compensation features
+  const hasPrivilegedAccess = () => {
+    if (!currentUser) return false;
+    const privilegedRoles = ["Super Admin", "Admin", "HR Manager"];
+    return privilegedRoles.includes(currentUser.role);
+  };
+
   // Helper function to get employee name by ID (check approval employees first, then all employees)
   const getEmployeeNameById = (employeeId: string | null) => {
     if (!employeeId) return "NONE";
@@ -2962,7 +2969,7 @@ export default function EmployeeDetailsPage() {
                           <FileText className="w-5 h-5" />
                           Statutory Details
                         </CardTitle>
-                        {!isEditingStatutoryDetails ? (
+                        {!isEditingStatutoryDetails && hasPrivilegedAccess() ? (
                           <Button
                             variant="outline"
                             size="sm"
@@ -3168,7 +3175,7 @@ export default function EmployeeDetailsPage() {
                           <Calculator className="w-5 h-5" />
                           Income Tax Details
                         </CardTitle>
-                        {!isEditingIncomeTaxDetails ? (
+                        {!isEditingIncomeTaxDetails && hasPrivilegedAccess() ? (
                           <Button
                             variant="outline"
                             size="sm"
