@@ -4,30 +4,21 @@ import { Button } from "@/components/ui/button";
 import { Eye, X, Camera } from "lucide-react";
 
 interface AttendanceImageViewerProps {
-  clockInImage?: string | null;
-  clockOutImage?: string | null;
-  breakInImage?: string | null;
-  breakOutImage?: string | null;
-  clockInTime?: string | null;
-  clockOutTime?: string | null;
-  breakInTime?: string | null;
-  breakOutTime?: string | null;
-  recordId?: string;
-  date?: string;
+  record: {
+    id: string;
+    date: string;
+    clockInImage?: string | null;
+    clockOutImage?: string | null;
+    breakInImage?: string | null;
+    breakOutImage?: string | null;
+    clockInTime?: string | null;
+    clockOutTime?: string | null;
+    breakInTime?: string | null;
+    breakOutTime?: string | null;
+  };
 }
 
-export function AttendanceImageViewer({ 
-  clockInImage, 
-  clockOutImage, 
-  breakInImage, 
-  breakOutImage,
-  clockInTime,
-  clockOutTime,
-  breakInTime,
-  breakOutTime,
-  recordId = 'unknown',
-  date = new Date().toISOString()
-}: AttendanceImageViewerProps) {
+export function AttendanceImageViewer({ record }: AttendanceImageViewerProps) {
   const [showDialog, setShowDialog] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{
     url: string;
@@ -72,26 +63,26 @@ export function AttendanceImageViewer({
   const images = [
     {
       type: 'Clock In',
-      url: clockInImage ? getImageUrl(clockInImage) : null,
-      time: formatTime(clockInTime),
+      url: record.clockInImage ? getImageUrl(record.clockInImage) : null,
+      time: formatTime(record.clockInTime),
       color: 'bg-green-100 text-green-800'
     },
     {
       type: 'Clock Out', 
-      url: clockOutImage ? getImageUrl(clockOutImage) : null,
-      time: formatTime(clockOutTime),
+      url: record.clockOutImage ? getImageUrl(record.clockOutImage) : null,
+      time: formatTime(record.clockOutTime),
       color: 'bg-red-100 text-red-800'
     },
     {
       type: 'Break Out',
-      url: breakOutImage ? getImageUrl(breakOutImage) : null,
-      time: formatTime(breakOutTime),
+      url: record.breakOutImage ? getImageUrl(record.breakOutImage) : null,
+      time: formatTime(record.breakOutTime),
       color: 'bg-orange-100 text-orange-800'
     },
     {
       type: 'Break In',
-      url: breakInImage ? getImageUrl(breakInImage) : null,
-      time: formatTime(breakInTime),
+      url: record.breakInImage ? getImageUrl(record.breakInImage) : null,
+      time: formatTime(record.breakInTime),
       color: 'bg-blue-100 text-blue-800'
     }
   ];
@@ -102,7 +93,7 @@ export function AttendanceImageViewer({
     if (image.url) {
       setSelectedImage({
         url: image.url,
-        title: `${image.type} - ${image.time}`,
+        title: `${image.type} - ${formatTime(record.clockInTime)}`,
         time: image.time
       });
     }
@@ -124,7 +115,7 @@ export function AttendanceImageViewer({
         size="sm"
         onClick={() => setShowDialog(true)}
         className="h-8 px-2"
-        data-testid={`button-view-images-${recordId}`}
+        data-testid={`button-view-images-${record.id}`}
       >
         <Eye className="h-4 w-4 mr-1" />
         <span>Lihat ({availableImages.length})</span>
@@ -135,7 +126,7 @@ export function AttendanceImageViewer({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Camera className="h-5 w-5" />
-              Gambar Kehadiran - {new Date(date).toLocaleDateString('ms-MY')}
+              Gambar Kehadiran - {new Date(record.date).toLocaleDateString('ms-MY')}
             </DialogTitle>
           </DialogHeader>
 
