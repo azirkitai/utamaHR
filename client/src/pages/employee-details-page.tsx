@@ -1587,7 +1587,6 @@ export default function EmployeeDetailsPage() {
                             <span className="text-gray-700 font-medium">
                               {companySettings?.companyName || "Nama syarikat belum ditetapkan"}
                             </span>
-                            <span className="text-xs text-gray-500 ml-2">(</span>
                           </div>
                         </div>
 
