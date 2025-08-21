@@ -986,6 +986,12 @@ export function registerRoutes(app: Express): Server {
             policy.role === employee.role
           );
           
+          console.log(`🔍 Checking ${leaveType.leaveType} for ${employee.role}:`, 
+            roleBasedPolicy ? 
+            `Found policy - enabled: ${roleBasedPolicy.enabled}` : 
+            'No policy found'
+          );
+          
           // If role-based policy found AND enabled, this leave type is eligible for this role
           // If no policy found OR policy disabled, means it's excluded for this role
           const isRoleEligible = roleBasedPolicy && roleBasedPolicy.enabled === true;
