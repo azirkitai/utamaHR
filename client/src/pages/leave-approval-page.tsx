@@ -67,7 +67,7 @@ export default function LeaveApprovalPage() {
   const [activeTab, setActiveTab] = useState<TabType>("approval");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("all");
-  const [selectedYear, setSelectedYear] = useState("2023");
+  const [selectedYear, setSelectedYear] = useState("2025");
   const [selectedEmployee, setSelectedEmployee] = useState("all");
   const [selectedLeaveType, setSelectedLeaveType] = useState("all");
   const [selectedLeaveStatus, setSelectedLeaveStatus] = useState("all");
@@ -742,9 +742,10 @@ export default function LeaveApprovalPage() {
                   <label className="text-sm font-medium text-gray-700">Tahun</label>
                   <Select value={selectedYear} onValueChange={setSelectedYear}>
                     <SelectTrigger className="w-32">
-                      <SelectValue placeholder="2023" />
+                      <SelectValue placeholder="2025" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="2025">2025</SelectItem>
                       <SelectItem value="2024">2024</SelectItem>
                       <SelectItem value="2023">2023</SelectItem>
                       <SelectItem value="2022">2022</SelectItem>
