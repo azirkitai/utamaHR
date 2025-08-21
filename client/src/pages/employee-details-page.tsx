@@ -993,7 +993,8 @@ export default function EmployeeDetailsPage() {
     }
   }, [contactData]);
 
-  const navigationTabs = [
+  // Base navigation tabs available for all users
+  const baseNavigationTabs = [
     {
       id: "personal-details",
       label: "Personal Detail",
@@ -1039,11 +1040,21 @@ export default function EmployeeDetailsPage() {
       label: "Claim Policy",
       icon: ShieldCheck,
     },
+  ];
+
+  // Privileged tabs only available for Super Admin, Admin, HR Manager
+  const privilegedTabs = [
     {
       id: "attendance-location",
       label: "Attendance Location User",
       icon: MapPin,
     },
+  ];
+
+  // Combine tabs based on user access level
+  const navigationTabs = [
+    ...baseNavigationTabs,
+    ...(hasPrivilegedAccess() ? privilegedTabs : [])
   ];
 
   if (employeeLoading) {
