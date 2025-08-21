@@ -1,4 +1,4 @@
-import puppeteer from 'puppeteer';
+import htmlPdf from 'html-pdf-node';
 import { storage } from './storage';
 import { db } from './db';
 import { companySettings } from '@shared/schema';
@@ -23,23 +23,7 @@ interface LeaveReportData {
 }
 
 export async function generateLeaveReportPDF(data: LeaveReportData): Promise<Buffer> {
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: [
-      '--no-sandbox', 
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-gpu',
-      '--disable-extensions',
-      '--no-first-run',
-      '--disable-default-apps'
-    ],
-    executablePath: process.env.NODE_ENV === 'production' ? '/usr/bin/google-chrome-stable' : undefined
-  });
-
   try {
-    const page = await browser.newPage();
-    
     // Get company settings for header
     const companyData = await db
       .select()
@@ -55,12 +39,7 @@ export async function generateLeaveReportPDF(data: LeaveReportData): Promise<Buf
 
     const html = generateLeaveReportHTML(data, company);
     
-    await page.setContent(html, { 
-      waitUntil: 'networkidle0',
-      timeout: 30000 
-    });
-
-    const pdf = await page.pdf({
+    const options = {
       format: 'A4',
       margin: {
         top: '1cm',
@@ -69,29 +48,21 @@ export async function generateLeaveReportPDF(data: LeaveReportData): Promise<Buf
         left: '1cm'
       },
       printBackground: true,
-      displayHeaderFooter: true,
-      headerTemplate: `
-        <div style="font-size: 10px; width: 100%; text-align: center; margin: 0; padding: 0;">
-          <span style="color: #666;">Laporan Cuti - ${data.reportTitle}</span>
-        </div>
-      `,
-      footerTemplate: `
-        <div style="font-size: 10px; width: 100%; display: flex; justify-content: space-between; align-items: center; margin: 0; padding: 0 1cm;">
-          <span style="color: #666;">Dijana pada: ${new Date().toLocaleDateString('ms-MY', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-          })}</span>
-          <span style="color: #666;">Halaman <span class="pageNumber"></span> dari <span class="totalPages"></span></span>
-        </div>
-      `
-    });
+      border: {
+        top: '0.5cm',
+        right: '0.5cm',
+        bottom: '0.5cm',
+        left: '0.5cm'
+      }
+    };
 
-    return pdf;
-  } finally {
-    await browser.close();
+    const file = { content: html };
+    const pdfBuffer = await htmlPdf.generatePdf(file, options);
+    
+    return pdfBuffer;
+  } catch (error) {
+    console.error('Error generating PDF with html-pdf-node:', error);
+    throw error;
   }
 }
 
