@@ -166,7 +166,12 @@ export default function EmployeeDetailsPage() {
     queryKey: ["/api/approval-settings/leave"],
   });
 
-  // Get all employees for First and Second Approval dropdown
+  // Get employees with approval roles for First and Second Approval dropdown
+  const { data: approvalEmployees = [] } = useQuery<any[]>({
+    queryKey: ["/api/employees/approval-roles"],
+  });
+
+  // Get all employees for dropdown selections (fallback for general dropdowns)
   const { data: allEmployees = [] } = useQuery<any[]>({
     queryKey: ["/api/employees"],
   });
@@ -178,20 +183,36 @@ export default function EmployeeDetailsPage() {
     return authorizedRoles.includes(currentUser.role);
   };
 
-  // Helper function to get employee name by ID
+  // Helper function to get employee name by ID (check approval employees first, then all employees)
   const getEmployeeNameById = (employeeId: string | null) => {
-    if (!employeeId || !allEmployees) return "N/A";
-    const employee = allEmployees.find(emp => emp.id === employeeId);
-    return employee ? `${employee.firstName} ${employee.lastName}`.trim() || employee.name || "N/A" : "N/A";
+    if (!employeeId) return "NONE";
+    
+    // First check approval employees (they use fullName field)
+    let employee = approvalEmployees.find(emp => emp.id === employeeId);
+    if (employee && employee.fullName) {
+      return employee.fullName.toUpperCase();
+    }
+    
+    // If not found, check all employees (they use firstName + lastName)
+    employee = allEmployees.find(emp => emp.id === employeeId);
+    if (employee) {
+      const fullName = `${employee.firstName} ${employee.lastName}`.trim() || employee.fullName || employee.name || "NONE";
+      return fullName.toUpperCase();
+    }
+    
+    return "NONE";
   };
 
   // Get current leave approval settings to display
   const getCurrentLeaveApprovalSettings = () => {
-    if (!leaveApprovalSettings) return { firstLevel: "N/A", secondLevel: "N/A" };
+    if (!leaveApprovalSettings) return { firstLevel: "NONE", secondLevel: "NONE" };
+    
+    const firstLevel = getEmployeeNameById(leaveApprovalSettings.firstLevelApprovalId) || "NONE";
+    const secondLevel = getEmployeeNameById(leaveApprovalSettings.secondLevelApprovalId) || "NONE";
     
     return {
-      firstLevel: getEmployeeNameById(leaveApprovalSettings.firstLevelApprovalId),
-      secondLevel: getEmployeeNameById(leaveApprovalSettings.secondLevelApprovalId)
+      firstLevel,
+      secondLevel
     };
   };
 
