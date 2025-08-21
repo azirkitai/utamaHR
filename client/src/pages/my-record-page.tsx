@@ -12,6 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { format, addDays, subDays } from "date-fns";
 import { CalendarIcon, Download, Filter, Search, ChevronLeft, ChevronRight, Calendar as CalendarLucide, Clock, FileText, CreditCard, Users, DollarSign, Image, StickyNote, Eye, File, Share } from "lucide-react";
+import { AttendanceImageViewer } from "@/components/AttendanceImageViewer";
 import { pdf } from '@react-pdf/renderer';
 import type { AttendanceRecord, LeaveApplication, UserPayrollRecord, ClaimApplication } from "@shared/schema";
 import { PayslipPDFDocument, buildPdfPropsFromTemplateData } from '@/components/PayslipPDFDocument';
@@ -3087,16 +3088,8 @@ export default function MyRecordPage() {
       {/* Filters */}
       {renderFilterSection('attendance')}
 
-      {/* Show Picture and Show Note buttons */}
+      {/* Show Note button only */}
       <div className="flex gap-4">
-        <Button 
-          variant={showPictures ? "default" : "outline"} 
-          onClick={() => setShowPictures(!showPictures)}
-          data-testid="button-show-picture"
-        >
-          <Image className="h-4 w-4 mr-2 text-gray-600" />
-          Show Picture
-        </Button>
         <Button 
           variant={showNotes ? "default" : "outline"} 
           onClick={() => setShowNotes(!showNotes)}
@@ -3116,34 +3109,30 @@ export default function MyRecordPage() {
               {hasAdminAccess && <TableHead>Employee</TableHead>}
               <TableHead>Date</TableHead>
               <TableHead>Clock In</TableHead>
-              {showPictures && <TableHead>Clock In Image</TableHead>}
-              {/* Show break columns only if break enforcement is enabled */}
               <TableHead>Break Time</TableHead>
-              {showPictures && <TableHead>Break Time Image</TableHead>}
               <TableHead>Break Off</TableHead>
-              {showPictures && <TableHead>Break Off Image</TableHead>}
               <TableHead>Clock Out</TableHead>
-              {showPictures && <TableHead>Clock Out Image</TableHead>}
               <TableHead>Total Hour(s)</TableHead>
+              <TableHead>Gambar Kehadiran</TableHead>
               <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {activeTab !== 'attendance' ? (
               <TableRow>
-                <TableCell colSpan={hasAdminAccess ? (showPictures ? 12 : 8) : (showPictures ? 11 : 7)} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={hasAdminAccess ? 9 : 8} className="text-center py-8 text-gray-500">
                   Click Attendance tab to view records...
                 </TableCell>
               </TableRow>
             ) : isLoadingAttendance ? (
               <TableRow>
-                <TableCell colSpan={hasAdminAccess ? (showPictures ? 12 : 8) : (showPictures ? 11 : 7)} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={hasAdminAccess ? 9 : 8} className="text-center py-8 text-gray-500">
                   Loading attendance records...
                 </TableCell>
               </TableRow>
             ) : attendanceRecords.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={hasAdminAccess ? (showPictures ? 12 : 8) : (showPictures ? 11 : 7)} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={hasAdminAccess ? 9 : 8} className="text-center py-8 text-gray-500">
                   No data available in table
                 </TableCell>
               </TableRow>
@@ -3205,20 +3194,7 @@ export default function MyRecordPage() {
                       '-'
                     )}
                   </TableCell>
-                  {showPictures && (
-                    <TableCell>
-                      {record.clockInImage ? (
-                        <img 
-                          src={record.clockInImage} 
-                          alt="Clock In" 
-                          className="w-16 h-16 object-cover rounded cursor-pointer hover:scale-110 transition-transform"
-                          onClick={() => window.open(record.clockInImage || '', '_blank')}
-                        />
-                      ) : (
-                        <span className="text-gray-400 text-xs">No image</span>
-                      )}
-                    </TableCell>
-                  )}
+
                   
                   {/* Break Time (keluar rehat/lunch) */}
                   <TableCell>
@@ -3257,20 +3233,7 @@ export default function MyRecordPage() {
                       '-'
                     )}
                   </TableCell>
-                  {showPictures && (
-                    <TableCell>
-                      {(record as any).breakOutImage ? (
-                        <img 
-                          src={(record as any).breakOutImage} 
-                          alt="Break Time" 
-                          className="w-16 h-16 object-cover rounded cursor-pointer hover:scale-110 transition-transform"
-                          onClick={() => window.open((record as any).breakOutImage || '', '_blank')}
-                        />
-                      ) : (
-                        <span className="text-gray-400 text-xs">No image</span>
-                      )}
-                    </TableCell>
-                  )}
+
                   
                   {/* Break Off (balik dari rehat/lunch) */}
                   <TableCell>
@@ -3309,20 +3272,7 @@ export default function MyRecordPage() {
                       '-'
                     )}
                   </TableCell>
-                  {showPictures && (
-                    <TableCell>
-                      {(record as any).breakInImage ? (
-                        <img 
-                          src={(record as any).breakInImage} 
-                          alt="Break Off" 
-                          className="w-16 h-16 object-cover rounded cursor-pointer hover:scale-110 transition-transform"
-                          onClick={() => window.open((record as any).breakInImage || '', '_blank')}
-                        />
-                      ) : (
-                        <span className="text-gray-400 text-xs">No image</span>
-                      )}
-                    </TableCell>
-                  )}
+
                   
                   {/* Clock Out */}
                   <TableCell>
@@ -3337,22 +3287,20 @@ export default function MyRecordPage() {
                       });
                     })() : '-'}
                   </TableCell>
-                  {showPictures && (
-                    <TableCell>
-                      {record.clockOutImage ? (
-                        <img 
-                          src={record.clockOutImage} 
-                          alt="Clock Out" 
-                          className="w-16 h-16 object-cover rounded cursor-pointer hover:scale-110 transition-transform"
-                          onClick={() => window.open(record.clockOutImage || '', '_blank')}
-                        />
-                      ) : (
-                        <span className="text-gray-400 text-xs">No image</span>
-                      )}
-                    </TableCell>
-                  )}
+
                   
                   <TableCell>{record.totalHours ? parseFloat(record.totalHours).toFixed(2) : '0.00'}h</TableCell>
+                  
+                  {/* AttendanceImageViewer Column */}
+                  <TableCell>
+                    <AttendanceImageViewer 
+                      clockInImage={record.clockInImage}
+                      clockOutImage={record.clockOutImage}
+                      breakInImage={(record as any).breakInImage}
+                      breakOutImage={(record as any).breakOutImage}
+                    />
+                  </TableCell>
+                  
                   <TableCell>
                     <div className="flex gap-1">
                       <Button size="sm" variant="outline" className="h-6 w-6 p-0" data-testid={`button-view-${record.id}`}>
