@@ -533,130 +533,65 @@ export default function LeaveApprovalPage() {
   );
 
   const renderBalanceCarryForwardTable = () => {
-    if (carryForwardRecords.length === 0) {
+    if (!allEmployeesLeaveSummary?.employees || allEmployeesLeaveSummary.employees.length === 0) {
       return (
         <div className="text-center py-8 text-gray-500">
-          No carry forward records available for {selectedYear}
+          No employee leave data available
         </div>
       );
     }
 
-    // Calculate grand totals for all employees
-    const grandTotals = carryForwardRecords.reduce((totals: any, employeeData: any) => {
-      employeeData.carryForwardRecords.forEach((record: any) => {
-        totals.entitlement += Number(record.entitlementDays);
-        totals.used += Number(record.usedDays);
-        totals.remaining += Number(record.remainingDays);
-        totals.carriedForward += Number(record.carriedForwardDays);
-      });
-      return totals;
-    }, { entitlement: 0, used: 0, remaining: 0, carriedForward: 0 });
-
-    // Get unique leave types across all employees
-    const allLeaveTypes = new Set();
-    carryForwardRecords.forEach((employeeData: any) => {
-      employeeData.carryForwardRecords.forEach((record: any) => {
-        allLeaveTypes.add(record.leaveType);
-      });
-    });
-
     return (
       <div className="space-y-6 p-6">
-        {/* Grand Summary Card */}
-        <div className="bg-gradient-to-r from-emerald-50 to-cyan-50 border border-emerald-200 rounded-lg shadow-sm overflow-hidden">
-          <div className="bg-gradient-to-r from-emerald-600 to-cyan-600 text-white p-4">
-            <h3 className="text-xl font-bold">Baki Keseluruhan Semua Jenis Cuti ({selectedYear})</h3>
-            <p className="text-emerald-100 text-sm">
-              {carryForwardRecords.length} Pekerja • {allLeaveTypes.size} Jenis Cuti
-            </p>
-          </div>
-          <div className="p-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-emerald-600 mb-2">
-                  {grandTotals.entitlement.toFixed(1)}
-                </div>
-                <div className="text-gray-700 font-medium">Jumlah Kelayakan</div>
-                <div className="text-xs text-gray-500 mt-1">Total Entitlement Days</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-orange-600 mb-2">
-                  {grandTotals.used.toFixed(1)}
-                </div>
-                <div className="text-gray-700 font-medium">Jumlah Digunakan</div>
-                <div className="text-xs text-gray-500 mt-1">Total Used Days</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-blue-600 mb-2">
-                  {grandTotals.remaining.toFixed(1)}
-                </div>
-                <div className="text-gray-700 font-medium">Jumlah Baki</div>
-                <div className="text-xs text-gray-500 mt-1">Total Remaining Days</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold text-cyan-600 mb-2">
-                  {grandTotals.carriedForward.toFixed(1)}
-                </div>
-                <div className="text-gray-700 font-medium">Jumlah Dibawa Hadapan</div>
-                <div className="text-xs text-gray-500 mt-1">Total Carried Forward</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Employee Cards */}
-        {carryForwardRecords.map((employeeData: any, empIndex: number) => (
-          <div key={employeeData.employee.id} className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+        {allEmployeesLeaveSummary.employees.map((employee: any, empIndex: number) => (
+          <div key={employee.employeeId} className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
             {/* Employee Header */}
             <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-medium">{employeeData.employee.fullName}</h3>
+                  <h3 className="text-lg font-medium">{employee.employeeName}</h3>
                 </div>
                 <div className="text-right">
                   <span className="bg-cyan-100 text-cyan-800 px-3 py-1 rounded-full text-sm font-medium">
-                    {employeeData.carryForwardRecords.length} Record{employeeData.carryForwardRecords.length > 1 ? 's' : ''}
+                    {Object.keys(employee.leaveBreakdown).length} Jenis Cuti
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Employee Records Table */}
+            {/* Employee Leave Entitlements Table */}
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gray-50">
                     <TableHead className="w-16">No.</TableHead>
-                    <TableHead>Leave Type</TableHead>
-                    <TableHead>Year</TableHead>
-                    <TableHead className="text-center">Entitlement Days</TableHead>
-                    <TableHead className="text-center">Used Days</TableHead>
-                    <TableHead className="text-center">Remaining Days</TableHead>
-                    <TableHead className="text-center">Carried Forward</TableHead>
+                    <TableHead>Jenis Cuti</TableHead>
+                    <TableHead className="text-center">Kelayakan</TableHead>
+                    <TableHead className="text-center">Digunakan</TableHead>
+                    <TableHead className="text-center">Baki Semasa</TableHead>
                     <TableHead className="text-center">Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {employeeData.carryForwardRecords.map((record: any, recordIndex: number) => (
-                    <TableRow key={`${employeeData.employee.id}-${record.id}`} className="hover:bg-gray-50">
-                      <TableCell className="font-medium">{recordIndex + 1}</TableCell>
-                      <TableCell className="font-medium">{record.leaveType}</TableCell>
-                      <TableCell>{record.year}</TableCell>
-                      <TableCell className="text-center">{Number(record.entitlementDays).toFixed(1)}</TableCell>
-                      <TableCell className="text-center">{Number(record.usedDays).toFixed(1)}</TableCell>
-                      <TableCell className="text-center">{Number(record.remainingDays).toFixed(1)}</TableCell>
+                  {Object.entries(employee.leaveBreakdown).map(([leaveType, breakdown]: [string, any], index: number) => (
+                    <TableRow key={`${employee.employeeId}-${leaveType}`} className="hover:bg-gray-50">
+                      <TableCell className="font-medium">{index + 1}</TableCell>
+                      <TableCell className="font-medium">{leaveType}</TableCell>
+                      <TableCell className="text-center">{breakdown.entitlementDays}</TableCell>
+                      <TableCell className="text-center">{breakdown.daysTaken}</TableCell>
                       <TableCell className="text-center font-semibold text-cyan-600">
-                        {Number(record.carriedForwardDays).toFixed(1)}
+                        {breakdown.remainingDays}
                       </TableCell>
                       <TableCell className="text-center">
                         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                          record.status === 'active' 
+                          breakdown.remainingDays > 0 
                             ? 'bg-green-100 text-green-800'
-                            : record.status === 'expired'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-gray-100 text-gray-800'
+                            : breakdown.remainingDays === 0
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-red-100 text-red-800'
                         }`}>
-                          {record.status}
+                          {breakdown.remainingDays > 0 ? 'Tersedia' : breakdown.remainingDays === 0 ? 'Habis' : 'Terlebih'}
                         </span>
                       </TableCell>
                     </TableRow>
@@ -667,38 +602,30 @@ export default function LeaveApprovalPage() {
 
             {/* Employee Summary Footer */}
             <div className="bg-gray-50 p-4 border-t">
-              <div className="grid grid-cols-4 gap-4 text-sm">
+              <div className="grid grid-cols-3 gap-4 text-sm">
                 <div className="text-center">
                   <div className="font-medium text-gray-900">
-                    {employeeData.carryForwardRecords.reduce((sum: number, record: any) => 
-                      sum + Number(record.entitlementDays), 0
-                    ).toFixed(1)}
+                    {Object.values(employee.leaveBreakdown).reduce((sum: number, breakdown: any) => 
+                      sum + (breakdown.entitlementDays || 0), 0
+                    )}
                   </div>
-                  <div className="text-gray-600">Total Entitlement</div>
+                  <div className="text-gray-600">Jumlah Kelayakan</div>
                 </div>
                 <div className="text-center">
                   <div className="font-medium text-gray-900">
-                    {employeeData.carryForwardRecords.reduce((sum: number, record: any) => 
-                      sum + Number(record.usedDays), 0
-                    ).toFixed(1)}
+                    {Object.values(employee.leaveBreakdown).reduce((sum: number, breakdown: any) => 
+                      sum + (breakdown.daysTaken || 0), 0
+                    )}
                   </div>
-                  <div className="text-gray-600">Total Used</div>
-                </div>
-                <div className="text-center">
-                  <div className="font-medium text-gray-900">
-                    {employeeData.carryForwardRecords.reduce((sum: number, record: any) => 
-                      sum + Number(record.remainingDays), 0
-                    ).toFixed(1)}
-                  </div>
-                  <div className="text-gray-600">Total Remaining</div>
+                  <div className="text-gray-600">Jumlah Digunakan</div>
                 </div>
                 <div className="text-center">
                   <div className="font-medium text-cyan-600">
-                    {employeeData.carryForwardRecords.reduce((sum: number, record: any) => 
-                      sum + Number(record.carriedForwardDays), 0
-                    ).toFixed(1)}
+                    {Object.values(employee.leaveBreakdown).reduce((sum: number, breakdown: any) => 
+                      sum + (breakdown.remainingDays || 0), 0
+                    )}
                   </div>
-                  <div className="text-gray-600">Total Carried Forward</div>
+                  <div className="text-gray-600">Jumlah Baki</div>
                 </div>
               </div>
             </div>
