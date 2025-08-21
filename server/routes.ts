@@ -936,7 +936,7 @@ export function registerRoutes(app: Express): Server {
         .where(eq(companyLeaveTypes.enabled, true));
 
       // Get all group policy settings for role-based exclusions
-      const groupPolicySettings = await db
+      const allGroupPolicySettings = await db
         .select()
         .from(groupPolicySettings);
 
@@ -973,7 +973,7 @@ export function registerRoutes(app: Express): Server {
           }
 
           // Check role-based exclusion (System Settings level)
-          const roleBasedPolicy = groupPolicySettings.find(policy => 
+          const roleBasedPolicy = allGroupPolicySettings.find((policy: any) => 
             policy.leaveType === leaveType.leaveType && 
             policy.role === employee.role
           );
