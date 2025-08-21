@@ -581,24 +581,16 @@ export default function LeaveApprovalPage() {
                     >
                       <TableCell className="font-medium">{index + 1}</TableCell>
                       <TableCell className={`font-medium ${!breakdown.isEligible ? 'text-gray-400' : ''}`}>
-                        <span className={!breakdown.isEligible ? 'filter blur-sm' : ''}>
-                          {leaveType}
-                        </span>
+                        {leaveType}
                       </TableCell>
                       <TableCell className={`text-center ${!breakdown.isEligible ? 'text-gray-400' : ''}`}>
-                        <span className={!breakdown.isEligible ? 'filter blur-sm' : ''}>
-                          {breakdown.entitlementDays}
-                        </span>
+                        {breakdown.entitlementDays}
                       </TableCell>
                       <TableCell className={`text-center ${!breakdown.isEligible ? 'text-gray-400' : ''}`}>
-                        <span className={!breakdown.isEligible ? 'filter blur-sm' : ''}>
-                          {breakdown.daysTaken}
-                        </span>
+                        {breakdown.daysTaken}
                       </TableCell>
                       <TableCell className={`text-center font-semibold ${!breakdown.isEligible ? 'text-gray-400' : 'text-cyan-600'}`}>
-                        <span className={!breakdown.isEligible ? 'filter blur-sm' : ''}>
-                          {breakdown.remainingDays}
-                        </span>
+                        {breakdown.remainingDays}
                       </TableCell>
                       <TableCell className="text-center">
                         {!breakdown.isEligible ? (
