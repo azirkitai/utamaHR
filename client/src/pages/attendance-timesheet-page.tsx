@@ -37,7 +37,6 @@ export default function AttendanceTimesheetPage() {
   const [selectedShift, setSelectedShift] = useState("all");
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [showPicture, setShowPicture] = useState(false);
-  const [showNote, setShowNote] = useState(false);
 
   // Fetch real attendance data
   const { data: attendanceRecords, isLoading: attendanceLoading } = useQuery({
@@ -370,15 +369,6 @@ export default function AttendanceTimesheetPage() {
           >
             Show Picture
           </Button>
-          <Button
-            variant={showNote ? "default" : "outline"}
-            size="sm"
-            onClick={() => setShowNote(!showNote)}
-            className={showNote ? "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white" : ""}
-            data-testid="toggle-show-note"
-          >
-            Show Note
-          </Button>
         </div>
       </div>
 
@@ -391,18 +381,20 @@ export default function AttendanceTimesheetPage() {
               <TableHead>Employee</TableHead>
               <TableHead>Clock In</TableHead>
               <TableHead>Clock Out</TableHead>
+              {showPicture && <TableHead>Clock In Photo</TableHead>}
+              {showPicture && <TableHead>Clock Out Photo</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {todayLoading || employeesLoading || shiftsLoading || shiftCalendarLoading ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={showPicture ? 6 : 4} className="text-center py-8 text-gray-500">
                   Loading attendance data...
                 </TableCell>
               </TableRow>
             ) : filteredEmployees.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={showPicture ? 6 : 4} className="text-center py-8 text-gray-500">
                   {attendanceSubTab === "clock-in" && "No employees assigned to work today"}
                   {attendanceSubTab === "absent" && "No absent employees"}
                   {attendanceSubTab === "on-leave" && "No employees on leave today"}
@@ -420,6 +412,34 @@ export default function AttendanceTimesheetPage() {
                   <TableCell>
                     {attendanceSubTab === "on-leave" ? "-" : employee.clockOut}
                   </TableCell>
+                  {showPicture && (
+                    <TableCell>
+                      {employee.attendance?.clockInSelfie ? (
+                        <img 
+                          src={employee.attendance.clockInSelfie} 
+                          alt="Clock In Photo" 
+                          className="w-16 h-16 object-cover rounded-lg cursor-pointer hover:scale-110 transition-transform"
+                          onClick={() => window.open(employee.attendance.clockInSelfie, '_blank')}
+                        />
+                      ) : (
+                        <span className="text-gray-400 text-sm">No photo</span>
+                      )}
+                    </TableCell>
+                  )}
+                  {showPicture && (
+                    <TableCell>
+                      {employee.attendance?.clockOutSelfie ? (
+                        <img 
+                          src={employee.attendance.clockOutSelfie} 
+                          alt="Clock Out Photo" 
+                          className="w-16 h-16 object-cover rounded-lg cursor-pointer hover:scale-110 transition-transform"
+                          onClick={() => window.open(employee.attendance.clockOutSelfie, '_blank')}
+                        />
+                      ) : (
+                        <span className="text-gray-400 text-sm">No photo</span>
+                      )}
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             )}
@@ -518,15 +538,6 @@ export default function AttendanceTimesheetPage() {
           >
             Show Picture
           </Button>
-          <Button
-            variant={showNote ? "default" : "outline"}
-            size="sm"
-            onClick={() => setShowNote(!showNote)}
-            className={showNote ? "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white" : ""}
-            data-testid="toggle-show-note-report"
-          >
-            Show Note
-          </Button>
         </div>
       </div>
 
@@ -540,39 +551,75 @@ export default function AttendanceTimesheetPage() {
               <TableHead>Date</TableHead>
               <TableHead>Clock In</TableHead>
               <TableHead>Clock Out</TableHead>
+              {showPicture && <TableHead>Clock In Photo</TableHead>}
+              {showPicture && <TableHead>Clock Out Photo</TableHead>}
               <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {attendanceLoading || employeesLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={showPicture ? 8 : 6} className="text-center py-8 text-gray-500">
                   Loading attendance report...
                 </TableCell>
               </TableRow>
             ) : attendanceData.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={showPicture ? 8 : 6} className="text-center py-8 text-gray-500">
                   No attendance records found
                 </TableCell>
               </TableRow>
             ) : (
-              attendanceData.map((item, index) => (
-                <TableRow key={item.id}>
-                  <TableCell>{index + 1}</TableCell>
-                  <TableCell className="font-medium">{item.employee}</TableCell>
-                  <TableCell>{item.date}</TableCell>
-                  <TableCell>{item.clockIn}</TableCell>
-                  <TableCell>{item.clockOut}</TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button size="sm" variant="outline" data-testid={`button-view-${item.id}`}>
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
+              attendanceData.map((item, index) => {
+                // Find the original attendance record to get selfie data
+                const originalRecord = Array.isArray(attendanceRecords) ? 
+                  attendanceRecords.find((record: any) => record.id === item.id) : null;
+                
+                return (
+                  <TableRow key={item.id}>
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell className="font-medium">{item.employee}</TableCell>
+                    <TableCell>{item.date}</TableCell>
+                    <TableCell>{item.clockIn}</TableCell>
+                    <TableCell>{item.clockOut}</TableCell>
+                    {showPicture && (
+                      <TableCell>
+                        {originalRecord?.clockInSelfie ? (
+                          <img 
+                            src={originalRecord.clockInSelfie} 
+                            alt="Clock In Photo" 
+                            className="w-16 h-16 object-cover rounded-lg cursor-pointer hover:scale-110 transition-transform"
+                            onClick={() => window.open(originalRecord.clockInSelfie, '_blank')}
+                          />
+                        ) : (
+                          <span className="text-gray-400 text-sm">No photo</span>
+                        )}
+                      </TableCell>
+                    )}
+                    {showPicture && (
+                      <TableCell>
+                        {originalRecord?.clockOutSelfie ? (
+                          <img 
+                            src={originalRecord.clockOutSelfie} 
+                            alt="Clock Out Photo" 
+                            className="w-16 h-16 object-cover rounded-lg cursor-pointer hover:scale-110 transition-transform"
+                            onClick={() => window.open(originalRecord.clockOutSelfie, '_blank')}
+                          />
+                        ) : (
+                          <span className="text-gray-400 text-sm">No photo</span>
+                        )}
+                      </TableCell>
+                    )}
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button size="sm" variant="outline" data-testid={`button-view-${item.id}`}>
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>
