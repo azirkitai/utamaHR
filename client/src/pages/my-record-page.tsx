@@ -1118,12 +1118,15 @@ export default function MyRecordPage() {
       // Draw header function
       const drawHeader = (page: any) => {
         // Company header background
+        const headerH = mm(28);
+        const headerY = height - topMargin - headerH;
+        
         page.drawRectangle({
           x: leftMargin,
-          y: height - topMargin - 120,
+          y: headerY,
           width: contentWidth,
-          height: 120,
-          color: rgb(0.1, 0.2, 0.4),
+          height: headerH,
+          color: rgb(0.10, 0.20, 0.40),
         });
         
         // Logo removed as per requirements
@@ -1143,14 +1146,14 @@ export default function MyRecordPage() {
         // Company name
         page.drawText(companyName, {
           x: leftMargin + 6,
-          y: height - topMargin - 35,
-          size: 16, // Standard size
+          y: headerY + headerH - 14,
+          size: 12,
           font: boldFont,
           color: rgb(1, 1, 1),
         });
         
         // Company contact details
-        let contactY = height - topMargin - 55;
+        let contactY = headerY + headerH - 35;
         
         if (companyPhone) {
           page.drawText(`Tel: ${companyPhone}`, {
@@ -1235,7 +1238,12 @@ export default function MyRecordPage() {
       // Draw table header function
       const drawTableHeader = (page: any, yPos: number) => {
         const tableHeight = 25;
-        const columnWidths = [30, 150, 70, 55, 55, 55, 55, 65, 75];
+        // Adjust column widths to equal contentWidth
+        const totalContentWidth = contentWidth; // 508.15 points (595 - 18mm*2)
+        const columnWidths = [35, 140, 65, 50, 50, 50, 50, 60, 68]; // Total = 568, need to scale down
+        // Scale proportionally to fit contentWidth
+        const currentTotal = columnWidths.reduce((a, b) => a + b, 0);
+        const scaledWidths = columnWidths.map(w => Math.floor(w * (totalContentWidth / currentTotal)));
         const headers = ['No.', 'Employee Name', 'Date', 'Clock In', 'Break Out', 'Break In', 'Clock Out', 'Total Hours', 'Status'];
         
         // Header background - within proper margins
@@ -1253,11 +1261,11 @@ export default function MyRecordPage() {
           page.drawText(header, {
             x: currentX + 5,
             y: yPos - 17,
-            size: 10,
+            size: 9,
             font: boldFont,
             color: rgb(1, 1, 1), // White text
           });
-          currentX += columnWidths[index];
+          currentX += scaledWidths[index];
         });
         
         return tableHeight;
@@ -1266,7 +1274,11 @@ export default function MyRecordPage() {
       // Draw table row function
       const drawTableRow = (page: any, record: any, rowIndex: number, yPos: number) => {
         const tableHeight = 25;
-        const columnWidths = [30, 150, 70, 55, 55, 55, 55, 65, 75];
+        // Use same scaled column widths
+        const totalContentWidth = contentWidth;
+        const columnWidths = [35, 140, 65, 50, 50, 50, 50, 60, 68];
+        const currentTotal = columnWidths.reduce((a, b) => a + b, 0);
+        const scaledWidths = columnWidths.map(w => Math.floor(w * (totalContentWidth / currentTotal)));
         
         // Alternating row background (striping)
         if (rowIndex % 2 === 0) {
@@ -1345,7 +1357,7 @@ export default function MyRecordPage() {
           let textX = currentX + 5;
           if (colIndex === 0 || colIndex === 7) {
             const textWidth = font.widthOfTextAtSize(data, 9);
-            textX = currentX + columnWidths[colIndex] - textWidth - 5;
+            textX = currentX + scaledWidths[colIndex] - textWidth - 5;
           }
           
           page.drawText(data, {
@@ -1356,7 +1368,7 @@ export default function MyRecordPage() {
             color: textColor,
           });
           
-          currentX += columnWidths[colIndex];
+          currentX += scaledWidths[colIndex];
         });
         
         // Right border
