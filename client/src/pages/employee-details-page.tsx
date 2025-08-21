@@ -345,20 +345,20 @@ export default function EmployeeDetailsPage() {
       // Statutory details
       setStatutoryDetailsForm({
         epfNumber: compensationData.epfNumber || "",
-        epfContributionStartDate: compensationData.epfContributionStartDate || "after-aug-2001",
+        epfContributionStartDate: compensationData.epfContributionStartDate ? "after-aug-2001" : "after-aug-2001",
         socsoNumber: compensationData.socsoNumber || "",
         socsoContributionStartAge: compensationData.socsoContributionStartAge || "",
         socsoCategory: compensationData.socsoCategory || "none",
         incomeTaxNumber: compensationData.incomeTaxNumber || "",
-        vola: compensationData.vola || "0"
+        vola: compensationData.volaValue || "0"
       });
 
       // Income tax details
       setIncomeTaxDetailsForm({
-        hasChild: compensationData.hasChild || false,
-        spouseWorking: compensationData.spouseWorking || false,
+        hasChild: compensationData.employeeHasChild || false,
+        spouseWorking: compensationData.spouseIsWorking || false,
         spouseGender: compensationData.spouseGender || "",
-        spouseDisable: compensationData.spouseDisable || false,
+        spouseDisable: compensationData.spouseIsDisable || false,
         employeeCategory: compensationData.employeeCategory || "none"
       });
     }
@@ -487,7 +487,7 @@ export default function EmployeeDetailsPage() {
         description: "Butiran bank telah dikemaskini",
       });
       setIsEditingBankDetails(false);
-      queryClient.invalidateQueries({ queryKey: ["/api/employees", id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/compensation", id] });
     },
     onError: () => {
       toast({
@@ -510,7 +510,7 @@ export default function EmployeeDetailsPage() {
         description: "Butiran berkanun telah dikemaskini",
       });
       setIsEditingStatutoryDetails(false);
-      queryClient.invalidateQueries({ queryKey: ["/api/employees", id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/compensation", id] });
     },
     onError: () => {
       toast({
@@ -533,7 +533,7 @@ export default function EmployeeDetailsPage() {
         description: "Butiran cukai pendapatan telah dikemaskini",
       });
       setIsEditingIncomeTaxDetails(false);
-      queryClient.invalidateQueries({ queryKey: ["/api/employees", id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/compensation", id] });
     },
     onError: () => {
       toast({
@@ -2987,6 +2987,8 @@ export default function EmployeeDetailsPage() {
                               <Input
                                 placeholder="EPF Number"
                                 className="mt-1"
+                                value={statutoryDetailsForm.epfNumber}
+                                onChange={(e) => setStatutoryDetailsForm({ ...statutoryDetailsForm, epfNumber: e.target.value })}
                                 data-testid="input-epf-number"
                               />
                             ) : (
@@ -2999,7 +3001,7 @@ export default function EmployeeDetailsPage() {
                           <div className="space-y-2">
                             <Label className="text-sm font-medium text-gray-700 block">EPF Contribution Start Date</Label>
                             {isEditingStatutoryDetails ? (
-                              <Select>
+                              <Select value={statutoryDetailsForm.epfContributionStartDate} onValueChange={(value) => setStatutoryDetailsForm({ ...statutoryDetailsForm, epfContributionStartDate: value })}>
                                 <SelectTrigger className="mt-1">
                                   <SelectValue placeholder="After 1 August 2001" />
                                 </SelectTrigger>
@@ -3027,6 +3029,8 @@ export default function EmployeeDetailsPage() {
                               <Input
                                 placeholder="SOCSO Number"
                                 className="mt-1"
+                                value={statutoryDetailsForm.socsoNumber}
+                                onChange={(e) => setStatutoryDetailsForm({ ...statutoryDetailsForm, socsoNumber: e.target.value })}
                                 data-testid="input-socso-number"
                               />
                             ) : (
@@ -3042,6 +3046,8 @@ export default function EmployeeDetailsPage() {
                               <Input
                                 placeholder="SOCSO Contribution Start Age"
                                 className="mt-1"
+                                value={statutoryDetailsForm.socsoContributionStartAge}
+                                onChange={(e) => setStatutoryDetailsForm({ ...statutoryDetailsForm, socsoContributionStartAge: e.target.value })}
                                 data-testid="input-socso-age"
                               />
                             ) : (
@@ -3054,7 +3060,7 @@ export default function EmployeeDetailsPage() {
                           <div className="space-y-2">
                             <Label className="text-sm font-medium text-gray-700 block">SOCSO Category</Label>
                             {isEditingStatutoryDetails ? (
-                              <Select>
+                              <Select value={statutoryDetailsForm.socsoCategory} onValueChange={(value) => setStatutoryDetailsForm({ ...statutoryDetailsForm, socsoCategory: value })}>
                                 <SelectTrigger className="mt-1">
                                   <SelectValue placeholder="None" />
                                 </SelectTrigger>
@@ -3101,6 +3107,8 @@ export default function EmployeeDetailsPage() {
                               <Input
                                 placeholder="Income Tax Number"
                                 className="mt-1"
+                                value={statutoryDetailsForm.incomeTaxNumber}
+                                onChange={(e) => setStatutoryDetailsForm({ ...statutoryDetailsForm, incomeTaxNumber: e.target.value })}
                                 data-testid="input-income-tax-number"
                               />
                             ) : (
@@ -3117,6 +3125,8 @@ export default function EmployeeDetailsPage() {
                                 placeholder="0"
                                 type="number"
                                 className="mt-1"
+                                value={statutoryDetailsForm.vola}
+                                onChange={(e) => setStatutoryDetailsForm({ ...statutoryDetailsForm, vola: e.target.value })}
                                 data-testid="input-vola"
                               />
                             ) : (

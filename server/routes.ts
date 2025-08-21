@@ -1789,9 +1789,34 @@ export function registerRoutes(app: Express): Server {
         }
       }
 
-      // For now, just return success since we don't have a specific statutory details table
-      // In a real implementation, you would save the statutory details to database
+      // Update compensation record with statutory details
       console.log("Statutory details update requested for employee:", req.params.id, req.body);
+      
+      // Get existing compensation or create new one
+      let compensation = await storage.getCompensation(req.params.id);
+      
+      if (compensation) {
+        // Update existing compensation
+        await storage.updateCompensation(req.params.id, {
+          epfNumber: req.body.epfNumber,
+          socsoNumber: req.body.socsoNumber,
+          socsoContributionStartAge: req.body.socsoContributionStartAge,
+          socsoCategory: req.body.socsoCategory,
+          incomeTaxNumber: req.body.incomeTaxNumber,
+          volaValue: parseFloat(req.body.vola) || 0
+        });
+      } else {
+        // Create new compensation record
+        await storage.createCompensation({
+          employeeId: req.params.id,
+          epfNumber: req.body.epfNumber,
+          socsoNumber: req.body.socsoNumber,
+          socsoContributionStartAge: req.body.socsoContributionStartAge,
+          socsoCategory: req.body.socsoCategory,
+          incomeTaxNumber: req.body.incomeTaxNumber,
+          volaValue: parseFloat(req.body.vola) || 0
+        });
+      }
       
       res.json({ 
         message: "Butiran berkanun berjaya dikemaskini",
@@ -1824,9 +1849,32 @@ export function registerRoutes(app: Express): Server {
         }
       }
 
-      // For now, just return success since we don't have a specific income tax details table
-      // In a real implementation, you would save the income tax details to database
+      // Update compensation record with income tax details
       console.log("Income tax details update requested for employee:", req.params.id, req.body);
+      
+      // Get existing compensation or create new one
+      let compensation = await storage.getCompensation(req.params.id);
+      
+      if (compensation) {
+        // Update existing compensation
+        await storage.updateCompensation(req.params.id, {
+          employeeHasChild: req.body.hasChild,
+          spouseIsWorking: req.body.spouseWorking,
+          spouseGender: req.body.spouseGender,
+          spouseIsDisable: req.body.spouseDisable,
+          employeeCategory: req.body.employeeCategory
+        });
+      } else {
+        // Create new compensation record
+        await storage.createCompensation({
+          employeeId: req.params.id,
+          employeeHasChild: req.body.hasChild,
+          spouseIsWorking: req.body.spouseWorking,
+          spouseGender: req.body.spouseGender,
+          spouseIsDisable: req.body.spouseDisable,
+          employeeCategory: req.body.employeeCategory
+        });
+      }
       
       res.json({ 
         message: "Butiran cukai pendapatan berjaya dikemaskini",
