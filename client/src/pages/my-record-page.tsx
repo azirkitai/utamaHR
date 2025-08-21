@@ -15,6 +15,7 @@ import { CalendarIcon, Download, Filter, Search, ChevronLeft, ChevronRight, Cale
 import { pdf } from '@react-pdf/renderer';
 import type { AttendanceRecord, LeaveApplication, UserPayrollRecord, ClaimApplication } from "@shared/schema";
 import { PayslipPDFDocument, buildPdfPropsFromTemplateData } from '@/components/PayslipPDFDocument';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 
 type TabType = "leave" | "claim" | "overtime" | "attendance" | "payment";
 
@@ -814,6 +815,215 @@ export default function MyRecordPage() {
     }
   };
 
+  // Handle Leave Record PDF Download using pdf-lib
+  const handleLeaveRecordPDFDownload = async () => {
+    try {
+      console.log('🔥 GENERATING LEAVE RECORD PDF WITH AUTHENTIC DATA');
+      
+      // Get JWT token
+      const token = localStorage.getItem('utamahr_token');
+      if (!token) {
+        throw new Error('Authentication token required');
+      }
+
+      // Fetch company data
+      const companyResponse = await fetch('/api/company-settings', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (!companyResponse.ok) {
+        throw new Error('Failed to fetch company data');
+      }
+      
+      const companyData = await companyResponse.json();
+      console.log('Company data fetched:', companyData);
+
+      // Create new PDF document
+      const pdfDoc = await PDFDocument.create();
+      const page = pdfDoc.addPage([595.28, 841.89]); // A4 size
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+      
+      const { width, height } = page.getSize();
+      
+      // Header Section with Company Info
+      let yPosition = height - 50;
+      
+      // Company Name (Bold, Large)
+      page.drawText(companyData.nama || 'Company Name', {
+        x: 50,
+        y: yPosition,
+        size: 18,
+        font: boldFont,
+        color: rgb(0, 0, 0),
+      });
+      yPosition -= 25;
+      
+      // Company Details
+      const companyDetails = [
+        `Tel: ${companyData.telefon || 'N/A'}`,
+        `Email: ${companyData.email || 'N/A'}`,
+        `Address: ${companyData.alamat || 'N/A'}`
+      ];
+      
+      companyDetails.forEach(detail => {
+        page.drawText(detail, {
+          x: 50,
+          y: yPosition,
+          size: 10,
+          font: font,
+          color: rgb(0, 0, 0),
+        });
+        yPosition -= 15;
+      });
+      
+      yPosition -= 20;
+      
+      // Report Title (Bold, Centered)
+      const title = 'MY LEAVE RECORD REPORT';
+      const titleWidth = boldFont.widthOfTextAtSize(title, 16);
+      page.drawText(title, {
+        x: (width - titleWidth) / 2,
+        y: yPosition,
+        size: 16,
+        font: boldFont,
+        color: rgb(0, 0, 0),
+      });
+      yPosition -= 30;
+      
+      // Report Info
+      const reportDate = format(new Date(), 'dd/MM/yyyy');
+      const periodText = `Period: ${format(filters.dateFrom, 'dd/MM/yyyy')} - ${format(filters.dateTo, 'dd/MM/yyyy')}`;
+      const generatedText = `Generated on: ${reportDate}`;
+      
+      page.drawText(periodText, {
+        x: 50,
+        y: yPosition,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+      yPosition -= 15;
+      
+      page.drawText(generatedText, {
+        x: 50,
+        y: yPosition,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+      yPosition -= 30;
+      
+      // Table Header Background (Blue)
+      const headerHeight = 25;
+      page.drawRectangle({
+        x: 40,
+        y: yPosition - headerHeight,
+        width: width - 80,
+        height: headerHeight,
+        color: rgb(0.2, 0.4, 0.8),
+      });
+      
+      // Table Headers (White text)
+      const headers = ['No.', 'Leave Type', 'Start Date', 'End Date', 'Days', 'Status'];
+      const columnWidths = [40, 120, 80, 80, 60, 100];
+      let xPosition = 50;
+      
+      headers.forEach((header, index) => {
+        page.drawText(header, {
+          x: xPosition,
+          y: yPosition - 18,
+          size: 10,
+          font: boldFont,
+          color: rgb(1, 1, 1),
+        });
+        xPosition += columnWidths[index];
+      });
+      
+      yPosition -= headerHeight + 10;
+      
+      // Table Data
+      leaveApplications.forEach((leave, index) => {
+        if (yPosition < 100) {
+          // Add new page if needed
+          const newPage = pdfDoc.addPage([595.28, 841.89]);
+          yPosition = height - 50;
+        }
+        
+        // Alternating row background
+        if (index % 2 === 0) {
+          page.drawRectangle({
+            x: 40,
+            y: yPosition - 20,
+            width: width - 80,
+            height: 20,
+            color: rgb(0.95, 0.95, 0.95),
+          });
+        }
+        
+        // Data cells
+        const rowData = [
+          (index + 1).toString(),
+          leave.leaveType || 'N/A',
+          format(new Date(leave.startDate), 'dd/MM/yyyy'),
+          format(new Date(leave.endDate), 'dd/MM/yyyy'),
+          leave.totalDays?.toString() || '0',
+          leave.status || 'Unknown'
+        ];
+        
+        xPosition = 50;
+        rowData.forEach((data, colIndex) => {
+          const textColor = colIndex === 5 ? // Status column
+            (leave.status === 'Approved' ? rgb(0, 0.6, 0) :
+             leave.status === 'Rejected' ? rgb(0.8, 0, 0) :
+             rgb(0.8, 0.6, 0)) : rgb(0, 0, 0);
+          
+          page.drawText(data, {
+            x: xPosition,
+            y: yPosition - 15,
+            size: 9,
+            font: font,
+            color: textColor,
+          });
+          xPosition += columnWidths[colIndex];
+        });
+        
+        yPosition -= 25;
+      });
+      
+      // Footer
+      const footerText = `Page 1 of 1 | Generated by UtamaHR System | ${reportDate}`;
+      const footerWidth = font.widthOfTextAtSize(footerText, 8);
+      page.drawText(footerText, {
+        x: (width - footerWidth) / 2,
+        y: 30,
+        size: 8,
+        font: font,
+        color: rgb(0.5, 0.5, 0.5),
+      });
+      
+      // Generate PDF
+      const pdfBytes = await pdfDoc.save();
+      
+      // Download PDF
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Leave_Record_${user?.username || 'User'}_${format(new Date(), 'yyyyMMdd')}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      console.log('✅ Leave Record PDF generated and downloaded successfully');
+      
+    } catch (error) {
+      console.error('❌ Error generating Leave Record PDF:', error);
+      alert('Failed to generate PDF: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    }
+  };
+
   const renderLeaveTab = () => (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 p-4 rounded-lg text-white">
@@ -907,7 +1117,12 @@ export default function MyRecordPage() {
               </PopoverTrigger>
               <PopoverContent className="w-48">
                 <div className="space-y-2">
-                  <Button variant="ghost" className="w-full justify-start" data-testid="button-download-pdf">
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start" 
+                    data-testid="button-download-pdf"
+                    onClick={handleLeaveRecordPDFDownload}
+                  >
                     <Download className="h-4 w-4 mr-2" />
                     Download as PDF
                   </Button>
