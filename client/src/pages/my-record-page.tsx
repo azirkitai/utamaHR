@@ -850,7 +850,7 @@ export default function MyRecordPage() {
       let yPosition = height - 50;
       
       // Company Name (Bold, Large)
-      page.drawText(companyData.nama || 'Company Name', {
+      page.drawText(companyData.companyName || companyData.nama || 'Company Name', {
         x: 50,
         y: yPosition,
         size: 18,
@@ -861,9 +861,9 @@ export default function MyRecordPage() {
       
       // Company Details
       const companyDetails = [
-        `Tel: ${companyData.telefon || 'N/A'}`,
+        `Tel: ${companyData.phoneNumber || companyData.telefon || 'N/A'}`,
         `Email: ${companyData.email || 'N/A'}`,
-        `Address: ${companyData.alamat || 'N/A'}`
+        `Address: ${companyData.address || companyData.alamat || 'N/A'}`
       ];
       
       companyDetails.forEach(detail => {
@@ -889,18 +889,60 @@ export default function MyRecordPage() {
         font: boldFont,
         color: rgb(0, 0, 0),
       });
-      yPosition -= 30;
+      yPosition -= 40;
+      
+      // Employee Information Box
+      const boxHeight = 60;
+      page.drawRectangle({
+        x: 50,
+        y: yPosition - boxHeight,
+        width: width - 100,
+        height: boxHeight,
+        borderColor: rgb(0.8, 0.8, 0.8),
+        borderWidth: 1,
+      });
+      
+      // Employee Info Header
+      page.drawText('Employee Information', {
+        x: 60,
+        y: yPosition - 20,
+        size: 12,
+        font: boldFont,
+        color: rgb(0, 0, 0),
+      });
+      
+      // Employee Details (Fetch from user data)
+      const employeeName = user?.fullName || user?.username || 'N/A';
+      const employeeId = user?.employeeNumber || user?.id || 'N/A';
+      
+      page.drawText(`Name: ${employeeName}`, {
+        x: 60,
+        y: yPosition - 40,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+      
+      page.drawText(`Employee ID: ${employeeId}`, {
+        x: 300,
+        y: yPosition - 40,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+      
+      yPosition -= boxHeight + 30;
       
       // Report Info
-      const reportDate = format(new Date(), 'dd/MM/yyyy');
-      const periodText = `Period: ${format(filters.dateFrom, 'dd/MM/yyyy')} - ${format(filters.dateTo, 'dd/MM/yyyy')}`;
+      const reportDate = format(new Date(), 'dd/MM/yyyy HH:mm:ss');
+      const periodText = `Report Period: ${format(filters.dateFrom, 'dd/MM/yyyy')} - ${format(filters.dateTo, 'dd/MM/yyyy')}`;
       const generatedText = `Generated on: ${reportDate}`;
       
       page.drawText(periodText, {
         x: 50,
         y: yPosition,
         size: 10,
-        font: font,
+        font: boldFont,
         color: rgb(0, 0, 0),
       });
       yPosition -= 15;
@@ -910,7 +952,7 @@ export default function MyRecordPage() {
         y: yPosition,
         size: 10,
         font: font,
-        color: rgb(0, 0, 0),
+        color: rgb(0.4, 0.4, 0.4),
       });
       yPosition -= 30;
       
@@ -942,24 +984,36 @@ export default function MyRecordPage() {
       
       yPosition -= headerHeight + 10;
       
-      // Table Data
+      // Table Data with borders
       leaveApplications.forEach((leave, index) => {
-        if (yPosition < 100) {
+        if (yPosition < 150) {
           // Add new page if needed
           const newPage = pdfDoc.addPage([595.28, 841.89]);
           yPosition = height - 50;
         }
         
+        const rowHeight = 25;
+        
         // Alternating row background
         if (index % 2 === 0) {
           page.drawRectangle({
             x: 40,
-            y: yPosition - 20,
+            y: yPosition - rowHeight,
             width: width - 80,
-            height: 20,
-            color: rgb(0.95, 0.95, 0.95),
+            height: rowHeight,
+            color: rgb(0.98, 0.98, 0.98),
           });
         }
+        
+        // Row border
+        page.drawRectangle({
+          x: 40,
+          y: yPosition - rowHeight,
+          width: width - 80,
+          height: rowHeight,
+          borderColor: rgb(0.9, 0.9, 0.9),
+          borderWidth: 0.5,
+        });
         
         // Data cells
         const rowData = [
@@ -978,8 +1032,14 @@ export default function MyRecordPage() {
              leave.status === 'Rejected' ? rgb(0.8, 0, 0) :
              rgb(0.8, 0.6, 0)) : rgb(0, 0, 0);
           
-          page.drawText(data, {
-            x: xPosition,
+          // Truncate text if too long
+          let displayText = data;
+          if (data.length > 15 && colIndex === 1) { // Leave Type column
+            displayText = data.substring(0, 12) + '...';
+          }
+          
+          page.drawText(displayText, {
+            x: xPosition + 5, // Add padding
             y: yPosition - 15,
             size: 9,
             font: font,
@@ -988,11 +1048,69 @@ export default function MyRecordPage() {
           xPosition += columnWidths[colIndex];
         });
         
-        yPosition -= 25;
+        yPosition -= rowHeight;
+      });
+      
+      // Summary Section
+      yPosition -= 30;
+      const summaryBoxHeight = 50;
+      page.drawRectangle({
+        x: 50,
+        y: yPosition - summaryBoxHeight,
+        width: width - 100,
+        height: summaryBoxHeight,
+        color: rgb(0.95, 0.95, 0.95),
+        borderColor: rgb(0.8, 0.8, 0.8),
+        borderWidth: 1,
+      });
+      
+      page.drawText('Leave Summary', {
+        x: 60,
+        y: yPosition - 20,
+        size: 12,
+        font: boldFont,
+        color: rgb(0, 0, 0),
+      });
+      
+      const totalLeaves = leaveApplications.length;
+      const approvedLeaves = leaveApplications.filter(l => l.status === 'Approved').length;
+      const pendingLeaves = leaveApplications.filter(l => l.status === 'Pending').length;
+      const rejectedLeaves = leaveApplications.filter(l => l.status === 'Rejected').length;
+      
+      page.drawText(`Total Applications: ${totalLeaves}`, {
+        x: 60,
+        y: yPosition - 35,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+      
+      page.drawText(`Approved: ${approvedLeaves}`, {
+        x: 200,
+        y: yPosition - 35,
+        size: 10,
+        font: font,
+        color: rgb(0, 0.6, 0),
+      });
+      
+      page.drawText(`Pending: ${pendingLeaves}`, {
+        x: 300,
+        y: yPosition - 35,
+        size: 10,
+        font: font,
+        color: rgb(0.8, 0.6, 0),
+      });
+      
+      page.drawText(`Rejected: ${rejectedLeaves}`, {
+        x: 400,
+        y: yPosition - 35,
+        size: 10,
+        font: font,
+        color: rgb(0.8, 0, 0),
       });
       
       // Footer
-      const footerText = `Page 1 of 1 | Generated by UtamaHR System | ${reportDate}`;
+      const footerText = `Page 1 of 1 | Generated by UtamaHR System | ${format(new Date(), 'dd/MM/yyyy HH:mm')}`;
       const footerWidth = font.widthOfTextAtSize(footerText, 8);
       page.drawText(footerText, {
         x: (width - footerWidth) / 2,
