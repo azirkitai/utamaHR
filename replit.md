@@ -22,6 +22,8 @@ Preferred communication style: Simple, everyday language.
     - Forms management system with file upload/download capabilities.
     - Role-based access control implemented for navigation, leave/claim policy management, calendar buttons, and other sensitive components.
     - Enhanced QR Clock-in/Out with intelligent status detection, real-time auto refresh, and cross-page synchronization for mobile operations.
+    - Professional PDF report generation for leave records using pdf-lib library approach with enhanced styling, company branding, IC number display, and applicant name column.
+    - Reusable filter component system with `renderLeaveFilterSection` function for standardized UI consistency across leave management pages.
 
 ## Backend Architecture
 - **Runtime**: Node.js with Express.js.

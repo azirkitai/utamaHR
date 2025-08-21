@@ -1149,6 +1149,111 @@ export default function MyRecordPage() {
     }
   };
 
+  // Render Leave Filter Section Function
+  const renderLeaveFilterSection = () => (
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Date Period</label>
+        <Popover open={showDatePicker} onOpenChange={setShowDatePicker}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-full justify-start text-left font-normal"
+              data-testid="button-date-period"
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {formatDateRange()}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <div className="flex">
+              <div className="p-3 space-y-2">
+                <h4 className="font-medium text-sm">From Date</h4>
+                <Calendar
+                  mode="single"
+                  selected={filters.dateFrom}
+                  onSelect={(date) => handleDateSelect(date, "from")}
+                />
+              </div>
+              <div className="p-3 space-y-2">
+                <h4 className="font-medium text-sm">To Date</h4>
+                <Calendar
+                  mode="single"
+                  selected={filters.dateTo}
+                  onSelect={(date) => handleDateSelect(date, "to")}
+                />
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Leave Type</label>
+        <Select defaultValue="all-leave-type" data-testid="select-leave-type">
+          <SelectTrigger>
+            <SelectValue placeholder="All leave type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all-leave-type">All leave type</SelectItem>
+            <SelectItem value="annual-leave">Annual Leave</SelectItem>
+            <SelectItem value="medical-leave">Medical Leave</SelectItem>
+            <SelectItem value="compassionate-paternity">Compassionate Leave - Paternity Leave</SelectItem>
+            <SelectItem value="compassionate-maternity">Compassionate Leave - Maternity Leave</SelectItem>
+            <SelectItem value="compassionate-death">Compassionate Leave - Death of Family Member</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Leave Status</label>
+        <Select defaultValue="all-leave-status" data-testid="select-leave-status">
+          <SelectTrigger>
+            <SelectValue placeholder="All leave status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all-leave-status">All leave status</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="approved">Approved</SelectItem>
+            <SelectItem value="rejected">Rejected</SelectItem>
+            <SelectItem value="cancelled">Cancelled</SelectItem>
+            <SelectItem value="approved-level1">Approved [Level 1]</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="flex gap-2">
+        <Button className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700" data-testid="button-search">
+          <Search className="h-4 w-4 mr-2" />
+          Search
+        </Button>
+        {/* Download Button - only show for Leave tab */}
+        {activeTab === "leave" && (
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" data-testid="button-download">
+                <Download className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-48">
+              <div className="space-y-2">
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start" 
+                  data-testid="button-download-pdf"
+                  onClick={handleLeaveRecordPDFDownload}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download as PDF
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+        )}
+      </div>
+    </div>
+  );
+
   const renderLeaveTab = () => (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 p-4 rounded-lg text-white">
@@ -1156,107 +1261,7 @@ export default function MyRecordPage() {
       </div>
       
       {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Date Period</label>
-          <Popover open={showDatePicker} onOpenChange={setShowDatePicker}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-full justify-start text-left font-normal"
-                data-testid="button-date-period"
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {formatDateRange()}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <div className="flex">
-                <div className="p-3 space-y-2">
-                  <h4 className="font-medium text-sm">From Date</h4>
-                  <Calendar
-                    mode="single"
-                    selected={filters.dateFrom}
-                    onSelect={(date) => handleDateSelect(date, "from")}
-                  />
-                </div>
-                <div className="p-3 space-y-2">
-                  <h4 className="font-medium text-sm">To Date</h4>
-                  <Calendar
-                    mode="single"
-                    selected={filters.dateTo}
-                    onSelect={(date) => handleDateSelect(date, "to")}
-                  />
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Leave Type</label>
-          <Select defaultValue="all-leave-type" data-testid="select-leave-type">
-            <SelectTrigger>
-              <SelectValue placeholder="All leave type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all-leave-type">All leave type</SelectItem>
-              <SelectItem value="annual-leave">Annual Leave</SelectItem>
-              <SelectItem value="medical-leave">Medical Leave</SelectItem>
-              <SelectItem value="compassionate-paternity">Compassionate Leave - Paternity Leave</SelectItem>
-              <SelectItem value="compassionate-maternity">Compassionate Leave - Maternity Leave</SelectItem>
-              <SelectItem value="compassionate-death">Compassionate Leave - Death of Family Member</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Leave Status</label>
-          <Select defaultValue="all-leave-status" data-testid="select-leave-status">
-            <SelectTrigger>
-              <SelectValue placeholder="All leave status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all-leave-status">All leave status</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
-              <SelectItem value="approved-level1">Approved [Level 1]</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex gap-2">
-          <Button className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700" data-testid="button-search">
-            <Search className="h-4 w-4 mr-2" />
-            Search
-          </Button>
-          {/* Download Button - only show for Leave tab */}
-          {activeTab === "leave" && (
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" data-testid="button-download">
-                  <Download className="h-4 w-4" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-48">
-                <div className="space-y-2">
-                  <Button 
-                    variant="ghost" 
-                    className="w-full justify-start" 
-                    data-testid="button-download-pdf"
-                    onClick={handleLeaveRecordPDFDownload}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Download as PDF
-                  </Button>
-                </div>
-              </PopoverContent>
-            </Popover>
-          )}
-        </div>
-      </div>
+      {renderLeaveFilterSection()}
 
       {/* Show entries and search */}
       <div className="flex justify-between items-center">
