@@ -991,9 +991,29 @@ export function registerRoutes(app: Express): Server {
             continue;
           }
 
-          // TEMPORARY FIX: Set all leave types as eligible to test frontend display
-          // Will implement proper role-based logic after confirming frontend works
-          const isRoleEligible = true;
+          // Check role-based exclusion (System Settings level)
+          // Handle role mapping - "Staff/Employee" should match "Employee" in policies
+          let roleToMatch = employee.role;
+          if (employee.role === "Staff/Employee") {
+            roleToMatch = "Employee";
+          }
+          
+          // Policy leave types use UUIDs, company leave types use UUIDs as ID
+          // Match by leaveType ID (UUID) from company leave types to policy leaveType
+          const roleBasedPolicy = allGroupPolicySettings.find((policy: any) => 
+            policy.leaveType === leaveType.id && // Match UUID to UUID
+            policy.role === roleToMatch
+          );
+          
+          console.log(`🔍 Checking ${leaveType.leaveType} (${leaveType.id}) for ${employee.role} (mapped to ${roleToMatch}):`, 
+            roleBasedPolicy ? 
+            `Found policy - enabled: ${roleBasedPolicy.enabled}` : 
+            'No policy found'
+          );
+          
+          // If role-based policy found AND enabled, this leave type is eligible for this role
+          // If no policy found OR policy disabled, means it's excluded for this role
+          const isRoleEligible = roleBasedPolicy && roleBasedPolicy.enabled === true;
           
           const approvedApplications = await db
             .select()
@@ -1010,13 +1030,17 @@ export function registerRoutes(app: Express): Server {
             return sum + parseInt(app.totalDays || '0');
           }, 0);
 
-          console.log(`✅ Including ${leaveType.leaveType} for ${employee.fullName} (${employee.role}) - temporary eligible mode`);
+          if (!isRoleEligible) {
+            console.log(`🔶 Including ${leaveType.leaveType} for ${employee.fullName} (${employee.role}) - but role-based excluded`);
+          } else {
+            console.log(`✅ Including ${leaveType.leaveType} for ${employee.fullName} (${employee.role}) - role eligible`);
+          }
 
           employeeData.leaveBreakdown[leaveType.leaveType] = {
             daysTaken: totalDaysTaken,
             applicationsCount: approvedApplications.length,
-            entitlementDays: leaveType.entitlementDays || 0,
-            remainingDays: (leaveType.entitlementDays || 0) - totalDaysTaken,
+            entitlementDays: roleBasedPolicy?.entitlementDays || leaveType.entitlementDays || 0,
+            remainingDays: (roleBasedPolicy?.entitlementDays || leaveType.entitlementDays || 0) - totalDaysTaken,
             isEligible: isRoleEligible, // Role-based eligibility
             isIndividuallyEnabled: isIndividuallyEligible // Individual eligibility
           };
