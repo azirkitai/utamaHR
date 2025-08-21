@@ -16,6 +16,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { EmployeeDocument } from "@shared/schema";
 import { format } from "date-fns";
+import { useAuth } from "@/hooks/use-auth";
 
 interface DocumentsTabProps {
   employeeId: string;
@@ -24,10 +25,17 @@ interface DocumentsTabProps {
 export function DocumentsTab({ employeeId }: DocumentsTabProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "edit" | "view">("add");
   const [selectedDocument, setSelectedDocument] = useState<EmployeeDocument | null>(null);
+
+  // Role-based access control - only Super Admin, Admin, HR Manager can delete documents
+  const canDeleteDocuments = () => {
+    const adminRoles = ['Super Admin', 'Admin', 'HR Manager'];
+    return user && adminRoles.includes(user.role);
+  };
 
   // Fetch documents
   const { data: documents = [], isLoading } = useQuery({
@@ -236,15 +244,17 @@ export function DocumentsTab({ employeeId }: DocumentsTabProps) {
                           >
                             <Download className="w-4 h-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDelete(document)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            data-testid={`button-delete-${document.id}`}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          {canDeleteDocuments() && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete(document)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              data-testid={`button-delete-${document.id}`}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
