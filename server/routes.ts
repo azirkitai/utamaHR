@@ -1029,6 +1029,8 @@ export function registerRoutes(app: Express): Server {
           const totalDaysTaken = approvedApplications.reduce((sum, app) => {
             return sum + parseInt(app.totalDays || '0');
           }, 0);
+          
+          console.log(`📊 ${employee.fullName} - ${leaveType.leaveType}: ${approvedApplications.length} approved applications, ${totalDaysTaken} days taken`);
 
           if (!isRoleEligible) {
             console.log(`🔶 Including ${leaveType.leaveType} for ${employee.fullName} (${employee.role}) - but role-based excluded`);
