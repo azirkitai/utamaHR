@@ -183,13 +183,6 @@ const navigationItems: { category: string; items: SidebarItem[] }[] = [
         badge: "Upcoming",
       },
       {
-        id: "yearly-form",
-        label: "Yearly Form",
-        icon: <FileText className="w-4 h-4" />,
-        href: "/yearly-form",
-        disabled: true,
-      },
-      {
         id: "payment",
         label: "Payment",
         icon: <CreditCard className="w-4 h-4" />,
