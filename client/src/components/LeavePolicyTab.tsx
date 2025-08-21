@@ -16,6 +16,7 @@ import { LeavePolicy } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { LeavePolicyModal } from "./LeavePolicyModal";
+import { IndividualLeaveAdjustmentModal } from "./IndividualLeaveAdjustmentModal";
 
 
 interface LeavePolicyTabProps {
@@ -26,6 +27,8 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPolicy, setEditingPolicy] = useState<LeavePolicy | null>(null);
+  const [isAdjustmentModalOpen, setIsAdjustmentModalOpen] = useState(false);
+  const [adjustingPolicy, setAdjustingPolicy] = useState<any | null>(null);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -157,6 +160,16 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
     setEditingPolicy(null);
   };
 
+  const handleEditAdjustment = (policy: any) => {
+    setAdjustingPolicy(policy);
+    setIsAdjustmentModalOpen(true);
+  };
+
+  const handleCloseAdjustmentModal = () => {
+    setIsAdjustmentModalOpen(false);
+    setAdjustingPolicy(null);
+  };
+
   const handleStatusToggle = (policyId: string, included: boolean) => {
     updateStatusMutation.mutate({ policyId, included });
   };
@@ -237,7 +250,7 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
                       Remarks
                     </th>
                     <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Type
+                      Action
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Included
@@ -284,9 +297,22 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
                             </div>
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm text-center">
-                            <span className="text-gray-400 text-xs">
-                              System Policy
-                            </span>
+                            {isAccessible && hasPrivilegedAccess() ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEditAdjustment(policy)}
+                                className="text-xs"
+                                data-testid={`button-edit-${policy.id}`}
+                              >
+                                <Edit className="w-3 h-3 mr-1" />
+                                Edit
+                              </Button>
+                            ) : (
+                              <span className="text-gray-400 text-xs">
+                                {!hasPrivilegedAccess() ? "Access Restricted" : "Not Available"}
+                              </span>
+                            )}
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap">
                             <div className="flex items-center">
@@ -345,6 +371,15 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
         />
       )}
 
+      {/* Individual Leave Adjustment Modal */}
+      {isAdjustmentModalOpen && (
+        <IndividualLeaveAdjustmentModal
+          isOpen={isAdjustmentModalOpen}
+          onClose={handleCloseAdjustmentModal}
+          employeeId={employeeId}
+          leavePolicy={adjustingPolicy}
+        />
+      )}
 
     </>
   );

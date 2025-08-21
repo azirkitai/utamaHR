@@ -101,10 +101,15 @@ import {
   attendanceRecords,
   leaveApplications,
   groupPolicySettings,
+  employeeLeaveEntitlementAdjustments,
   // Leave Application types
   type LeaveApplication,
   type InsertLeaveApplication,
   type UpdateLeaveApplication,
+  // Employee Leave Entitlement Adjustment types
+  type EmployeeLeaveEntitlementAdjustment,
+  type InsertEmployeeLeaveEntitlementAdjustment,
+  type UpdateEmployeeLeaveEntitlementAdjustment,
   // Company Leave Types
   companyLeaveTypes,
   type CompanyLeaveType,
@@ -1411,6 +1416,83 @@ export class DatabaseStorage implements IStorage {
   
   async deleteLeaveApplication(id: string): Promise<boolean> {
     const result = await db.delete(leaveApplications).where(eq(leaveApplications.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // =================== INDIVIDUAL LEAVE ENTITLEMENT ADJUSTMENTS ===================
+  async createEmployeeLeaveAdjustment(adjustment: InsertEmployeeLeaveEntitlementAdjustment): Promise<EmployeeLeaveEntitlementAdjustment> {
+    try {
+      console.log("Storage: Creating employee leave adjustment with data:", JSON.stringify(adjustment, null, 2));
+      
+      // First deactivate any existing active adjustment for this employee and leave type
+      await db
+        .update(employeeLeaveEntitlementAdjustments)
+        .set({ status: 'inactive', updatedAt: new Date() })
+        .where(
+          and(
+            eq(employeeLeaveEntitlementAdjustments.employeeId, adjustment.employeeId),
+            eq(employeeLeaveEntitlementAdjustments.leaveType, adjustment.leaveType),
+            eq(employeeLeaveEntitlementAdjustments.status, 'active')
+          )
+        );
+
+      const [newAdjustment] = await db
+        .insert(employeeLeaveEntitlementAdjustments)
+        .values(adjustment)
+        .returning();
+        
+      console.log("Storage: Successfully created leave adjustment:", newAdjustment.id);
+      return newAdjustment;
+    } catch (error) {
+      console.error("Storage: createEmployeeLeaveAdjustment error:", error);
+      throw error;
+    }
+  }
+
+  async getEmployeeLeaveAdjustment(employeeId: string, leaveType: string): Promise<EmployeeLeaveEntitlementAdjustment | undefined> {
+    const [adjustment] = await db
+      .select()
+      .from(employeeLeaveEntitlementAdjustments)
+      .where(
+        and(
+          eq(employeeLeaveEntitlementAdjustments.employeeId, employeeId),
+          eq(employeeLeaveEntitlementAdjustments.leaveType, leaveType),
+          eq(employeeLeaveEntitlementAdjustments.status, 'active')
+        )
+      );
+    return adjustment || undefined;
+  }
+
+  async getEmployeeLeaveAdjustments(employeeId: string): Promise<EmployeeLeaveEntitlementAdjustment[]> {
+    return await db
+      .select()
+      .from(employeeLeaveEntitlementAdjustments)
+      .where(
+        and(
+          eq(employeeLeaveEntitlementAdjustments.employeeId, employeeId),
+          eq(employeeLeaveEntitlementAdjustments.status, 'active')
+        )
+      )
+      .orderBy(desc(employeeLeaveEntitlementAdjustments.createdAt));
+  }
+
+  async updateEmployeeLeaveAdjustment(
+    id: string, 
+    update: UpdateEmployeeLeaveEntitlementAdjustment
+  ): Promise<EmployeeLeaveEntitlementAdjustment | undefined> {
+    const [adjustment] = await db
+      .update(employeeLeaveEntitlementAdjustments)
+      .set({ ...update, updatedAt: new Date() })
+      .where(eq(employeeLeaveEntitlementAdjustments.id, id))
+      .returning();
+    return adjustment || undefined;
+  }
+
+  async deleteEmployeeLeaveAdjustment(id: string): Promise<boolean> {
+    const result = await db
+      .update(employeeLeaveEntitlementAdjustments)
+      .set({ status: 'inactive', updatedAt: new Date() })
+      .where(eq(employeeLeaveEntitlementAdjustments.id, id));
     return (result.rowCount ?? 0) > 0;
   }
 
@@ -4722,6 +4804,130 @@ export class DatabaseStorage implements IStorage {
   async deleteEvent(id: string): Promise<boolean> {
     const result = await db.delete(events).where(eq(events.id, id));
     return (result.rowCount ?? 0) > 0;
+  }
+
+  // =================== EMPLOYEE LEAVE ENTITLEMENT ADJUSTMENT METHODS ===================
+  
+  async createEmployeeLeaveEntitlementAdjustment(data: any): Promise<any> {
+    try {
+      console.log('Creating employee leave entitlement adjustment:', data);
+      
+      const [adjustment] = await db
+        .insert(employeeLeaveEntitlementAdjustments)
+        .values({
+          employeeId: data.employeeId,
+          leaveType: data.leaveType,
+          originalEntitlement: data.originalEntitlement,
+          adjustedEntitlement: data.adjustedEntitlement,
+          adjustmentReason: data.adjustmentReason,
+          effectiveDate: data.effectiveDate,
+          status: data.status || 'active',
+          createdBy: data.createdBy,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning();
+      
+      console.log('Created adjustment:', adjustment);
+      return adjustment;
+    } catch (error) {
+      console.error('Error creating leave entitlement adjustment:', error);
+      throw error;
+    }
+  }
+
+  async getEmployeeLeaveEntitlementAdjustments(employeeId: string): Promise<any[]> {
+    try {
+      console.log('Getting leave entitlement adjustments for employee:', employeeId);
+      
+      const adjustments = await db
+        .select()
+        .from(employeeLeaveEntitlementAdjustments)
+        .where(eq(employeeLeaveEntitlementAdjustments.employeeId, employeeId))
+        .orderBy(desc(employeeLeaveEntitlementAdjustments.createdAt));
+      
+      console.log('Found adjustments:', adjustments.length);
+      return adjustments;
+    } catch (error) {
+      console.error('Error getting leave entitlement adjustments:', error);
+      throw error;
+    }
+  }
+
+  async updateEmployeeLeaveEntitlementAdjustment(id: string, data: any): Promise<boolean> {
+    try {
+      console.log('Updating leave entitlement adjustment:', id, data);
+      
+      const result = await db
+        .update(employeeLeaveEntitlementAdjustments)
+        .set({
+          ...data,
+          updatedAt: new Date()
+        })
+        .where(eq(employeeLeaveEntitlementAdjustments.id, id));
+      
+      const success = (result.rowCount ?? 0) > 0;
+      console.log('Update result:', success);
+      return success;
+    } catch (error) {
+      console.error('Error updating leave entitlement adjustment:', error);
+      throw error;
+    }
+  }
+
+  async deleteEmployeeLeaveEntitlementAdjustment(id: string): Promise<boolean> {
+    try {
+      console.log('Deleting leave entitlement adjustment:', id);
+      
+      const result = await db
+        .delete(employeeLeaveEntitlementAdjustments)
+        .where(eq(employeeLeaveEntitlementAdjustments.id, id));
+      
+      const success = (result.rowCount ?? 0) > 0;
+      console.log('Delete result:', success);
+      return success;
+    } catch (error) {
+      console.error('Error deleting leave entitlement adjustment:', error);
+      throw error;
+    }
+  }
+
+  // Get effective entitlement for an employee and leave type (considering adjustments)
+  async getEffectiveLeaveEntitlement(employeeId: string, leaveType: string): Promise<number> {
+    try {
+      // First, get the system default entitlement for this leave type
+      const [systemLeaveType] = await db
+        .select()
+        .from(companyLeaveTypes)
+        .where(eq(companyLeaveTypes.leaveType, leaveType))
+        .limit(1);
+      
+      const systemEntitlement = systemLeaveType?.entitlementDays || 0;
+
+      // Check if there's an active individual adjustment for this employee and leave type
+      const [adjustment] = await db
+        .select()
+        .from(employeeLeaveEntitlementAdjustments)
+        .where(
+          and(
+            eq(employeeLeaveEntitlementAdjustments.employeeId, employeeId),
+            eq(employeeLeaveEntitlementAdjustments.leaveType, leaveType),
+            eq(employeeLeaveEntitlementAdjustments.status, 'active')
+          )
+        )
+        .orderBy(desc(employeeLeaveEntitlementAdjustments.createdAt))
+        .limit(1);
+
+      // Return adjusted entitlement if exists, otherwise system default
+      const effectiveEntitlement = adjustment?.adjustedEntitlement ?? systemEntitlement;
+      
+      console.log(`Effective entitlement for ${employeeId} - ${leaveType}: ${effectiveEntitlement} (system: ${systemEntitlement}, adjusted: ${adjustment?.adjustedEntitlement || 'none'})`);
+      
+      return effectiveEntitlement;
+    } catch (error) {
+      console.error('Error getting effective leave entitlement:', error);
+      throw error;
+    }
   }
 }
 

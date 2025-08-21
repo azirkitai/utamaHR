@@ -982,6 +982,163 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Individual leave entitlement adjustments endpoints
+  
+  // Create individual leave entitlement adjustment
+  app.post("/api/leave-adjustments", authenticateToken, async (req, res) => {
+    try {
+      const {
+        employeeId,
+        leaveType,
+        originalEntitlement,
+        adjustedEntitlement,
+        adjustmentReason,
+        effectiveDate,
+        status = 'active'
+      } = req.body;
+
+      console.log('Creating individual leave adjustment:', {
+        employeeId,
+        leaveType,
+        originalEntitlement,
+        adjustedEntitlement,
+        adjustmentReason
+      });
+
+      // Check user permissions
+      const currentUser = await storage.getUser(req.user!.id);
+      if (!currentUser || !['Super Admin', 'Admin', 'HR Manager'].includes(currentUser.role)) {
+        return res.status(403).json({ 
+          error: "Akses ditolak - hanya Super Admin, Admin, dan HR Manager boleh membuat pelarasan cuti individu" 
+        });
+      }
+
+      // Validate required fields
+      if (!employeeId || !leaveType || adjustedEntitlement === undefined) {
+        return res.status(400).json({ 
+          error: "Field yang diperlukan: employeeId, leaveType, adjustedEntitlement" 
+        });
+      }
+
+      // Create the adjustment record
+      const adjustmentData = {
+        employeeId,
+        leaveType,
+        originalEntitlement: originalEntitlement || 0,
+        adjustedEntitlement,
+        adjustmentReason: adjustmentReason || '',
+        effectiveDate: new Date(effectiveDate || new Date()),
+        status,
+        createdBy: currentUser.id,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      const adjustment = await storage.createEmployeeLeaveEntitlementAdjustment(adjustmentData);
+      
+      res.json({ 
+        success: true, 
+        adjustment,
+        message: "Pelarasan cuti individu berjaya disimpan" 
+      });
+      
+    } catch (error) {
+      console.error("Create leave adjustment error:", error);
+      res.status(500).json({ 
+        error: "Gagal menyimpan pelarasan cuti individu" 
+      });
+    }
+  });
+
+  // Get individual leave adjustments for an employee
+  app.get("/api/leave-adjustments/:employeeId", authenticateToken, async (req, res) => {
+    try {
+      const { employeeId } = req.params;
+      
+      console.log('Getting leave adjustments for employee:', employeeId);
+      
+      const adjustments = await storage.getEmployeeLeaveEntitlementAdjustments(employeeId);
+      
+      res.json(adjustments);
+      
+    } catch (error) {
+      console.error("Get leave adjustments error:", error);
+      res.status(500).json({ 
+        error: "Gagal mendapatkan pelarasan cuti individu" 
+      });
+    }
+  });
+
+  // Update individual leave adjustment
+  app.put("/api/leave-adjustments/:id", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updateData = req.body;
+      
+      // Check user permissions
+      const currentUser = await storage.getUser(req.user!.id);
+      if (!currentUser || !['Super Admin', 'Admin', 'HR Manager'].includes(currentUser.role)) {
+        return res.status(403).json({ 
+          error: "Akses ditolak - hanya Super Admin, Admin, dan HR Manager boleh mengemas kini pelarasan cuti" 
+        });
+      }
+
+      updateData.updatedAt = new Date();
+      const updated = await storage.updateEmployeeLeaveEntitlementAdjustment(id, updateData);
+      
+      if (updated) {
+        res.json({ 
+          success: true, 
+          message: "Pelarasan cuti individu berjaya dikemas kini" 
+        });
+      } else {
+        res.status(404).json({ 
+          error: "Pelarasan cuti tidak dijumpai" 
+        });
+      }
+      
+    } catch (error) {
+      console.error("Update leave adjustment error:", error);
+      res.status(500).json({ 
+        error: "Gagal mengemas kini pelarasan cuti individu" 
+      });
+    }
+  });
+
+  // Delete individual leave adjustment
+  app.delete("/api/leave-adjustments/:id", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Check user permissions
+      const currentUser = await storage.getUser(req.user!.id);
+      if (!currentUser || !['Super Admin', 'Admin', 'HR Manager'].includes(currentUser.role)) {
+        return res.status(403).json({ 
+          error: "Akses ditolak - hanya Super Admin, Admin, dan HR Manager boleh memadam pelarasan cuti" 
+        });
+      }
+
+      const deleted = await storage.deleteEmployeeLeaveEntitlementAdjustment(id);
+      
+      if (deleted) {
+        res.json({ 
+          success: true, 
+          message: "Pelarasan cuti individu berjaya dipadam" 
+        });
+      } else {
+        res.status(404).json({ 
+          error: "Pelarasan cuti tidak dijumpai" 
+        });
+      }
+      
+    } catch (error) {
+      console.error("Delete leave adjustment error:", error);
+      res.status(500).json({ 
+        error: "Gagal memadam pelarasan cuti individu" 
+      });
+    }
+  });
+
   // Initialize sample company leave types and data (for testing)
   app.post("/api/initialize-sample-data", authenticateToken, async (req, res) => {
     try {

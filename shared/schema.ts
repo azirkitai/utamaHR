@@ -877,7 +877,38 @@ export const events = pgTable('events', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+// Employee Individual Leave Entitlement Adjustments Table
+export const employeeLeaveEntitlementAdjustments = pgTable('employee_leave_entitlement_adjustments', {
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  employeeId: varchar('employee_id').notNull().references(() => employees.id, { onDelete: 'cascade' }),
+  leaveType: text('leave_type').notNull(),
+  originalEntitlement: integer('original_entitlement').notNull().default(0), // Original entitlement from group policy
+  adjustedEntitlement: integer('adjusted_entitlement').notNull().default(0), // Individual adjusted entitlement
+  adjustmentReason: text('adjustment_reason').notNull(), // Reason for adjustment
+  effectiveDate: timestamp('effective_date').defaultNow().notNull(), // When the adjustment takes effect
+  adjustedBy: varchar('adjusted_by').notNull().references(() => users.id), // Who made the adjustment
+  status: text('status').notNull().default('active'), // active, inactive, expired
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  // Unique constraint: one active adjustment per employee per leave type
+  uniqueEmployeeLeaveType: unique('employee_leave_adjustment_unique').on(table.employeeId, table.leaveType, table.status),
+}));
+
 // =================== VALIDATION SCHEMAS ===================
+
+// Employee leave entitlement adjustment schemas
+export const insertEmployeeLeaveEntitlementAdjustmentSchema = createInsertSchema(employeeLeaveEntitlementAdjustments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  effectiveDate: z.preprocess(
+    (val) => val ? new Date(val as string | Date) : new Date(),
+    z.date()
+  ),
+});
+export const updateEmployeeLeaveEntitlementAdjustmentSchema = insertEmployeeLeaveEntitlementAdjustmentSchema.partial();
 
 // Attendance record schemas
 export const insertAttendanceRecordSchema = createInsertSchema(attendanceRecords).omit({
@@ -1338,6 +1369,11 @@ export type UpdateContact = z.infer<typeof updateContactSchema>;
 export type FamilyDetails = typeof familyDetails.$inferSelect;
 export type InsertFamilyDetails = z.infer<typeof insertFamilyDetailsSchema>;
 export type UpdateFamilyDetails = z.infer<typeof updateFamilyDetailsSchema>;
+
+// Employee Leave Entitlement Adjustment types  
+export type EmployeeLeaveEntitlementAdjustment = typeof employeeLeaveEntitlementAdjustments.$inferSelect;
+export type InsertEmployeeLeaveEntitlementAdjustment = z.infer<typeof insertEmployeeLeaveEntitlementAdjustmentSchema>;
+export type UpdateEmployeeLeaveEntitlementAdjustment = z.infer<typeof updateEmployeeLeaveEntitlementAdjustmentSchema>;
 
 // Compensation types
 export type Compensation = typeof compensation.$inferSelect;
