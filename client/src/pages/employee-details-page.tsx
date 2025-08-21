@@ -223,10 +223,16 @@ export default function EmployeeDetailsPage() {
 
   // Get current claim approval settings to display
   const getCurrentClaimApprovalSettings = () => {
+    console.log("Claim approval settings data:", claimApprovalSettings);
     if (!claimApprovalSettings) return { firstLevel: "NONE", secondLevel: "NONE" };
+    
+    console.log("First Level Approval ID:", claimApprovalSettings.firstLevelApprovalId);
+    console.log("Second Level Approval ID:", claimApprovalSettings.secondLevelApprovalId);
     
     const firstLevel = getEmployeeNameById(claimApprovalSettings.firstLevelApprovalId) || "NONE";
     const secondLevel = getEmployeeNameById(claimApprovalSettings.secondLevelApprovalId) || "NONE";
+    
+    console.log("Resolved names - First:", firstLevel, "Second:", secondLevel);
     
     return {
       firstLevel,
