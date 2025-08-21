@@ -539,12 +539,6 @@ export default function AttendanceTimesheetPage() {
             </div>
             <h1 className="text-3xl font-bold text-gray-900">{getPageTitle()}</h1>
           </div>
-          <Button 
-            className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700 text-white"
-            data-testid="button-create-attendance"
-          >
-            Create Attendance
-          </Button>
         </div>
 
         {/* Tab Navigation */}
