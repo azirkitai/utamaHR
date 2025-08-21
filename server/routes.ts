@@ -981,9 +981,9 @@ export function registerRoutes(app: Express): Server {
             policy.role === employee.role
           );
           
-          // If role-based policy found, this leave type is eligible for this role
-          // If no policy found, means it's excluded for this role (not available)
-          const isRoleEligible = roleBasedPolicy ? true : false;
+          // If role-based policy found AND enabled, this leave type is eligible for this role
+          // If no policy found OR policy disabled, means it's excluded for this role
+          const isRoleEligible = roleBasedPolicy && roleBasedPolicy.enabled === true;
           
           const approvedApplications = await db
             .select()
@@ -1002,6 +1002,8 @@ export function registerRoutes(app: Express): Server {
 
           if (!isRoleEligible) {
             console.log(`🔶 Including ${leaveType.leaveType} for ${employee.fullName} (${employee.role}) - but role-based excluded`);
+          } else {
+            console.log(`✅ Including ${leaveType.leaveType} for ${employee.fullName} (${employee.role}) - role eligible`);
           }
 
           employeeData.leaveBreakdown[leaveType.leaveType] = {
