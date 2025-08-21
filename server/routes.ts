@@ -1024,7 +1024,12 @@ export function registerRoutes(app: Express): Server {
         reportTitle: reportData.reportTitle
       });
 
-      const pdfBuffer = await generateLeaveReportPDF(reportData);
+      // Use pdf-lib approach like payment voucher
+      const { generateLeaveReportPDFLib } = await import('./leave-report-pdf-lib-generator');
+      const pdfBuffer = await generateLeaveReportPDFLib(reportData, {
+        name: 'UH MANAGEMENT SDN BHD',
+        address: 'Kuala Lumpur, Malaysia'
+      });
       console.log('PDF generated successfully, size:', pdfBuffer.length, 'bytes');
 
       const fileName = `Laporan_Cuti_${reportType}_${new Date().toISOString().split('T')[0]}.pdf`;
