@@ -334,6 +334,7 @@ export interface IStorage {
   
   // =================== LEAVE APPLICATION METHODS ===================
   getAllLeaveApplications(): Promise<LeaveApplication[]>;
+  getAllLeaveApplicationsWithFilters(filters: { year?: string, department?: string }): Promise<any[]>;
   getLeaveApplicationsByEmployeeId(employeeId: string): Promise<LeaveApplication[]>;
   createLeaveApplication(leaveApplication: InsertLeaveApplication): Promise<LeaveApplication>;
   updateLeaveApplication(id: string, leaveApplication: UpdateLeaveApplication): Promise<LeaveApplication | undefined>;
@@ -1406,6 +1407,51 @@ export class DatabaseStorage implements IStorage {
   // =================== LEAVE APPLICATION METHODS ===================
   async getAllLeaveApplications(): Promise<LeaveApplication[]> {
     return await db.select().from(leaveApplications).orderBy(desc(leaveApplications.appliedDate));
+  }
+
+  async getAllLeaveApplicationsWithFilters(filters: { 
+    year?: string, 
+    department?: string 
+  }): Promise<any[]> {
+    let query = db
+      .select({
+        id: leaveApplications.id,
+        employeeId: leaveApplications.employeeId,
+        leaveTypeId: leaveApplications.leaveTypeId,
+        startDate: leaveApplications.startDate,
+        endDate: leaveApplications.endDate,
+        appliedDate: leaveApplications.appliedDate,
+        reason: leaveApplications.reason,
+        status: leaveApplications.status,
+        approverComments: leaveApplications.approverComments,
+        documentPath: leaveApplications.documentPath,
+        createdAt: leaveApplications.createdAt,
+        updatedAt: leaveApplications.updatedAt,
+        applicant: employees.fullName,
+        leaveType: companyLeaveTypes.name,
+        department: employees.department
+      })
+      .from(leaveApplications)
+      .leftJoin(employees, eq(leaveApplications.employeeId, employees.id))
+      .leftJoin(companyLeaveTypes, eq(leaveApplications.leaveTypeId, companyLeaveTypes.id));
+
+    // Add year filter - filter applications by year of start date or applied date
+    if (filters.year && filters.year !== '2025') { // Default year is 2025
+      const yearNum = parseInt(filters.year);
+      query = query.where(
+        or(
+          sql`EXTRACT(YEAR FROM ${leaveApplications.startDate}) = ${yearNum}`,
+          sql`EXTRACT(YEAR FROM ${leaveApplications.appliedDate}) = ${yearNum}`
+        )
+      );
+    }
+
+    // Add department filter if provided
+    if (filters.department && filters.department !== 'all') {
+      query = query.where(eq(employees.department, filters.department));
+    }
+
+    return await query.orderBy(desc(leaveApplications.appliedDate));
   }
   
   async getLeaveApplicationsByEmployeeId(employeeId: string): Promise<LeaveApplication[]> {

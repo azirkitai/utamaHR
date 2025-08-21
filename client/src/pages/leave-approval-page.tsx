@@ -77,10 +77,17 @@ export default function LeaveApprovalPage() {
 
   // Fetch leave applications based on active tab
   const { data: leaveApplications = [], isLoading, error } = useQuery<LeaveRecord[]>({
-    queryKey: ["/api/leave-applications", activeTab], 
+    queryKey: ["/api/leave-applications", activeTab, selectedYear], 
     queryFn: async () => {
       const mode = activeTab === 'approval' ? 'approval' : 'report';
-      const response = await fetch(`/api/leave-applications?mode=${mode}`, {
+      let url = `/api/leave-applications?mode=${mode}`;
+      
+      // Add year filter for report tab
+      if (activeTab === 'report' || activeTab === 'summary') {
+        url += `&year=${selectedYear}`;
+      }
+      
+      const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('utamahr_token')}`
         }

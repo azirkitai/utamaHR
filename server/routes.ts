@@ -4568,7 +4568,9 @@ export function registerRoutes(app: Express): Server {
     try {
       console.log("Loading leave applications for user:", req.user?.id);
       const currentUser = req.user!;
-      const { mode } = req.query; // mode: 'approval' or 'report'
+      const { mode, year, department } = req.query; // mode: 'approval' or 'report'
+      
+      console.log("Query filters - mode:", mode, "year:", year, "department:", department);
       
       // Get current user's employee record
       const currentEmployee = await storage.getEmployeeByUserId(currentUser.id);
@@ -4578,7 +4580,10 @@ export function registerRoutes(app: Express): Server {
 
       // For report mode, return all applications for reporting purposes
       if (mode === 'report') {
-        const allApplications = await storage.getAllLeaveApplications();
+        const allApplications = await storage.getAllLeaveApplicationsWithFilters({
+          year: year as string,
+          department: department as string
+        });
         return res.json(allApplications);
       }
 
