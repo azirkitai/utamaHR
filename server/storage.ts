@@ -236,6 +236,7 @@ export interface IStorage {
   createEmployee(employee: InsertEmployee): Promise<Employee>;
   updateEmployee(id: string, employee: UpdateEmployee): Promise<Employee | undefined>;
   deleteEmployee(id: string): Promise<boolean>;
+  getUniqueDepartments(): Promise<string[]>;
   getEmployeesWithApprovalRoles(): Promise<Employee[]>;
   
   // =================== EMPLOYMENT METHODS ===================
@@ -545,6 +546,23 @@ export class DatabaseStorage implements IStorage {
     );
     
     return employeesWithDetails;
+  }
+
+  async getUniqueDepartments(): Promise<string[]> {
+    try {
+      const result = await db
+        .selectDistinct({ department: employees.department })
+        .from(employees)
+        .where(isNotNull(employees.department));
+      
+      return result
+        .map(row => row.department)
+        .filter(dept => dept && dept.trim() !== '') // Filter out empty/null departments
+        .sort(); // Sort alphabetically
+    } catch (error) {
+      console.error("Error getting unique departments:", error);
+      return [];
+    }
   }
 
   async getEmployee(id: string): Promise<Employee | undefined> {

@@ -117,6 +117,11 @@ export default function LeaveApprovalPage() {
     queryKey: ["/api/leave-summary-all-employees"]
   });
 
+  // Fetch departments for dropdown filter
+  const { data: departments = [] } = useQuery({
+    queryKey: ["/api/departments"]
+  });
+
   // Fetch carry forward records
   const { data: carryForwardRecords = [] } = useQuery({
     queryKey: ["/api/leave-balance-carry-forward", selectedYear],
@@ -747,9 +752,11 @@ export default function LeaveApprovalPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All department</SelectItem>
-                    <SelectItem value="hr">Human Resources</SelectItem>
-                    <SelectItem value="finance">Finance</SelectItem>
-                    <SelectItem value="it">Information Technology</SelectItem>
+                    {departments.map((dept: string) => (
+                      <SelectItem key={dept} value={dept}>
+                        {dept}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
