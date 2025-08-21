@@ -1947,56 +1947,7 @@ export default function EmployeeDetailsPage() {
                         </div>
                       </div>
 
-                      {/* Timeoff Supervisor */}
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">4) Timeoff Supervisor</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-gray-700 block">First Approval</Label>
-                            {isEditingApproval ? (
-                              <Select value={employmentForm.timeoffFirstApproval || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, timeoffFirstApproval: value })}>
-                                <SelectTrigger className="mt-1">
-                                  <SelectValue placeholder="Select supervisor" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="AZIRKITAI">AZIRKITAI</SelectItem>
-                                  <SelectItem value="SITI NADIAH SABRI">SITI NADIAH SABRI</SelectItem>
-                                  <SelectItem value="SYED IDRUS HASSIM">SYED IDRUS HASSIM</SelectItem>
-                                  <SelectItem value="SYED MUHYAZIR HASSIM">SYED MUHYAZIR HASSIM</SelectItem>
-                                  <SelectItem value="kamal ludin">kamal ludin</SelectItem>
-                                  <SelectItem value="maryam  maisarah">maryam  maisarah</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            ) : (
-                              <div className="mt-1 p-2 bg-gray-50 rounded border">
-                                {employmentForm.timeoffFirstApproval || "N/A"}
-                              </div>
-                            )}
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-sm font-medium text-gray-700 block">Second Approval</Label>
-                            {isEditingApproval ? (
-                              <Select value={employmentForm.timeoffSecondApproval || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, timeoffSecondApproval: value })}>
-                                <SelectTrigger className="mt-1">
-                                  <SelectValue placeholder="Select supervisor" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="AZIRKITAI">AZIRKITAI</SelectItem>
-                                  <SelectItem value="SITI NADIAH SABRI">SITI NADIAH SABRI</SelectItem>
-                                  <SelectItem value="SYED IDRUS HASSIM">SYED IDRUS HASSIM</SelectItem>
-                                  <SelectItem value="SYED MUHYAZIR HASSIM">SYED MUHYAZIR HASSIM</SelectItem>
-                                  <SelectItem value="kamal ludin">kamal ludin</SelectItem>
-                                  <SelectItem value="maryam  maisarah">maryam  maisarah</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            ) : (
-                              <div className="mt-1 p-2 bg-gray-50 rounded border">
-                                {employmentForm.timeoffSecondApproval || "N/A"}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
+                      
 
                       {isEditingApproval && (
                         <div className="flex justify-end gap-2 mt-6">
