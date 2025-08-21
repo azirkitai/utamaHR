@@ -840,7 +840,9 @@ export default function EmployeeDetailsPage() {
                       <span className="bg-blue-800 px-3 py-1 rounded text-sm">
                         {employment?.employeeNo || "Employee No."}
                       </span>
-                      <span className="bg-green-600 px-3 py-1 rounded text-sm">N/A</span>
+                      <span className="bg-green-600 px-3 py-1 rounded text-sm">
+                        {employment?.employmentType || "Employee Type"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-1 mt-2 text-sm">
                       <MapPin className="w-4 h-4" />
