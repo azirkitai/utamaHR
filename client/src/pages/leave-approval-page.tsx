@@ -24,7 +24,7 @@ import { Search, Printer, Eye, Check, X, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
-type TabType = "approval" | "report" | "summary" | "history" | "balance-carry-forward";
+type TabType = "approval" | "report" | "summary" | "balance-carry-forward";
 
 interface LeaveRecord {
   id: string;
@@ -212,8 +212,6 @@ export default function LeaveApprovalPage() {
         return "Manage Leave Report";
       case "summary":
         return "Manage Leave Summary";
-      case "history":
-        return "Manage Leave History";
       case "balance-carry-forward":
         return "Manage Balance Carry Forward";
       default:
@@ -228,8 +226,6 @@ export default function LeaveApprovalPage() {
       case "report":
         return "Leave Application Report";
       case "summary":
-        return "Leave Application Summary";
-      case "history":
         return "Leave Application Summary";
       case "balance-carry-forward":
         return "Rekod Baki Cuti Dibawa ke Hadapan";
@@ -481,56 +477,7 @@ export default function LeaveApprovalPage() {
     );
   };
 
-  const renderHistoryTable = () => (
-    <Table>
-      <TableHeader>
-        <TableRow className="bg-gray-50">
-          <TableHead>No.</TableHead>
-          <TableHead>Name</TableHead>
-          <TableHead>Balance Carry Forward</TableHead>
-          <TableHead>Balance Annual Leave</TableHead>
-          <TableHead>Balance Medical Leave</TableHead>
-          <TableHead>Balance Leave In Lieu</TableHead>
-          <TableHead>Carry Forward</TableHead>
-          <TableHead>Annual Leave</TableHead>
-          <TableHead>Medical Leave</TableHead>
-          <TableHead>Leave In Lieu</TableHead>
-          <TableHead>Unpaid Leave</TableHead>
-          <TableHead>Public Holiday Leave</TableHead>
-          <TableHead>Emergency Leave</TableHead>
-          <TableHead>Paternity Leave</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {leaveApplications.length === 0 ? (
-          <TableRow>
-            <TableCell colSpan={14} className="text-center py-8 text-gray-500">
-              No leave history data available
-            </TableCell>
-          </TableRow>
-        ) : (
-          leaveApplications.map((record: LeaveRecord, index: number) => (
-            <TableRow key={record.id}>
-              <TableCell>{index + 1}</TableCell>
-              <TableCell className="font-medium">{record.applicant}</TableCell>
-              <TableCell>{record.balanceCarryForward || 0}</TableCell>
-              <TableCell>{record.balanceAnnualLeave || 0}</TableCell>
-              <TableCell>{record.balanceMedicalLeave || 0}</TableCell>
-              <TableCell>{record.balanceLeaveInLieu || 0}</TableCell>
-              <TableCell>{record.carryForward || 0}</TableCell>
-              <TableCell>{record.annualLeave || 0}</TableCell>
-              <TableCell>{record.medicalLeave || 0}</TableCell>
-              <TableCell>{record.leaveInLieu || 0}</TableCell>
-              <TableCell>{record.unpaidLeave || 0}</TableCell>
-              <TableCell>{record.publicHolidayLeave || 0}</TableCell>
-              <TableCell>{record.emergencyLeave || 0}</TableCell>
-              <TableCell>{record.paternityLeave || 0}</TableCell>
-            </TableRow>
-          ))
-        )}
-      </TableBody>
-    </Table>
-  );
+  
 
   const renderBalanceCarryForwardTable = () => {
     if (!employeeLeaveSummary?.employees || employeeLeaveSummary.employees.length === 0) {
@@ -658,8 +605,6 @@ export default function LeaveApprovalPage() {
         return renderReportTable();
       case "summary":
         return renderSummaryTable();
-      case "history":
-        return renderHistoryTable();
       case "balance-carry-forward":
         return renderBalanceCarryForwardTable();
       default:
@@ -687,7 +632,6 @@ export default function LeaveApprovalPage() {
               { id: "approval", label: "Leave Approval" },
               { id: "report", label: "Leave Report" },
               { id: "summary", label: "Summary" },
-              { id: "history", label: "History" },
               { id: "balance-carry-forward", label: "Balance Carry Forward" }
             ].map((tab) => (
               <button
@@ -793,7 +737,7 @@ export default function LeaveApprovalPage() {
                 </>
               )}
 
-              {(activeTab === "summary" || activeTab === "history" || activeTab === "balance-carry-forward") && (
+              {(activeTab === "summary" || activeTab === "balance-carry-forward") && (
                 <div className="flex items-center space-x-2">
                   <label className="text-sm font-medium text-gray-700">Tahun</label>
                   <Select value={selectedYear} onValueChange={setSelectedYear}>
