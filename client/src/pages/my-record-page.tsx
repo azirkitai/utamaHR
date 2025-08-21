@@ -484,9 +484,12 @@ export default function MyRecordPage() {
                 <Search className="h-4 w-4 mr-2" />
                 Search
               </Button>
-              <Button variant="outline" data-testid="button-overtime-download">
-                <Download className="h-4 w-4" />
-              </Button>
+              {/* Download Button - only show for Overtime tab */}
+              {activeTab === "overtime" && (
+                <Button variant="outline" data-testid="button-overtime-download">
+                  <Download className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           </div>
         );
@@ -555,9 +558,12 @@ export default function MyRecordPage() {
                 <Search className="h-4 w-4 mr-2" />
                 Search
               </Button>
-              <Button variant="outline" data-testid="button-claim-download">
-                <Download className="h-4 w-4" />
-              </Button>
+              {/* Download Button - only show for Claim tab */}
+              {activeTab === "claim" && (
+                <Button variant="outline" data-testid="button-claim-download">
+                  <Download className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           </div>
         );
@@ -579,9 +585,12 @@ export default function MyRecordPage() {
                 <Search className="h-4 w-4 mr-2" />
                 Search
               </Button>
-              <Button variant="outline" data-testid="button-attendance-download">
-                <Download className="h-4 w-4" />
-              </Button>
+              {/* Download Button - only show for Attendance tab */}
+              {activeTab === "attendance" && (
+                <Button variant="outline" data-testid="button-attendance-download">
+                  <Download className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           </div>
         );
@@ -888,25 +897,28 @@ export default function MyRecordPage() {
             <Search className="h-4 w-4 mr-2" />
             Search
           </Button>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" data-testid="button-download">
-                <Download className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-48">
-              <div className="space-y-2">
-                <Button variant="ghost" className="w-full justify-start" data-testid="button-download-excel">
-                  <Download className="h-4 w-4 mr-2" />
-                  Download as Excel
+          {/* Download Button - only show for Leave tab */}
+          {activeTab === "leave" && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" data-testid="button-download">
+                  <Download className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" className="w-full justify-start" data-testid="button-download-pdf">
-                  <Download className="h-4 w-4 mr-2" />
-                  Download as PDF
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
+              </PopoverTrigger>
+              <PopoverContent className="w-48">
+                <div className="space-y-2">
+                  <Button variant="ghost" className="w-full justify-start" data-testid="button-download-excel">
+                    <Download className="h-4 w-4 mr-2" />
+                    Download as Excel
+                  </Button>
+                  <Button variant="ghost" className="w-full justify-start" data-testid="button-download-pdf">
+                    <Download className="h-4 w-4 mr-2" />
+                    Download as PDF
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
         </div>
       </div>
 
