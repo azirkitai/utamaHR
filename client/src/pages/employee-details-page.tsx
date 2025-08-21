@@ -1687,6 +1687,8 @@ export default function EmployeeDetailsPage() {
                                 <SelectValue placeholder="Select department" />
                               </SelectTrigger>
                               <SelectContent>
+                                <SelectItem value="administration">Administration</SelectItem>
+                                <SelectItem value="finance">Finance</SelectItem>
                                 <SelectItem value="human-resource">Human Resource</SelectItem>
                                 <SelectItem value="it">Information Technology</SelectItem>
                               </SelectContent>
