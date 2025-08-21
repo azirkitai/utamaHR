@@ -175,6 +175,19 @@ export default function MyRecordPage() {
             breakOutImage: record.breakOutImage
           });
         }
+        
+        // Debug ALL attendance records for kamal ludin specifically
+        if (record.fullName && record.fullName.toLowerCase().includes('kamal')) {
+          console.log(`🔍 KAMAL DEBUG - Record ${index + 1}:`, {
+            id: record.id,
+            fullName: record.fullName,
+            date: record.date,
+            clockInTime: record.clockInTime,
+            clockInImage: record.clockInImage,
+            hasClockInImage: !!record.clockInImage,
+            clockInImageType: typeof record.clockInImage
+          });
+        }
       });
       
       return data as AttendanceRecord[];
@@ -3397,11 +3410,17 @@ export default function MyRecordPage() {
                         alt="Clock In"
                         className="w-16 h-16 object-cover rounded border cursor-pointer hover:scale-105 transition-transform shadow-sm"
                         onClick={() => {
+                          console.log('🖼️ Opening image:', record.clockInImage);
                           if (record.clockInImage) {
                             window.open(record.clockInImage, '_blank');
                           }
                         }}
+                        onLoad={() => {
+                          console.log('✅ Image loaded successfully:', record.clockInImage);
+                        }}
                         onError={(e) => {
+                          console.error('❌ Image failed to load:', record.clockInImage);
+                          console.error('Error details:', e);
                           e.currentTarget.style.display = 'none';
                         }}
                       />
