@@ -940,10 +940,71 @@ export default function MyRecordPage() {
     );
   };
 
-  // Handle Attendance Record PDF Download - FIXED LAYOUT
+  // Helper function to download and embed images in PDF
+  const downloadAndEmbedImage = async (imagePath: string, pdfDoc: any) => {
+    try {
+      if (!imagePath || imagePath === '-' || imagePath === null) {
+        return null;
+      }
+
+      console.log('📸 Downloading image:', imagePath);
+      
+      // Get JWT token for authentication
+      const token = localStorage.getItem('utamahr_token');
+      if (!token) {
+        console.warn('No authentication token found');
+        return null;
+      }
+
+      // Download the image
+      const response = await fetch(imagePath, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      });
+
+      if (!response.ok) {
+        console.warn(`Failed to download image: ${response.status}`);
+        return null;
+      }
+
+      const imageBytes = await response.arrayBuffer();
+      
+      // Determine image type and embed accordingly
+      const contentType = response.headers.get('content-type') || '';
+      let embeddedImage;
+      
+      if (contentType.includes('jpeg') || contentType.includes('jpg')) {
+        embeddedImage = await pdfDoc.embedJpg(imageBytes);
+      } else if (contentType.includes('png')) {
+        embeddedImage = await pdfDoc.embedPng(imageBytes);
+      } else {
+        // Try to embed as JPEG by default
+        try {
+          embeddedImage = await pdfDoc.embedJpg(imageBytes);
+        } catch {
+          try {
+            embeddedImage = await pdfDoc.embedPng(imageBytes);
+          } catch {
+            console.warn('Unable to embed image - unsupported format');
+            return null;
+          }
+        }
+      }
+      
+      console.log('✅ Image embedded successfully');
+      return embeddedImage;
+      
+    } catch (error) {
+      console.warn('Error downloading/embedding image:', error);
+      return null;
+    }
+  };
+
+  // Handle Attendance Record PDF Download - WITH SELFIE IMAGES
   const handleAttendanceRecordPDFDownload = async () => {
     try {
-      console.log('🔄 Starting Attendance Record PDF generation...');
+      console.log('🔄 Starting Attendance Record PDF generation with images...');
       
       const filteredRecords = searchFilteredAttendanceRecords;
       
@@ -1035,24 +1096,23 @@ export default function MyRecordPage() {
       
       yPosition -= 60;
       
-      // Fixed table structure with proper spacing
+      // Fixed table structure with proper spacing FOR IMAGES
       const tableStartX = 50;
       const tableWidth = width - 100;
-      const rowHeight = 20;
+      const rowHeight = 50; // Increased row height to accommodate images
       const fontSize = 8;
       
-      // Column configuration - optimized for readability with wider employee column
+      // Column configuration - optimized for images and readability
       const columns = [
         { header: 'No.', width: 25 },
-        { header: 'Employee', width: 120 },
+        { header: 'Employee', width: 80 },
         { header: 'Date', width: 60 },
-        { header: 'Clock In', width: 55 },
-        { header: 'Break Out', width: 60 },
-        { header: 'Break In', width: 55 },
-        { header: 'Clock Out', width: 60 },
-        { header: 'Total Hours', width: 65 },
-        { header: 'Status', width: 60 },
-        { header: 'Pictures', width: 80 }
+        { header: 'Clock In\nTime/Image', width: 90 },
+        { header: 'Break Out\nTime/Image', width: 90 },
+        { header: 'Break In\nTime/Image', width: 90 },
+        { header: 'Clock Out\nTime/Image', width: 90 },
+        { header: 'Total\nHours', width: 50 },
+        { header: 'Status', width: 50 }
       ];
       
       // Helper function to draw table header
@@ -1102,8 +1162,30 @@ export default function MyRecordPage() {
         });
       };
       
-      // Helper function to draw table row
-      const drawTableRow = (page: any, record: any, rowIndex: number, y: number) => {
+      // Pre-download and embed all images for each record
+      console.log('📸 Pre-loading attendance images...');
+      const recordsWithImages = await Promise.all(
+        filteredRecords.map(async (record) => {
+          const clockInImage = record.clockInImage ? await downloadAndEmbedImage(record.clockInImage, pdfDoc) : null;
+          const clockOutImage = record.clockOutImage ? await downloadAndEmbedImage(record.clockOutImage, pdfDoc) : null;
+          const breakInImage = record.breakInImage ? await downloadAndEmbedImage(record.breakInImage, pdfDoc) : null;
+          const breakOutImage = record.breakOutImage ? await downloadAndEmbedImage(record.breakOutImage, pdfDoc) : null;
+          
+          return {
+            ...record,
+            embeddedImages: {
+              clockIn: clockInImage,
+              clockOut: clockOutImage,
+              breakIn: breakInImage,
+              breakOut: breakOutImage
+            }
+          };
+        })
+      );
+      console.log('✅ All images pre-loaded for PDF');
+
+      // Helper function to draw table row WITH EMBEDDED IMAGES
+      const drawTableRow = async (page: any, record: any, rowIndex: number, y: number) => {
         // Format time function
         const formatTime = (timeString: string | null) => {
           if (!timeString) return '-';
@@ -1158,15 +1240,14 @@ export default function MyRecordPage() {
         
         const rowData = [
           (rowIndex + 1).toString(),
-          truncateName(employeeDisplayName, 16),
+          truncateName(employeeDisplayName, 12),
           format(new Date(record.date), 'dd/MM/yyyy'),
           formatTime(record.clockInTime),
           formatTime(record.breakOutTime),
           formatTime(record.breakInTime),
           formatTime(record.clockOutTime),
           record.totalHours || '-',
-          record.isLateClockIn ? 'Late' : 'On Time',
-          'Clock In/Out' // Pictures column
+          record.isLateClockIn ? 'Late' : 'On Time'
         ];
         
         let currentX = tableStartX;
@@ -1188,40 +1269,70 @@ export default function MyRecordPage() {
           // Draw cell text
           const cellText = rowData[colIndex] || '-';
           
-          // Special handling for Pictures column
-          if (colIndex === 9) { // Pictures column
-            // Draw camera icon text or indicator
-            const hasClockInImage = record.clockInImage && record.clockInImage !== '-' && record.clockInImage !== null;
-            const hasClockOutImage = record.clockOutImage && record.clockOutImage !== '-' && record.clockOutImage !== null;
-            const hasBreakInImage = record.breakInImage && record.breakInImage !== '-' && record.breakInImage !== null;
-            const hasBreakOutImage = record.breakOutImage && record.breakOutImage !== '-' && record.breakOutImage !== null;
-            
-            let pictureText = '';
-            const hasAnyImage = hasClockInImage || hasClockOutImage || hasBreakInImage || hasBreakOutImage;
-            
-            if (hasClockInImage && hasClockOutImage) {
-              pictureText = 'In/Out [Y]';
-            } else if (hasClockInImage) {
-              pictureText = 'In [Y]';
-            } else if (hasClockOutImage) {
-              pictureText = 'Out [Y]';
-            } else if (hasBreakInImage || hasBreakOutImage) {
-              pictureText = 'Break [Y]';
-            } else {
-              pictureText = 'No Images';
-            }
-            
-            page.drawText(pictureText, {
-              x: currentX + 3,
-              y: y - 13,
-              size: fontSize - 1,
-              font: font,
-              color: hasAnyImage ? rgb(0, 0.6, 0) : rgb(0.6, 0.6, 0.6),
-            });
-          } else {
+          // Special handling for TIME/IMAGE columns (Clock In, Break Out, Break In, Clock Out)
+          if (colIndex >= 3 && colIndex <= 6) {
+            // Draw time text first
             page.drawText(cellText, {
               x: currentX + 3,
-              y: y - 13,
+              y: y - 10,
+              size: fontSize - 1,
+              font: font,
+              color: textColor,
+            });
+            
+            // Determine which image to draw based on column
+            let imageToEmbed = null;
+            if (colIndex === 3) { // Clock In column
+              imageToEmbed = record.embeddedImages?.clockIn;
+            } else if (colIndex === 4) { // Break Out column
+              imageToEmbed = record.embeddedImages?.breakOut;
+            } else if (colIndex === 5) { // Break In column
+              imageToEmbed = record.embeddedImages?.breakIn;
+            } else if (colIndex === 6) { // Clock Out column
+              imageToEmbed = record.embeddedImages?.clockOut;
+            }
+            
+            // Draw embedded image if available
+            if (imageToEmbed) {
+              try {
+                const imageSize = 25; // Small image size
+                const imageX = currentX + (col.width - imageSize) / 2; // Center in column
+                const imageY = y - 40; // Below the time text
+                
+                page.drawImage(imageToEmbed, {
+                  x: imageX,
+                  y: imageY,
+                  width: imageSize,
+                  height: imageSize,
+                });
+                
+                console.log(`✅ Image drawn in column ${colIndex + 1}`);
+              } catch (imageError) {
+                console.warn(`Failed to draw image in column ${colIndex + 1}:`, imageError);
+                // Draw placeholder text if image fails
+                page.drawText('[IMG]', {
+                  x: currentX + 30,
+                  y: y - 30,
+                  size: fontSize - 2,
+                  font: font,
+                  color: rgb(0, 0.6, 0),
+                });
+              }
+            } else {
+              // Draw "No Image" indicator
+              page.drawText('[-]', {
+                x: currentX + 30,
+                y: y - 30,
+                size: fontSize - 2,
+                font: font,
+                color: rgb(0.6, 0.6, 0.6),
+              });
+            }
+          } else {
+            // Regular text columns (No, Employee, Date, Total Hours, Status)
+            page.drawText(cellText, {
+              x: currentX + 3,
+              y: y - 25, // Center vertically
               size: fontSize,
               font: font,
               color: textColor,
@@ -1244,8 +1355,10 @@ export default function MyRecordPage() {
       drawTableHeader(currentPage, yPosition);
       yPosition -= rowHeight;
       
-      // Draw data rows
-      filteredRecords.forEach((record, index) => {
+      // Draw data rows with embedded images
+      for (let index = 0; index < recordsWithImages.length; index++) {
+        const record = recordsWithImages[index];
+        
         // Check if we need a new page
         if (yPosition < 100) {
           currentPage = pdfDoc.addPage([842, 595]);
@@ -1254,9 +1367,9 @@ export default function MyRecordPage() {
           yPosition -= rowHeight;
         }
         
-        drawTableRow(currentPage, record, index, yPosition);
+        await drawTableRow(currentPage, record, index, yPosition);
         yPosition -= rowHeight;
-      });
+      }
       
       // Summary Section
       yPosition -= 30;
@@ -1284,8 +1397,8 @@ export default function MyRecordPage() {
         color: rgb(0, 0, 0),
       });
       
-      const totalRecords = filteredRecords.length;
-      const lateRecords = filteredRecords.filter(r => r.isLateClockIn).length;
+      const totalRecords = recordsWithImages.length;
+      const lateRecords = recordsWithImages.filter(r => r.isLateClockIn).length;
       const onTimeRecords = totalRecords - lateRecords;
       
       currentPage.drawText(`Total Records: ${totalRecords}`, {
