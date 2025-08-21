@@ -85,22 +85,29 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
     queryKey: ["/api/group-policy-settings"],
   });
 
-  // Update policy status mutation
-  const updateStatusMutation = useMutation({
-    mutationFn: async ({ policyId, included }: { policyId: string; included: boolean }) => {
-      await apiRequest(`/api/leave-policies/${policyId}`, "PUT", { included });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/leave-policies", employeeId] });
-      toast({
-        title: "Berjaya",
-        description: "Status polisi cuti berjaya dikemaskini",
+  // Update individual employee leave eligibility mutation
+  const updateEligibilityMutation = useMutation({
+    mutationFn: async ({ leaveType, isEligible }: { leaveType: string; isEligible: boolean }) => {
+      await apiRequest(`/api/leave-eligibility`, "POST", { 
+        employeeId,
+        leaveType,
+        isEligible,
+        remarks: isEligible ? null : `Dinyahaktifkan oleh ${currentUser?.username || 'sistem'}`
       });
     },
-    onError: () => {
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/leave-policies", employeeId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/leave-eligibility", employeeId] });
+      toast({
+        title: "Berjaya",
+        description: `Kelayakan ${variables.leaveType} berjaya ${variables.isEligible ? 'diaktifkan' : 'dinyahaktifkan'} untuk pekerja ini`,
+      });
+    },
+    onError: (error) => {
+      console.error('Update eligibility error:', error);
       toast({
         title: "Ralat",
-        description: "Gagal mengemaskini status polisi",
+        description: "Gagal mengubah kelayakan cuti individu",
         variant: "destructive",
       });
     },
@@ -170,8 +177,8 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
     setAdjustingPolicy(null);
   };
 
-  const handleStatusToggle = (policyId: string, included: boolean) => {
-    updateStatusMutation.mutate({ policyId, included });
+  const handleStatusToggle = (leaveType: string, isEligible: boolean) => {
+    updateEligibilityMutation.mutate({ leaveType, isEligible });
   };
 
   const handleExportExcel = () => {
@@ -318,8 +325,8 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
                             <div className="flex items-center">
                               <Switch
                                 checked={policy.included || false}
-                                onCheckedChange={(checked) => handleStatusToggle(policy.id, checked)}
-                                disabled={updateStatusMutation.isPending || !isAccessible || !hasPrivilegedAccess()}
+                                onCheckedChange={(checked) => handleStatusToggle(policy.leaveType || '', checked)}
+                                disabled={updateEligibilityMutation.isPending || !isAccessible || !hasPrivilegedAccess()}
                                 data-testid={`switch-included-${policy.id}`}
                               />
                               <span className={`ml-2 text-sm ${isAccessible && hasPrivilegedAccess() ? 'text-gray-600' : 'text-gray-400'}`}>

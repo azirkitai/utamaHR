@@ -895,6 +895,21 @@ export const employeeLeaveEntitlementAdjustments = pgTable('employee_leave_entit
   uniqueEmployeeLeaveType: unique('employee_leave_adjustment_unique').on(table.employeeId, table.leaveType, table.status),
 }));
 
+// Individual Employee Leave Eligibility Table (untuk mengawal cuti mana yang layak untuk setiap pekerja)
+export const employeeLeaveEligibility = pgTable('employee_leave_eligibility', {
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  employeeId: varchar('employee_id').notNull().references(() => employees.id, { onDelete: 'cascade' }),
+  leaveType: text('leave_type').notNull(),
+  isEligible: boolean('is_eligible').notNull().default(true), // Apakah pekerja ini layak untuk jenis cuti ini
+  remarks: text('remarks'), // Sebab kenapa tidak layak (jika ada)
+  setBy: varchar('set_by').notNull().references(() => users.id), // Siapa yang set eligibility ini
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  // Unique constraint: one eligibility record per employee per leave type
+  uniqueEmployeeLeaveEligibility: unique('employee_leave_eligibility_unique').on(table.employeeId, table.leaveType),
+}));
+
 // =================== VALIDATION SCHEMAS ===================
 
 // Employee leave entitlement adjustment schemas
@@ -909,6 +924,14 @@ export const insertEmployeeLeaveEntitlementAdjustmentSchema = createInsertSchema
   ),
 });
 export const updateEmployeeLeaveEntitlementAdjustmentSchema = insertEmployeeLeaveEntitlementAdjustmentSchema.partial();
+
+// Employee Leave Eligibility schemas
+export const insertEmployeeLeaveEligibilitySchema = createInsertSchema(employeeLeaveEligibility).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const updateEmployeeLeaveEligibilitySchema = insertEmployeeLeaveEligibilitySchema.partial();
 
 // Attendance record schemas
 export const insertAttendanceRecordSchema = createInsertSchema(attendanceRecords).omit({
@@ -1374,6 +1397,11 @@ export type UpdateFamilyDetails = z.infer<typeof updateFamilyDetailsSchema>;
 export type EmployeeLeaveEntitlementAdjustment = typeof employeeLeaveEntitlementAdjustments.$inferSelect;
 export type InsertEmployeeLeaveEntitlementAdjustment = z.infer<typeof insertEmployeeLeaveEntitlementAdjustmentSchema>;
 export type UpdateEmployeeLeaveEntitlementAdjustment = z.infer<typeof updateEmployeeLeaveEntitlementAdjustmentSchema>;
+
+// Employee Leave Eligibility types
+export type EmployeeLeaveEligibility = typeof employeeLeaveEligibility.$inferSelect;
+export type InsertEmployeeLeaveEligibility = z.infer<typeof insertEmployeeLeaveEligibilitySchema>;
+export type UpdateEmployeeLeaveEligibility = z.infer<typeof updateEmployeeLeaveEligibilitySchema>;
 
 // Compensation types
 export type Compensation = typeof compensation.$inferSelect;

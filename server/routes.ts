@@ -1139,6 +1139,154 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // =================== EMPLOYEE LEAVE ELIGIBILITY API ROUTES ===================
+  
+  // Set employee leave eligibility (toggle switch functionality)
+  app.post("/api/leave-eligibility", authenticateToken, async (req, res) => {
+    try {
+      const { employeeId, leaveType, isEligible, remarks } = req.body;
+      
+      // Check user permissions
+      const currentUser = await storage.getUser(req.user!.id);
+      if (!currentUser || !['Super Admin', 'Admin', 'HR Manager'].includes(currentUser.role)) {
+        return res.status(403).json({ 
+          error: "Akses ditolak - hanya Super Admin, Admin, dan HR Manager boleh mengubah kelayakan cuti" 
+        });
+      }
+
+      const eligibilityData = {
+        employeeId,
+        leaveType,
+        isEligible: isEligible ?? true,
+        remarks: remarks || null,
+        setBy: currentUser.id
+      };
+
+      const result = await storage.setEmployeeLeaveEligibility(eligibilityData);
+      
+      res.status(201).json({ 
+        success: true, 
+        message: `Kelayakan cuti ${leaveType} berjaya ${isEligible ? 'diaktifkan' : 'dinyahaktifkan'} untuk pekerja ini`,
+        data: result
+      });
+      
+    } catch (error) {
+      console.error("Set leave eligibility error:", error);
+      res.status(500).json({ 
+        error: "Gagal mengubah kelayakan cuti individu" 
+      });
+    }
+  });
+
+  // Get employee leave eligibility records
+  app.get("/api/leave-eligibility/:employeeId", authenticateToken, async (req, res) => {
+    try {
+      const { employeeId } = req.params;
+      
+      // Check user permissions
+      const currentUser = await storage.getUser(req.user!.id);
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager'];
+      
+      // Get employee to check if current user can access
+      const employee = await storage.getEmployee(employeeId);
+      if (!employee) {
+        return res.status(404).json({ error: "Pekerja tidak dijumpai" });
+      }
+      
+      // Allow access if admin role or own data
+      if (!adminRoles.includes(currentUser.role) && employee.userId !== currentUser.id) {
+        return res.status(403).json({ 
+          error: "Akses ditolak - tidak dibenarkan melihat kelayakan cuti pekerja lain" 
+        });
+      }
+
+      const eligibilityRecords = await storage.getEmployeeLeaveEligibility(employeeId);
+      
+      res.json(eligibilityRecords);
+      
+    } catch (error) {
+      console.error("Get leave eligibility error:", error);
+      res.status(500).json({ 
+        error: "Gagal mendapatkan kelayakan cuti individu" 
+      });
+    }
+  });
+
+  // Check if employee is eligible for specific leave type
+  app.get("/api/leave-eligibility/:employeeId/:leaveType", authenticateToken, async (req, res) => {
+    try {
+      const { employeeId, leaveType } = req.params;
+      
+      // Check user permissions
+      const currentUser = await storage.getUser(req.user!.id);
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager'];
+      
+      // Get employee to check if current user can access
+      const employee = await storage.getEmployee(employeeId);
+      if (!employee) {
+        return res.status(404).json({ error: "Pekerja tidak dijumpai" });
+      }
+      
+      // Allow access if admin role or own data
+      if (!adminRoles.includes(currentUser.role) && employee.userId !== currentUser.id) {
+        return res.status(403).json({ 
+          error: "Akses ditolak - tidak dibenarkan melihat kelayakan cuti pekerja lain" 
+        });
+      }
+
+      const isEligible = await storage.isEmployeeEligibleForLeave(employeeId, leaveType);
+      
+      res.json({ 
+        employeeId,
+        leaveType,
+        isEligible,
+        message: isEligible 
+          ? `Pekerja ini layak untuk ${leaveType}` 
+          : `Pekerja ini tidak layak untuk ${leaveType}`
+      });
+      
+    } catch (error) {
+      console.error("Check leave eligibility error:", error);
+      res.status(500).json({ 
+        error: "Gagal memeriksa kelayakan cuti" 
+      });
+    }
+  });
+
+  // Delete employee leave eligibility (reset to default - eligible)
+  app.delete("/api/leave-eligibility/:employeeId/:leaveType", authenticateToken, async (req, res) => {
+    try {
+      const { employeeId, leaveType } = req.params;
+      
+      // Check user permissions
+      const currentUser = await storage.getUser(req.user!.id);
+      if (!currentUser || !['Super Admin', 'Admin', 'HR Manager'].includes(currentUser.role)) {
+        return res.status(403).json({ 
+          error: "Akses ditolak - hanya Super Admin, Admin, dan HR Manager boleh mereset kelayakan cuti" 
+        });
+      }
+
+      const deleted = await storage.deleteEmployeeLeaveEligibility(employeeId, leaveType);
+      
+      if (deleted) {
+        res.json({ 
+          success: true, 
+          message: `Kelayakan cuti ${leaveType} telah direset ke default (layak) untuk pekerja ini`
+        });
+      } else {
+        res.status(404).json({ 
+          error: "Record kelayakan cuti tidak dijumpai atau telah dipadam" 
+        });
+      }
+      
+    } catch (error) {
+      console.error("Delete leave eligibility error:", error);
+      res.status(500).json({ 
+        error: "Gagal mereset kelayakan cuti" 
+      });
+    }
+  });
+
   // Initialize sample company leave types and data (for testing)
   app.post("/api/initialize-sample-data", authenticateToken, async (req, res) => {
     try {

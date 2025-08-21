@@ -102,6 +102,7 @@ import {
   leaveApplications,
   groupPolicySettings,
   employeeLeaveEntitlementAdjustments,
+  employeeLeaveEligibility,
   // Leave Application types
   type LeaveApplication,
   type InsertLeaveApplication,
@@ -110,6 +111,10 @@ import {
   type EmployeeLeaveEntitlementAdjustment,
   type InsertEmployeeLeaveEntitlementAdjustment,
   type UpdateEmployeeLeaveEntitlementAdjustment,
+  // Employee Leave Eligibility types
+  type EmployeeLeaveEligibility,
+  type InsertEmployeeLeaveEligibility,
+  type UpdateEmployeeLeaveEligibility,
   // Company Leave Types
   companyLeaveTypes,
   type CompanyLeaveType,
@@ -202,6 +207,16 @@ import {
   type Event,
   type InsertEvent,
   type UpdateEvent,
+  // Employee Leave Eligibility types
+  employeeLeaveEligibility,
+  type EmployeeLeaveEligibility,
+  type InsertEmployeeLeaveEligibility,
+  type UpdateEmployeeLeaveEligibility,
+  // Employee Leave Entitlement Adjustment types
+  employeeLeaveEntitlementAdjustments,
+  type EmployeeLeaveEntitlementAdjustment,
+  type InsertEmployeeLeaveEntitlementAdjustment,
+  type UpdateEmployeeLeaveEntitlementAdjustment,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, sql, asc, ilike, or, gte, lte, inArray, not, isNull, isNotNull } from "drizzle-orm";
@@ -464,6 +479,18 @@ export interface IStorage {
   createEvent(event: InsertEvent): Promise<Event>;
   updateEvent(id: string, event: UpdateEvent): Promise<Event | undefined>;
   deleteEvent(id: string): Promise<boolean>;
+  
+  // =================== EMPLOYEE LEAVE ELIGIBILITY METHODS ===================
+  setEmployeeLeaveEligibility(eligibility: InsertEmployeeLeaveEligibility): Promise<EmployeeLeaveEligibility>;
+  getEmployeeLeaveEligibility(employeeId: string): Promise<EmployeeLeaveEligibility[]>;
+  isEmployeeEligibleForLeave(employeeId: string, leaveType: string): Promise<boolean>;
+  deleteEmployeeLeaveEligibility(employeeId: string, leaveType: string): Promise<boolean>;
+  
+  // =================== EMPLOYEE LEAVE ENTITLEMENT ADJUSTMENT METHODS ===================
+  createEmployeeLeaveEntitlementAdjustment(adjustment: InsertEmployeeLeaveEntitlementAdjustment): Promise<EmployeeLeaveEntitlementAdjustment>;
+  getEmployeeLeaveEntitlementAdjustments(employeeId: string): Promise<EmployeeLeaveEntitlementAdjustment[]>;
+  updateEmployeeLeaveEntitlementAdjustment(id: string, adjustment: UpdateEmployeeLeaveEntitlementAdjustment): Promise<EmployeeLeaveEntitlementAdjustment | undefined>;
+  deleteEmployeeLeaveEntitlementAdjustment(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -4926,6 +4953,128 @@ export class DatabaseStorage implements IStorage {
       return effectiveEntitlement;
     } catch (error) {
       console.error('Error getting effective leave entitlement:', error);
+      throw error;
+    }
+  }
+
+  // =================== EMPLOYEE LEAVE ELIGIBILITY METHODS ===================
+  
+  async setEmployeeLeaveEligibility(data: any): Promise<any> {
+    try {
+      console.log('Setting employee leave eligibility:', data);
+      
+      // Check if eligibility record exists
+      const [existingRecord] = await db
+        .select()
+        .from(employeeLeaveEligibility)
+        .where(
+          and(
+            eq(employeeLeaveEligibility.employeeId, data.employeeId),
+            eq(employeeLeaveEligibility.leaveType, data.leaveType)
+          )
+        );
+      
+      if (existingRecord) {
+        // Update existing record
+        const [updated] = await db
+          .update(employeeLeaveEligibility)
+          .set({
+            isEligible: data.isEligible,
+            remarks: data.remarks,
+            setBy: data.setBy,
+            updatedAt: new Date()
+          })
+          .where(eq(employeeLeaveEligibility.id, existingRecord.id))
+          .returning();
+        
+        console.log('Updated eligibility record:', updated);
+        return updated;
+      } else {
+        // Create new record
+        const [created] = await db
+          .insert(employeeLeaveEligibility)
+          .values({
+            employeeId: data.employeeId,
+            leaveType: data.leaveType,
+            isEligible: data.isEligible,
+            remarks: data.remarks,
+            setBy: data.setBy,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          })
+          .returning();
+        
+        console.log('Created eligibility record:', created);
+        return created;
+      }
+    } catch (error) {
+      console.error('Error setting employee leave eligibility:', error);
+      throw error;
+    }
+  }
+
+  async getEmployeeLeaveEligibility(employeeId: string): Promise<any[]> {
+    try {
+      console.log('Getting leave eligibility for employee:', employeeId);
+      
+      const eligibilityRecords = await db
+        .select()
+        .from(employeeLeaveEligibility)
+        .where(eq(employeeLeaveEligibility.employeeId, employeeId));
+      
+      console.log('Found eligibility records:', eligibilityRecords.length);
+      return eligibilityRecords;
+    } catch (error) {
+      console.error('Error getting employee leave eligibility:', error);
+      throw error;
+    }
+  }
+
+  async isEmployeeEligibleForLeave(employeeId: string, leaveType: string): Promise<boolean> {
+    try {
+      console.log(`Checking eligibility for employee ${employeeId} - leave type: ${leaveType}`);
+      
+      // Check if there's a specific eligibility record
+      const [eligibilityRecord] = await db
+        .select()
+        .from(employeeLeaveEligibility)
+        .where(
+          and(
+            eq(employeeLeaveEligibility.employeeId, employeeId),
+            eq(employeeLeaveEligibility.leaveType, leaveType)
+          )
+        );
+      
+      // If no record exists, employee is eligible by default
+      // If record exists, use the isEligible value
+      const isEligible = eligibilityRecord?.isEligible ?? true;
+      
+      console.log(`Eligibility result for ${employeeId} - ${leaveType}: ${isEligible}`);
+      return isEligible;
+    } catch (error) {
+      console.error('Error checking employee leave eligibility:', error);
+      throw error;
+    }
+  }
+
+  async deleteEmployeeLeaveEligibility(employeeId: string, leaveType: string): Promise<boolean> {
+    try {
+      console.log('Deleting leave eligibility record:', { employeeId, leaveType });
+      
+      const result = await db
+        .delete(employeeLeaveEligibility)
+        .where(
+          and(
+            eq(employeeLeaveEligibility.employeeId, employeeId),
+            eq(employeeLeaveEligibility.leaveType, leaveType)
+          )
+        );
+      
+      const success = (result.rowCount ?? 0) > 0;
+      console.log('Delete eligibility result:', success);
+      return success;
+    } catch (error) {
+      console.error('Error deleting employee leave eligibility:', error);
       throw error;
     }
   }
