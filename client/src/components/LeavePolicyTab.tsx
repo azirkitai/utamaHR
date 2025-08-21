@@ -88,7 +88,7 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
   // Update individual employee leave eligibility mutation
   const updateEligibilityMutation = useMutation({
     mutationFn: async ({ leaveType, isEligible }: { leaveType: string; isEligible: boolean }) => {
-      await apiRequest(`/api/leave-eligibility`, "POST", { 
+      await apiRequest("POST", `/api/leave-eligibility`, { 
         employeeId,
         leaveType,
         isEligible,

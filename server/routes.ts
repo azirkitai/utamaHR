@@ -1185,6 +1185,10 @@ export function registerRoutes(app: Express): Server {
       
       // Check user permissions
       const currentUser = await storage.getUser(req.user!.id);
+      if (!currentUser) {
+        return res.status(401).json({ error: "Pengguna tidak dijumpai" });
+      }
+      
       const adminRoles = ['Super Admin', 'Admin', 'HR Manager'];
       
       // Get employee to check if current user can access
@@ -1219,6 +1223,10 @@ export function registerRoutes(app: Express): Server {
       
       // Check user permissions
       const currentUser = await storage.getUser(req.user!.id);
+      if (!currentUser) {
+        return res.status(401).json({ error: "Pengguna tidak dijumpai" });
+      }
+      
       const adminRoles = ['Super Admin', 'Admin', 'HR Manager'];
       
       // Get employee to check if current user can access
