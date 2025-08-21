@@ -3298,6 +3298,10 @@ export default function MyRecordPage() {
                       clockOutImage={record.clockOutImage}
                       breakInImage={(record as any).breakInImage}
                       breakOutImage={(record as any).breakOutImage}
+                      clockInTime={record.clockInTime}
+                      clockOutTime={record.clockOutTime}
+                      breakInTime={(record as any).breakInTime}
+                      breakOutTime={(record as any).breakOutTime}
                     />
                   </TableCell>
                   
