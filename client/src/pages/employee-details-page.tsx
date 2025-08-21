@@ -166,9 +166,9 @@ export default function EmployeeDetailsPage() {
     queryKey: ["/api/approval-settings/leave"],
   });
 
-  // Get claim approval settings from system settings
+  // Get claim approval settings from system settings (Financial Approval)
   const { data: claimApprovalSettings } = useQuery<any>({
-    queryKey: ["/api/approval-settings/claim"],
+    queryKey: ["/api/approval-settings/financial"],
   });
 
   // Get employees with approval roles for First and Second Approval dropdown
