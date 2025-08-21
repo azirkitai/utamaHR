@@ -1036,11 +1036,16 @@ export function registerRoutes(app: Express): Server {
             console.log(`✅ Including ${leaveType.leaveType} for ${employee.fullName} (${employee.role}) - role eligible`);
           }
 
+          // For excluded leave types, set entitlement to 0
+          const finalEntitlementDays = isRoleEligible ? 
+            (roleBasedPolicy?.entitlementDays || leaveType.entitlementDays || 0) : 
+            0;
+          
           employeeData.leaveBreakdown[leaveType.leaveType] = {
             daysTaken: totalDaysTaken,
             applicationsCount: approvedApplications.length,
-            entitlementDays: roleBasedPolicy?.entitlementDays || leaveType.entitlementDays || 0,
-            remainingDays: (roleBasedPolicy?.entitlementDays || leaveType.entitlementDays || 0) - totalDaysTaken,
+            entitlementDays: finalEntitlementDays,
+            remainingDays: finalEntitlementDays - totalDaysTaken,
             isEligible: isRoleEligible, // Role-based eligibility
             isIndividuallyEnabled: isIndividuallyEligible // Individual eligibility
           };
