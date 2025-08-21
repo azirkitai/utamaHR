@@ -754,11 +754,26 @@ export default function AttendanceTimesheetPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All employee</SelectItem>
-              {Array.isArray(employees) ? employees.map((emp: any) => (
-                <SelectItem key={emp.id} value={emp.id}>
-                  {`${emp.firstName} ${emp.lastName}`.trim()}
-                </SelectItem>
-              )) : null}
+              {Array.isArray(employees) ? employees
+                .filter((emp: any) => {
+                  // Only include employees with proper names (not test accounts or unknown)
+                  const employeeName = `${emp.firstName || ''} ${emp.lastName || ''}`.trim();
+                  
+                  // Filter out test accounts and employees with no names
+                  if (!employeeName || 
+                      emp.id?.includes('test-') ||
+                      emp.id?.includes('azir-') ||
+                      !emp.firstName && !emp.lastName) {
+                    return false;
+                  }
+                  
+                  return true;
+                })
+                .map((emp: any) => (
+                  <SelectItem key={emp.id} value={emp.id}>
+                    {`${emp.firstName} ${emp.lastName}`.trim()}
+                  </SelectItem>
+                )) : null}
             </SelectContent>
           </Select>
         </div>
