@@ -3163,17 +3163,7 @@ export default function MyRecordPage() {
                   <TableCell>
                     {record.clockInTime ? (
                       <div className="space-y-1">
-                        <span className={`${
-                          isLate ? 'text-red-600 font-bold bg-red-100 px-2 py-1 rounded border-2 border-red-500' : 'text-gray-800'
-                        }`}
-                        style={isLate ? { 
-                          backgroundColor: '#fee2e2', 
-                          color: '#dc2626', 
-                          fontWeight: 'bold',
-                          padding: '4px 8px',
-                          borderRadius: '4px',
-                          border: '2px solid #ef4444'
-                        } : {}}>
+                        <span className={isLate ? 'text-red-600 font-bold' : 'text-gray-800'}>
                           {(() => {
                             // Parse UTC time and convert to Malaysia time
                             const utcDate = new Date(record.clockInTime);
@@ -3185,10 +3175,9 @@ export default function MyRecordPage() {
                               hour12: false 
                             });
                           })()}
-                          {isLate && ' ⚠️'}
                         </span>
                         {isLate && extendedRecord.clockInRemarks && (
-                          <div className="text-xs text-red-600 bg-red-50 p-1 rounded border mt-1">
+                          <div className="text-xs text-red-600 mt-1">
                             ({extendedRecord.clockInRemarks.split(' dari masa')[0]})
                           </div>
                         )}
@@ -3222,17 +3211,7 @@ export default function MyRecordPage() {
                   <TableCell>
                     {(record as any).breakOutTime ? (
                       <div className="space-y-1">
-                        <span className={`${
-                          (record as any).isLateBreakOut ? 'text-red-600 font-bold bg-red-100 px-2 py-1 rounded border-2 border-red-500' : 'text-gray-800'
-                        }`}
-                        style={(record as any).isLateBreakOut ? { 
-                          backgroundColor: '#fee2e2', 
-                          color: '#dc2626', 
-                          fontWeight: 'bold',
-                          padding: '4px 8px',
-                          borderRadius: '4px',
-                          border: '2px solid #ef4444'
-                        } : {}}>
+                        <span className={(record as any).isLateBreakOut ? 'text-red-600 font-bold' : 'text-gray-800'}>
                           {(() => {
                             const utcDate = new Date((record as any).breakOutTime);
                             if (isNaN(utcDate.getTime())) return 'Invalid Date';
@@ -3243,10 +3222,9 @@ export default function MyRecordPage() {
                               hour12: false 
                             });
                           })()}
-                          {(record as any).isLateBreakOut && ' ⚠️'}
                         </span>
                         {(record as any).isLateBreakOut && (record as any).breakOutRemarks && (
-                          <div className="text-xs text-red-600 bg-red-50 p-1 rounded border">
+                          <div className="text-xs text-red-600">
                             ({(record as any).breakOutRemarks.split(' dari masa')[0]})
                           </div>
                         )}
@@ -3280,17 +3258,7 @@ export default function MyRecordPage() {
                   <TableCell>
                     {(record as any).breakInTime ? (
                       <div className="space-y-1">
-                        <span className={`${
-                          (record as any).isLateBreakIn ? 'text-red-600 font-bold bg-red-100 px-2 py-1 rounded border-2 border-red-500' : 'text-gray-800'
-                        }`}
-                        style={(record as any).isLateBreakIn ? { 
-                          backgroundColor: '#fee2e2', 
-                          color: '#dc2626', 
-                          fontWeight: 'bold',
-                          padding: '4px 8px',
-                          borderRadius: '4px',
-                          border: '2px solid #ef4444'
-                        } : {}}>
+                        <span className={(record as any).isLateBreakIn ? 'text-red-600 font-bold' : 'text-gray-800'}>
                           {(() => {
                             const utcDate = new Date((record as any).breakInTime);
                             if (isNaN(utcDate.getTime())) return 'Invalid Date';
@@ -3301,10 +3269,9 @@ export default function MyRecordPage() {
                               hour12: false 
                             });
                           })()}
-                          {(record as any).isLateBreakIn && ' ⚠️'}
                         </span>
                         {(record as any).isLateBreakIn && (record as any).breakInRemarks && (
-                          <div className="text-xs text-red-600 bg-red-50 p-1 rounded border">
+                          <div className="text-xs text-red-600">
                             ({(record as any).breakInRemarks.split(' dari masa')[0]})
                           </div>
                         )}
