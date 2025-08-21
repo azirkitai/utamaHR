@@ -1096,23 +1096,23 @@ export default function MyRecordPage() {
       
       yPosition -= 60;
       
-      // Fixed table structure with proper spacing FOR IMAGES
+      // Clean table structure - no images, professional layout
       const tableStartX = 50;
       const tableWidth = width - 100;
-      const rowHeight = 50; // Increased row height to accommodate images
-      const fontSize = 8;
+      const rowHeight = 25; // Standard row height for clean table
+      const fontSize = 9;
       
-      // Column configuration - optimized for images and readability
+      // Column configuration - clean table layout
       const columns = [
-        { header: 'No.', width: 25 },
-        { header: 'Employee', width: 80 },
-        { header: 'Date', width: 60 },
-        { header: 'Clock In', width: 90 },
-        { header: 'Break Out', width: 90 },
-        { header: 'Break In', width: 90 },
-        { header: 'Clock Out', width: 90 },
-        { header: 'Total Hours', width: 50 },
-        { header: 'Status', width: 50 }
+        { header: 'No.', width: 35 },
+        { header: 'Employee', width: 120 },
+        { header: 'Date', width: 80 },
+        { header: 'Clock In', width: 70 },
+        { header: 'Break Out', width: 70 },
+        { header: 'Break In', width: 70 },
+        { header: 'Clock Out', width: 70 },
+        { header: 'Total Hours', width: 70 },
+        { header: 'Status', width: 70 }
       ];
       
       // Helper function to draw table header
@@ -1165,8 +1165,8 @@ export default function MyRecordPage() {
       // Use filteredRecords directly for now (no image embedding)
       console.log('📋 Creating PDF with attendance data...');
 
-      // Helper function to draw table row WITH EMBEDDED IMAGES
-      const drawTableRow = async (page: any, record: any, rowIndex: number, y: number) => {
+      // Helper function to draw clean table row
+      const drawTableRow = (page: any, record: any, rowIndex: number, y: number) => {
         // Format time function
         const formatTime = (timeString: string | null) => {
           if (!timeString) return '-';
@@ -1199,8 +1199,9 @@ export default function MyRecordPage() {
           borderWidth: 0.5,
         });
         
-        // Prepare row data
-        const employeeDisplayName = record.employeeName || record.fullName || 'N/A';
+        // Get employee name from the employees list
+        const employee = allEmployees.find(emp => emp.id === record.employeeId);
+        const employeeDisplayName = employee ? `${employee.firstName} ${employee.lastName}`.trim() : 'Unknown Employee';
         // Improved name handling - avoid cutting names mid-character
         const truncateName = (name: string, maxLength: number = 16) => {
           if (name.length <= maxLength) return name;
@@ -1221,14 +1222,14 @@ export default function MyRecordPage() {
         
         const rowData = [
           (rowIndex + 1).toString(),
-          truncateName(employeeDisplayName, 12),
+          truncateName(employeeDisplayName, 16),
           format(new Date(record.date), 'dd/MM/yyyy'),
           formatTime(record.clockInTime),
           formatTime(record.breakOutTime),
           formatTime(record.breakInTime),
           formatTime(record.clockOutTime),
           record.totalHours || '-',
-          record.isLateClockIn ? 'Late' : 'On Time'
+          record.isLateClockIn ? 'Lewat' : 'Tepat Masa'
         ];
         
         let currentX = tableStartX;
@@ -1250,75 +1251,14 @@ export default function MyRecordPage() {
           // Draw cell text
           const cellText = rowData[colIndex] || '-';
           
-          // Special handling for TIME/IMAGE columns (Clock In, Break Out, Break In, Clock Out)
-          if (colIndex >= 3 && colIndex <= 6) {
-            // Draw time text first
-            page.drawText(cellText, {
-              x: currentX + 3,
-              y: y - 10,
-              size: fontSize - 1,
-              font: font,
-              color: textColor,
-            });
-            
-            // Determine which image to draw based on column
-            let imageToEmbed = null;
-            if (colIndex === 3) { // Clock In column
-              imageToEmbed = record.embeddedImages?.clockIn;
-            } else if (colIndex === 4) { // Break Out column
-              imageToEmbed = record.embeddedImages?.breakOut;
-            } else if (colIndex === 5) { // Break In column
-              imageToEmbed = record.embeddedImages?.breakIn;
-            } else if (colIndex === 6) { // Clock Out column
-              imageToEmbed = record.embeddedImages?.clockOut;
-            }
-            
-            // Draw embedded image if available
-            if (imageToEmbed) {
-              try {
-                const imageSize = 25; // Small image size
-                const imageX = currentX + (col.width - imageSize) / 2; // Center in column
-                const imageY = y - 40; // Below the time text
-                
-                page.drawImage(imageToEmbed, {
-                  x: imageX,
-                  y: imageY,
-                  width: imageSize,
-                  height: imageSize,
-                });
-                
-                console.log(`✅ Image drawn in column ${colIndex + 1}`);
-              } catch (imageError) {
-                console.warn(`Failed to draw image in column ${colIndex + 1}:`, imageError);
-                // Draw placeholder text if image fails
-                page.drawText('[IMG]', {
-                  x: currentX + 30,
-                  y: y - 30,
-                  size: fontSize - 2,
-                  font: font,
-                  color: rgb(0, 0.6, 0),
-                });
-              }
-            } else {
-              // Draw "No Image" indicator
-              page.drawText('[-]', {
-                x: currentX + 30,
-                y: y - 30,
-                size: fontSize - 2,
-                font: font,
-                color: rgb(0.6, 0.6, 0.6),
-              });
-            }
-          } else {
-            // Regular text columns (No, Employee, Date, Total Hours, Status)
-            page.drawText(cellText, {
-              x: currentX + 3,
-              y: y - 25, // Center vertically
-              size: fontSize,
-              font: font,
-              color: textColor,
-            });
-          }
+          // Simple text drawing for all columns
+          page.drawText(cellText, {
+            x: currentX + 4,
+            y: y - 15, // Center vertically
+            size: fontSize,
+            font: font,
+            color: textColor,
+          });
           
           currentX += col.width;
         });
