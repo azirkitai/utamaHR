@@ -907,10 +907,6 @@ export default function MyRecordPage() {
               </PopoverTrigger>
               <PopoverContent className="w-48">
                 <div className="space-y-2">
-                  <Button variant="ghost" className="w-full justify-start" data-testid="button-download-excel">
-                    <Download className="h-4 w-4 mr-2" />
-                    Download as Excel
-                  </Button>
                   <Button variant="ghost" className="w-full justify-start" data-testid="button-download-pdf">
                     <Download className="h-4 w-4 mr-2" />
                     Download as PDF
