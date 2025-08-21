@@ -1117,8 +1117,8 @@ export default function MyRecordPage() {
       
       // Draw header function
       const drawHeader = (page: any) => {
-        // Company header background  
-        const headerH = mm(22); // Reduced header height
+        // Company header background - increased height for better text fit
+        const headerH = mm(30); // Increased header height
         const headerY = height - topMargin - headerH;
         
         page.drawRectangle({
@@ -1223,10 +1223,10 @@ export default function MyRecordPage() {
           }
         }
         
-        // Report title
+        // Report title - moved higher to avoid overlap
         page.drawText('EMPLOYEE ATTENDANCE REPORT', {
           x: (width - boldFont.widthOfTextAtSize('EMPLOYEE ATTENDANCE REPORT', 18)) / 2,
-          y: height - topMargin - 150,
+          y: height - topMargin - 110,
           size: 18,
           font: boldFont,
           color: rgb(0.1, 0.2, 0.4),
@@ -1238,13 +1238,13 @@ export default function MyRecordPage() {
       // Draw table header function
       const drawTableHeader = (page: any, yPos: number) => {
         const tableHeight = 25;
-        // Better column distribution with more space (8mm margins = 548.5 points content width)
+        // Remove Break Out, Break In, Total Hours columns to eliminate empty space on right
         const totalContentWidth = contentWidth; // ~548.5 points with 8mm left/right margins
-        const columnWidths = [32, 160, 68, 58, 58, 58, 58, 60, 75]; // Better proportions
+        const columnWidths = [40, 180, 90, 70, 70, 90]; // 6 columns instead of 9
         // Scale proportionally to fit contentWidth
         const currentTotal = columnWidths.reduce((a, b) => a + b, 0);
         const scaledWidths = columnWidths.map(w => Math.floor(w * (totalContentWidth / currentTotal)));
-        const headers = ['No.', 'Employee Name', 'Date', 'Clock In', 'Break Out', 'Break In', 'Clock Out', 'Total Hours', 'Status'];
+        const headers = ['No.', 'Employee Name', 'Date', 'Clock In', 'Clock Out', 'Status'];
         
         // Header background - within proper margins
         page.drawRectangle({
@@ -1274,9 +1274,9 @@ export default function MyRecordPage() {
       // Draw table row function
       const drawTableRow = (page: any, record: any, rowIndex: number, yPos: number) => {
         const tableHeight = 25;
-        // Use same improved column widths
+        // Use same reduced column widths (6 columns only)
         const totalContentWidth = contentWidth;
-        const columnWidths = [32, 160, 68, 58, 58, 58, 58, 60, 75]; // Same as header
+        const columnWidths = [40, 180, 90, 70, 70, 90]; // Same as header - 6 columns
         const currentTotal = columnWidths.reduce((a, b) => a + b, 0);
         const scaledWidths = columnWidths.map(w => Math.floor(w * (totalContentWidth / currentTotal)));
         
@@ -1325,13 +1325,10 @@ export default function MyRecordPage() {
         
         const rowData = [
           (rowIndex + 1).toString(),
-          truncateName(employeeDisplayName, 25),
+          truncateName(employeeDisplayName, 30), // Increased space for name
           format(new Date(record.date), 'dd/MM/yyyy'),
           formatTime(record.clockInTime),
-          formatTime(record.breakOutTime),
-          formatTime(record.breakInTime),
           formatTime(record.clockOutTime),
-          record.totalHours || '-',
           record.isLateClockIn ? 'Late' : (record.clockInTime ? 'On Time' : 'Absent')
         ];
         
@@ -1347,15 +1344,15 @@ export default function MyRecordPage() {
           
           // Status color coding
           let textColor = rgb(0, 0, 0);
-          if (colIndex === 8) { // Status column
+          if (colIndex === 5) { // Status column (now 6th column, index 5)
             if (data === 'Late') textColor = rgb(0.8, 0, 0); // Red
             else if (data === 'On Time') textColor = rgb(0, 0.6, 0); // Green
             else textColor = rgb(0.5, 0.5, 0.5); // Grey for absent
           }
           
-          // Right align for numbers (No, Total Jam)
+          // Right align for numbers (No column only)
           let textX = currentX + 5;
-          if (colIndex === 0 || colIndex === 7) {
+          if (colIndex === 0) { // Only No. column needs right alignment
             const textWidth = font.widthOfTextAtSize(data, 9);
             textX = currentX + scaledWidths[colIndex] - textWidth - 5;
           }
@@ -1383,9 +1380,9 @@ export default function MyRecordPage() {
       // Draw header on first page
       drawHeader(currentPage);
       
-      // Employee info section - adjusted for smaller header
+      // Employee info section - adjusted for larger header
       const userEmployee = allEmployees?.find((emp: any) => emp.userId === user?.id);
-      let yPosition = height - topMargin - 140;
+      let yPosition = height - topMargin - 170;
       
       if (userEmployee) {
         currentPage.drawText(`Name: ${userEmployee.firstName} ${userEmployee.lastName}`, {
