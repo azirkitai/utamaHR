@@ -114,7 +114,7 @@ const navigationItems: { category: string; items: SidebarItem[] }[] = [
         label: "Performance",
         icon: <TrendingUp className="w-4 h-4" />,
         href: "/performance",
-        badge: "Coming Soon",
+        badge: "Upcoming",
       },
       {
         id: "disciplinary-records",
@@ -179,7 +179,7 @@ const navigationItems: { category: string; items: SidebarItem[] }[] = [
         label: "Evaluation",
         icon: <BarChart3 className="w-4 h-4" />,
         href: "/evaluation",
-        badge: "Coming Soon",
+        badge: "Upcoming",
       },
       {
         id: "yearly-form",
@@ -427,7 +427,7 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
                                   variant="secondary"
                                   className={cn(
                                     "text-xs px-2 py-0",
-                                    item.badge === "Coming Soon" 
+                                    item.badge === "Upcoming" 
                                       ? "bg-yellow-500 text-yellow-900" 
                                       : "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white"
                                   )}
