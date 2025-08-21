@@ -979,12 +979,6 @@ export default function LeaveApprovalPage() {
                   <Printer className="w-4 h-4 mr-2" />
                   Print
                 </Button>
-                <Button 
-                  variant="outline"
-                  data-testid="button-settings"
-                >
-                  <Settings className="w-4 h-4" />
-                </Button>
               </div>
             </div>
           </div>
