@@ -37,7 +37,6 @@ export default function MyRecordPage() {
   const [activeTab, setActiveTab] = useState<TabType>("leave");
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showPictures, setShowPictures] = useState(false);
-  const [showNotes, setShowNotes] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     dateFrom: new Date(2025, 0, 1), // Start from January 1, 2025 to include all historical claims
     dateTo: new Date(),
@@ -3301,17 +3300,7 @@ export default function MyRecordPage() {
       {/* Filters */}
       {renderFilterSection('attendance')}
 
-      {/* Show Note button only */}
-      <div className="flex gap-4">
-        <Button 
-          variant={showNotes ? "default" : "outline"} 
-          onClick={() => setShowNotes(!showNotes)}
-          data-testid="button-show-note"
-        >
-          <StickyNote className="h-4 w-4 mr-2 text-gray-600" />
-          Show Note
-        </Button>
-      </div>
+      
 
       {/* Table */}
       <div className="border rounded-lg">
@@ -3404,10 +3393,10 @@ export default function MyRecordPage() {
                   <TableCell>
                     {record.clockInImage ? (
                       <img 
-                        src={record.clockInImage.startsWith('/objects/') ? record.clockInImage : `/objects/${record.clockInImage.replace(/^\/+/, '')}`}
+                        src={record.clockInImage}
                         alt="Clock In"
                         className="w-16 h-16 object-cover rounded border cursor-pointer hover:scale-105 transition-transform shadow-sm"
-                        onClick={() => window.open(record.clockInImage.startsWith('/objects/') ? record.clockInImage : `/objects/${record.clockInImage.replace(/^\/+/, '')}`, '_blank')}
+                        onClick={() => window.open(record.clockInImage, '_blank')}
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
                         }}
@@ -3451,10 +3440,10 @@ export default function MyRecordPage() {
                   <TableCell>
                     {(record as any).breakOutImage ? (
                       <img 
-                        src={(record as any).breakOutImage.startsWith('/objects/') ? (record as any).breakOutImage : `/objects/${(record as any).breakOutImage.replace(/^\/+/, '')}`}
+                        src={(record as any).breakOutImage}
                         alt="Break Out"
                         className="w-16 h-16 object-cover rounded border cursor-pointer hover:scale-105 transition-transform shadow-sm"
-                        onClick={() => window.open((record as any).breakOutImage.startsWith('/objects/') ? (record as any).breakOutImage : `/objects/${(record as any).breakOutImage.replace(/^\/+/, '')}`, '_blank')}
+                        onClick={() => window.open((record as any).breakOutImage, '_blank')}
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
                         }}
@@ -3498,10 +3487,10 @@ export default function MyRecordPage() {
                   <TableCell>
                     {(record as any).breakInImage ? (
                       <img 
-                        src={(record as any).breakInImage.startsWith('/objects/') ? (record as any).breakInImage : `/objects/${(record as any).breakInImage.replace(/^\/+/, '')}`}
+                        src={(record as any).breakInImage}
                         alt="Break In"
                         className="w-16 h-16 object-cover rounded border cursor-pointer hover:scale-105 transition-transform shadow-sm"
-                        onClick={() => window.open((record as any).breakInImage.startsWith('/objects/') ? (record as any).breakInImage : `/objects/${(record as any).breakInImage.replace(/^\/+/, '')}`, '_blank')}
+                        onClick={() => window.open((record as any).breakInImage, '_blank')}
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
                         }}
@@ -3536,10 +3525,10 @@ export default function MyRecordPage() {
                   <TableCell>
                     {record.clockOutImage ? (
                       <img 
-                        src={record.clockOutImage.startsWith('/objects/') ? record.clockOutImage : `/objects/${record.clockOutImage.replace(/^\/+/, '')}`}
+                        src={record.clockOutImage}
                         alt="Clock Out"
                         className="w-16 h-16 object-cover rounded border cursor-pointer hover:scale-105 transition-transform shadow-sm"
-                        onClick={() => window.open(record.clockOutImage.startsWith('/objects/') ? record.clockOutImage : `/objects/${record.clockOutImage.replace(/^\/+/, '')}`, '_blank')}
+                        onClick={() => window.open(record.clockOutImage, '_blank')}
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
                         }}
