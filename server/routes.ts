@@ -987,7 +987,14 @@ export function registerRoutes(app: Express): Server {
         };
       }
 
+      console.log('Calling PDF generator with data:', {
+        employeeCount: reportData.employees.length,
+        filters: reportData.filters,
+        reportTitle: reportData.reportTitle
+      });
+
       const pdfBuffer = await generateLeaveReportPDF(reportData);
+      console.log('PDF generated successfully, size:', pdfBuffer.length, 'bytes');
 
       const fileName = `Laporan_Cuti_${reportType}_${new Date().toISOString().split('T')[0]}.pdf`;
 

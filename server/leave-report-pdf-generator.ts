@@ -25,7 +25,16 @@ interface LeaveReportData {
 export async function generateLeaveReportPDF(data: LeaveReportData): Promise<Buffer> {
   const browser = await puppeteer.launch({
     headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    args: [
+      '--no-sandbox', 
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+      '--disable-extensions',
+      '--no-first-run',
+      '--disable-default-apps'
+    ],
+    executablePath: process.env.NODE_ENV === 'production' ? '/usr/bin/google-chrome-stable' : undefined
   });
 
   try {
