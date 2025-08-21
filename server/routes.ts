@@ -915,6 +915,21 @@ export function registerRoutes(app: Express): Server {
   });
 
   // Generate Leave Report PDF
+  // Simple PDF test endpoint
+  app.get('/api/test-pdf', authenticateToken, async (req, res) => {
+    try {
+      const { generateSimplePDF } = await import('./simple-pdf-test');
+      const pdfBuffer = await generateSimplePDF();
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename="test-report.pdf"');
+      res.send(pdfBuffer);
+    } catch (error) {
+      console.error('Error generating test PDF:', error);
+      res.status(500).json({ error: 'Failed to generate test PDF' });
+    }
+  });
+
   app.post("/api/leave-report-pdf", authenticateToken, async (req, res) => {
     try {
       const { department, year, reportType } = req.body;

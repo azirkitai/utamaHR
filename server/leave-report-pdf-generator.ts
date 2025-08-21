@@ -102,6 +102,11 @@ export async function generateLeaveReportPDF(data: LeaveReportData): Promise<Buf
     
     console.log('PDF buffer generated, size:', pdfBuffer.length);
     
+    // Write to file for debugging
+    const fs = await import('fs');
+    await fs.promises.writeFile('debug_leave_report.pdf', pdfBuffer);
+    console.log('Debug PDF saved to debug_leave_report.pdf');
+    
     return pdfBuffer;
   } catch (error) {
     console.error('Error generating PDF with Puppeteer:', error);
