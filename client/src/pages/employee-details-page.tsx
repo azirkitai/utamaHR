@@ -41,7 +41,7 @@ import {
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import type { Employee, UpdateEmployee, WorkExperience, InsertWorkExperience, Employment, UpdateEmployment, CompanyAccess } from "@shared/schema";
+import type { Employee, UpdateEmployee, WorkExperience, InsertWorkExperience, Employment, UpdateEmployment, CompanyAccess, CompanySetting } from "@shared/schema";
 import { DocumentsTab } from "@/components/DocumentsTab";
 import { EquipmentTab } from "@/components/EquipmentTab";
 import { LeavePolicyTab } from "@/components/LeavePolicyTab";
@@ -121,6 +121,11 @@ export default function EmployeeDetailsPage() {
     endDate: new Date()
   });
 
+  // Get company settings
+  const { data: companySettings } = useQuery<CompanySetting>({
+    queryKey: ["/api/company-settings"],
+  });
+
   // Get employee details
   const { data: employee, isLoading: employeeLoading } = useQuery<Employee>({
     queryKey: ["/api/employees", id],
@@ -174,11 +179,15 @@ export default function EmployeeDetailsPage() {
 
   useEffect(() => {
     if (employment) {
-      setEmploymentForm(employment);
+      setEmploymentForm({
+        ...employment,
+        // Auto-populate company from settings if available
+        company: companySettings?.companyName || employment.company,
+      });
       setDateJoining(employment.dateJoining ? new Date(employment.dateJoining) : undefined);
       setDateOfSign(employment.dateOfSign ? new Date(employment.dateOfSign) : undefined);
     }
-  }, [employment]);
+  }, [employment, companySettings]);
 
   // Update employee mutation
   const updateEmployeeMutation = useMutation({
@@ -210,7 +219,15 @@ export default function EmployeeDetailsPage() {
       // Check if employment record exists
       const method = employment?.id ? "PUT" : "POST";
       const url = employment?.id ? `/api/employment/${employment.id}` : "/api/employment";
-      const response = await apiRequest(method, url, { ...data, employeeId: id });
+      
+      // Always use company name from settings
+      const updatedData = {
+        ...data,
+        employeeId: id,
+        company: companySettings?.companyName || data.company
+      };
+      
+      const response = await apiRequest(method, url, updatedData);
       return response.json();
     },
     onSuccess: () => {
@@ -1566,22 +1583,12 @@ export default function EmployeeDetailsPage() {
 
                         <div className="space-y-2">
                           <Label className="text-sm font-medium text-gray-700 block">Company</Label>
-                          {isEditingEmployment ? (
-                            <Select value={employmentForm.company || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, company: value })}>
-                              <SelectTrigger className="mt-1">
-                                <SelectValue placeholder="Select company" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="UtamaHR Sdn Bhd">UtamaHR Sdn Bhd</SelectItem>
-                                <SelectItem value="Digital Solutions Sdn Bhd">Digital Solutions Sdn Bhd</SelectItem>
-                                <SelectItem value="Tech Innovation Sdn Bhd">Tech Innovation Sdn Bhd</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          ) : (
-                            <div className="mt-1 p-2 bg-gray-50 rounded border">
-                              {employmentForm.company || "N/A"}
-                            </div>
-                          )}
+                          <div className="mt-1 p-2 bg-gray-100 rounded border border-gray-300">
+                            <span className="text-gray-700 font-medium">
+                              {companySettings?.companyName || "Nama syarikat belum ditetapkan"}
+                            </span>
+                            <span className="text-xs text-gray-500 ml-2">(</span>
+                          </div>
                         </div>
 
                         <div className="space-y-2">
