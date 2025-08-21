@@ -94,13 +94,7 @@ export default function AttendanceTimesheetPage() {
     };
   }) : [];
 
-  // Calculate today's stats from attendance records
-  const todayStats = {
-    totalStaff: Array.isArray(employees) ? employees.length : 0,
-    totalClockIn: todayAttendanceData.length,
-    totalAbsent: (Array.isArray(employees) ? employees.length : 0) - todayAttendanceData.length,
-    onLeave: Array.isArray(shiftCalendar) ? shiftCalendar.filter((sc: any) => sc.isOff).length : 0
-  };
+  // Note: todayStats will be calculated after shiftEmployees to reflect selected shift/date
 
   // Process shift-based attendance data using attendance records (same as My Records)
   const getShiftEmployees = () => {
@@ -186,6 +180,27 @@ export default function AttendanceTimesheetPage() {
   };
 
   const shiftEmployees = getShiftEmployees();
+  
+  // Calculate stats based on selected shift and date (not entire system)
+  const todayStats = {
+    totalStaff: shiftEmployees.length, // Staff assigned to selected shift/date
+    totalClockIn: shiftEmployees.filter(emp => emp.attendance && emp.attendance.clockInTime && !emp.isOff).length,
+    totalAbsent: shiftEmployees.filter(emp => emp.isAbsent && !emp.isOff).length,
+    onLeave: shiftEmployees.filter(emp => emp.isOff).length
+  };
+  
+  // Debug stats calculation
+  console.log('📊 STATS CALCULATION DEBUG:', {
+    selectedDate,
+    selectedShift,
+    shiftEmployeesTotal: shiftEmployees.length,
+    todayStats,
+    shiftEmployeesBreakdown: {
+      withAttendance: shiftEmployees.filter(emp => emp.attendance && emp.attendance.clockInTime).length,
+      onLeave: shiftEmployees.filter(emp => emp.isOff).length,
+      absent: shiftEmployees.filter(emp => emp.isAbsent && !emp.isOff).length
+    }
+  });
 
   // Filter employees based on sub-tab
   const getFilteredEmployees = () => {
