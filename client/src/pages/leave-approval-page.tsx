@@ -575,24 +575,39 @@ export default function LeaveApprovalPage() {
                 </TableHeader>
                 <TableBody>
                   {Object.entries(employee.leaveBreakdown).map(([leaveType, breakdown]: [string, any], index: number) => (
-                    <TableRow key={`${employee.employeeId}-${leaveType}`} className="hover:bg-gray-50">
+                    <TableRow 
+                      key={`${employee.employeeId}-${leaveType}`} 
+                      className={`hover:bg-gray-50 ${!breakdown.isEligible ? 'opacity-50 bg-gray-50' : ''}`}
+                    >
                       <TableCell className="font-medium">{index + 1}</TableCell>
-                      <TableCell className="font-medium">{leaveType}</TableCell>
-                      <TableCell className="text-center">{breakdown.entitlementDays}</TableCell>
-                      <TableCell className="text-center">{breakdown.daysTaken}</TableCell>
-                      <TableCell className="text-center font-semibold text-cyan-600">
+                      <TableCell className={`font-medium ${!breakdown.isEligible ? 'text-gray-400 blur-sm' : ''}`}>
+                        {leaveType}
+                      </TableCell>
+                      <TableCell className={`text-center ${!breakdown.isEligible ? 'text-gray-400 blur-sm' : ''}`}>
+                        {breakdown.entitlementDays}
+                      </TableCell>
+                      <TableCell className={`text-center ${!breakdown.isEligible ? 'text-gray-400 blur-sm' : ''}`}>
+                        {breakdown.daysTaken}
+                      </TableCell>
+                      <TableCell className={`text-center font-semibold ${!breakdown.isEligible ? 'text-gray-400 blur-sm' : 'text-cyan-600'}`}>
                         {breakdown.remainingDays}
                       </TableCell>
                       <TableCell className="text-center">
-                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                          breakdown.remainingDays > 0 
-                            ? 'bg-green-100 text-green-800'
-                            : breakdown.remainingDays === 0
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {breakdown.remainingDays > 0 ? 'Tersedia' : breakdown.remainingDays === 0 ? 'Habis' : 'Terlebih'}
-                        </span>
+                        {!breakdown.isEligible ? (
+                          <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
+                            Dikecualikan
+                          </span>
+                        ) : (
+                          <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                            breakdown.remainingDays > 0 
+                              ? 'bg-green-100 text-green-800'
+                              : breakdown.remainingDays === 0
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {breakdown.remainingDays > 0 ? 'Tersedia' : breakdown.remainingDays === 0 ? 'Habis' : 'Terlebih'}
+                          </span>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
