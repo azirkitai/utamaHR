@@ -161,11 +161,38 @@ export default function EmployeeDetailsPage() {
     enabled: !!employee?.userId,
   });
 
+  // Get leave approval settings from System Settings
+  const { data: leaveApprovalSettings } = useQuery<any>({
+    queryKey: ["/api/approval-settings/leave"],
+  });
+
+  // Get all employees for First and Second Approval dropdown
+  const { data: allEmployees = [] } = useQuery<any[]>({
+    queryKey: ["/api/employees"],
+  });
+
   // Check if current user can manage roles
   const canManageRoles = () => {
     if (!currentUser) return false;
     const authorizedRoles = ["Super Admin", "Admin", "HR Manager", "PIC"];
     return authorizedRoles.includes(currentUser.role);
+  };
+
+  // Helper function to get employee name by ID
+  const getEmployeeNameById = (employeeId: string | null) => {
+    if (!employeeId || !allEmployees) return "N/A";
+    const employee = allEmployees.find(emp => emp.id === employeeId);
+    return employee ? `${employee.firstName} ${employee.lastName}`.trim() || employee.name || "N/A" : "N/A";
+  };
+
+  // Get current leave approval settings to display
+  const getCurrentLeaveApprovalSettings = () => {
+    if (!leaveApprovalSettings) return { firstLevel: "N/A", secondLevel: "N/A" };
+    
+    return {
+      firstLevel: getEmployeeNameById(leaveApprovalSettings.firstLevelApprovalId),
+      secondLevel: getEmployeeNameById(leaveApprovalSettings.secondLevelApprovalId)
+    };
   };
 
   // Initialize forms when data loads
@@ -1797,6 +1824,38 @@ export default function EmployeeDetailsPage() {
                       {/* Leave Supervisor */}
                       <div>
                         <h3 className="text-lg font-semibold text-gray-800 mb-4">1) Leave Supervisor</h3>
+                        
+                        {/* System-wide Leave Approval Settings Display */}
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                          <div className="flex items-start gap-3">
+                            <div className="flex-shrink-0 w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center">
+                              <Settings className="w-3 h-3 text-blue-600" />
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="text-sm font-semibold text-blue-900 mb-2">Tetapan Semasa Sistem - Leave Approval</h4>
+                              <div className="text-sm text-blue-800">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                    <span className="font-medium">First Level Approval:</span> 
+                                    <span className="ml-2 px-2 py-1 bg-blue-100 rounded text-blue-900 font-medium">
+                                      {getCurrentLeaveApprovalSettings().firstLevel}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span className="font-medium">Second Level Approval:</span> 
+                                    <span className="ml-2 px-2 py-1 bg-blue-100 rounded text-blue-900 font-medium">
+                                      {getCurrentLeaveApprovalSettings().secondLevel}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="mt-3 text-xs text-blue-700">
+                                  <span className="font-medium">ℹ️ Nota:</span> Ini adalah tetapan global dari System Settings &gt; Leave &gt; Leave Approval yang digunakan untuk semua permohonan cuti.
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                           <div className="space-y-2">
                             <Label className="text-sm font-medium text-gray-700 block">First Approval</Label>
@@ -1806,12 +1865,11 @@ export default function EmployeeDetailsPage() {
                                   <SelectValue placeholder="Select supervisor" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="AZIRKITAI">AZIRKITAI</SelectItem>
-                                  <SelectItem value="SITI NADIAH SABRI">SITI NADIAH SABRI</SelectItem>
-                                  <SelectItem value="SYED IDRUS HASSIM">SYED IDRUS HASSIM</SelectItem>
-                                  <SelectItem value="SYED MUHYAZIR HASSIM">SYED MUHYAZIR HASSIM</SelectItem>
-                                  <SelectItem value="kamal ludin">kamal ludin</SelectItem>
-                                  <SelectItem value="maryam  maisarah">maryam  maisarah</SelectItem>
+                                  {allEmployees.map((emp: any) => (
+                                    <SelectItem key={emp.id} value={`${emp.firstName} ${emp.lastName}`.trim() || emp.name || ""}>
+                                      {`${emp.firstName} ${emp.lastName}`.trim() || emp.name || ""}
+                                    </SelectItem>
+                                  ))}
                                 </SelectContent>
                               </Select>
                             ) : (
@@ -1828,12 +1886,11 @@ export default function EmployeeDetailsPage() {
                                   <SelectValue placeholder="Select supervisor" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="AZIRKITAI">AZIRKITAI</SelectItem>
-                                  <SelectItem value="SITI NADIAH SABRI">SITI NADIAH SABRI</SelectItem>
-                                  <SelectItem value="SYED IDRUS HASSIM">SYED IDRUS HASSIM</SelectItem>
-                                  <SelectItem value="SYED MUHYAZIR HASSIM">SYED MUHYAZIR HASSIM</SelectItem>
-                                  <SelectItem value="kamal ludin">kamal ludin</SelectItem>
-                                  <SelectItem value="maryam  maisarah">maryam  maisarah</SelectItem>
+                                  {allEmployees.map((emp: any) => (
+                                    <SelectItem key={emp.id} value={`${emp.firstName} ${emp.lastName}`.trim() || emp.name || ""}>
+                                      {`${emp.firstName} ${emp.lastName}`.trim() || emp.name || ""}
+                                    </SelectItem>
+                                  ))}
                                 </SelectContent>
                               </Select>
                             ) : (
