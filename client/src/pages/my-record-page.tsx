@@ -1216,16 +1216,6 @@ export default function MyRecordPage() {
           font: boldFont,
           color: rgb(0.1, 0.2, 0.4),
         });
-        
-        // Date generated
-        const currentDate = format(new Date(), 'dd/MM/yyyy HH:mm');
-        page.drawText(`Generated on: ${currentDate}`, {
-          x: width - 200,
-          y: height - 150,
-          size: 10,
-          font: font,
-          color: rgb(0.5, 0.5, 0.5),
-        });
       };
       
       // Draw table header function
@@ -1389,7 +1379,9 @@ export default function MyRecordPage() {
         });
         
         yPosition -= 20;
-        currentPage.drawText(`Department: ${userEmployee.department || 'N/A'}`, {
+        // Get department from employees data
+        const departmentName = userEmployee.department || departments?.find((dept: any) => dept.id === userEmployee.departmentId)?.name || 'N/A';
+        currentPage.drawText(`Department: ${departmentName}`, {
           x: 50,
           y: yPosition,
           size: 11,
@@ -1397,8 +1389,22 @@ export default function MyRecordPage() {
           color: rgb(0, 0, 0),
         });
         
-        const filteredRecordsCount = filteredRecords.length;
-        currentPage.drawText(`Period: ${filteredRecordsCount} attendance days`, {
+        // Calculate date period from filtered records
+        const getDatePeriod = () => {
+          if (filteredRecords.length === 0) return 'No records';
+          
+          const dates = filteredRecords.map(record => new Date(record.date)).sort((a, b) => a.getTime() - b.getTime());
+          const startDate = dates[0];
+          const endDate = dates[dates.length - 1];
+          
+          if (startDate.getTime() === endDate.getTime()) {
+            return format(startDate, 'dd/MM/yyyy');
+          } else {
+            return `${format(startDate, 'dd/MM/yyyy')} - ${format(endDate, 'dd/MM/yyyy')}`;
+          }
+        };
+        
+        currentPage.drawText(`Period: ${getDatePeriod()}`, {
           x: 300,
           y: yPosition,
           size: 11,
