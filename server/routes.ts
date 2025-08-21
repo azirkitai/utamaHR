@@ -3698,6 +3698,19 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  app.get("/api/employee-shifts/:date", authenticateToken, async (req, res) => {
+    try {
+      const { date } = req.params;
+      const targetDate = new Date(date);
+      
+      const employeeShifts = await storage.getEmployeeShiftsByDate(targetDate);
+      res.json(employeeShifts);
+    } catch (error) {
+      console.error("Get employee shifts by date error:", error);
+      res.status(500).json({ error: "Gagal mendapatkan senarai shift pekerja untuk tarikh tersebut" });
+    }
+  });
+
   // =================== WORK EXPERIENCE ROUTES ===================
   // Get work experiences for an employee
   app.get("/api/work-experiences/:employeeId", authenticateToken, async (req, res) => {

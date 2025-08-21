@@ -1158,6 +1158,33 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getEmployeeShiftsByDate(targetDate: Date): Promise<any[]> {
+    try {
+      const startOfDay = new Date(targetDate);
+      startOfDay.setHours(0, 0, 0, 0);
+      
+      const endOfDay = new Date(targetDate);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      const result = await db
+        .select()
+        .from(employeeShifts)
+        .where(
+          and(
+            gte(employeeShifts.assignedDate, startOfDay),
+            lte(employeeShifts.assignedDate, endOfDay),
+            eq(employeeShifts.isActive, true)
+          )
+        )
+        .orderBy(employeeShifts.assignedDate);
+      
+      return result;
+    } catch (error) {
+      console.error("Error getting employee shifts by date:", error);
+      return [];
+    }
+  }
+
   // =================== EMPLOYEE DOCUMENTS METHODS ===================
   async getEmployeeDocuments(employeeId: string): Promise<EmployeeDocument[]> {
     return db.select().from(employeeDocuments).where(eq(employeeDocuments.employeeId, employeeId)).orderBy(desc(employeeDocuments.createdAt));

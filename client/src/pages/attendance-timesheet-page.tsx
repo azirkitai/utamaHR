@@ -34,6 +34,8 @@ import {
 export default function AttendanceTimesheetPage() {
   const [activeTab, setActiveTab] = useState("today");
   const [attendanceSubTab, setAttendanceSubTab] = useState("clock-in");
+  const [selectedShift, setSelectedShift] = useState("all");
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [showPicture, setShowPicture] = useState(false);
   const [showNote, setShowNote] = useState(false);
 
@@ -54,17 +56,29 @@ export default function AttendanceTimesheetPage() {
     enabled: activeTab === "today",
   });
 
+  // Fetch shifts for dropdown
+  const { data: shifts, isLoading: shiftsLoading } = useQuery({
+    queryKey: ['/api/shifts'],
+    enabled: activeTab === "today",
+  });
+
+  // Fetch shift calendar data for selected date
+  const { data: shiftCalendar, isLoading: shiftCalendarLoading } = useQuery({
+    queryKey: ['/api/employee-shifts', selectedDate],
+    enabled: activeTab === "today" && !!selectedDate,
+  });
+
   // Calculate today's stats from real data
   const todayStats = {
-    totalStaff: employees?.length || 0,
-    totalClockIn: todayAttendance?.length || 0,
-    totalAbsent: (employees?.length || 0) - (todayAttendance?.length || 0),
-    onLeave: 0 // This could be calculated from leave applications if needed
+    totalStaff: Array.isArray(employees) ? employees.length : 0,
+    totalClockIn: Array.isArray(todayAttendance) ? todayAttendance.length : 0,
+    totalAbsent: (Array.isArray(employees) ? employees.length : 0) - (Array.isArray(todayAttendance) ? todayAttendance.length : 0),
+    onLeave: Array.isArray(shiftCalendar) ? shiftCalendar.filter((sc: any) => sc.isOff).length : 0
   };
 
   // Process today's attendance data for "Today" tab
-  const todayAttendanceData = todayAttendance?.map((record: any) => {
-    const employee = employees?.find((emp: any) => emp.id === record.employeeId);
+  const todayAttendanceData = Array.isArray(todayAttendance) ? todayAttendance.map((record: any) => {
+    const employee = Array.isArray(employees) ? employees.find((emp: any) => emp.id === record.employeeId) : null;
     return {
       id: record.id,
       employee: employee ? `${employee.firstName} ${employee.lastName}`.trim() : 'Unknown',
@@ -81,11 +95,88 @@ export default function AttendanceTimesheetPage() {
       date: new Date(record.date).toLocaleDateString(),
       status: record.clockInTime ? 'present' : 'absent'
     };
-  }) || [];
+  }) : [];
+
+  // Process shift-based attendance data
+  const getShiftEmployees = () => {
+    if (!Array.isArray(shiftCalendar) || !Array.isArray(employees)) return [];
+    
+    const targetDate = new Date(selectedDate);
+    const employeesOnShift = shiftCalendar.filter((sc: any) => {
+      const shiftDate = new Date(sc.assignedDate || sc.date);
+      return shiftDate.toDateString() === targetDate.toDateString() &&
+             (selectedShift === "all" || sc.shiftId === selectedShift);
+    });
+
+    return employeesOnShift.map((sc: any) => {
+      const employee = employees.find((emp: any) => emp.id === sc.employeeId);
+      const attendance = Array.isArray(todayAttendance) ? todayAttendance.find((att: any) => att.employeeId === sc.employeeId) : null;
+      const shift = Array.isArray(shifts) ? shifts.find((s: any) => s.id === sc.shiftId) : null;
+      
+      return {
+        id: sc.employeeId,
+        employee: employee ? `${employee.firstName} ${employee.lastName}`.trim() : 'Unknown',
+        shiftId: sc.shiftId,
+        shiftName: shift?.name || 'Unknown Shift',
+        shiftStartTime: shift?.startTime,
+        shiftEndTime: shift?.endTime,
+        clockIn: attendance?.clockInTime ? new Date(attendance.clockInTime).toLocaleTimeString('en-US', { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          hour12: true 
+        }) : '',
+        clockOut: attendance?.clockOutTime ? new Date(attendance.clockOutTime).toLocaleTimeString('en-US', { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          hour12: true 
+        }) : '-',
+        isOff: sc.isOff || false,
+        attendance: attendance,
+        isLate: attendance?.clockInTime && shift?.startTime ? 
+          isEmployeeLate(attendance.clockInTime, shift.startTime) : false,
+        isAbsent: !attendance && !sc.isOff ? 
+          isEmployeeAbsent(shift?.startTime) : false
+      };
+    });
+  };
+
+  const isEmployeeLate = (clockInTime: string, shiftStartTime: string) => {
+    const clockIn = new Date(`${selectedDate}T${new Date(clockInTime).toTimeString().split(' ')[0]}`);
+    const shiftStart = new Date(`${selectedDate}T${shiftStartTime}`);
+    return clockIn > shiftStart;
+  };
+
+  const isEmployeeAbsent = (shiftStartTime: string) => {
+    if (!shiftStartTime) return false;
+    const now = new Date();
+    const shiftStart = new Date(`${selectedDate}T${shiftStartTime}`);
+    const oneHourAfterShift = new Date(shiftStart.getTime() + 60 * 60 * 1000);
+    return now > oneHourAfterShift;
+  };
+
+  const shiftEmployees = getShiftEmployees();
+
+  // Filter employees based on sub-tab
+  const getFilteredEmployees = () => {
+    switch (attendanceSubTab) {
+      case "clock-in":
+        return shiftEmployees.filter(emp => !emp.isOff);
+      case "absent":
+        return shiftEmployees.filter(emp => emp.isAbsent && !emp.isOff);
+      case "on-leave":
+        return shiftEmployees.filter(emp => emp.isOff);
+      case "late":
+        return shiftEmployees.filter(emp => emp.isLate && !emp.isOff);
+      default:
+        return shiftEmployees;
+    }
+  };
+
+  const filteredEmployees = getFilteredEmployees();
 
   // Process all attendance records for "Report" tab
-  const attendanceData = attendanceRecords?.map((record: any) => {
-    const employee = employees?.find((emp: any) => emp.id === record.employeeId);
+  const attendanceData = Array.isArray(attendanceRecords) ? attendanceRecords.map((record: any) => {
+    const employee = Array.isArray(employees) ? employees.find((emp: any) => emp.id === record.employeeId) : null;
     return {
       id: record.id,
       employee: employee ? `${employee.firstName} ${employee.lastName}`.trim() : 'Unknown',
@@ -102,11 +193,11 @@ export default function AttendanceTimesheetPage() {
       date: new Date(record.date).toLocaleDateString(),
       status: record.clockInTime ? 'present' : 'absent'
     };
-  }) || [];
+  }) : [];
 
   // Calculate summary data from attendance records
-  const summaryData = employees?.map((employee: any, index: number) => {
-    const employeeRecords = attendanceRecords?.filter((record: any) => record.employeeId === employee.id) || [];
+  const summaryData = Array.isArray(employees) ? employees.map((employee: any, index: number) => {
+    const employeeRecords = Array.isArray(attendanceRecords) ? attendanceRecords.filter((record: any) => record.employeeId === employee.id) : [];
     const presentDays = employeeRecords.filter((record: any) => record.clockInTime).length;
     const absentDays = employeeRecords.length - presentDays;
     const lateDays = employeeRecords.filter((record: any) => record.isLateClockIn).length;
@@ -119,7 +210,7 @@ export default function AttendanceTimesheetPage() {
       late: lateDays,
       earlyClockOut: 0 // This would need additional logic to calculate
     };
-  }) || [];
+  }) : [];
 
   const renderTabNavigation = () => (
     <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6">
@@ -231,14 +322,23 @@ export default function AttendanceTimesheetPage() {
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          <Select defaultValue="all-shift">
-            <SelectTrigger className="w-32 bg-white text-gray-900">
-              <SelectValue />
+          <Input 
+            type="date" 
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="bg-white text-gray-900 w-40"
+          />
+          <Select value={selectedShift} onValueChange={setSelectedShift}>
+            <SelectTrigger className="w-40 bg-white text-gray-900">
+              <SelectValue placeholder="Select shift" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all-shift">All shift</SelectItem>
-              <SelectItem value="morning">Morning</SelectItem>
-              <SelectItem value="evening">Evening</SelectItem>
+              <SelectItem value="all">All Shift</SelectItem>
+              {shifts?.map((shift: any) => (
+                <SelectItem key={shift.id} value={shift.id}>
+                  {shift.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -282,25 +382,32 @@ export default function AttendanceTimesheetPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {todayLoading || employeesLoading ? (
+            {todayLoading || employeesLoading || shiftsLoading || shiftCalendarLoading ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-center py-8 text-gray-500">
-                  Loading today's attendance...
+                  Loading attendance data...
                 </TableCell>
               </TableRow>
-            ) : todayAttendanceData.length === 0 ? (
+            ) : filteredEmployees.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-center py-8 text-gray-500">
-                  No employees have clocked in today
+                  {attendanceSubTab === "clock-in" && "No employees assigned to work today"}
+                  {attendanceSubTab === "absent" && "No absent employees"}
+                  {attendanceSubTab === "on-leave" && "No employees on leave today"}
+                  {attendanceSubTab === "late" && "No late employees"}
                 </TableCell>
               </TableRow>
             ) : (
-              todayAttendanceData.map((item, index) => (
-                <TableRow key={item.id}>
+              filteredEmployees.map((employee, index) => (
+                <TableRow key={employee.id}>
                   <TableCell>{index + 1}</TableCell>
-                  <TableCell className="font-medium">{item.employee}</TableCell>
-                  <TableCell>{item.clockIn}</TableCell>
-                  <TableCell>{item.clockOut}</TableCell>
+                  <TableCell className="font-medium">{employee.employee}</TableCell>
+                  <TableCell>
+                    {attendanceSubTab === "on-leave" ? "On Leave" : employee.clockIn || "-"}
+                  </TableCell>
+                  <TableCell>
+                    {attendanceSubTab === "on-leave" ? "-" : employee.clockOut}
+                  </TableCell>
                 </TableRow>
               ))
             )}
@@ -311,7 +418,7 @@ export default function AttendanceTimesheetPage() {
       {/* Pagination */}
       <div className="flex justify-between items-center">
         <div className="text-sm text-gray-600">
-          Showing {todayAttendanceData.length > 0 ? 1 : 0} to {todayAttendanceData.length} of {todayAttendanceData.length} entries
+          Showing {filteredEmployees.length > 0 ? 1 : 0} to {filteredEmployees.length} of {filteredEmployees.length} entries
         </div>
         <div className="flex space-x-2">
           <Button variant="outline" disabled data-testid="button-previous">
