@@ -2090,42 +2090,7 @@ export default function EmployeeDetailsPage() {
                     </CardContent>
                   </Card>
 
-                  {/* Company Access Card */}
-                  <Card>
-                    <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white">
-                      <CardTitle className="flex items-center gap-2">
-                        <Building className="w-5 h-5" />
-                        Company Access
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium text-gray-700 block">UtamaHR Sdn Bhd</Label>
-                          <div className="mt-1 p-2 bg-green-50 rounded border border-green-200 flex items-center justify-between">
-                            <span className="text-sm text-green-700">Company Access</span>
-                            <span className="text-xs bg-green-500 text-white px-2 py-1 rounded">Active</span>
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium text-gray-700 block">Digital Solutions Sdn Bhd</Label>
-                          <div className="mt-1 p-2 bg-gray-50 rounded border border-gray-200 flex items-center justify-between">
-                            <span className="text-sm text-gray-700">Company Access</span>
-                            <span className="text-xs bg-gray-500 text-white px-2 py-1 rounded">Inactive</span>
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label className="text-sm font-medium text-gray-700 block">Tech Innovation Sdn Bhd</Label>
-                          <div className="mt-1 p-2 bg-gray-50 rounded border border-gray-200 flex items-center justify-between">
-                            <span className="text-sm text-gray-700">Company Access</span>
-                            <span className="text-xs bg-gray-500 text-white px-2 py-1 rounded">Inactive</span>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  
                 </div>
               )}
 
