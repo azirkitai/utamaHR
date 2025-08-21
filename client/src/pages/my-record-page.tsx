@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
@@ -27,6 +27,8 @@ interface FilterState {
   claimType: string;
   claimStatus: string;
   overtimeStatus: string;
+  leaveType: string;
+  leaveStatus: string;
 }
 
 export default function MyRecordPage() {
@@ -42,7 +44,9 @@ export default function MyRecordPage() {
     pageSize: 10,
     claimType: "all-claim-type",
     claimStatus: "all-claim-status",
-    overtimeStatus: "all-overtime-status"
+    overtimeStatus: "all-overtime-status",
+    leaveType: "all-leave-type",
+    leaveStatus: "all-leave-status"
   });
 
   // Check if user has admin access to view other employees' data
@@ -159,8 +163,8 @@ export default function MyRecordPage() {
     console.log('🎯 Late clock-in found:', attendanceRecords.filter(r => (r as any).isLateClockIn));
   }
 
-  // Fetch leave applications from database 
-  const { data: leaveApplications = [], isLoading: isLoadingLeave, error: leaveError } = useQuery({
+  // Fetch leave applications from database with filters
+  const { data: rawLeaveApplications = [], isLoading: isLoadingLeave, error: leaveError } = useQuery({
     queryKey: ['/api/leave-applications', filters.dateFrom.toISOString(), filters.dateTo.toISOString()],
     queryFn: async () => {
       console.log('Fetching leave applications...');
@@ -191,6 +195,62 @@ export default function MyRecordPage() {
     },
     enabled: !!user && activeTab === 'leave'
   });
+
+  // Apply client-side filtering for leave applications
+  const leaveApplications = useMemo(() => {
+    if (!rawLeaveApplications) return [];
+    
+    return rawLeaveApplications.filter((leave) => {
+      // Date range filter
+      const leaveStartDate = new Date(leave.startDate);
+      const leaveEndDate = new Date(leave.endDate);
+      const isInDateRange = 
+        (leaveStartDate >= filters.dateFrom && leaveStartDate <= filters.dateTo) ||
+        (leaveEndDate >= filters.dateFrom && leaveEndDate <= filters.dateTo) ||
+        (leaveStartDate <= filters.dateFrom && leaveEndDate >= filters.dateTo);
+      
+      if (!isInDateRange) return false;
+      
+      // Leave Type filter
+      if (filters.leaveType && filters.leaveType !== "all-leave-type") {
+        const leaveTypeMatch = {
+          "annual-leave": "Annual Leave",
+          "medical-leave": "Medical Leave", 
+          "compassionate-paternity": "Compassionate Leave - Paternity Leave",
+          "compassionate-maternity": "Compassionate Leave - Maternity Leave",
+          "compassionate-death": "Compassionate Leave - Death of Family Member"
+        };
+        
+        const expectedLeaveType = leaveTypeMatch[filters.leaveType as keyof typeof leaveTypeMatch];
+        if (expectedLeaveType && leave.leaveType !== expectedLeaveType) return false;
+      }
+      
+      // Leave Status filter  
+      if (filters.leaveStatus && filters.leaveStatus !== "all-leave-status") {
+        const statusMatch = {
+          "pending": "Pending",
+          "approved": "Approved", 
+          "rejected": "Rejected",
+          "cancelled": "Cancelled",
+          "approved-level1": "Approved [Level 1]"
+        };
+        
+        const expectedStatus = statusMatch[filters.leaveStatus as keyof typeof statusMatch];
+        if (expectedStatus && leave.status !== expectedStatus) return false;
+      }
+      
+      // Search filter (search in applicant name and leave type)
+      if (filters.searchTerm) {
+        const searchTerm = filters.searchTerm.toLowerCase();
+        const matchesSearch = 
+          (leave.applicant && leave.applicant.toLowerCase().includes(searchTerm)) ||
+          (leave.leaveType && leave.leaveType.toLowerCase().includes(searchTerm));
+        if (!matchesSearch) return false;
+      }
+      
+      return true;
+    });
+  }, [rawLeaveApplications, filters.dateFrom, filters.dateTo, filters.searchTerm, filters.leaveType, filters.leaveStatus]);
 
   // Fetch current user's employee ID for claim applications
   const { data: currentEmployee } = useQuery({
@@ -1190,7 +1250,11 @@ export default function MyRecordPage() {
 
       <div className="space-y-2">
         <label className="text-sm font-medium">Leave Type</label>
-        <Select defaultValue="all-leave-type" data-testid="select-leave-type">
+        <Select 
+          value={filters.leaveType} 
+          onValueChange={(value) => setFilters(prev => ({ ...prev, leaveType: value }))}
+          data-testid="select-leave-type"
+        >
           <SelectTrigger>
             <SelectValue placeholder="All leave type" />
           </SelectTrigger>
@@ -1207,7 +1271,11 @@ export default function MyRecordPage() {
 
       <div className="space-y-2">
         <label className="text-sm font-medium">Leave Status</label>
-        <Select defaultValue="all-leave-status" data-testid="select-leave-status">
+        <Select 
+          value={filters.leaveStatus} 
+          onValueChange={(value) => setFilters(prev => ({ ...prev, leaveStatus: value }))}
+          data-testid="select-leave-status"
+        >
           <SelectTrigger>
             <SelectValue placeholder="All leave status" />
           </SelectTrigger>
