@@ -1393,8 +1393,8 @@ export default function MyRecordPage() {
         });
         
         yPosition -= 20;
-        // Get department from employees data
-        const departmentName = userEmployee.department || departments?.find((dept: any) => dept.id === userEmployee.departmentId)?.name || 'N/A';
+        // Get department from employee's employment data
+        const departmentName = userEmployee.employment?.department || userEmployee.department || 'N/A';
         currentPage.drawText(`Department: ${departmentName}`, {
           x: 50,
           y: yPosition,
