@@ -1023,15 +1023,15 @@ export default function MyRecordPage() {
     }
   };
 
-  // Handle Attendance Record PDF Download - SIMPLE VERSION FIRST
+  // Professional Attendance Record PDF Download
   const handleAttendanceRecordPDFDownload = async () => {
     try {
-      console.log('🔄 Starting Attendance Record PDF generation...');
+      console.log('🔄 Starting Professional Attendance Record PDF generation...');
       
       const filteredRecords = searchFilteredAttendanceRecords;
       
       if (filteredRecords.length === 0) {
-        alert('No attendance records found for the selected date range.');
+        alert('Tiada rekod kehadiran dijumpai untuk tempoh tarikh yang dipilih.');
         return;
       }
       
@@ -1046,359 +1046,367 @@ export default function MyRecordPage() {
       let currentPage = pdfDoc.addPage([842, 595]); // A4 landscape
       const { width, height } = currentPage.getSize();
       
-      // Company header
+      let yPosition = height - 50;
+      
+      // Header with logo placeholder and company info
       currentPage.drawText('UTAMA MEDGROUP SDN BHD', {
         x: 50,
-        y: height - 50,
+        y: yPosition,
+        size: 18,
+        font: boldFont,
+        color: rgb(0.1, 0.2, 0.5), // Dark blue
+      });
+      
+      yPosition -= 25;
+      currentPage.drawText('UtamaHR Sistem', {
+        x: 50,
+        y: yPosition,
+        size: 12,
+        font: font,
+        color: rgb(0.3, 0.3, 0.3),
+      });
+      
+      // Report title
+      yPosition -= 40;
+      currentPage.drawText('ATTENDANCE RECORD REPORT', {
+        x: 50,
+        y: yPosition,
         size: 16,
         font: boldFont,
         color: rgb(0, 0, 0),
       });
       
-      currentPage.drawText('ATTENDANCE RECORD REPORT', {
-        x: 50,
-        y: height - 75,
-        size: 14,
-        font: boldFont,
-        color: rgb(0, 0, 0),
+      // Generated date (right aligned)
+      const generatedDate = new Date().toLocaleDateString('ms-MY', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
       });
-      
-      // Date range
-      const fromDate = format(filters.dateFrom, 'dd/MM/yyyy');
-      const toDate = format(filters.dateTo, 'dd/MM/yyyy');
-      currentPage.drawText(`Period: ${fromDate} - ${toDate}`, {
-        x: 50,
-        y: height - 100,
+      const generatedTime = new Date().toLocaleTimeString('ms-MY', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      currentPage.drawText(`Dijana pada: ${generatedDate} ${generatedTime}`, {
+        x: width - 250,
+        y: yPosition,
         size: 10,
         font: font,
-        color: rgb(0, 0, 0),
+        color: rgb(0.3, 0.3, 0.3),
       });
       
-      // Employee info section
-      const employeeName = user?.username || 'N/A';
-      const employeeData = currentEmployee || {};
-      const icNumber = employeeData.icNumber || employeeData.ic || '-';
-      
-      let yPosition = height - 130;
+      // Employee Information Section
+      yPosition -= 40;
+      const employee = allEmployees.find((emp: any) => emp.id === (currentEmployee?.id || user?.id));
+      const employeeName = employee ? `${employee.firstName} ${employee.lastName}`.trim() : (user?.username || 'N/A');
+      const staffId = currentEmployee?.staffId || currentEmployee?.id || '-';
+      const department = currentEmployee?.department || '-';
       
       // Employee info box
       currentPage.drawRectangle({
         x: 50,
-        y: yPosition - 40,
+        y: yPosition - 60,
         width: width - 100,
-        height: 40,
-        color: rgb(0.95, 0.95, 0.95),
+        height: 60,
+        color: rgb(0.97, 0.97, 0.97),
         borderColor: rgb(0.8, 0.8, 0.8),
         borderWidth: 1,
       });
       
-      currentPage.drawText('Employee Information', {
+      yPosition -= 15;
+      currentPage.drawText('MAKLUMAT PEKERJA', {
         x: 60,
-        y: yPosition - 15,
+        y: yPosition,
         size: 12,
         font: boldFont,
-        color: rgb(0, 0, 0),
+        color: rgb(0.1, 0.2, 0.5),
       });
       
-      currentPage.drawText(`Name: ${employeeName}`, {
+      // Employee details in columns
+      yPosition -= 20;
+      currentPage.drawText(`Nama: ${employeeName}`, {
         x: 60,
-        y: yPosition - 30,
+        y: yPosition,
         size: 10,
         font: font,
-        color: rgb(0, 0, 0),
       });
       
-      currentPage.drawText(`IC Number: ${icNumber}`, {
+      currentPage.drawText(`Staff ID: ${staffId}`, {
         x: 300,
-        y: yPosition - 30,
+        y: yPosition,
         size: 10,
         font: font,
-        color: rgb(0, 0, 0),
       });
       
-      yPosition -= 60;
+      yPosition -= 15;
+      currentPage.drawText(`Jabatan: ${department}`, {
+        x: 60,
+        y: yPosition,
+        size: 10,
+        font: font,
+      });
       
-      // Clean table structure - no images, professional layout
-      const tableStartX = 50;
-      const tableWidth = width - 100;
-      const rowHeight = 25; // Standard row height for clean table
-      const fontSize = 9;
+      const fromDate = format(filters.dateFrom, 'dd/MM/yyyy');
+      const toDate = format(filters.dateTo, 'dd/MM/yyyy');
+      currentPage.drawText(`Tempoh: ${fromDate} - ${toDate}`, {
+        x: 300,
+        y: yPosition,
+        size: 10,
+        font: font,
+      });
       
-      // Column configuration - clean table layout
-      const columns = [
-        { header: 'No.', width: 35 },
-        { header: 'Employee', width: 120 },
-        { header: 'Date', width: 80 },
-        { header: 'Clock In', width: 70 },
-        { header: 'Break Out', width: 70 },
-        { header: 'Break In', width: 70 },
-        { header: 'Clock Out', width: 70 },
-        { header: 'Total Hours', width: 70 },
-        { header: 'Status', width: 70 }
-      ];
+      // Table header
+      yPosition -= 50;
+      const tableStartY = yPosition;
+      const columnWidths = [40, 80, 80, 80, 80, 80, 80, 100]; // Total: 640px
+      const columnHeaders = ['No.', 'Tarikh', 'Clock In', 'Break Out', 'Break In', 'Clock Out', 'Total Hours', 'Status'];
       
-      // Helper function to draw table header
-      const drawTableHeader = (page: any, y: number) => {
-        // Header background
-        page.drawRectangle({
-          x: tableStartX,
-          y: y - rowHeight,
-          width: tableWidth,
-          height: rowHeight,
-          color: rgb(0.9, 0.9, 0.9),
-          borderColor: rgb(0.6, 0.6, 0.6),
-          borderWidth: 1,
+      // Draw header background
+      currentPage.drawRectangle({
+        x: 50,
+        y: yPosition - 20,
+        width: columnWidths.reduce((a, b) => a + b, 0),
+        height: 20,
+        color: rgb(0.2, 0.3, 0.6), // Dark blue header
+      });
+      
+      // Draw header text
+      let xPosition = 50;
+      columnHeaders.forEach((header, index) => {
+        currentPage.drawText(header, {
+          x: xPosition + 5,
+          y: yPosition - 15,
+          size: 9,
+          font: boldFont,
+          color: rgb(1, 1, 1), // White text
         });
-        
-        let currentX = tableStartX;
-        columns.forEach((col) => {
-          // Draw vertical line
-          page.drawLine({
-            start: { x: currentX, y: y },
-            end: { x: currentX, y: y - rowHeight },
-            color: rgb(0.6, 0.6, 0.6),
-            thickness: 1,
-          });
-          
-          // Draw header text - centered
-          const textWidth = font.widthOfTextAtSize(col.header, fontSize);
-          const textX = currentX + (col.width - textWidth) / 2;
-          
-          page.drawText(col.header, {
-            x: Math.max(currentX + 3, textX),
-            y: y - 15,
-            size: fontSize,
-            font: boldFont,
-            color: rgb(0, 0, 0),
-          });
-          
-          currentX += col.width;
-        });
-        
-        // Right border
-        page.drawLine({
-          start: { x: currentX, y: y },
-          end: { x: currentX, y: y - rowHeight },
-          color: rgb(0.6, 0.6, 0.6),
-          thickness: 1,
-        });
-      };
+        xPosition += columnWidths[index];
+      });
       
-      // Use filteredRecords directly for now (no image embedding)
-      console.log('📋 Creating PDF with attendance data...');
-
-      // Helper function to draw clean table row
-      const drawTableRow = (page: any, record: any, rowIndex: number, y: number) => {
-        // Format time function
-        const formatTime = (timeString: string | null) => {
-          if (!timeString) return '-';
-          try {
-            const time = new Date(timeString);
-            return format(time, 'HH:mm');
-          } catch {
-            return timeString || '-';
-          }
-        };
+      
+      // Table data rows with professional formatting
+      let rowNumber = 1;
+      let onTimeCount = 0;
+      let lateCount = 0;
+      let absentCount = 0;
+      
+      // Sort records by date
+      const sortedRecords = [...filteredRecords].sort((a, b) => 
+        new Date(a.date).getTime() - new Date(b.date).getTime()
+      );
+      
+      const rowHeight = 18;
+      
+      // Draw table data rows
+      sortedRecords.forEach((record, index) => {
+        // Calculate row color (alternating rows)
+        const isEvenRow = index % 2 === 0;
+        const rowColor = isEvenRow ? rgb(1, 1, 1) : rgb(0.97, 0.97, 0.97);
         
-        // Row background (alternating)
-        if (rowIndex % 2 === 0) {
-          page.drawRectangle({
-            x: tableStartX,
-            y: y - rowHeight,
-            width: tableWidth,
-            height: rowHeight,
-            color: rgb(0.98, 0.98, 0.98),
-          });
+        // Check if new page needed
+        if (yPosition < 100) {
+          currentPage = pdfDoc.addPage([842, 595]);
+          yPosition = height - 50;
         }
         
-        // Row border
-        page.drawRectangle({
-          x: tableStartX,
-          y: y - rowHeight,
-          width: tableWidth,
+        // Draw row background
+        currentPage.drawRectangle({
+          x: 50,
+          y: yPosition - rowHeight,
+          width: columnWidths.reduce((a, b) => a + b, 0),
           height: rowHeight,
+          color: rowColor,
           borderColor: rgb(0.8, 0.8, 0.8),
           borderWidth: 0.5,
         });
         
-        // Get employee name from the employees list
-        const employee = allEmployees.find((emp: any) => emp.id === record.employeeId);
-        const employeeDisplayName = employee ? `${employee.firstName} ${employee.lastName}`.trim() : 'Unknown Employee';
-        // Improved name handling - avoid cutting names mid-character
-        const truncateName = (name: string, maxLength: number = 16) => {
-          if (name.length <= maxLength) return name;
-          const words = name.split(' ');
-          if (words.length === 1) {
-            return name.substring(0, maxLength - 3) + '...';
+        // Format time helper
+        const formatTime = (timeString: string | null) => {
+          if (!timeString) return '-';
+          try {
+            const date = new Date(timeString);
+            return date.toLocaleTimeString('ms-MY', { 
+              hour: '2-digit', 
+              minute: '2-digit',
+              hour12: false 
+            });
+          } catch {
+            return '-';
           }
-          let result = words[0];
-          for (let i = 1; i < words.length; i++) {
-            if ((result + ' ' + words[i]).length <= maxLength) {
-              result += ' ' + words[i];
-            } else {
-              break;
-            }
-          }
-          return result.length < name.length ? result + '...' : result;
         };
         
+        // Calculate total hours
+        const calculateTotalHours = () => {
+          if (!record.clockInTime || !record.clockOutTime) return '-';
+          try {
+            const clockIn = new Date(record.clockInTime);
+            const clockOut = new Date(record.clockOutTime);
+            const diffMs = clockOut.getTime() - clockIn.getTime();
+            const hours = Math.floor(diffMs / (1000 * 60 * 60));
+            const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+            return `${hours}:${minutes.toString().padStart(2, '0')}`;
+          } catch {
+            return '-';
+          }
+        };
+        
+        // Determine status and color
+        let status = 'Tepat Masa';
+        let statusColor = rgb(0, 0.6, 0); // Green
+        
+        if (record.isLateClockIn) {
+          status = 'Lewat';
+          statusColor = rgb(0.8, 0.1, 0.1); // Red
+          lateCount++;
+        } else if (record.clockInTime) {
+          onTimeCount++;
+        } else {
+          status = 'Absent';
+          statusColor = rgb(0.5, 0.5, 0.5); // Grey
+          absentCount++;
+        }
+        
+        // Row data
         const rowData = [
-          (rowIndex + 1).toString(),
-          truncateName(employeeDisplayName, 16),
+          rowNumber.toString(),
           format(new Date(record.date), 'dd/MM/yyyy'),
           formatTime(record.clockInTime),
           formatTime(record.breakOutTime),
           formatTime(record.breakInTime),
           formatTime(record.clockOutTime),
-          record.totalHours || '-',
-          record.isLateClockIn ? 'Lewat' : 'Tepat Masa'
+          calculateTotalHours(),
+          status
         ];
         
-        let currentX = tableStartX;
-        columns.forEach((col, colIndex) => {
-          // Draw vertical line
-          page.drawLine({
-            start: { x: currentX, y: y },
-            end: { x: currentX, y: y - rowHeight },
-            color: rgb(0.8, 0.8, 0.8),
-            thickness: 0.5,
-          });
+        // Draw row data
+        let xPos = 50;
+        rowData.forEach((data, colIndex) => {
+          const isStatusColumn = colIndex === 7;
+          const isNumberColumn = colIndex === 6; // Total Hours
+          const textColor = isStatusColumn ? statusColor : rgb(0, 0, 0);
           
-          // Text color for status column
-          let textColor = rgb(0, 0, 0);
-          if (colIndex === 8) { // Status column
-            textColor = record.isLateClockIn ? rgb(0.8, 0, 0) : rgb(0, 0.6, 0);
+          // Text alignment
+          let textX = xPos + 5;
+          if (isNumberColumn && data !== '-') {
+            // Right align numbers
+            const textWidth = font.widthOfTextAtSize(data, 9);
+            textX = xPos + columnWidths[colIndex] - textWidth - 5;
           }
           
-          // Draw cell text
-          const cellText = rowData[colIndex] || '-';
-          
-          // Simple text drawing for all columns
-          page.drawText(cellText, {
-            x: currentX + 4,
-            y: y - 15, // Center vertically
-            size: fontSize,
-            font: font,
+          currentPage.drawText(data, {
+            x: textX,
+            y: yPosition - 13,
+            size: 9,
+            font: isStatusColumn ? boldFont : font,
             color: textColor,
           });
           
-          currentX += col.width;
+          xPos += columnWidths[colIndex];
         });
         
-        // Right border
-        page.drawLine({
-          start: { x: currentX, y: y },
-          end: { x: currentX, y: y - rowHeight },
-          color: rgb(0.8, 0.8, 0.8),
-          thickness: 0.5,
-        });
-      };
-      
-      // Draw table header
-      drawTableHeader(currentPage, yPosition);
-      yPosition -= rowHeight;
-      
-      // Draw data rows
-      for (let index = 0; index < filteredRecords.length; index++) {
-        const record = filteredRecords[index];
-        
-        // Check if we need a new page
-        if (yPosition < 100) {
-          currentPage = pdfDoc.addPage([842, 595]);
-          yPosition = height - 80;
-          drawTableHeader(currentPage, yPosition);
-          yPosition -= rowHeight;
-        }
-        
-        drawTableRow(currentPage, record, index, yPosition);
         yPosition -= rowHeight;
-      }
+        rowNumber++;
+      });
       
-      // Summary Section
+      // Summary section
       yPosition -= 30;
-      if (yPosition < 120) {
-        currentPage = pdfDoc.addPage([842, 595]);
-        yPosition = height - 80;
-      }
       
-      const summaryBoxHeight = 60;
+      // Summary box
       currentPage.drawRectangle({
         x: 50,
-        y: yPosition - summaryBoxHeight,
-        width: width - 100,
-        height: summaryBoxHeight,
+        y: yPosition - 80,
+        width: 300,
+        height: 80,
         color: rgb(0.95, 0.95, 0.95),
-        borderColor: rgb(0.8, 0.8, 0.8),
+        borderColor: rgb(0.7, 0.7, 0.7),
         borderWidth: 1,
       });
       
-      currentPage.drawText('Attendance Summary', {
+      yPosition -= 15;
+      currentPage.drawText('RINGKASAN KEHADIRAN', {
         x: 60,
-        y: yPosition - 20,
+        y: yPosition,
         size: 12,
         font: boldFont,
-        color: rgb(0, 0, 0),
+        color: rgb(0.1, 0.2, 0.5),
       });
       
-      const totalRecords = filteredRecords.length;
-      const lateRecords = filteredRecords.filter(r => r.isLateClockIn).length;
-      const onTimeRecords = totalRecords - lateRecords;
-      
-      currentPage.drawText(`Total Records: ${totalRecords}`, {
+      yPosition -= 20;
+      currentPage.drawText(`Total Rekod: ${filteredRecords.length}`, {
         x: 60,
-        y: yPosition - 40,
+        y: yPosition,
         size: 10,
         font: font,
-        color: rgb(0, 0, 0),
       });
       
-      currentPage.drawText(`On Time: ${onTimeRecords}`, {
-        x: 200,
-        y: yPosition - 40,
+      yPosition -= 15;
+      currentPage.drawText(`Tepat Masa: ${onTimeCount}`, {
+        x: 60,
+        y: yPosition,
         size: 10,
         font: font,
         color: rgb(0, 0.6, 0),
       });
       
-      currentPage.drawText(`Late: ${lateRecords}`, {
-        x: 320,
-        y: yPosition - 40,
+      yPosition -= 15;
+      currentPage.drawText(`Lewat: ${lateCount}`, {
+        x: 60,
+        y: yPosition,
         size: 10,
         font: font,
-        color: rgb(0.8, 0, 0),
+        color: rgb(0.8, 0.1, 0.1),
       });
       
-      // Footer on last page
-      const footerText = `Page 1 of 1 | Generated by UtamaHR System | ${format(new Date(), 'dd/MM/yyyy HH:mm')}`;
-      const footerWidth = font.widthOfTextAtSize(footerText, 8);
-      currentPage.drawText(footerText, {
-        x: (width - footerWidth) / 2,
-        y: 30,
-        size: 8,
+      currentPage.drawText(`Absent: ${absentCount}`, {
+        x: 180,
+        y: yPosition,
+        size: 10,
         font: font,
         color: rgb(0.5, 0.5, 0.5),
       });
       
-      // Generate PDF
-      const pdfBytes = await pdfDoc.save();
+      // Footer
+      const pages = pdfDoc.getPages();
+      pages.forEach((page, pageIndex) => {
+        const { height: pageHeight } = page.getSize();
+        
+        // Footer text
+        page.drawText(`Dijana oleh UtamaHR Sistem pada ${generatedDate} ${generatedTime}`, {
+          x: 50,
+          y: 30,
+          size: 8,
+          font: font,
+          color: rgb(0.5, 0.5, 0.5),
+        });
+        
+        // Page number
+        page.drawText(`Halaman ${pageIndex + 1} dari ${pages.length}`, {
+          x: width - 150,
+          y: 30,
+          size: 8,
+          font: font,
+          color: rgb(0.5, 0.5, 0.5),
+        });
+      });
       
-      // Download PDF
+      // Generate and download PDF
+      const pdfBytes = await pdfDoc.save();
       const blob = new Blob([pdfBytes], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
+      
       const link = document.createElement('a');
       link.href = url;
-      link.download = `Attendance_Record_${user?.username || 'User'}_${format(new Date(), 'yyyyMMdd')}.pdf`;
+      link.download = `Attendance_Record_${format(new Date(), 'yyyyMMdd_HHmmss')}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       
-      console.log('✅ Attendance Record PDF generated and downloaded successfully');
+      console.log('✅ Professional Attendance Record PDF generated and downloaded successfully');
       
-    } catch (error) {
-      console.error('❌ Error generating Attendance Record PDF:', error);
+    } catch (error: any) {
+      console.error('❌ Error generating Professional Attendance Record PDF:', error);
       console.error('❌ ERROR DETAILS:', error.message, error.stack);
-      alert('Failed to generate PDF: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      alert('Ralat menjana PDF: ' + (error.message || 'Unknown error'));
     }
   };
 
