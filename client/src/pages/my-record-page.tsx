@@ -925,7 +925,7 @@ export default function MyRecordPage() {
     );
   };
 
-  // Handle Attendance Record PDF Download
+  // Handle Attendance Record PDF Download - FIXED LAYOUT
   const handleAttendanceRecordPDFDownload = async () => {
     try {
       console.log('🔄 Starting Attendance Record PDF generation...');
@@ -945,59 +945,11 @@ export default function MyRecordPage() {
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
       const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
       
-      const page = pdfDoc.addPage([842, 595]); // A4 landscape
-      const { width, height } = page.getSize();
+      let currentPage = pdfDoc.addPage([842, 595]); // A4 landscape
+      const { width, height } = currentPage.getSize();
       
-      // Helper function for text wrapping
-      const wrapText = (text: string, maxWidth: number, fontSize: number, font: any) => {
-        const words = text.split(' ');
-        const lines = [];
-        let currentLine = '';
-        
-        for (const word of words) {
-          const testLine = currentLine ? `${currentLine} ${word}` : word;
-          const testWidth = font.widthOfTextAtSize(testLine, fontSize);
-          
-          if (testWidth <= maxWidth) {
-            currentLine = testLine;
-          } else {
-            if (currentLine) {
-              lines.push(currentLine);
-              currentLine = word;
-            } else {
-              lines.push(word);
-            }
-          }
-        }
-        
-        if (currentLine) {
-          lines.push(currentLine);
-        }
-        
-        return lines;
-      };
-      
-      // Draw wrapped text
-      const drawWrappedText = (page: any, text: string, x: number, y: number, maxWidth: number, fontSize: number, font: any, color: any) => {
-        const lines = wrapText(text, maxWidth, fontSize, font);
-        let yPosition = y;
-        
-        lines.forEach((line) => {
-          page.drawText(line, {
-            x,
-            y: yPosition,
-            size: fontSize,
-            font,
-            color,
-          });
-          yPosition -= fontSize + 2;
-        });
-        
-        return lines.length * (fontSize + 2);
-      };
-      
-      // Header
-      page.drawText('UTAMA MEDGROUP SDN BHD', {
+      // Company header
+      currentPage.drawText('UTAMA MEDGROUP SDN BHD', {
         x: 50,
         y: height - 50,
         size: 16,
@@ -1005,7 +957,7 @@ export default function MyRecordPage() {
         color: rgb(0, 0, 0),
       });
       
-      page.drawText('ATTENDANCE RECORD REPORT', {
+      currentPage.drawText('ATTENDANCE RECORD REPORT', {
         x: 50,
         y: height - 75,
         size: 14,
@@ -1016,7 +968,7 @@ export default function MyRecordPage() {
       // Date range
       const fromDate = format(filters.dateFrom, 'dd/MM/yyyy');
       const toDate = format(filters.dateTo, 'dd/MM/yyyy');
-      page.drawText(`Period: ${fromDate} - ${toDate}`, {
+      currentPage.drawText(`Period: ${fromDate} - ${toDate}`, {
         x: 50,
         y: height - 100,
         size: 10,
@@ -1024,7 +976,7 @@ export default function MyRecordPage() {
         color: rgb(0, 0, 0),
       });
       
-      // Employee info section - Get proper employee data
+      // Employee info section
       const employeeName = user?.username || 'N/A';
       const employeeData = currentEmployee || {};
       const icNumber = employeeData.icNumber || employeeData.ic || '-';
@@ -1032,7 +984,7 @@ export default function MyRecordPage() {
       let yPosition = height - 130;
       
       // Employee info box
-      page.drawRectangle({
+      currentPage.drawRectangle({
         x: 50,
         y: yPosition - 40,
         width: width - 100,
@@ -1042,7 +994,7 @@ export default function MyRecordPage() {
         borderWidth: 1,
       });
       
-      page.drawText('Employee Information', {
+      currentPage.drawText('Employee Information', {
         x: 60,
         y: yPosition - 15,
         size: 12,
@@ -1050,7 +1002,7 @@ export default function MyRecordPage() {
         color: rgb(0, 0, 0),
       });
       
-      page.drawText(`Name: ${employeeName}`, {
+      currentPage.drawText(`Name: ${employeeName}`, {
         x: 60,
         y: yPosition - 30,
         size: 10,
@@ -1058,7 +1010,7 @@ export default function MyRecordPage() {
         color: rgb(0, 0, 0),
       });
       
-      page.drawText(`IC Number: ${icNumber}`, {
+      currentPage.drawText(`IC Number: ${icNumber}`, {
         x: 300,
         y: yPosition - 30,
         size: 10,
@@ -1068,71 +1020,75 @@ export default function MyRecordPage() {
       
       yPosition -= 60;
       
-      // Table headers with adjusted widths to prevent text overlap
-      const columnWidths = [40, 120, 70, 70, 70, 70, 70, 70, 80];
-      const headers = ['No.', 'Employee', 'Date', 'Clock In', 'Break Out', 'Break In', 'Clock Out', 'Total Hours', 'Status'];
-      let xPosition = 50;
+      // Fixed table structure with proper spacing
+      const tableStartX = 50;
+      const tableWidth = width - 100;
+      const rowHeight = 20;
+      const fontSize = 8;
       
-      // Header background
-      page.drawRectangle({
-        x: 50,
-        y: yPosition - 25,
-        width: width - 100,
-        height: 25,
-        color: rgb(0.9, 0.9, 0.9),
-        borderColor: rgb(0.8, 0.8, 0.8),
-        borderWidth: 1,
-      });
+      // Column configuration - optimized for readability
+      const columns = [
+        { header: 'No.', width: 30 },
+        { header: 'Employee', width: 100 },
+        { header: 'Date', width: 65 },
+        { header: 'Clock In', width: 60 },
+        { header: 'Break Out', width: 65 },
+        { header: 'Break In', width: 60 },
+        { header: 'Clock Out', width: 65 },
+        { header: 'Total Hours', width: 70 },
+        { header: 'Status', width: 65 }
+      ];
       
-      // Header text
-      headers.forEach((header, index) => {
-        page.drawText(header, {
-          x: xPosition + 5,
-          y: yPosition - 15,
-          size: 10,
-          font: boldFont,
-          color: rgb(0, 0, 0),
-        });
-        xPosition += columnWidths[index];
-      });
-      
-      yPosition -= 25;
-      
-      // Table rows
-      filteredRecords.forEach((record, index) => {
-        // Check if we need a new page
-        if (yPosition < 100) {
-          const newPage = pdfDoc.addPage([842, 595]);
-          yPosition = height - 50;
-        }
-        
-        const rowHeight = 25;
-        
-        // Alternating row background
-        if (index % 2 === 0) {
-          page.drawRectangle({
-            x: 50,
-            y: yPosition - rowHeight,
-            width: width - 100,
-            height: rowHeight,
-            color: rgb(0.98, 0.98, 0.98),
-          });
-        }
-        
-        // Row border
+      // Helper function to draw table header
+      const drawTableHeader = (page: any, y: number) => {
+        // Header background
         page.drawRectangle({
-          x: 50,
-          y: yPosition - rowHeight,
-          width: width - 100,
+          x: tableStartX,
+          y: y - rowHeight,
+          width: tableWidth,
           height: rowHeight,
-          borderColor: rgb(0.9, 0.9, 0.9),
-          borderWidth: 0.5,
+          color: rgb(0.9, 0.9, 0.9),
+          borderColor: rgb(0.6, 0.6, 0.6),
+          borderWidth: 1,
         });
         
-        // Data cells - format time properly
-        const employeeDisplayName = record.employeeName || record.fullName || 'N/A';
+        let currentX = tableStartX;
+        columns.forEach((col) => {
+          // Draw vertical line
+          page.drawLine({
+            start: { x: currentX, y: y },
+            end: { x: currentX, y: y - rowHeight },
+            color: rgb(0.6, 0.6, 0.6),
+            thickness: 1,
+          });
+          
+          // Draw header text - centered
+          const textWidth = font.widthOfTextAtSize(col.header, fontSize);
+          const textX = currentX + (col.width - textWidth) / 2;
+          
+          page.drawText(col.header, {
+            x: Math.max(currentX + 3, textX),
+            y: y - 15,
+            size: fontSize,
+            font: boldFont,
+            color: rgb(0, 0, 0),
+          });
+          
+          currentX += col.width;
+        });
         
-        // Format time fields properly
+        // Right border
+        page.drawLine({
+          start: { x: currentX, y: y },
+          end: { x: currentX, y: y - rowHeight },
+          color: rgb(0.6, 0.6, 0.6),
+          thickness: 1,
+        });
+      };
+      
+      // Helper function to draw table row
+      const drawTableRow = (page: any, record: any, rowIndex: number, y: number) => {
+        // Format time function
         const formatTime = (timeString: string | null) => {
           if (!timeString) return '-';
           try {
@@ -1143,9 +1099,32 @@ export default function MyRecordPage() {
           }
         };
         
+        // Row background (alternating)
+        if (rowIndex % 2 === 0) {
+          page.drawRectangle({
+            x: tableStartX,
+            y: y - rowHeight,
+            width: tableWidth,
+            height: rowHeight,
+            color: rgb(0.98, 0.98, 0.98),
+          });
+        }
+        
+        // Row border
+        page.drawRectangle({
+          x: tableStartX,
+          y: y - rowHeight,
+          width: tableWidth,
+          height: rowHeight,
+          borderColor: rgb(0.8, 0.8, 0.8),
+          borderWidth: 0.5,
+        });
+        
+        // Prepare row data
+        const employeeDisplayName = record.employeeName || record.fullName || 'N/A';
         const rowData = [
-          (index + 1).toString(),
-          employeeDisplayName,
+          (rowIndex + 1).toString(),
+          employeeDisplayName.length > 12 ? employeeDisplayName.substring(0, 9) + '...' : employeeDisplayName,
           format(new Date(record.date), 'dd/MM/yyyy'),
           formatTime(record.clockInTime),
           formatTime(record.breakOutTime),
@@ -1155,75 +1134,71 @@ export default function MyRecordPage() {
           record.isLateClockIn ? 'Late' : 'On Time'
         ];
         
-        xPosition = 50;
-        rowData.forEach((data, colIndex) => {
-          let textColor = rgb(0, 0, 0);
+        let currentX = tableStartX;
+        columns.forEach((col, colIndex) => {
+          // Draw vertical line
+          page.drawLine({
+            start: { x: currentX, y: y },
+            end: { x: currentX, y: y - rowHeight },
+            color: rgb(0.8, 0.8, 0.8),
+            thickness: 0.5,
+          });
           
-          // Status column - color coding
+          // Text color for status column
+          let textColor = rgb(0, 0, 0);
           if (colIndex === 8) { // Status column
             textColor = record.isLateClockIn ? rgb(0.8, 0, 0) : rgb(0, 0.6, 0);
           }
           
-          // Calculate available width for text
-          const availableWidth = columnWidths[colIndex] - 10; // 5px padding on each side
+          // Draw cell text
+          const cellText = rowData[colIndex] || '-';
+          page.drawText(cellText, {
+            x: currentX + 3,
+            y: y - 13,
+            size: fontSize,
+            font: font,
+            color: textColor,
+          });
           
-          // Handle text based on column and length
-          if (colIndex === 1) { // Employee name column
-            if (data.length > 14) {
-              // Use text wrapping for long names
-              const wrappedHeight = drawWrappedText(page, data, xPosition + 5, yPosition - 10, availableWidth, 8, font, textColor);
-              // Check if wrapped text exceeds row height and adjust if needed
-              if (wrappedHeight > rowHeight - 5) {
-                // If text is too long, truncate and add ellipsis
-                const maxChars = Math.floor(availableWidth / 6); // Approximate char width
-                const truncatedText = data.length > maxChars ? data.substring(0, maxChars - 3) + '...' : data;
-                page.drawText(truncatedText, {
-                  x: xPosition + 5,
-                  y: yPosition - 15,
-                  size: 8,
-                  font: font,
-                  color: textColor,
-                });
-              }
-            } else {
-              page.drawText(data, {
-                x: xPosition + 5,
-                y: yPosition - 15,
-                size: 8,
-                font: font,
-                color: textColor,
-              });
-            }
-          } else {
-            // For other columns, use standard text with truncation if needed
-            let displayText = data;
-            const maxWidth = font.widthOfTextAtSize(data, 8);
-            
-            if (maxWidth > availableWidth) {
-              // Truncate text to fit column width
-              const maxChars = Math.floor((availableWidth / maxWidth) * data.length);
-              displayText = data.substring(0, Math.max(1, maxChars - 3)) + '...';
-            }
-            
-            page.drawText(displayText, {
-              x: xPosition + 5,
-              y: yPosition - 15,
-              size: 8,
-              font: font,
-              color: textColor,
-            });
-          }
-          
-          xPosition += columnWidths[colIndex];
+          currentX += col.width;
         });
         
+        // Right border
+        page.drawLine({
+          start: { x: currentX, y: y },
+          end: { x: currentX, y: y - rowHeight },
+          color: rgb(0.8, 0.8, 0.8),
+          thickness: 0.5,
+        });
+      };
+      
+      // Draw table header
+      drawTableHeader(currentPage, yPosition);
+      yPosition -= rowHeight;
+      
+      // Draw data rows
+      filteredRecords.forEach((record, index) => {
+        // Check if we need a new page
+        if (yPosition < 100) {
+          currentPage = pdfDoc.addPage([842, 595]);
+          yPosition = height - 80;
+          drawTableHeader(currentPage, yPosition);
+          yPosition -= rowHeight;
+        }
+        
+        drawTableRow(currentPage, record, index, yPosition);
         yPosition -= rowHeight;
       });
       
       // Summary Section
       yPosition -= 30;
-      const summaryBoxHeight = 50;
-      page.drawRectangle({
+      if (yPosition < 120) {
+        currentPage = pdfDoc.addPage([842, 595]);
+        yPosition = height - 80;
+      }
+      
+      const summaryBoxHeight = 60;
+      currentPage.drawRectangle({
         x: 50,
         y: yPosition - summaryBoxHeight,
         width: width - 100,
@@ -1233,7 +1208,7 @@ export default function MyRecordPage() {
         borderWidth: 1,
       });
       
-      page.drawText('Attendance Summary', {
+      currentPage.drawText('Attendance Summary', {
         x: 60,
         y: yPosition - 20,
         size: 12,
@@ -1245,34 +1220,34 @@ export default function MyRecordPage() {
       const lateRecords = filteredRecords.filter(r => r.isLateClockIn).length;
       const onTimeRecords = totalRecords - lateRecords;
       
-      page.drawText(`Total Records: ${totalRecords}`, {
+      currentPage.drawText(`Total Records: ${totalRecords}`, {
         x: 60,
-        y: yPosition - 35,
+        y: yPosition - 40,
         size: 10,
         font: font,
         color: rgb(0, 0, 0),
       });
       
-      page.drawText(`On Time: ${onTimeRecords}`, {
+      currentPage.drawText(`On Time: ${onTimeRecords}`, {
         x: 200,
-        y: yPosition - 35,
+        y: yPosition - 40,
         size: 10,
         font: font,
         color: rgb(0, 0.6, 0),
       });
       
-      page.drawText(`Late: ${lateRecords}`, {
-        x: 300,
-        y: yPosition - 35,
+      currentPage.drawText(`Late: ${lateRecords}`, {
+        x: 320,
+        y: yPosition - 40,
         size: 10,
         font: font,
         color: rgb(0.8, 0, 0),
       });
       
-      // Footer
+      // Footer on last page
       const footerText = `Page 1 of 1 | Generated by UtamaHR System | ${format(new Date(), 'dd/MM/yyyy HH:mm')}`;
       const footerWidth = font.widthOfTextAtSize(footerText, 8);
-      page.drawText(footerText, {
+      currentPage.drawText(footerText, {
         x: (width - footerWidth) / 2,
         y: 30,
         size: 8,
