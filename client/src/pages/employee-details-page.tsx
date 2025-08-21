@@ -1551,7 +1551,7 @@ export default function EmployeeDetailsPage() {
                           <Building className="w-5 h-5" />
                           Employment Details
                         </CardTitle>
-                        {!isEditingEmployment ? (
+                        {!isEditingEmployment && canManageRoles() ? (
                           <Button
                             variant="outline"
                             size="sm"
@@ -1779,7 +1779,7 @@ export default function EmployeeDetailsPage() {
                           <UserCheck className="w-5 h-5" />
                           Approval Details
                         </CardTitle>
-                        {!isEditingApproval ? (
+                        {!isEditingApproval && canManageRoles() ? (
                           <Button
                             variant="outline"
                             size="sm"
@@ -1979,7 +1979,7 @@ export default function EmployeeDetailsPage() {
                           <FileText className="w-5 h-5" />
                           Yearly Form
                         </CardTitle>
-                        {!isEditingYearly ? (
+                        {!isEditingYearly && canManageRoles() ? (
                           <Button
                             variant="outline"
                             size="sm"
