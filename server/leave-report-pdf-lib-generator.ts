@@ -220,6 +220,17 @@ export async function generateLeaveReportPDFLib(data: LeaveReportData, company: 
         
         // Table rows with leave data
         const leaveTypes = Object.entries(employee.leaveBreakdown);
+        console.log(`Processing employee ${employee.employeeName}:`, {
+          leaveTypesCount: leaveTypes.length,
+          leaveTypes: leaveTypes.map(([type, data]) => ({
+            type,
+            entitlement: data.entitlementDays,
+            taken: data.takenDays,
+            balance: data.balanceDays,
+            excluded: data.roleBasedExcluded
+          }))
+        });
+        
         let rowNumber = 1;
         
         leaveTypes.forEach(([leaveType, breakdown]) => {

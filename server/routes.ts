@@ -1021,7 +1021,13 @@ export function registerRoutes(app: Express): Server {
       console.log('Calling PDF generator with data:', {
         employeeCount: reportData.employees.length,
         filters: reportData.filters,
-        reportTitle: reportData.reportTitle
+        reportTitle: reportData.reportTitle,
+        sampleEmployeeData: reportData.employees[0] ? {
+          name: reportData.employees[0].employeeName,
+          id: reportData.employees[0].employeeId,
+          leaveBreakdownKeys: Object.keys(reportData.employees[0].leaveBreakdown || {}),
+          sampleLeaveData: Object.entries(reportData.employees[0].leaveBreakdown || {}).slice(0, 2)
+        } : null
       });
 
       // Use pdf-lib approach like payment voucher
