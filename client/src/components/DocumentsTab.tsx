@@ -31,7 +31,12 @@ export function DocumentsTab({ employeeId }: DocumentsTabProps) {
   const [modalMode, setModalMode] = useState<"add" | "edit" | "view">("add");
   const [selectedDocument, setSelectedDocument] = useState<EmployeeDocument | null>(null);
 
-  // Role-based access control - only Super Admin, Admin, HR Manager can delete documents
+  // Role-based access control - only Super Admin, Admin, HR Manager can edit/delete documents
+  const canEditDocuments = () => {
+    const adminRoles = ['Super Admin', 'Admin', 'HR Manager'];
+    return user && adminRoles.includes(user.role);
+  };
+
   const canDeleteDocuments = () => {
     const adminRoles = ['Super Admin', 'Admin', 'HR Manager'];
     return user && adminRoles.includes(user.role);
@@ -174,14 +179,16 @@ export function DocumentsTab({ employeeId }: DocumentsTabProps) {
         <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white rounded-t-lg">
           <div className="flex justify-between items-center">
             <CardTitle>Dokumen</CardTitle>
-            <Button
-              onClick={handleAdd}
-              className="bg-white text-cyan-600 hover:bg-gray-100"
-              data-testid="button-add-document"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Tambah
-            </Button>
+            {canEditDocuments() && (
+              <Button
+                onClick={handleAdd}
+                className="bg-white text-cyan-600 hover:bg-gray-100"
+                data-testid="button-add-document"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Tambah
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent className="p-6">
@@ -228,14 +235,16 @@ export function DocumentsTab({ employeeId }: DocumentsTabProps) {
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEdit(document)}
-                            data-testid={`button-edit-${document.id}`}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
+                          {canEditDocuments() && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEdit(document)}
+                              data-testid={`button-edit-${document.id}`}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                          )}
                           <Button
                             variant="ghost"
                             size="sm"
