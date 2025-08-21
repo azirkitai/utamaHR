@@ -1471,13 +1471,21 @@ export class DatabaseStorage implements IStorage {
       // Get all employees
       const allEmployees = await db.select().from(employees);
       
+      // Get all employment records for department information
+      const allEmployment = await db.select().from(employment);
+      
       // Get all company leave types
       const allLeaveTypes = await db.select().from(companyLeaveTypes);
+
+      console.log("Debug: Raw data counts - Applications:", rawApplications.length, "Employees:", allEmployees.length, "Employment:", allEmployment.length, "Leave Types:", allLeaveTypes.length);
 
       // Map data together manually
       const allApplications = rawApplications.map(app => {
         const employee = allEmployees.find(emp => emp.id === app.employeeId);
+        const employmentRecord = allEmployment.find(emp => emp.employeeId === app.employeeId);
         const leaveType = allLeaveTypes.find(lt => lt.id === app.leaveTypeId);
+        
+        const department = employmentRecord?.department || 'Unknown Department';
         
         return {
           id: app.id,
@@ -1494,11 +1502,12 @@ export class DatabaseStorage implements IStorage {
           updatedAt: app.updatedAt,
           applicant: employee?.fullName || 'Unknown Employee',
           leaveType: leaveType?.name || 'Unknown Leave Type',
-          department: employee?.department || 'Unknown Department'
+          department: department
         };
       });
 
       console.log("Total applications from DB:", allApplications.length);
+      console.log("Sample departments found:", allApplications.slice(0, 3).map(app => `${app.applicant}: ${app.department}`));
 
       // Apply filters in JavaScript
       let filteredResults = allApplications;
@@ -1517,7 +1526,10 @@ export class DatabaseStorage implements IStorage {
 
       // Apply department filter
       if (filters.department && filters.department !== 'all') {
+        console.log("Applying department filter:", filters.department);
+        const beforeCount = filteredResults.length;
         filteredResults = filteredResults.filter(app => app.department === filters.department);
+        console.log(`Department filter: ${beforeCount} -> ${filteredResults.length} applications (filtered for: ${filters.department})`);
       }
 
       console.log("Filtered results:", filteredResults.length, "records");

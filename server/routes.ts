@@ -916,10 +916,11 @@ export function registerRoutes(app: Express): Server {
   // Get leave summary for all employees (employee-wise breakdown)
   app.get("/api/leave-summary-all-employees", authenticateToken, async (req, res) => {
     try {
-      console.log('Fetching leave summary for all employees...');
+      const { department, year } = req.query;
+      console.log('Fetching leave summary for all employees... Filters:', { department, year });
       
-      // Get all employees with their roles
-      const allEmployees = await db
+      // Get all employees with their roles - filtered by department if specified
+      let employeesQuery = db
         .select({
           id: employees.id,
           fullName: employees.fullName,
@@ -928,6 +929,54 @@ export function registerRoutes(app: Express): Server {
         })
         .from(employees)
         .where(eq(employees.status, 'employed'));
+
+      // Apply department filter if specified
+      let filteredEmployees;
+      if (department && department !== 'all') {
+        console.log(`Filtering employees by department: ${department}`);
+        
+        // Get employees from specific department using employment table
+        const employeesInDepartment = await db
+          .select({
+            employeeId: employment.employeeId
+          })
+          .from(employment)
+          .where(eq(employment.department, department as string));
+          
+        const employeeIds = employeesInDepartment.map(emp => emp.employeeId);
+        console.log(`Found ${employeeIds.length} employees in department ${department}:`, employeeIds);
+        
+        if (employeeIds.length === 0) {
+          // No employees in this department, return empty result
+          return res.json({ employees: [], enabledLeaveTypes: [] });
+        }
+        
+        // Filter employees by the IDs found in the department
+        filteredEmployees = await db
+          .select({
+            id: employees.id,
+            fullName: employees.fullName,
+            userId: employees.userId,
+            role: employees.role
+          })
+          .from(employees)
+          .where(
+            and(
+              eq(employees.status, 'employed'),
+              inArray(employees.id, employeeIds)
+            )
+          );
+      } else {
+        // Get all employees if no department filter
+        filteredEmployees = await employeesQuery;
+      }
+      
+      const allEmployees = filteredEmployees;
+      console.log(`Processing ${allEmployees.length} employees after department filtering`);
+      
+      if (allEmployees.length === 0) {
+        return res.json({ employees: [], enabledLeaveTypes: [] });
+      }
 
       // Get only enabled leave types
       const enabledLeaveTypes = await db

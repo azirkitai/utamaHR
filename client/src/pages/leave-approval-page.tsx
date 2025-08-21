@@ -117,7 +117,30 @@ export default function LeaveApprovalPage() {
 
   // Fetch employee leave summary for all employees
   const { data: employeeLeaveSummary = { employees: [], enabledLeaveTypes: [] } } = useQuery({
-    queryKey: ["/api/leave-summary-all-employees"]
+    queryKey: ["/api/leave-summary-all-employees", selectedDepartment, selectedYear],
+    queryFn: async () => {
+      let url = "/api/leave-summary-all-employees";
+      const params = new URLSearchParams();
+      if (selectedDepartment !== 'all') {
+        params.append('department', selectedDepartment);
+      }
+      if (selectedYear) {
+        params.append('year', selectedYear);
+      }
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+      
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('utamahr_token')}`
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch employee leave summary');
+      }
+      return response.json();
+    },
   });
 
   // Fetch departments for dropdown filter
