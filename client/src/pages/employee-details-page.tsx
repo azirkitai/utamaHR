@@ -241,16 +241,11 @@ export default function EmployeeDetailsPage() {
 
   // Get current overtime approval settings to display
   const getCurrentOvertimeApprovalSettings = () => {
-    console.log("Overtime approval settings data:", overtimeApprovalSettings);
     if (!overtimeApprovalSettings) return { firstLevel: "N/A", secondLevel: "N/A" };
     
-    console.log("Overtime First Level ID:", overtimeApprovalSettings.firstLevelApprovalId);
-    console.log("Overtime Second Level ID:", overtimeApprovalSettings.secondLevelApprovalId);
-    
-    const firstLevel = getEmployeeNameById(overtimeApprovalSettings.firstLevelApprovalId) || "N/A";
-    const secondLevel = getEmployeeNameById(overtimeApprovalSettings.secondLevelApprovalId) || "N/A";
-    
-    console.log("Overtime resolved names - First:", firstLevel, "Second:", secondLevel);
+    // API returns firstLevel and secondLevel fields, not firstLevelApprovalId
+    const firstLevel = getEmployeeNameById(overtimeApprovalSettings.firstLevel) || "N/A";
+    const secondLevel = getEmployeeNameById(overtimeApprovalSettings.secondLevel) || "N/A";
     
     return {
       firstLevel,
