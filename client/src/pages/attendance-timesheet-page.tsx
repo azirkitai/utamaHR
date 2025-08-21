@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,43 +37,67 @@ export default function AttendanceTimesheetPage() {
   const [showPicture, setShowPicture] = useState(false);
   const [showNote, setShowNote] = useState(false);
 
-  // Sample data
+  // Fetch real attendance data
+  const { data: attendanceRecords, isLoading: attendanceLoading } = useQuery({
+    queryKey: ['/api/attendance-records'],
+    enabled: true,
+  });
+
+  const { data: employees, isLoading: employeesLoading } = useQuery({
+    queryKey: ['/api/employees'],
+    enabled: true,
+  });
+
+  const { data: todayAttendance, isLoading: todayLoading } = useQuery({
+    queryKey: ['/api/today-attendance'],
+    enabled: true,
+  });
+
+  // Calculate today's stats from real data
   const todayStats = {
-    totalStaff: 2,
-    totalClockIn: 0,
-    totalAbsent: 2,
-    onLeave: 0
+    totalStaff: employees?.length || 0,
+    totalClockIn: todayAttendance?.length || 0,
+    totalAbsent: (employees?.length || 0) - (todayAttendance?.length || 0),
+    onLeave: 0 // This could be calculated from leave applications if needed
   };
 
-  const attendanceData = [
-    {
-      id: 1,
-      employee: "Ahmad Rahman",
-      clockIn: "08:00 AM",
-      clockOut: "05:00 PM",
-      date: "2025-08-08",
-      status: "present"
-    }
-  ];
+  // Process attendance records for display
+  const attendanceData = attendanceRecords?.map((record: any) => {
+    const employee = employees?.find((emp: any) => emp.id === record.employeeId);
+    return {
+      id: record.id,
+      employee: employee ? `${employee.firstName} ${employee.lastName}`.trim() : 'Unknown',
+      clockIn: record.clockInTime ? new Date(record.clockInTime).toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: true 
+      }) : '-',
+      clockOut: record.clockOutTime ? new Date(record.clockOutTime).toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: true 
+      }) : '-',
+      date: new Date(record.date).toLocaleDateString(),
+      status: record.clockInTime ? 'present' : 'absent'
+    };
+  }) || [];
 
-  const summaryData = [
-    {
-      id: 1,
-      employee: "SITI NADIAH SABRI",
-      present: 0,
-      absent: 7,
-      late: 0,
-      earlyClockOut: 0
-    },
-    {
-      id: 2,
-      employee: "madrah samsi",
-      present: 0,
-      absent: 7,
-      late: 0,
-      earlyClockOut: 0
-    }
-  ];
+  // Calculate summary data from attendance records
+  const summaryData = employees?.map((employee: any, index: number) => {
+    const employeeRecords = attendanceRecords?.filter((record: any) => record.employeeId === employee.id) || [];
+    const presentDays = employeeRecords.filter((record: any) => record.clockInTime).length;
+    const absentDays = employeeRecords.length - presentDays;
+    const lateDays = employeeRecords.filter((record: any) => record.isLateClockIn).length;
+    
+    return {
+      id: index + 1,
+      employee: `${employee.firstName} ${employee.lastName}`.trim(),
+      present: presentDays,
+      absent: absentDays,
+      late: lateDays,
+      earlyClockOut: 0 // This would need additional logic to calculate
+    };
+  }) || [];
 
   const renderTabNavigation = () => (
     <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6">
@@ -176,7 +201,11 @@ export default function AttendanceTimesheetPage() {
           <h3 className="text-lg font-semibold">Today Attendance Record</h3>
           <div className="flex items-center space-x-2 bg-white/20 px-3 py-1 rounded">
             <Calendar className="w-4 h-4" />
-            <span className="text-sm">08 August 2025</span>
+            <span className="text-sm">{new Date().toLocaleDateString('en-GB', { 
+              day: '2-digit', 
+              month: 'long', 
+              year: 'numeric' 
+            })}</span>
           </div>
         </div>
         <div className="flex items-center space-x-2">
@@ -231,10 +260,16 @@ export default function AttendanceTimesheetPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {attendanceData.length === 0 ? (
+            {attendanceLoading || employeesLoading ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-center py-8 text-gray-500">
-                  No data available in table
+                  Loading attendance data...
+                </TableCell>
+              </TableRow>
+            ) : attendanceData.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-8 text-gray-500">
+                  No attendance data available
                 </TableCell>
               </TableRow>
             ) : (
@@ -368,11 +403,36 @@ export default function AttendanceTimesheetPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow>
-              <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                No data available in table
-              </TableCell>
-            </TableRow>
+            {attendanceLoading || employeesLoading ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                  Loading attendance report...
+                </TableCell>
+              </TableRow>
+            ) : attendanceData.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                  No attendance records found
+                </TableCell>
+              </TableRow>
+            ) : (
+              attendanceData.map((item, index) => (
+                <TableRow key={item.id}>
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell className="font-medium">{item.employee}</TableCell>
+                  <TableCell>{item.date}</TableCell>
+                  <TableCell>{item.clockIn}</TableCell>
+                  <TableCell>{item.clockOut}</TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button size="sm" variant="outline" data-testid={`button-view-${item.id}`}>
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
@@ -380,7 +440,7 @@ export default function AttendanceTimesheetPage() {
       {/* Pagination */}
       <div className="flex justify-between items-center">
         <div className="text-sm text-gray-600">
-          Showing 0 to 0 of 0 entries
+          Showing {attendanceData.length > 0 ? 1 : 0} to {attendanceData.length} of {attendanceData.length} entries
         </div>
         <div className="flex space-x-2">
           <Button variant="outline" disabled data-testid="button-previous-report">
@@ -458,26 +518,40 @@ export default function AttendanceTimesheetPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {summaryData.map((item, index) => (
-              <TableRow key={item.id}>
-                <TableCell>{index + 1}</TableCell>
-                <TableCell className="font-medium">{item.employee}</TableCell>
-                <TableCell>{item.present}</TableCell>
-                <TableCell>{item.absent}</TableCell>
-                <TableCell>{item.late}</TableCell>
-                <TableCell>{item.earlyClockOut}</TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
-                    <Button size="sm" variant="outline" data-testid={`button-view-${item.id}`}>
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                    <Button size="sm" variant="outline" data-testid={`button-details-${item.id}`}>
-                      <Clock className="w-4 h-4" />
-                    </Button>
-                  </div>
+            {attendanceLoading || employeesLoading ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                  Loading summary data...
                 </TableCell>
               </TableRow>
-            ))}
+            ) : summaryData.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                  No employee data available
+                </TableCell>
+              </TableRow>
+            ) : (
+              summaryData.map((item, index) => (
+                <TableRow key={item.id}>
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell className="font-medium">{item.employee}</TableCell>
+                  <TableCell>{item.present}</TableCell>
+                  <TableCell>{item.absent}</TableCell>
+                  <TableCell>{item.late}</TableCell>
+                  <TableCell>{item.earlyClockOut}</TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button size="sm" variant="outline" data-testid={`button-view-${item.id}`}>
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      <Button size="sm" variant="outline" data-testid={`button-details-${item.id}`}>
+                        <Clock className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
@@ -485,7 +559,7 @@ export default function AttendanceTimesheetPage() {
       {/* Pagination */}
       <div className="flex justify-between items-center">
         <div className="text-sm text-gray-600">
-          Showing 1 to 2 of 2 entries
+          Showing 1 to {summaryData.length} of {summaryData.length} entries
         </div>
         <div className="flex space-x-2">
           <Button variant="outline" disabled data-testid="button-previous-summary">
