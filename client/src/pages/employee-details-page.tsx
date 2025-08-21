@@ -106,6 +106,34 @@ export default function EmployeeDetailsPage() {
     employmentStatus: "",
     okuStatus: ""
   });
+
+  // Bank details form state
+  const [bankDetailsForm, setBankDetailsForm] = useState({
+    bank: "",
+    accountNumber: "",
+    accountType: "",
+    accountHolderName: ""
+  });
+
+  // Statutory details form state
+  const [statutoryDetailsForm, setStatutoryDetailsForm] = useState({
+    epfNumber: "",
+    epfContributionStartDate: "",
+    socsoNumber: "",
+    socsoContributionStartAge: "",
+    socsoCategory: "",
+    incomeTaxNumber: "",
+    vola: ""
+  });
+
+  // Income tax details form state
+  const [incomeTaxDetailsForm, setIncomeTaxDetailsForm] = useState({
+    hasChild: false,
+    spouseWorking: false,
+    spouseGender: "",
+    spouseDisable: false,
+    employeeCategory: ""
+  });
   
   // Date picker states
   const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>();
@@ -385,6 +413,75 @@ export default function EmployeeDetailsPage() {
     },
   });
 
+  // Bank details mutation
+  const updateBankDetailsMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest("PUT", `/api/employees/${id}/bank-details`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Berjaya",
+        description: "Butiran bank telah dikemaskini",
+      });
+      setIsEditingBankDetails(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/employees", id] });
+    },
+    onError: () => {
+      toast({
+        title: "Ralat",
+        description: "Gagal mengemaskini butiran bank",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Statutory details mutation
+  const updateStatutoryDetailsMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest("PUT", `/api/employees/${id}/statutory-details`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Berjaya",
+        description: "Butiran berkanun telah dikemaskini",
+      });
+      setIsEditingStatutoryDetails(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/employees", id] });
+    },
+    onError: () => {
+      toast({
+        title: "Ralat",
+        description: "Gagal mengemaskini butiran berkanun",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Income tax details mutation
+  const updateIncomeTaxDetailsMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest("PUT", `/api/employees/${id}/income-tax-details`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Berjaya",
+        description: "Butiran cukai pendapatan telah dikemaskini",
+      });
+      setIsEditingIncomeTaxDetails(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/employees", id] });
+    },
+    onError: () => {
+      toast({
+        title: "Ralat",
+        description: "Gagal mengemaskini butiran cukai pendapatan",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Helper functions
   const calculatePeriod = (startDate: Date, endDate: Date): string => {
     const years = endDate.getFullYear() - startDate.getFullYear();
@@ -478,6 +575,18 @@ export default function EmployeeDetailsPage() {
       }
     });
     updateEmployeeMutation.mutate(updatedData);
+  };
+
+  const handleSaveBankDetails = () => {
+    updateBankDetailsMutation.mutate(bankDetailsForm);
+  };
+
+  const handleSaveStatutoryDetails = () => {
+    updateStatutoryDetailsMutation.mutate(statutoryDetailsForm);
+  };
+
+  const handleSaveIncomeTaxDetails = () => {
+    updateIncomeTaxDetailsMutation.mutate(incomeTaxDetailsForm);
   };
 
   const handleAddWorkExperience = () => {
@@ -2670,10 +2779,12 @@ export default function EmployeeDetailsPage() {
                             Cancel
                           </Button>
                           <Button
+                            onClick={handleSaveBankDetails}
+                            disabled={updateBankDetailsMutation.isPending}
                             className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
                             data-testid="button-save-bank-details"
                           >
-                            Save Changes
+                            {updateBankDetailsMutation.isPending ? "Menyimpan..." : "Save Changes"}
                           </Button>
                         </div>
                       )}
@@ -2864,10 +2975,12 @@ export default function EmployeeDetailsPage() {
                             Cancel
                           </Button>
                           <Button
+                            onClick={handleSaveStatutoryDetails}
+                            disabled={updateStatutoryDetailsMutation.isPending}
                             className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
                             data-testid="button-save-statutory-details"
                           >
-                            Save Changes
+                            {updateStatutoryDetailsMutation.isPending ? "Menyimpan..." : "Save Changes"}
                           </Button>
                         </div>
                       )}
@@ -3031,10 +3144,12 @@ export default function EmployeeDetailsPage() {
                             Cancel
                           </Button>
                           <Button
+                            onClick={handleSaveIncomeTaxDetails}
+                            disabled={updateIncomeTaxDetailsMutation.isPending}
                             className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
                             data-testid="button-save-income-tax-details"
                           >
-                            Save Changes
+                            {updateIncomeTaxDetailsMutation.isPending ? "Menyimpan..." : "Save Changes"}
                           </Button>
                         </div>
                       )}
