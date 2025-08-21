@@ -876,6 +876,288 @@ export default function MyRecordPage() {
   };
 
   // Handle Leave Record PDF Download using pdf-lib
+  const handleClaimRecordPDFDownload = async () => {
+    console.log('🔄 Starting claim record PDF generation...');
+    
+    try {
+      if (!user || !currentEmployee) {
+        console.error('❌ User or employee data not available');
+        return;
+      }
+
+      // Create PDF using pdf-lib
+      const pdfDoc = await PDFDocument.create();
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+      const page = pdfDoc.addPage([595.28, 841.89]); // A4 size
+      const { width, height } = page.getSize();
+
+      let yPosition = height - 50;
+
+      // Company Header
+      page.drawText('UTAMA MEDGROUP', {
+        x: (width - boldFont.widthOfTextAtSize('UTAMA MEDGROUP', 20)) / 2,
+        y: yPosition,
+        size: 20,
+        font: boldFont,
+        color: rgb(0, 0, 0),
+      });
+
+      yPosition -= 30;
+      page.drawText('CLAIM APPLICATIONS REPORT', {
+        x: (width - boldFont.widthOfTextAtSize('CLAIM APPLICATIONS REPORT', 16)) / 2,
+        y: yPosition,
+        size: 16,
+        font: boldFont,
+        color: rgb(0, 0, 0),
+      });
+
+      yPosition -= 40;
+      
+      // Employee Information Box
+      const employeeName = currentEmployee.name || user.username || 'Unknown';
+      const employeeId = currentEmployee.nric || currentEmployee.id || 'N/A';
+      
+      page.drawRectangle({
+        x: 50,
+        y: yPosition - 60,
+        width: width - 100,
+        height: 60,
+        color: rgb(0.95, 0.95, 0.95),
+        borderColor: rgb(0.8, 0.8, 0.8),
+        borderWidth: 1,
+      });
+
+      page.drawText('Employee Information', {
+        x: 60,
+        y: yPosition - 20,
+        size: 12,
+        font: boldFont,
+        color: rgb(0, 0, 0),
+      });
+
+      page.drawText(`Name: ${employeeName}`, {
+        x: 60,
+        y: yPosition - 35,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+
+      page.drawText(`IC Number: ${employeeId}`, {
+        x: 60,
+        y: yPosition - 50,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+
+      yPosition -= 90;
+
+      // Period Information
+      page.drawText(`Report Period: ${format(filters.dateFrom, 'dd/MM/yyyy')} - ${format(filters.dateTo, 'dd/MM/yyyy')}`, {
+        x: 50,
+        y: yPosition,
+        size: 12,
+        font: boldFont,
+        color: rgb(0, 0, 0),
+      });
+
+      yPosition -= 30;
+
+      // Table Header Background
+      const headerHeight = 25;
+      page.drawRectangle({
+        x: 40,
+        y: yPosition - headerHeight,
+        width: width - 80,
+        height: headerHeight,
+        color: rgb(0.2, 0.4, 0.8),
+      });
+
+      // Table Headers
+      const headers = ['No.', 'Requestor', 'Claim Type', 'Amount', 'Date', 'Status'];
+      const columnWidths = [30, 100, 120, 70, 70, 80];
+      let xPosition = 50;
+
+      headers.forEach((header, index) => {
+        page.drawText(header, {
+          x: xPosition,
+          y: yPosition - 18,
+          size: 10,
+          font: boldFont,
+          color: rgb(1, 1, 1),
+        });
+        xPosition += columnWidths[index];
+      });
+
+      yPosition -= headerHeight + 10;
+
+      // Table Data with borders
+      searchFilteredClaims.forEach((claim, index) => {
+        if (yPosition < 150) {
+          // Add new page if needed
+          const newPage = pdfDoc.addPage([595.28, 841.89]);
+          yPosition = height - 50;
+        }
+
+        const rowHeight = 25;
+
+        // Alternating row background
+        if (index % 2 === 0) {
+          page.drawRectangle({
+            x: 40,
+            y: yPosition - rowHeight,
+            width: width - 80,
+            height: rowHeight,
+            color: rgb(0.98, 0.98, 0.98),
+          });
+        }
+
+        // Row border
+        page.drawRectangle({
+          x: 40,
+          y: yPosition - rowHeight,
+          width: width - 80,
+          height: rowHeight,
+          borderColor: rgb(0.9, 0.9, 0.9),
+          borderWidth: 0.5,
+        });
+
+        // Data cells
+        const requestorName = (claim as any).requestorName || (claim as any).employeeName || 'N/A';
+        const rowData = [
+          (index + 1).toString(),
+          requestorName,
+          claim.financialPolicyName || 'N/A',
+          `RM ${parseFloat(claim.amount || '0').toFixed(2)}`,
+          format(new Date(claim.claimDate), 'dd/MM/yyyy'),
+          claim.status || 'Unknown'
+        ];
+
+        xPosition = 50;
+        rowData.forEach((data, colIndex) => {
+          const textColor = colIndex === 5 ? // Status column
+            (claim.status === 'Approved' || claim.status === 'Paid' ? rgb(0, 0.6, 0) :
+             claim.status === 'Rejected' ? rgb(0.8, 0, 0) :
+             rgb(0.8, 0.6, 0)) : rgb(0, 0, 0);
+
+          // Truncate text if too long
+          let displayText = data;
+          if (data.length > 15 && (colIndex === 1 || colIndex === 2)) {
+            displayText = data.substring(0, 12) + '...';
+          }
+
+          page.drawText(displayText, {
+            x: xPosition + 5,
+            y: yPosition - 15,
+            size: 9,
+            font: font,
+            color: textColor,
+          });
+          xPosition += columnWidths[colIndex];
+        });
+
+        yPosition -= rowHeight;
+      });
+
+      // Summary Section
+      yPosition -= 30;
+      const summaryBoxHeight = 60;
+      page.drawRectangle({
+        x: 50,
+        y: yPosition - summaryBoxHeight,
+        width: width - 100,
+        height: summaryBoxHeight,
+        color: rgb(0.95, 0.95, 0.95),
+        borderColor: rgb(0.8, 0.8, 0.8),
+        borderWidth: 1,
+      });
+
+      page.drawText('Claim Summary', {
+        x: 60,
+        y: yPosition - 20,
+        size: 12,
+        font: boldFont,
+        color: rgb(0, 0, 0),
+      });
+
+      const totalClaims = searchFilteredClaims.length;
+      const approvedClaims = searchFilteredClaims.filter(c => c.status === 'Approved' || c.status === 'Paid').length;
+      const pendingClaims = searchFilteredClaims.filter(c => c.status === 'Pending').length;
+      const rejectedClaims = searchFilteredClaims.filter(c => c.status === 'Rejected').length;
+      const totalAmount = searchFilteredClaims.reduce((sum, claim) => sum + parseFloat(claim.amount || '0'), 0);
+
+      page.drawText(`Total Applications: ${totalClaims}`, {
+        x: 60,
+        y: yPosition - 35,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+
+      page.drawText(`Approved: ${approvedClaims}`, {
+        x: 200,
+        y: yPosition - 35,
+        size: 10,
+        font: font,
+        color: rgb(0, 0.6, 0),
+      });
+
+      page.drawText(`Pending: ${pendingClaims}`, {
+        x: 300,
+        y: yPosition - 35,
+        size: 10,
+        font: font,
+        color: rgb(0.8, 0.6, 0),
+      });
+
+      page.drawText(`Rejected: ${rejectedClaims}`, {
+        x: 400,
+        y: yPosition - 35,
+        size: 10,
+        font: font,
+        color: rgb(0.8, 0, 0),
+      });
+
+      page.drawText(`Total Amount: RM ${totalAmount.toFixed(2)}`, {
+        x: 60,
+        y: yPosition - 50,
+        size: 10,
+        font: boldFont,
+        color: rgb(0, 0, 0),
+      });
+
+      // Footer
+      yPosition -= 100;
+      page.drawText(`Generated on: ${format(new Date(), 'dd/MM/yyyy HH:mm:ss')}`, {
+        x: 50,
+        y: 50,
+        size: 8,
+        font: font,
+        color: rgb(0.5, 0.5, 0.5),
+      });
+
+      // Save and download PDF
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Claim_Report_${employeeName}_${format(filters.dateFrom, 'dd-MM-yyyy')}_to_${format(filters.dateTo, 'dd-MM-yyyy')}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      console.log('✅ Claim record PDF generated and downloaded successfully');
+    } catch (error) {
+      console.error('❌ Error generating claim record PDF:', error);
+      console.error('❌ Full error stack:', error.stack);
+      console.error('❌ Error message:', error.message);
+    }
+  };
+
   const handleLeaveRecordPDFDownload = async () => {
     try {
       console.log('🔥 GENERATING LEAVE RECORD PDF WITH AUTHENTIC DATA');
@@ -1322,6 +1604,129 @@ export default function MyRecordPage() {
     </div>
   );
 
+  const renderClaimFilterSection = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Date From</label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn("justify-start text-left font-normal", !filters.dateFrom && "text-muted-foreground")}
+              data-testid="button-claim-date-from"
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {filters.dateFrom ? format(filters.dateFrom, "dd/MM/yyyy") : "Pick a date"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0">
+            <Calendar
+              mode="single"
+              selected={filters.dateFrom}
+              onSelect={(date) => date && setFilters(prev => ({ ...prev, dateFrom: date }))}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Date To</label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn("justify-start text-left font-normal", !filters.dateTo && "text-muted-foreground")}
+              data-testid="button-claim-date-to"
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {filters.dateTo ? format(filters.dateTo, "dd/MM/yyyy") : "Pick a date"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0">
+            <Calendar
+              mode="single"
+              selected={filters.dateTo}
+              onSelect={(date) => date && setFilters(prev => ({ ...prev, dateTo: date }))}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Claim Type</label>
+        <Select 
+          value={filters.claimType} 
+          onValueChange={(value) => setFilters(prev => ({ ...prev, claimType: value }))}
+          data-testid="select-claim-type"
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="All claim type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all-claim-type">All claim type</SelectItem>
+            <SelectItem value="Medical Expenses">Medical Expenses</SelectItem>
+            <SelectItem value="Travel Allowance">Travel Allowance</SelectItem>
+            <SelectItem value="Phone Bill">Phone Bill</SelectItem>
+            <SelectItem value="Parking">Parking</SelectItem>
+            <SelectItem value="Meal Allowance">Meal Allowance</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Claim Status</label>
+        <Select 
+          value={filters.claimStatus} 
+          onValueChange={(value) => setFilters(prev => ({ ...prev, claimStatus: value }))}
+          data-testid="select-claim-status"
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="All claim status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all-claim-status">All claim status</SelectItem>
+            <SelectItem value="Pending">Pending</SelectItem>
+            <SelectItem value="Approved">Approved</SelectItem>
+            <SelectItem value="Rejected">Rejected</SelectItem>
+            <SelectItem value="Paid">Paid</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="flex gap-2">
+        <Button className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700" data-testid="button-claim-search">
+          <Search className="h-4 w-4 mr-2" />
+          Search
+        </Button>
+        {/* Download Button - only show for Claim tab */}
+        {activeTab === "claim" && (
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" data-testid="button-claim-download">
+                <Download className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-48">
+              <div className="space-y-2">
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start" 
+                  data-testid="button-claim-download-pdf"
+                  onClick={handleClaimRecordPDFDownload}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download as PDF
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+        )}
+      </div>
+    </div>
+  );
+
   const renderLeaveTab = () => (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 p-4 rounded-lg text-white">
@@ -1438,7 +1843,7 @@ export default function MyRecordPage() {
       </div>
       
       {/* Filters */}
-      {renderFilterSection('claim')}
+      {renderClaimFilterSection()}
 
       {/* Show entries and search */}
       <div className="flex justify-between items-center">
