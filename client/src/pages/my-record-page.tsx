@@ -911,9 +911,15 @@ export default function MyRecordPage() {
         color: rgb(0, 0, 0),
       });
       
-      // Employee Details (Fetch from user data)
+      // Fetch employee data for IC number
+      const employeeResponse = await fetch('/api/user/employee', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const employeeData = employeeResponse.ok ? await employeeResponse.json() : null;
+      
+      // Employee Details (Use IC number instead of Employee ID)
       const employeeName = user?.fullName || user?.username || 'N/A';
-      const employeeId = user?.employeeNumber || user?.id || 'N/A';
+      const employeeIc = employeeData?.nric || 'N/A';
       
       page.drawText(`Name: ${employeeName}`, {
         x: 60,
@@ -923,7 +929,7 @@ export default function MyRecordPage() {
         color: rgb(0, 0, 0),
       });
       
-      page.drawText(`Employee ID: ${employeeId}`, {
+      page.drawText(`IC Number: ${employeeIc}`, {
         x: 300,
         y: yPosition - 40,
         size: 10,
@@ -967,8 +973,8 @@ export default function MyRecordPage() {
       });
       
       // Table Headers (White text)
-      const headers = ['No.', 'Leave Type', 'Start Date', 'End Date', 'Days', 'Status'];
-      const columnWidths = [40, 120, 80, 80, 60, 100];
+      const headers = ['No.', 'Applicant', 'Leave Type', 'Start Date', 'End Date', 'Days', 'Status'];
+      const columnWidths = [30, 80, 90, 70, 70, 40, 80];
       let xPosition = 50;
       
       headers.forEach((header, index) => {
@@ -1018,6 +1024,7 @@ export default function MyRecordPage() {
         // Data cells
         const rowData = [
           (index + 1).toString(),
+          leave.applicant || employeeName || 'N/A',
           leave.leaveType || 'N/A',
           format(new Date(leave.startDate), 'dd/MM/yyyy'),
           format(new Date(leave.endDate), 'dd/MM/yyyy'),
@@ -1027,14 +1034,14 @@ export default function MyRecordPage() {
         
         xPosition = 50;
         rowData.forEach((data, colIndex) => {
-          const textColor = colIndex === 5 ? // Status column
+          const textColor = colIndex === 6 ? // Status column (moved to index 6)
             (leave.status === 'Approved' ? rgb(0, 0.6, 0) :
              leave.status === 'Rejected' ? rgb(0.8, 0, 0) :
              rgb(0.8, 0.6, 0)) : rgb(0, 0, 0);
           
           // Truncate text if too long
           let displayText = data;
-          if (data.length > 15 && colIndex === 1) { // Leave Type column
+          if (data.length > 15 && (colIndex === 1 || colIndex === 2)) { // Applicant or Leave Type column
             displayText = data.substring(0, 12) + '...';
           }
           
