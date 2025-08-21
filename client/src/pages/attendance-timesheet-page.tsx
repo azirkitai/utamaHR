@@ -212,7 +212,17 @@ export default function AttendanceTimesheetPage() {
       clockInExists: !!emp.attendance?.clockInTime,
       clockIn: emp.clockIn,
       clockInDisplay: emp.attendance?.clockIn
-    }))
+    })),
+    // Debug on leave calculation
+    onLeaveDebug: {
+      totalStaffIsOff: shiftEmployees.filter(emp => emp.isOff).length,
+      staffOnLeave: shiftEmployees.filter(emp => emp.isOff).map(emp => ({
+        name: emp.employee,
+        isOff: emp.isOff,
+        shiftId: emp.shiftId,
+        shiftName: emp.shiftName
+      }))
+    }
   });
 
   // Filter employees based on sub-tab
@@ -371,14 +381,6 @@ export default function AttendanceTimesheetPage() {
       <div className="flex justify-between items-center bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-4 rounded-lg">
         <div className="flex items-center space-x-4">
           <h3 className="text-lg font-semibold">Today Attendance Record</h3>
-          <div className="flex items-center space-x-2 bg-white/20 px-3 py-1 rounded">
-            <Calendar className="w-4 h-4" />
-            <span className="text-sm">{new Date().toLocaleDateString('en-GB', { 
-              day: '2-digit', 
-              month: 'long', 
-              year: 'numeric' 
-            })}</span>
-          </div>
         </div>
         <div className="flex items-center space-x-2">
           <Input 
