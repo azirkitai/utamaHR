@@ -139,6 +139,30 @@ export default function MyRecordPage() {
   // Extract attendance records
   const attendanceRecords = rawAttendanceData || [];
 
+  // Apply client-side filtering for attendance records
+  const searchFilteredAttendanceRecords = useMemo(() => {
+    if (!attendanceRecords) return [];
+    
+    return attendanceRecords.filter((record) => {
+      // Date range filter
+      const recordDate = new Date(record.date);
+      const isInDateRange = recordDate >= filters.dateFrom && recordDate <= filters.dateTo;
+      
+      if (!isInDateRange) return false;
+      
+      // Search filter (search in employee name if available)
+      if (filters.searchTerm) {
+        const searchTerm = filters.searchTerm.toLowerCase();
+        const matchesSearch = 
+          (record.employeeName && record.employeeName.toLowerCase().includes(searchTerm)) ||
+          (record.fullName && record.fullName.toLowerCase().includes(searchTerm));
+        if (!matchesSearch) return false;
+      }
+      
+      return true;
+    });
+  }, [attendanceRecords, filters.dateFrom, filters.dateTo, filters.searchTerm]);
+
   // Trigger refetch when switching to attendance tab
   useEffect(() => {
     if (activeTab === 'attendance' && user) {
@@ -630,31 +654,7 @@ export default function MyRecordPage() {
         );
       
       case 'attendance':
-        return (
-          <div className="flex gap-4 items-end">
-            <div className="space-y-2 flex-1">
-              {renderDatePeriodFilter('attendance')}
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700" 
-                onClick={() => {
-                  console.log('Search clicked - refetching with current date range');
-                }}
-                data-testid="button-attendance-search"
-              >
-                <Search className="h-4 w-4 mr-2" />
-                Search
-              </Button>
-              {/* Download Button - only show for Attendance tab */}
-              {activeTab === "attendance" && (
-                <Button variant="outline" data-testid="button-attendance-download">
-                  <Download className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-          </div>
-        );
+        return renderAttendanceFilterSection();
       
       default:
         return null;
@@ -878,6 +878,379 @@ export default function MyRecordPage() {
     });
     
     return lines.length * (fontSize + 2); // Return total height used
+  };
+
+  // Attendance filter section
+  const renderAttendanceFilterSection = () => {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+        {renderDatePeriodFilter('attendance')}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Search</label>
+          <Input
+            placeholder="Search employee name..."
+            value={filters.searchTerm}
+            onChange={(e) => handleFilterChange('searchTerm', e.target.value)}
+            data-testid="input-attendance-search"
+          />
+        </div>
+        <div className="flex gap-2">
+          <Button 
+            className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700" 
+            onClick={() => {
+              console.log('🔍 ATTENDANCE SEARCH FILTERS APPLIED:', {
+                dateFrom: filters.dateFrom,
+                dateTo: filters.dateTo,
+                searchTerm: filters.searchTerm,
+                totalResults: searchFilteredAttendanceRecords.length,
+                originalTotal: attendanceRecords.length
+              });
+            }}
+            data-testid="button-attendance-search"
+          >
+            <Search className="h-4 w-4 mr-2" />
+            Search
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={handleAttendanceRecordPDFDownload}
+            data-testid="button-attendance-download"
+          >
+            <Download className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
+  // Handle Attendance Record PDF Download
+  const handleAttendanceRecordPDFDownload = async () => {
+    try {
+      console.log('🔄 Starting Attendance Record PDF generation...');
+      
+      const filteredRecords = searchFilteredAttendanceRecords;
+      
+      if (filteredRecords.length === 0) {
+        alert('No attendance records found for the selected date range.');
+        return;
+      }
+      
+      // Import pdf-lib
+      const { PDFDocument, rgb, StandardFonts } = await import('pdf-lib');
+      
+      // Create new PDF document
+      const pdfDoc = await PDFDocument.create();
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+      
+      const page = pdfDoc.addPage([842, 595]); // A4 landscape
+      const { width, height } = page.getSize();
+      
+      // Helper function for text wrapping
+      const wrapText = (text: string, maxWidth: number, fontSize: number, font: any) => {
+        const words = text.split(' ');
+        const lines = [];
+        let currentLine = '';
+        
+        for (const word of words) {
+          const testLine = currentLine ? `${currentLine} ${word}` : word;
+          const testWidth = font.widthOfTextAtSize(testLine, fontSize);
+          
+          if (testWidth <= maxWidth) {
+            currentLine = testLine;
+          } else {
+            if (currentLine) {
+              lines.push(currentLine);
+              currentLine = word;
+            } else {
+              lines.push(word);
+            }
+          }
+        }
+        
+        if (currentLine) {
+          lines.push(currentLine);
+        }
+        
+        return lines;
+      };
+      
+      // Draw wrapped text
+      const drawWrappedText = (page: any, text: string, x: number, y: number, maxWidth: number, fontSize: number, font: any, color: any) => {
+        const lines = wrapText(text, maxWidth, fontSize, font);
+        let yPosition = y;
+        
+        lines.forEach((line) => {
+          page.drawText(line, {
+            x,
+            y: yPosition,
+            size: fontSize,
+            font,
+            color,
+          });
+          yPosition -= fontSize + 2;
+        });
+        
+        return lines.length * (fontSize + 2);
+      };
+      
+      // Header
+      page.drawText('UTAMA MEDGROUP SDN BHD', {
+        x: 50,
+        y: height - 50,
+        size: 16,
+        font: boldFont,
+        color: rgb(0, 0, 0),
+      });
+      
+      page.drawText('ATTENDANCE RECORD REPORT', {
+        x: 50,
+        y: height - 75,
+        size: 14,
+        font: boldFont,
+        color: rgb(0, 0, 0),
+      });
+      
+      // Date range
+      const fromDate = format(filters.dateFrom, 'dd/MM/yyyy');
+      const toDate = format(filters.dateTo, 'dd/MM/yyyy');
+      page.drawText(`Period: ${fromDate} - ${toDate}`, {
+        x: 50,
+        y: height - 100,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+      
+      // Employee info section
+      const employeeName = user?.username || 'N/A';
+      let yPosition = height - 130;
+      
+      // Employee info box
+      page.drawRectangle({
+        x: 50,
+        y: yPosition - 40,
+        width: width - 100,
+        height: 40,
+        color: rgb(0.95, 0.95, 0.95),
+        borderColor: rgb(0.8, 0.8, 0.8),
+        borderWidth: 1,
+      });
+      
+      page.drawText('Employee Information', {
+        x: 60,
+        y: yPosition - 15,
+        size: 12,
+        font: boldFont,
+        color: rgb(0, 0, 0),
+      });
+      
+      page.drawText(`Name: ${employeeName}`, {
+        x: 60,
+        y: yPosition - 30,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+      
+      page.drawText(`IC Number: -`, {
+        x: 300,
+        y: yPosition - 30,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+      
+      yPosition -= 60;
+      
+      // Table headers
+      const columnWidths = [50, 150, 80, 80, 80, 80, 80, 80, 100];
+      const headers = ['No.', 'Employee', 'Date', 'Clock In', 'Break Out', 'Break In', 'Clock Out', 'Total Hours', 'Status'];
+      let xPosition = 50;
+      
+      // Header background
+      page.drawRectangle({
+        x: 50,
+        y: yPosition - 25,
+        width: width - 100,
+        height: 25,
+        color: rgb(0.9, 0.9, 0.9),
+        borderColor: rgb(0.8, 0.8, 0.8),
+        borderWidth: 1,
+      });
+      
+      // Header text
+      headers.forEach((header, index) => {
+        page.drawText(header, {
+          x: xPosition + 5,
+          y: yPosition - 15,
+          size: 10,
+          font: boldFont,
+          color: rgb(0, 0, 0),
+        });
+        xPosition += columnWidths[index];
+      });
+      
+      yPosition -= 25;
+      
+      // Table rows
+      filteredRecords.forEach((record, index) => {
+        // Check if we need a new page
+        if (yPosition < 100) {
+          const newPage = pdfDoc.addPage([842, 595]);
+          yPosition = height - 50;
+        }
+        
+        const rowHeight = 25;
+        
+        // Alternating row background
+        if (index % 2 === 0) {
+          page.drawRectangle({
+            x: 50,
+            y: yPosition - rowHeight,
+            width: width - 100,
+            height: rowHeight,
+            color: rgb(0.98, 0.98, 0.98),
+          });
+        }
+        
+        // Row border
+        page.drawRectangle({
+          x: 50,
+          y: yPosition - rowHeight,
+          width: width - 100,
+          height: rowHeight,
+          borderColor: rgb(0.9, 0.9, 0.9),
+          borderWidth: 0.5,
+        });
+        
+        // Data cells
+        const employeeDisplayName = record.employeeName || record.fullName || 'N/A';
+        const rowData = [
+          (index + 1).toString(),
+          employeeDisplayName,
+          format(new Date(record.date), 'dd/MM/yyyy'),
+          record.clockInTime || '-',
+          record.breakOutTime || '-',
+          record.breakInTime || '-',
+          record.clockOutTime || '-',
+          record.totalHours || '-',
+          record.isLateClockIn ? 'Late' : 'On Time'
+        ];
+        
+        xPosition = 50;
+        rowData.forEach((data, colIndex) => {
+          let textColor = rgb(0, 0, 0);
+          
+          // Status column - color coding
+          if (colIndex === 8) { // Status column
+            textColor = record.isLateClockIn ? rgb(0.8, 0, 0) : rgb(0, 0.6, 0);
+          }
+          
+          // Handle text wrapping for long employee names
+          if (colIndex === 1 && data.length > 15) {
+            drawWrappedText(page, data, xPosition + 5, yPosition - 10, columnWidths[colIndex] - 10, 9, font, textColor);
+          } else {
+            let displayText = data;
+            if (data.length > 12 && (colIndex === 1)) {
+              displayText = data.substring(0, 9) + '...';
+            }
+            
+            page.drawText(displayText, {
+              x: xPosition + 5,
+              y: yPosition - 15,
+              size: 9,
+              font: font,
+              color: textColor,
+            });
+          }
+          
+          xPosition += columnWidths[colIndex];
+        });
+        
+        yPosition -= rowHeight;
+      });
+      
+      // Summary Section
+      yPosition -= 30;
+      const summaryBoxHeight = 50;
+      page.drawRectangle({
+        x: 50,
+        y: yPosition - summaryBoxHeight,
+        width: width - 100,
+        height: summaryBoxHeight,
+        color: rgb(0.95, 0.95, 0.95),
+        borderColor: rgb(0.8, 0.8, 0.8),
+        borderWidth: 1,
+      });
+      
+      page.drawText('Attendance Summary', {
+        x: 60,
+        y: yPosition - 20,
+        size: 12,
+        font: boldFont,
+        color: rgb(0, 0, 0),
+      });
+      
+      const totalRecords = filteredRecords.length;
+      const lateRecords = filteredRecords.filter(r => r.isLateClockIn).length;
+      const onTimeRecords = totalRecords - lateRecords;
+      
+      page.drawText(`Total Records: ${totalRecords}`, {
+        x: 60,
+        y: yPosition - 35,
+        size: 10,
+        font: font,
+        color: rgb(0, 0, 0),
+      });
+      
+      page.drawText(`On Time: ${onTimeRecords}`, {
+        x: 200,
+        y: yPosition - 35,
+        size: 10,
+        font: font,
+        color: rgb(0, 0.6, 0),
+      });
+      
+      page.drawText(`Late: ${lateRecords}`, {
+        x: 300,
+        y: yPosition - 35,
+        size: 10,
+        font: font,
+        color: rgb(0.8, 0, 0),
+      });
+      
+      // Footer
+      const footerText = `Page 1 of 1 | Generated by UtamaHR System | ${format(new Date(), 'dd/MM/yyyy HH:mm')}`;
+      const footerWidth = font.widthOfTextAtSize(footerText, 8);
+      page.drawText(footerText, {
+        x: (width - footerWidth) / 2,
+        y: 30,
+        size: 8,
+        font: font,
+        color: rgb(0.5, 0.5, 0.5),
+      });
+      
+      // Generate PDF
+      const pdfBytes = await pdfDoc.save();
+      
+      // Download PDF
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Attendance_Record_${user?.username || 'User'}_${format(new Date(), 'yyyyMMdd')}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      console.log('✅ Attendance Record PDF generated and downloaded successfully');
+      
+    } catch (error) {
+      console.error('❌ Error generating Attendance Record PDF:', error);
+      alert('Failed to generate PDF: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    }
   };
 
   // Handle supporting document download
@@ -2683,7 +3056,7 @@ export default function MyRecordPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              attendanceRecords.map((record, index) => {
+              searchFilteredAttendanceRecords.map((record, index) => {
                 // Force debug for each record rendering
                 const extendedRecord = record as any;
                 const isLate = Boolean(extendedRecord.isLateClockIn);
