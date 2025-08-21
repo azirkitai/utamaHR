@@ -68,16 +68,12 @@ export default function AttendanceTimesheetPage() {
     enabled: activeTab === "today" && !!selectedDate,
   });
 
-  // Calculate today's stats from real data
-  const todayStats = {
-    totalStaff: Array.isArray(employees) ? employees.length : 0,
-    totalClockIn: Array.isArray(todayAttendance) ? todayAttendance.length : 0,
-    totalAbsent: (Array.isArray(employees) ? employees.length : 0) - (Array.isArray(todayAttendance) ? todayAttendance.length : 0),
-    onLeave: Array.isArray(shiftCalendar) ? shiftCalendar.filter((sc: any) => sc.isOff).length : 0
-  };
-
-  // Process today's attendance data for "Today" tab
-  const todayAttendanceData = Array.isArray(todayAttendance) ? todayAttendance.map((record: any) => {
+  // Process today's attendance data using attendance records (same as My Records)
+  const todayAttendanceData = Array.isArray(attendanceRecords) ? attendanceRecords.filter((record: any) => {
+    const recordDate = new Date(record.date);
+    const today = new Date();
+    return recordDate.toDateString() === today.toDateString();
+  }).map((record: any) => {
     const employee = Array.isArray(employees) ? employees.find((emp: any) => emp.id === record.employeeId) : null;
     return {
       id: record.id,
@@ -93,11 +89,21 @@ export default function AttendanceTimesheetPage() {
         hour12: true 
       }) : '-',
       date: new Date(record.date).toLocaleDateString(),
-      status: record.clockInTime ? 'present' : 'absent'
+      status: record.clockInTime ? 'present' : 'absent',
+      isLate: record.isLateClockIn || false,
+      remarks: record.clockInRemarks || ''
     };
   }) : [];
 
-  // Process shift-based attendance data
+  // Calculate today's stats from attendance records
+  const todayStats = {
+    totalStaff: Array.isArray(employees) ? employees.length : 0,
+    totalClockIn: todayAttendanceData.length,
+    totalAbsent: (Array.isArray(employees) ? employees.length : 0) - todayAttendanceData.length,
+    onLeave: Array.isArray(shiftCalendar) ? shiftCalendar.filter((sc: any) => sc.isOff).length : 0
+  };
+
+  // Process shift-based attendance data using attendance records (same as My Records)
   const getShiftEmployees = () => {
     if (!Array.isArray(shiftCalendar) || !Array.isArray(employees)) return [];
     
@@ -110,7 +116,14 @@ export default function AttendanceTimesheetPage() {
 
     return employeesOnShift.map((sc: any) => {
       const employee = employees.find((emp: any) => emp.id === sc.employeeId);
-      const attendance = Array.isArray(todayAttendance) ? todayAttendance.find((att: any) => att.employeeId === sc.employeeId) : null;
+      
+      // Get attendance from attendance records (same data source as My Records)
+      const attendance = Array.isArray(attendanceRecords) ? attendanceRecords.find((att: any) => {
+        const attDate = new Date(att.date);
+        return att.employeeId === sc.employeeId && 
+               attDate.toDateString() === targetDate.toDateString();
+      }) : null;
+      
       const shift = Array.isArray(shifts) ? shifts.find((s: any) => s.id === sc.shiftId) : null;
       
       return {
@@ -132,8 +145,7 @@ export default function AttendanceTimesheetPage() {
         }) : '-',
         isOff: sc.isOff || false,
         attendance: attendance,
-        isLate: attendance?.clockInTime && shift?.startTime ? 
-          isEmployeeLate(attendance.clockInTime, shift.startTime) : false,
+        isLate: attendance?.isLateClockIn || false,
         isAbsent: !attendance && !sc.isOff ? 
           isEmployeeAbsent(shift?.startTime) : false
       };
