@@ -118,10 +118,10 @@ export default function MyRecordPage() {
           id: record.id,
           date: record.date,
           clockInTime: record.clockInTime,
-          clockInSelfie: record.clockInSelfie,
-          clockOutSelfie: record.clockOutSelfie,
-          breakInSelfie: record.breakInSelfie,
-          breakOutSelfie: record.breakOutSelfie,
+          clockInImage: record.clockInImage,
+          clockOutImage: record.clockOutImage,
+          breakInImage: record.breakInImage,
+          breakOutImage: record.breakOutImage,
           isLateClockIn: record.isLateClockIn,
           clockInRemarks: record.clockInRemarks
         });
@@ -131,12 +131,12 @@ export default function MyRecordPage() {
         }
         
         // Debug selfie data
-        if (record.clockInSelfie || record.clockOutSelfie) {
-          console.log(`📸 SELFIE DATA in Record ${index + 1}:`, {
-            clockInSelfie: record.clockInSelfie,
-            clockOutSelfie: record.clockOutSelfie,
-            breakInSelfie: record.breakInSelfie,
-            breakOutSelfie: record.breakOutSelfie
+        if (record.clockInImage || record.clockOutImage) {
+          console.log(`📸 IMAGE DATA in Record ${index + 1}:`, {
+            clockInImage: record.clockInImage,
+            clockOutImage: record.clockOutImage,
+            breakInImage: record.breakInImage,
+            breakOutImage: record.breakOutImage
           });
         }
       });
@@ -1190,16 +1190,22 @@ export default function MyRecordPage() {
           // Special handling for Pictures column
           if (colIndex === 9) { // Pictures column
             // Draw camera icon text or indicator
-            const hasClockInSelfie = record.clockInSelfie && record.clockInSelfie !== '-';
-            const hasClockOutSelfie = record.clockOutSelfie && record.clockOutSelfie !== '-';
+            const hasClockInImage = record.clockInImage && record.clockInImage !== '-' && record.clockInImage !== null;
+            const hasClockOutImage = record.clockOutImage && record.clockOutImage !== '-' && record.clockOutImage !== null;
+            const hasBreakInImage = record.breakInImage && record.breakInImage !== '-' && record.breakInImage !== null;
+            const hasBreakOutImage = record.breakOutImage && record.breakOutImage !== '-' && record.breakOutImage !== null;
             
             let pictureText = '';
-            if (hasClockInSelfie && hasClockOutSelfie) {
+            const hasAnyImage = hasClockInImage || hasClockOutImage || hasBreakInImage || hasBreakOutImage;
+            
+            if (hasClockInImage && hasClockOutImage) {
               pictureText = 'In/Out ✓';
-            } else if (hasClockInSelfie) {
+            } else if (hasClockInImage) {
               pictureText = 'In ✓';
-            } else if (hasClockOutSelfie) {
+            } else if (hasClockOutImage) {
               pictureText = 'Out ✓';
+            } else if (hasBreakInImage || hasBreakOutImage) {
+              pictureText = 'Break ✓';
             } else {
               pictureText = 'No Images';
             }
@@ -1209,7 +1215,7 @@ export default function MyRecordPage() {
               y: y - 13,
               size: fontSize - 1,
               font: font,
-              color: (hasClockInSelfie || hasClockOutSelfie) ? rgb(0, 0.6, 0) : rgb(0.6, 0.6, 0.6),
+              color: hasAnyImage ? rgb(0, 0.6, 0) : rgb(0.6, 0.6, 0.6),
             });
           } else {
             page.drawText(cellText, {
