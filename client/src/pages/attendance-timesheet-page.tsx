@@ -329,14 +329,6 @@ export default function AttendanceTimesheetPage() {
         Today Attendance
       </Button>
       <Button
-        variant={activeTab === "report" ? "default" : "ghost"}
-        className={`flex-1 ${activeTab === "report" ? "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white" : "text-gray-600"}`}
-        onClick={() => setActiveTab("report")}
-        data-testid="tab-attendance-report"
-      >
-        Attendance Report
-      </Button>
-      <Button
         variant={activeTab === "summary" ? "default" : "ghost"}
         className={`flex-1 ${activeTab === "summary" ? "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white" : "text-gray-600"}`}
         onClick={() => setActiveTab("summary")}
@@ -560,183 +552,7 @@ export default function AttendanceTimesheetPage() {
     </div>
   );
 
-  const renderReportTab = () => (
-    <div className="space-y-6">
-      <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-4 rounded-lg">
-        <h3 className="text-lg font-semibold">Attendance Report</h3>
-      </div>
-
-      {/* Filters */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Date Period</label>
-          <Input type="date" defaultValue="2025-08-01" className="text-sm" />
-        </div>
-        <div>
-          <Input type="date" defaultValue="2025-08-31" className="text-sm mt-6" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
-          <Select defaultValue="all">
-            <SelectTrigger className="text-sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All department</SelectItem>
-              <SelectItem value="hr">Human Resources</SelectItem>
-              <SelectItem value="it">Information Technology</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Employee</label>
-          <Select defaultValue="all">
-            <SelectTrigger className="text-sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All employee</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Shift</label>
-          <Select defaultValue="all">
-            <SelectTrigger className="text-sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Shift</SelectItem>
-              <SelectItem value="morning">Morning</SelectItem>
-              <SelectItem value="evening">Evening</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="flex justify-between items-center">
-        <div className="flex items-center space-x-2">
-          <Button className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700" data-testid="button-filter">
-            <Filter className="w-4 h-4" />
-          </Button>
-          <Button variant="outline" data-testid="button-reset-filter">
-            <X className="w-4 h-4" />
-          </Button>
-        </div>
-        
-        <div className="flex items-center space-x-4">
-          <Button
-            variant={showPicture ? "default" : "outline"}
-            size="sm"
-            onClick={() => setShowPicture(!showPicture)}
-            className={showPicture ? "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white" : ""}
-            data-testid="toggle-show-picture-report"
-          >
-            Show Picture
-          </Button>
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-gray-50">
-              <TableHead>No.</TableHead>
-              <TableHead>Employee</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Clock In</TableHead>
-              <TableHead>Clock Out</TableHead>
-              {showPicture && <TableHead>Clock In Photo</TableHead>}
-              {showPicture && <TableHead>Clock Out Photo</TableHead>}
-              <TableHead>Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {attendanceLoading || employeesLoading ? (
-              <TableRow>
-                <TableCell colSpan={showPicture ? 8 : 6} className="text-center py-8 text-gray-500">
-                  Loading attendance report...
-                </TableCell>
-              </TableRow>
-            ) : attendanceData.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={showPicture ? 8 : 6} className="text-center py-8 text-gray-500">
-                  No attendance records found
-                </TableCell>
-              </TableRow>
-            ) : (
-              attendanceData.map((item, index) => {
-                // Find the original attendance record to get selfie data
-                const originalRecord = Array.isArray(attendanceRecords) ? 
-                  attendanceRecords.find((record: any) => record.id === item.id) : null;
-                
-                return (
-                  <TableRow key={item.id}>
-                    <TableCell>{index + 1}</TableCell>
-                    <TableCell className="font-medium">{item.employee}</TableCell>
-                    <TableCell>{item.date}</TableCell>
-                    <TableCell>{item.clockIn}</TableCell>
-                    <TableCell>{item.clockOut}</TableCell>
-                    {showPicture && (
-                      <TableCell>
-                        {originalRecord?.clockInSelfie ? (
-                          <img 
-                            src={originalRecord.clockInSelfie} 
-                            alt="Clock In Photo" 
-                            className="w-16 h-16 object-cover rounded-lg cursor-pointer hover:scale-110 transition-transform"
-                            onClick={() => window.open(originalRecord.clockInSelfie, '_blank')}
-                          />
-                        ) : (
-                          <span className="text-gray-400 text-sm">No photo</span>
-                        )}
-                      </TableCell>
-                    )}
-                    {showPicture && (
-                      <TableCell>
-                        {originalRecord?.clockOutSelfie ? (
-                          <img 
-                            src={originalRecord.clockOutSelfie} 
-                            alt="Clock Out Photo" 
-                            className="w-16 h-16 object-cover rounded-lg cursor-pointer hover:scale-110 transition-transform"
-                            onClick={() => window.open(originalRecord.clockOutSelfie, '_blank')}
-                          />
-                        ) : (
-                          <span className="text-gray-400 text-sm">No photo</span>
-                        )}
-                      </TableCell>
-                    )}
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button size="sm" variant="outline" data-testid={`button-view-${item.id}`}>
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* Pagination */}
-      <div className="flex justify-between items-center">
-        <div className="text-sm text-gray-600">
-          Showing {attendanceData.length > 0 ? 1 : 0} to {attendanceData.length} of {attendanceData.length} entries
-        </div>
-        <div className="flex space-x-2">
-          <Button variant="outline" disabled data-testid="button-previous-report">
-            Previous
-          </Button>
-          <Button variant="outline" disabled data-testid="button-next-report">
-            Next
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
+  
 
   const renderSummaryTab = () => (
     <div className="space-y-6">
@@ -864,8 +680,6 @@ export default function AttendanceTimesheetPage() {
     switch (activeTab) {
       case "today":
         return "Attendance";
-      case "report":
-        return "Attendance Report";
       case "summary":
         return "Attendance Summary";
       default:
@@ -877,8 +691,6 @@ export default function AttendanceTimesheetPage() {
     switch (activeTab) {
       case "today":
         return "Home > Attendance";
-      case "report":
-        return "Home > Attendance > Report";
       case "summary":
         return "Home > Attendance > Summary";
       default:
@@ -904,7 +716,6 @@ export default function AttendanceTimesheetPage() {
         
         {/* Tab Content */}
         {activeTab === "today" && renderTodayAttendanceTab()}
-        {activeTab === "report" && renderReportTab()}
         {activeTab === "summary" && renderSummaryTab()}
       </div>
     </DashboardLayout>
