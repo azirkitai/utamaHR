@@ -1104,10 +1104,10 @@ export default function MyRecordPage() {
       const pages = [currentPage];
       
       // Define margins in points (1mm = 2.83465 points)
-      const topMargin = 28; // 10mm (reduced)
-      const bottomMargin = 57; // 20mm
-      const leftMargin = 28; // 10mm (reduced)
-      const rightMargin = 28; // 10mm (reduced)
+      const topMargin = 14; // 5mm (further reduced)
+      const bottomMargin = 28; // 10mm (reduced)
+      const leftMargin = 14; // 5mm (further reduced)
+      const rightMargin = 14; // 5mm (further reduced)
       const contentWidth = width - leftMargin - rightMargin; // 493 points
       const contentHeight = height - topMargin - bottomMargin; // 728 points
       
@@ -1140,7 +1140,7 @@ export default function MyRecordPage() {
         page.drawText(companyName, {
           x: leftMargin,
           y: height - topMargin - 35,
-          size: 16,
+          size: 12, // Reduced from 16
           font: boldFont,
           color: rgb(1, 1, 1),
         });
@@ -1152,22 +1152,22 @@ export default function MyRecordPage() {
           page.drawText(`Tel: ${companyPhone}`, {
             x: leftMargin,
             y: contactY,
-            size: 10,
+            size: 8, // Reduced from 10
             font: font,
             color: rgb(0.9, 0.9, 0.9),
           });
-          contactY -= 15;
+          contactY -= 12; // Reduced spacing
         }
         
         if (companyEmail) {
           page.drawText(`Email: ${companyEmail}`, {
             x: leftMargin,
             y: contactY,
-            size: 10,
+            size: 8, // Reduced from 10
             font: font,
             color: rgb(0.9, 0.9, 0.9),
           });
-          contactY -= 15;
+          contactY -= 12; // Reduced spacing
         }
         
         if (fullAddress) {
@@ -1191,7 +1191,7 @@ export default function MyRecordPage() {
             page.drawText(line1, {
               x: leftMargin,
               y: contactY,
-              size: 10,
+              size: 8, // Reduced from 10
               font: font,
               color: rgb(0.9, 0.9, 0.9),
             });
@@ -1199,8 +1199,8 @@ export default function MyRecordPage() {
             if (line2) {
               page.drawText(line2, {
                 x: leftMargin,
-                y: contactY - 12,
-                size: 10,
+                y: contactY - 10, // Reduced spacing
+                size: 8, // Reduced from 10
                 font: font,
                 color: rgb(0.9, 0.9, 0.9),
               });
@@ -1209,7 +1209,7 @@ export default function MyRecordPage() {
             page.drawText(fullAddress, {
               x: leftMargin,
               y: contactY,
-              size: 10,
+              size: 8, // Reduced from 10
               font: font,
               color: rgb(0.9, 0.9, 0.9),
             });
@@ -1218,9 +1218,9 @@ export default function MyRecordPage() {
         
         // Report title
         page.drawText('EMPLOYEE ATTENDANCE REPORT', {
-          x: (width - boldFont.widthOfTextAtSize('EMPLOYEE ATTENDANCE REPORT', 18)) / 2,
-          y: height - topMargin - 150,
-          size: 18,
+          x: (width - boldFont.widthOfTextAtSize('EMPLOYEE ATTENDANCE REPORT', 14)) / 2,
+          y: height - topMargin - 120,
+          size: 14, // Reduced from 18
           font: boldFont,
           color: rgb(0.1, 0.2, 0.4),
         });
@@ -1234,11 +1234,11 @@ export default function MyRecordPage() {
         const columnWidths = [30, 150, 70, 55, 55, 55, 55, 65, 75];
         const headers = ['No.', 'Employee Name', 'Date', 'Clock In', 'Break Out', 'Break In', 'Clock Out', 'Total Hours', 'Status'];
         
-        // Header background - extend fully across content width
+        // Header background - extend to full page width (edge to edge)
         page.drawRectangle({
-          x: leftMargin,
+          x: 0,
           y: yPos - tableHeight,
-          width: contentWidth,
+          width: width,
           height: tableHeight,
           color: rgb(0.1, 0.3, 0.6), // Dark blue header
         });
@@ -1249,7 +1249,7 @@ export default function MyRecordPage() {
           page.drawText(header, {
             x: currentX + 5,
             y: yPos - 17,
-            size: 10,
+            size: 7, // Reduced from 10
             font: boldFont,
             color: rgb(1, 1, 1), // White text
           });
@@ -1340,14 +1340,14 @@ export default function MyRecordPage() {
           // Right align for numbers (No, Total Jam)
           let textX = currentX + 5;
           if (colIndex === 0 || colIndex === 7) {
-            const textWidth = font.widthOfTextAtSize(data, 9);
+            const textWidth = font.widthOfTextAtSize(data, 7);
             textX = currentX + columnWidths[colIndex] - textWidth - 5;
           }
           
           page.drawText(data, {
             x: textX,
             y: yPos - 17,
-            size: 9,
+            size: 7, // Reduced from 9
             font: font,
             color: textColor,
           });
