@@ -196,6 +196,75 @@ export default function LeaveApprovalPage() {
     },
   });
 
+  // Filter functions
+  const filterData = (data: LeaveRecord[]) => {
+    if (!data) return [];
+    
+    return data.filter(record => {
+      // Search query filter
+      if (searchQuery && !record.applicant.toLowerCase().includes(searchQuery.toLowerCase()) && 
+          !record.leaveType.toLowerCase().includes(searchQuery.toLowerCase())) {
+        return false;
+      }
+      
+      // Department filter (if implemented)
+      if (selectedDepartment !== 'all') {
+        // TODO: Add department filtering logic when department data is available
+      }
+      
+      // Employee filter for report tab
+      if (activeTab === 'report' && selectedEmployee !== 'all') {
+        if (record.applicant !== selectedEmployee) {
+          return false;
+        }
+      }
+      
+      // Leave type filter for report tab
+      if (activeTab === 'report' && selectedLeaveType !== 'all') {
+        if (record.leaveType !== selectedLeaveType) {
+          return false;
+        }
+      }
+      
+      // Leave status filter for report tab  
+      if (activeTab === 'report' && selectedLeaveStatus !== 'all') {
+        if (record.status.toLowerCase() !== selectedLeaveStatus.toLowerCase()) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
+  };
+
+  // Get filtered data
+  const filteredData = filterData(leaveApplications);
+
+  // Handle search button click
+  const handleSearch = () => {
+    // The filtering is already happening in real-time via filteredData
+    // This can be used for additional search logic if needed
+    toast({
+      title: "Carian Dilakukan",
+      description: `Dijumpai ${filteredData.length} rekod daripada ${leaveApplications.length} jumlah rekod`,
+      variant: "default",
+    });
+  };
+
+  // Handle clear all filters
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setSelectedDepartment("all");
+    setSelectedEmployee("all");
+    setSelectedLeaveType("all");
+    setSelectedLeaveStatus("all");
+    toast({
+      title: "Penapis Telah Dibersihkan",
+      description: "Semua penapis telah diset semula",
+      variant: "default",
+    });
+  };
+
   const handleApprove = (id: string) => {
     approveRejectMutation.mutate({ id, action: 'approve' });
   };
@@ -277,14 +346,14 @@ export default function LeaveApprovalPage() {
               Error loading data: {error instanceof Error ? error.message : 'Unknown error'}
             </TableCell>
           </TableRow>
-        ) : leaveApplications.length === 0 ? (
+        ) : filteredData.length === 0 ? (
           <TableRow>
             <TableCell colSpan={9} className="text-center py-8 text-gray-500">
-              No leave applications found
+              Tiada permohonan cuti dijumpai
             </TableCell>
           </TableRow>
         ) : (
-          leaveApplications.map((record: LeaveRecord, index: number) => (
+          filteredData.map((record: LeaveRecord, index: number) => (
             <TableRow key={record.id}>
               <TableCell>
                 <input type="checkbox" className="rounded border-gray-300" />
@@ -351,14 +420,14 @@ export default function LeaveApprovalPage() {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {leaveApplications.length === 0 ? (
+        {filteredData.length === 0 ? (
           <TableRow>
             <TableCell colSpan={9} className="text-center py-8 text-gray-500">
-              No leave summary data available
+              Tiada data laporan cuti tersedia
             </TableCell>
           </TableRow>
         ) : (
-          leaveApplications.map((record: LeaveRecord, index: number) => (
+          filteredData.map((record: LeaveRecord, index: number) => (
             <TableRow key={record.id}>
               <TableCell>{index + 1}</TableCell>
               <TableCell className="font-medium">{record.applicant}</TableCell>
@@ -480,10 +549,11 @@ export default function LeaveApprovalPage() {
   
 
   const renderBalanceCarryForwardTable = () => {
-    if (!employeeLeaveSummary?.employees || employeeLeaveSummary.employees.length === 0) {
+    const summaryData = employeeLeaveSummary as any;
+    if (!summaryData?.employees || summaryData.employees.length === 0) {
       return (
         <div className="text-center py-8 text-gray-500">
-          No employee leave data available
+          Tiada data cuti pekerja tersedia
         </div>
       );
     }
@@ -491,7 +561,7 @@ export default function LeaveApprovalPage() {
     return (
       <div className="space-y-6 p-6">
         {/* Employee Cards */}
-        {employeeLeaveSummary.employees.map((employee: any, empIndex: number) => (
+        {summaryData.employees.map((employee: any, empIndex: number) => (
           <div key={employee.employeeId} className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
             {/* Employee Header */}
             <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-4">
@@ -760,11 +830,21 @@ export default function LeaveApprovalPage() {
                 <Button 
                   variant="default" 
                   className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700 text-white"
+                  onClick={handleSearch}
                   data-testid="button-search"
                 >
                   <Search className="w-4 h-4 mr-2" />
                   Search
                 </Button>
+                {(searchQuery || selectedDepartment !== "all" || selectedEmployee !== "all" || selectedLeaveType !== "all" || selectedLeaveStatus !== "all") && (
+                  <Button 
+                    variant="outline"
+                    onClick={handleClearFilters}
+                    data-testid="button-clear-filters"
+                  >
+                    Clear Filters
+                  </Button>
+                )}
                 <Button 
                   variant="outline"
                   data-testid="button-print"
@@ -805,7 +885,8 @@ export default function LeaveApprovalPage() {
           <div className="px-6 py-3 bg-gray-50 border-b">
             <div className="flex justify-between items-center">
               <div className="text-sm text-gray-600">
-                Showing 0 to 0 of 0 entries
+                Showing {filteredData.length > 0 ? 1 : 0} to {filteredData.length} of {filteredData.length} entries
+                {searchQuery && ` (filtered from ${leaveApplications.length} total entries)`}
               </div>
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-gray-600">Search:</span>
@@ -814,9 +895,19 @@ export default function LeaveApprovalPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-64"
-                  placeholder="Search..."
+                  placeholder="Cari mengikut nama atau jenis cuti..."
                   data-testid="input-search"
                 />
+                {searchQuery && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setSearchQuery("")}
+                    className="text-xs"
+                  >
+                    Clear
+                  </Button>
+                )}
               </div>
             </div>
           </div>
@@ -830,13 +921,13 @@ export default function LeaveApprovalPage() {
           <div className="px-6 py-4 bg-gray-50 border-t rounded-b-lg">
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-600">
-                Showing 0 to 0 of 0 entries
+                Showing {filteredData.length > 0 ? 1 : 0} to {filteredData.length} of {filteredData.length} entries
               </div>
               <div className="flex items-center space-x-2">
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  disabled 
+                  disabled={true}
                   data-testid="button-previous"
                 >
                   Previous
@@ -844,7 +935,7 @@ export default function LeaveApprovalPage() {
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  disabled 
+                  disabled={true}
                   data-testid="button-next"
                 >
                   Next
