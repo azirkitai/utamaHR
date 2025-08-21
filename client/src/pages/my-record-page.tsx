@@ -832,6 +832,54 @@ export default function MyRecordPage() {
     );
   });
 
+  // Helper function for text wrapping in PDF
+  const wrapText = (text: string, maxWidth: number, font: any, fontSize: number) => {
+    const words = text.split(' ');
+    const lines = [];
+    let currentLine = '';
+    
+    for (const word of words) {
+      const testLine = currentLine ? `${currentLine} ${word}` : word;
+      const textWidth = font.widthOfTextAtSize(testLine, fontSize);
+      
+      if (textWidth <= maxWidth) {
+        currentLine = testLine;
+      } else {
+        if (currentLine) {
+          lines.push(currentLine);
+          currentLine = word;
+        } else {
+          // Word is too long, break it
+          lines.push(word);
+        }
+      }
+    }
+    
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+    
+    return lines;
+  };
+
+  // Helper function to draw wrapped text
+  const drawWrappedText = (page: any, text: string, x: number, y: number, maxWidth: number, font: any, fontSize: number, color: any) => {
+    const lines = wrapText(text, maxWidth, font, fontSize);
+    let currentY = y;
+    
+    lines.forEach((line, index) => {
+      page.drawText(line, {
+        x: x,
+        y: currentY - (index * (fontSize + 2)),
+        size: fontSize,
+        font: font,
+        color: color,
+      });
+    });
+    
+    return lines.length * (fontSize + 2); // Return total height used
+  };
+
   // Handle supporting document download
   const handleDocumentDownload = async (documentPath: string, claimId: string, docIndex: number) => {
     try {
@@ -1045,19 +1093,19 @@ export default function MyRecordPage() {
              claim.status === 'Rejected' ? rgb(0.8, 0, 0) :
              rgb(0.8, 0.6, 0)) : rgb(0, 0, 0);
 
-          // Truncate text if too long
-          let displayText = data;
-          if (data.length > 15 && (colIndex === 1 || colIndex === 2)) {
-            displayText = data.substring(0, 12) + '...';
+          // Use text wrapping for name column (index 1) and policy name (index 2)
+          if ((colIndex === 1 || colIndex === 2) && data.length > 15) {
+            const maxWidth = columnWidths[colIndex] - 10; // Leave some padding
+            drawWrappedText(page, data, xPosition + 5, yPosition - 15, maxWidth, font, 8, textColor);
+          } else {
+            page.drawText(data, {
+              x: xPosition + 5,
+              y: yPosition - 15,
+              size: 9,
+              font: font,
+              color: textColor,
+            });
           }
-
-          page.drawText(displayText, {
-            x: xPosition + 5,
-            y: yPosition - 15,
-            size: 9,
-            font: font,
-            color: textColor,
-          });
           xPosition += columnWidths[colIndex];
         });
 
@@ -1317,7 +1365,7 @@ export default function MyRecordPage() {
           (index + 1).toString(),
           requestorName,
           overtime.status || 'Unknown',
-          '0 jam', // Default hours since not available
+          overtime.totalHours || overtime.hours || '0 jam',
           amount,
           format(new Date(overtime.claimDate), 'dd/MM/yyyy')
         ];
@@ -1329,19 +1377,19 @@ export default function MyRecordPage() {
              overtime.status === 'Rejected' ? rgb(0.8, 0, 0) :
              rgb(0.8, 0.6, 0)) : rgb(0, 0, 0);
 
-          // Truncate text if too long
-          let displayText = data;
-          if (data.length > 15 && (colIndex === 1)) {
-            displayText = data.substring(0, 12) + '...';
+          // Use text wrapping for name column (index 1)
+          if (colIndex === 1 && data.length > 15) {
+            const maxWidth = columnWidths[colIndex] - 10; // Leave some padding
+            drawWrappedText(page, data, xPosition + 5, yPosition - 15, maxWidth, font, 8, textColor);
+          } else {
+            page.drawText(data, {
+              x: xPosition + 5,
+              y: yPosition - 15,
+              size: 9,
+              font: font,
+              color: textColor,
+            });
           }
-
-          page.drawText(displayText, {
-            x: xPosition + 5,
-            y: yPosition - 15,
-            size: 9,
-            font: font,
-            color: textColor,
-          });
           xPosition += columnWidths[colIndex];
         });
 
