@@ -72,26 +72,35 @@ export async function generateLeaveReportPDF(data: LeaveReportData): Promise<Buf
 
     const page = await browser.newPage();
     
-    // Set content and wait for it to load
-    await page.setContent(htmlContent, { 
-      waitUntil: 'networkidle0',
-      timeout: 30000 
+    // Set viewport exactly like payslip
+    await page.setViewport({
+      width: 800, // Standard width for A4
+      height: 1200, // Standard height for A4
+      deviceScaleFactor: 1
     });
-
-    // Generate PDF with same options as payslip
-    const pdfOptions = {
+    
+    console.log('Setting HTML content...');
+    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+    
+    console.log('Generating PDF...');
+    
+    // Add a delay to ensure content is rendered like payslip
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Use exact same PDF settings as payslip
+    const pdfBuffer = await page.pdf({
       format: 'A4' as const,
-      margin: {
-        top: '20px',
-        right: '20px',
-        bottom: '20px',
-        left: '20px'
-      },
       printBackground: true,
-      preferCSSPageSize: true
-    };
-
-    const pdfBuffer = await page.pdf(pdfOptions);
+      preferCSSPageSize: false,
+      margin: {
+        top: '10mm',
+        right: '10mm', 
+        bottom: '10mm',
+        left: '10mm'
+      }
+    });
+    
+    console.log('PDF buffer generated, size:', pdfBuffer.length);
     
     return pdfBuffer;
   } catch (error) {
