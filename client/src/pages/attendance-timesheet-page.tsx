@@ -48,9 +48,10 @@ export default function AttendanceTimesheetPage() {
     enabled: true,
   });
 
+  // Fetch today's attendance specifically for the "Today" tab
   const { data: todayAttendance, isLoading: todayLoading } = useQuery({
     queryKey: ['/api/today-attendance'],
-    enabled: true,
+    enabled: activeTab === "today",
   });
 
   // Calculate today's stats from real data
@@ -61,7 +62,28 @@ export default function AttendanceTimesheetPage() {
     onLeave: 0 // This could be calculated from leave applications if needed
   };
 
-  // Process attendance records for display
+  // Process today's attendance data for "Today" tab
+  const todayAttendanceData = todayAttendance?.map((record: any) => {
+    const employee = employees?.find((emp: any) => emp.id === record.employeeId);
+    return {
+      id: record.id,
+      employee: employee ? `${employee.firstName} ${employee.lastName}`.trim() : 'Unknown',
+      clockIn: record.clockInTime ? new Date(record.clockInTime).toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: true 
+      }) : '-',
+      clockOut: record.clockOutTime ? new Date(record.clockOutTime).toLocaleTimeString('en-US', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: true 
+      }) : '-',
+      date: new Date(record.date).toLocaleDateString(),
+      status: record.clockInTime ? 'present' : 'absent'
+    };
+  }) || [];
+
+  // Process all attendance records for "Report" tab
   const attendanceData = attendanceRecords?.map((record: any) => {
     const employee = employees?.find((emp: any) => emp.id === record.employeeId);
     return {
@@ -260,20 +282,20 @@ export default function AttendanceTimesheetPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {attendanceLoading || employeesLoading ? (
+            {todayLoading || employeesLoading ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-center py-8 text-gray-500">
-                  Loading attendance data...
+                  Loading today's attendance...
                 </TableCell>
               </TableRow>
-            ) : attendanceData.length === 0 ? (
+            ) : todayAttendanceData.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-center py-8 text-gray-500">
-                  No attendance data available
+                  No employees have clocked in today
                 </TableCell>
               </TableRow>
             ) : (
-              attendanceData.map((item, index) => (
+              todayAttendanceData.map((item, index) => (
                 <TableRow key={item.id}>
                   <TableCell>{index + 1}</TableCell>
                   <TableCell className="font-medium">{item.employee}</TableCell>
@@ -289,7 +311,7 @@ export default function AttendanceTimesheetPage() {
       {/* Pagination */}
       <div className="flex justify-between items-center">
         <div className="text-sm text-gray-600">
-          Showing 0 to 0 of 0 entries
+          Showing {todayAttendanceData.length > 0 ? 1 : 0} to {todayAttendanceData.length} of {todayAttendanceData.length} entries
         </div>
         <div className="flex space-x-2">
           <Button variant="outline" disabled data-testid="button-previous">
