@@ -121,7 +121,7 @@ export default function LeaveApprovalPage() {
   });
 
   // Fetch departments for dropdown filter
-  const { data: departments = [] } = useQuery({
+  const { data: departments = [], isLoading: departmentsLoading, error: departmentsError } = useQuery({
     queryKey: ["/api/departments"],
     queryFn: async () => {
       const response = await fetch('/api/departments', {
@@ -132,12 +132,14 @@ export default function LeaveApprovalPage() {
       if (!response.ok) {
         throw new Error('Failed to fetch departments');
       }
-      return response.json();
+      const data = await response.json();
+      console.log("Departments fetched:", data);
+      return data;
     },
   });
 
   // Fetch years for dropdown filter (based on actual data)
-  const { data: availableYears = [] } = useQuery({
+  const { data: availableYears = [], isLoading: yearsLoading, error: yearsError } = useQuery({
     queryKey: ["/api/years"],
     queryFn: async () => {
       const response = await fetch('/api/years', {
@@ -148,7 +150,9 @@ export default function LeaveApprovalPage() {
       if (!response.ok) {
         throw new Error('Failed to fetch years');
       }
-      return response.json();
+      const data = await response.json();
+      console.log("Years fetched:", data);
+      return data;
     },
   });
 
