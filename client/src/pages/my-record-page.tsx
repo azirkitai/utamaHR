@@ -165,12 +165,10 @@ export default function MyRecordPage() {
       
       if (!isInDateRange) return false;
       
-      // Search filter (search in employee name if available)
+      // Search filter (search in employee ID for now)
       if (filters.searchTerm) {
         const searchTerm = filters.searchTerm.toLowerCase();
-        const matchesSearch = 
-          (record.employeeName && record.employeeName.toLowerCase().includes(searchTerm)) ||
-          (record.fullName && record.fullName.toLowerCase().includes(searchTerm));
+        const matchesSearch = record.employeeId && record.employeeId.toLowerCase().includes(searchTerm);
         if (!matchesSearch) return false;
       }
       
@@ -318,6 +316,30 @@ export default function MyRecordPage() {
   // Fetch current logged-in user data for role-based access control
   const { data: currentUser } = useQuery<{ id: string; role?: string }>({
     queryKey: ["/api/user"],
+  });
+
+  // Fetch all employees for name lookup in PDF generation
+  const { data: allEmployees = [] } = useQuery({
+    queryKey: ['/api/employees'],
+    queryFn: async () => {
+      const token = localStorage.getItem('utamahr_token');
+      if (!token) throw new Error('No authentication token found');
+      
+      const response = await fetch('/api/employees', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || 'Failed to fetch employees');
+      }
+      
+      return response.json();
+    },
+    enabled: !!user && activeTab === 'attendance'
   });
 
   // Check if current user has privileged access (Admin/Super Admin/HR Manager)
@@ -1200,7 +1222,7 @@ export default function MyRecordPage() {
         });
         
         // Get employee name from the employees list
-        const employee = allEmployees.find(emp => emp.id === record.employeeId);
+        const employee = allEmployees.find((emp: any) => emp.id === record.employeeId);
         const employeeDisplayName = employee ? `${employee.firstName} ${employee.lastName}`.trim() : 'Unknown Employee';
         // Improved name handling - avoid cutting names mid-character
         const truncateName = (name: string, maxLength: number = 16) => {
