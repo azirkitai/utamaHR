@@ -1026,17 +1026,18 @@ export default function MyRecordPage() {
       const rowHeight = 20;
       const fontSize = 8;
       
-      // Column configuration - optimized for readability
+      // Column configuration - optimized for readability with wider employee column
       const columns = [
-        { header: 'No.', width: 30 },
-        { header: 'Employee', width: 100 },
-        { header: 'Date', width: 65 },
-        { header: 'Clock In', width: 60 },
-        { header: 'Break Out', width: 65 },
-        { header: 'Break In', width: 60 },
-        { header: 'Clock Out', width: 65 },
-        { header: 'Total Hours', width: 70 },
-        { header: 'Status', width: 65 }
+        { header: 'No.', width: 25 },
+        { header: 'Employee', width: 120 },
+        { header: 'Date', width: 60 },
+        { header: 'Clock In', width: 55 },
+        { header: 'Break Out', width: 60 },
+        { header: 'Break In', width: 55 },
+        { header: 'Clock Out', width: 60 },
+        { header: 'Total Hours', width: 65 },
+        { header: 'Status', width: 60 },
+        { header: 'Pictures', width: 80 }
       ];
       
       // Helper function to draw table header
@@ -1122,16 +1123,35 @@ export default function MyRecordPage() {
         
         // Prepare row data
         const employeeDisplayName = record.employeeName || record.fullName || 'N/A';
+        // Improved name handling - avoid cutting names mid-character
+        const truncateName = (name: string, maxLength: number = 16) => {
+          if (name.length <= maxLength) return name;
+          const words = name.split(' ');
+          if (words.length === 1) {
+            return name.substring(0, maxLength - 3) + '...';
+          }
+          let result = words[0];
+          for (let i = 1; i < words.length; i++) {
+            if ((result + ' ' + words[i]).length <= maxLength) {
+              result += ' ' + words[i];
+            } else {
+              break;
+            }
+          }
+          return result.length < name.length ? result + '...' : result;
+        };
+        
         const rowData = [
           (rowIndex + 1).toString(),
-          employeeDisplayName.length > 12 ? employeeDisplayName.substring(0, 9) + '...' : employeeDisplayName,
+          truncateName(employeeDisplayName, 16),
           format(new Date(record.date), 'dd/MM/yyyy'),
           formatTime(record.clockInTime),
           formatTime(record.breakOutTime),
           formatTime(record.breakInTime),
           formatTime(record.clockOutTime),
           record.totalHours || '-',
-          record.isLateClockIn ? 'Late' : 'On Time'
+          record.isLateClockIn ? 'Late' : 'On Time',
+          'Clock In/Out' // Pictures column
         ];
         
         let currentX = tableStartX;
@@ -1152,13 +1172,40 @@ export default function MyRecordPage() {
           
           // Draw cell text
           const cellText = rowData[colIndex] || '-';
-          page.drawText(cellText, {
-            x: currentX + 3,
-            y: y - 13,
-            size: fontSize,
-            font: font,
-            color: textColor,
-          });
+          
+          // Special handling for Pictures column
+          if (colIndex === 9) { // Pictures column
+            // Draw camera icon text or indicator
+            const hasClockInSelfie = record.clockInSelfie && record.clockInSelfie !== '-';
+            const hasClockOutSelfie = record.clockOutSelfie && record.clockOutSelfie !== '-';
+            
+            let pictureText = '';
+            if (hasClockInSelfie && hasClockOutSelfie) {
+              pictureText = 'In/Out ✓';
+            } else if (hasClockInSelfie) {
+              pictureText = 'In ✓';
+            } else if (hasClockOutSelfie) {
+              pictureText = 'Out ✓';
+            } else {
+              pictureText = 'No Images';
+            }
+            
+            page.drawText(pictureText, {
+              x: currentX + 3,
+              y: y - 13,
+              size: fontSize - 1,
+              font: font,
+              color: (hasClockInSelfie || hasClockOutSelfie) ? rgb(0, 0.6, 0) : rgb(0.6, 0.6, 0.6),
+            });
+          } else {
+            page.drawText(cellText, {
+              x: currentX + 3,
+              y: y - 13,
+              size: fontSize,
+              font: font,
+              color: textColor,
+            });
+          }
           
           currentX += col.width;
         });
