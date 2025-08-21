@@ -71,6 +71,42 @@ export default function MyRecordPage() {
     }
   });
 
+  // Fetch departments for department name mapping
+  const { data: departments = [] } = useQuery({
+    queryKey: ['/api/departments'],
+    queryFn: async () => {
+      const token = localStorage.getItem('utamahr_token');
+      const response = await fetch('/api/departments', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch departments');
+      }
+      return response.json();
+    }
+  });
+
+  // Fetch all employees for department mapping  
+  const { data: allEmployees = [] } = useQuery({
+    queryKey: ['/api/employees'],
+    queryFn: async () => {
+      const token = localStorage.getItem('utamahr_token');
+      const response = await fetch('/api/employees', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch employees');
+      }
+      return response.json();
+    }
+  });
+
   // Fetch attendance records from database with simplified approach  
   const { data: rawAttendanceData, isLoading: isLoadingAttendance, error: attendanceError, refetch: refetchAttendance } = useQuery({
     queryKey: ['attendance-records', activeTab, user?.id, filters.dateFrom.toISOString(), filters.dateTo.toISOString()],
@@ -318,29 +354,7 @@ export default function MyRecordPage() {
     queryKey: ["/api/user"],
   });
 
-  // Fetch all employees for name lookup in PDF generation
-  const { data: allEmployees = [] } = useQuery({
-    queryKey: ['/api/employees'],
-    queryFn: async () => {
-      const token = localStorage.getItem('utamahr_token');
-      if (!token) throw new Error('No authentication token found');
-      
-      const response = await fetch('/api/employees', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        throw new Error(errorData.error || 'Failed to fetch employees');
-      }
-      
-      return response.json();
-    },
-    enabled: !!user && activeTab === 'attendance'
-  });
+
 
   // Check if current user has privileged access (Admin/Super Admin/HR Manager)
   const currentUserRole = currentEmployee?.role || currentUser?.role || '';
