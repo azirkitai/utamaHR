@@ -3,7 +3,6 @@ UtamaHR is a comprehensive HR Management System built with React, TypeScript, an
 
 # User Preferences
 Preferred communication style: Simple, everyday language.
-PDF Layout Preferences: Custom A4 portrait margins - 10mm top, 8mm left/right, 20mm bottom for optimal space utilization rather than professional standard margins.
 
 # System Architecture
 
