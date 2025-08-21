@@ -1824,41 +1824,9 @@ export default function EmployeeDetailsPage() {
                       {/* Leave Supervisor */}
                       <div>
                         <h3 className="text-lg font-semibold text-gray-800 mb-4">1) Leave Supervisor</h3>
-                        
-                        {/* System-wide Leave Approval Settings Display */}
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                          <div className="flex items-start gap-3">
-                            <div className="flex-shrink-0 w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center">
-                              <Settings className="w-3 h-3 text-blue-600" />
-                            </div>
-                            <div className="flex-1">
-                              <h4 className="text-sm font-semibold text-blue-900 mb-2">Tetapan Semasa Sistem - Leave Approval</h4>
-                              <div className="text-sm text-blue-800">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  <div>
-                                    <span className="font-medium">First Level Approval:</span> 
-                                    <span className="ml-2 px-2 py-1 bg-blue-100 rounded text-blue-900 font-medium">
-                                      {getCurrentLeaveApprovalSettings().firstLevel}
-                                    </span>
-                                  </div>
-                                  <div>
-                                    <span className="font-medium">Second Level Approval:</span> 
-                                    <span className="ml-2 px-2 py-1 bg-blue-100 rounded text-blue-900 font-medium">
-                                      {getCurrentLeaveApprovalSettings().secondLevel}
-                                    </span>
-                                  </div>
-                                </div>
-                                <div className="mt-3 text-xs text-blue-700">
-                                  <span className="font-medium">ℹ️ Nota:</span> Ini adalah tetapan global dari System Settings &gt; Leave &gt; Leave Approval yang digunakan untuk semua permohonan cuti.
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                           <div className="space-y-2">
-                            <Label className="text-sm font-medium text-gray-700 block">First Approval</Label>
+                            <Label className="text-sm font-medium text-gray-700 block">First Approval : {getCurrentLeaveApprovalSettings().firstLevel}</Label>
                             {isEditingApproval ? (
                               <Select value={employmentForm.leaveFirstApproval || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, leaveFirstApproval: value })}>
                                 <SelectTrigger className="mt-1">
@@ -1879,7 +1847,7 @@ export default function EmployeeDetailsPage() {
                             )}
                           </div>
                           <div className="space-y-2">
-                            <Label className="text-sm font-medium text-gray-700 block">Second Approval</Label>
+                            <Label className="text-sm font-medium text-gray-700 block">Second Approval : {getCurrentLeaveApprovalSettings().secondLevel}</Label>
                             {isEditingApproval ? (
                               <Select value={employmentForm.leaveSecondApproval || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, leaveSecondApproval: value })}>
                                 <SelectTrigger className="mt-1">
