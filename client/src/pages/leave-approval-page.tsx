@@ -577,20 +577,28 @@ export default function LeaveApprovalPage() {
                   {Object.entries(employee.leaveBreakdown).map(([leaveType, breakdown]: [string, any], index: number) => (
                     <TableRow 
                       key={`${employee.employeeId}-${leaveType}`} 
-                      className={`hover:bg-gray-50 ${!breakdown.isEligible ? 'opacity-50 bg-gray-50' : ''}`}
+                      className={`hover:bg-gray-50 ${!breakdown.isEligible ? 'opacity-60 bg-gray-50' : ''}`}
                     >
                       <TableCell className="font-medium">{index + 1}</TableCell>
-                      <TableCell className={`font-medium ${!breakdown.isEligible ? 'text-gray-400 blur-sm' : ''}`}>
-                        {leaveType}
+                      <TableCell className={`font-medium ${!breakdown.isEligible ? 'text-gray-400' : ''}`}>
+                        <span className={!breakdown.isEligible ? 'filter blur-sm' : ''}>
+                          {leaveType}
+                        </span>
                       </TableCell>
-                      <TableCell className={`text-center ${!breakdown.isEligible ? 'text-gray-400 blur-sm' : ''}`}>
-                        {breakdown.entitlementDays}
+                      <TableCell className={`text-center ${!breakdown.isEligible ? 'text-gray-400' : ''}`}>
+                        <span className={!breakdown.isEligible ? 'filter blur-sm' : ''}>
+                          {breakdown.entitlementDays}
+                        </span>
                       </TableCell>
-                      <TableCell className={`text-center ${!breakdown.isEligible ? 'text-gray-400 blur-sm' : ''}`}>
-                        {breakdown.daysTaken}
+                      <TableCell className={`text-center ${!breakdown.isEligible ? 'text-gray-400' : ''}`}>
+                        <span className={!breakdown.isEligible ? 'filter blur-sm' : ''}>
+                          {breakdown.daysTaken}
+                        </span>
                       </TableCell>
-                      <TableCell className={`text-center font-semibold ${!breakdown.isEligible ? 'text-gray-400 blur-sm' : 'text-cyan-600'}`}>
-                        {breakdown.remainingDays}
+                      <TableCell className={`text-center font-semibold ${!breakdown.isEligible ? 'text-gray-400' : 'text-cyan-600'}`}>
+                        <span className={!breakdown.isEligible ? 'filter blur-sm' : ''}>
+                          {breakdown.remainingDays}
+                        </span>
                       </TableCell>
                       <TableCell className="text-center">
                         {!breakdown.isEligible ? (

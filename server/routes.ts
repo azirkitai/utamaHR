@@ -918,12 +918,13 @@ export function registerRoutes(app: Express): Server {
     try {
       console.log('Fetching leave summary for all employees...');
       
-      // Get all employees
+      // Get all employees with their roles
       const allEmployees = await db
         .select({
           id: employees.id,
           fullName: employees.fullName,
-          userId: employees.userId
+          userId: employees.userId,
+          role: employees.role
         })
         .from(employees)
         .where(eq(employees.status, 'employed'));
@@ -933,6 +934,11 @@ export function registerRoutes(app: Express): Server {
         .select()
         .from(companyLeaveTypes)
         .where(eq(companyLeaveTypes.enabled, true));
+
+      // Get all group policy settings for role-based exclusions
+      const groupPolicySettings = await db
+        .select()
+        .from(groupPolicySettings);
 
       const employeeSummary = [];
 
@@ -945,7 +951,7 @@ export function registerRoutes(app: Express): Server {
 
         // For each enabled leave type, calculate this employee's usage
         for (const leaveType of enabledLeaveTypes) {
-          // Check individual employee eligibility first
+          // Check individual employee eligibility first (Employee Details level)
           const eligibilityRecord = await db
             .select()
             .from(employeeLeaveEligibility)
@@ -957,8 +963,23 @@ export function registerRoutes(app: Express): Server {
             )
             .limit(1);
 
-          // Default to eligible unless explicitly disabled
-          const isEligible = eligibilityRecord.length === 0 ? true : eligibilityRecord[0].isEligible;
+          // Default to eligible unless explicitly disabled at individual level
+          const isIndividuallyEligible = eligibilityRecord.length === 0 ? true : eligibilityRecord[0].isEligible;
+          
+          // Skip if individually disabled (Employee Details level) - don't show at all
+          if (!isIndividuallyEligible) {
+            console.log(`⚫ Skipping ${leaveType.leaveType} for ${employee.fullName} - individually disabled`);
+            continue;
+          }
+
+          // Check role-based exclusion (System Settings level)
+          const roleBasedPolicy = groupPolicySettings.find(policy => 
+            policy.leaveType === leaveType.leaveType && 
+            policy.role === employee.role
+          );
+          
+          // If no role-based policy found, this leave type is excluded for this role
+          const isRoleEligible = roleBasedPolicy ? true : false;
           
           const approvedApplications = await db
             .select()
@@ -975,16 +996,17 @@ export function registerRoutes(app: Express): Server {
             return sum + parseInt(app.totalDays || '0');
           }, 0);
 
-          if (!isEligible) {
-            console.log(`⛔ Including ${leaveType.leaveType} for ${employee.fullName} - but marked as ineligible`);
+          if (!isRoleEligible) {
+            console.log(`🔶 Including ${leaveType.leaveType} for ${employee.fullName} (${employee.role}) - but role-based excluded`);
           }
 
           employeeData.leaveBreakdown[leaveType.leaveType] = {
             daysTaken: totalDaysTaken,
             applicationsCount: approvedApplications.length,
-            entitlementDays: leaveType.entitlementDays || 0,
-            remainingDays: (leaveType.entitlementDays || 0) - totalDaysTaken,
-            isEligible: isEligible // Include eligibility status
+            entitlementDays: roleBasedPolicy?.entitlementDays || leaveType.entitlementDays || 0,
+            remainingDays: (roleBasedPolicy?.entitlementDays || leaveType.entitlementDays || 0) - totalDaysTaken,
+            isEligible: isRoleEligible, // Role-based eligibility
+            isIndividuallyEnabled: isIndividuallyEligible // Individual eligibility
           };
         }
 
