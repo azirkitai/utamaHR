@@ -550,8 +550,8 @@ export class DatabaseStorage implements IStorage {
 
   async getUniqueDepartments(): Promise<string[]> {
     try {
-      console.log("Fetching unique departments from employees table...");
-      const result = await db.select({ department: employees.department }).from(employees);
+      console.log("Fetching unique departments from employment table...");
+      const result = await db.select({ department: employment.department }).from(employment);
       console.log("Raw departments result:", result);
       
       const uniqueDepartments = [...new Set(result
