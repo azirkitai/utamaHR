@@ -1103,13 +1103,17 @@ export default function MyRecordPage() {
       const { width, height } = currentPage.getSize();
       const pages = [currentPage];
       
-      // Define margins in points (1mm = 2.83465 points)
-      const topMargin = 14; // 5mm (further reduced)
-      const bottomMargin = 28; // 10mm (reduced)
-      const leftMargin = 14; // 5mm (further reduced)
-      const rightMargin = 14; // 5mm (further reduced)
-      const contentWidth = width - leftMargin - rightMargin; // 493 points
-      const contentHeight = height - topMargin - bottomMargin; // 728 points
+      // 1mm = 2.83465 pt
+      const mm = (n: number) => n * 2.83465;
+      
+      // A4 portrait margins
+      const topMargin = mm(28); // 28mm
+      const bottomMargin = mm(22); // 22mm
+      const leftMargin = mm(18); // 18mm
+      const rightMargin = mm(18); // 18mm
+      
+      const contentWidth = width - leftMargin - rightMargin;
+      const contentHeight = height - topMargin - bottomMargin;
       
       // Draw header function
       const drawHeader = (page: any) => {
@@ -1138,9 +1142,9 @@ export default function MyRecordPage() {
         
         // Company name
         page.drawText(companyName, {
-          x: leftMargin,
+          x: leftMargin + 6,
           y: height - topMargin - 35,
-          size: 12, // Reduced from 16
+          size: 16, // Standard size
           font: boldFont,
           color: rgb(1, 1, 1),
         });
@@ -1150,24 +1154,24 @@ export default function MyRecordPage() {
         
         if (companyPhone) {
           page.drawText(`Tel: ${companyPhone}`, {
-            x: leftMargin,
+            x: leftMargin + 6,
             y: contactY,
-            size: 8, // Reduced from 10
+            size: 10,
             font: font,
             color: rgb(0.9, 0.9, 0.9),
           });
-          contactY -= 12; // Reduced spacing
+          contactY -= 15;
         }
         
         if (companyEmail) {
           page.drawText(`Email: ${companyEmail}`, {
-            x: leftMargin,
+            x: leftMargin + 6,
             y: contactY,
-            size: 8, // Reduced from 10
+            size: 10,
             font: font,
             color: rgb(0.9, 0.9, 0.9),
           });
-          contactY -= 12; // Reduced spacing
+          contactY -= 15;
         }
         
         if (fullAddress) {
@@ -1189,27 +1193,27 @@ export default function MyRecordPage() {
             }
             
             page.drawText(line1, {
-              x: leftMargin,
+              x: leftMargin + 6,
               y: contactY,
-              size: 8, // Reduced from 10
+              size: 10,
               font: font,
               color: rgb(0.9, 0.9, 0.9),
             });
             
             if (line2) {
               page.drawText(line2, {
-                x: leftMargin,
-                y: contactY - 10, // Reduced spacing
-                size: 8, // Reduced from 10
+                x: leftMargin + 6,
+                y: contactY - 12,
+                size: 10,
                 font: font,
                 color: rgb(0.9, 0.9, 0.9),
               });
             }
           } else {
             page.drawText(fullAddress, {
-              x: leftMargin,
+              x: leftMargin + 6,
               y: contactY,
-              size: 8, // Reduced from 10
+              size: 10,
               font: font,
               color: rgb(0.9, 0.9, 0.9),
             });
@@ -1218,9 +1222,9 @@ export default function MyRecordPage() {
         
         // Report title
         page.drawText('EMPLOYEE ATTENDANCE REPORT', {
-          x: (width - boldFont.widthOfTextAtSize('EMPLOYEE ATTENDANCE REPORT', 14)) / 2,
-          y: height - topMargin - 120,
-          size: 14, // Reduced from 18
+          x: (width - boldFont.widthOfTextAtSize('EMPLOYEE ATTENDANCE REPORT', 18)) / 2,
+          y: height - topMargin - 150,
+          size: 18,
           font: boldFont,
           color: rgb(0.1, 0.2, 0.4),
         });
@@ -1234,11 +1238,11 @@ export default function MyRecordPage() {
         const columnWidths = [30, 150, 70, 55, 55, 55, 55, 65, 75];
         const headers = ['No.', 'Employee Name', 'Date', 'Clock In', 'Break Out', 'Break In', 'Clock Out', 'Total Hours', 'Status'];
         
-        // Header background - extend to full page width (edge to edge)
+        // Header background - within proper margins
         page.drawRectangle({
-          x: 0,
+          x: leftMargin,
           y: yPos - tableHeight,
-          width: width,
+          width: contentWidth,
           height: tableHeight,
           color: rgb(0.1, 0.3, 0.6), // Dark blue header
         });
@@ -1249,7 +1253,7 @@ export default function MyRecordPage() {
           page.drawText(header, {
             x: currentX + 5,
             y: yPos - 17,
-            size: 7, // Reduced from 10
+            size: 10,
             font: boldFont,
             color: rgb(1, 1, 1), // White text
           });
@@ -1340,14 +1344,14 @@ export default function MyRecordPage() {
           // Right align for numbers (No, Total Jam)
           let textX = currentX + 5;
           if (colIndex === 0 || colIndex === 7) {
-            const textWidth = font.widthOfTextAtSize(data, 7);
+            const textWidth = font.widthOfTextAtSize(data, 9);
             textX = currentX + columnWidths[colIndex] - textWidth - 5;
           }
           
           page.drawText(data, {
             x: textX,
             y: yPos - 17,
-            size: 7, // Reduced from 9
+            size: 9,
             font: font,
             color: textColor,
           });

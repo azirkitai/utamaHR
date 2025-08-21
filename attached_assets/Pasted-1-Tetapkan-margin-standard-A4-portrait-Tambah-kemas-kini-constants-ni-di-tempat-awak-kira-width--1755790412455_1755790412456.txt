@@ -1,0 +1,109 @@
+1) Tetapkan margin standard (A4 portrait)
+
+Tambah/kemas kini constants ni di tempat awak kira width/height:
+
+// 1mm = 2.83465 pt
+const mm = (n: number) => n * 2.83465;
+
+// A4 portrait margins
+const topMargin    = mm(28); // 28mm
+const bottomMargin = mm(22); // 22mm
+const leftMargin   = mm(18); // 18mm
+const rightMargin  = mm(18); // 18mm
+
+const contentWidth  = width  - leftMargin - rightMargin;
+const contentHeight = height - topMargin  - bottomMargin;
+
+
+(Gantikan nilai margin lama anda — 14/28/14/14 — dengan nilai di atas.)
+
+2) Header: kekalkan dalam margin
+Sebelum (melimpah keluar margin):
+page.drawRectangle({
+  x: leftMargin,
+  y: height - topMargin - 120,
+  width: contentWidth,
+  height: 120,
+  color: rgb(0.1, 0.2, 0.4),
+});
+
+
+Biarkan seperti ini (dah guna leftMargin & contentWidth).
+Hanya pastikan SEMUA drawText dalam drawHeader juga bermula dari leftMargin (bukan 0).
+
+Contoh selarikan teks:
+
+// company name
+page.drawText(companyName, {
+  x: leftMargin + 6,
+  y: height - topMargin - 35,
+  size: 12,
+  font: boldFont,
+  color: rgb(1,1,1),
+});
+
+
+Tip: kalau ada page.drawText(... x: (width - boldFont.widthOfTextAtSize(...))/2, ...) untuk center tajuk, biarkan—itu tak ubah fungsi. Ia masih dalam bar/header yang sudah berada dalam margin.
+
+3) Table header: jangan tepi-ke-tepi, guna contentWidth
+Sebelum (edge-to-edge):
+page.drawRectangle({
+  x: 0,
+  y: yPos - tableHeight,
+  width: width,
+  height: tableHeight,
+  color: rgb(0.1, 0.3, 0.6),
+});
+
+Tukar 2 baris sahaja:
+page.drawRectangle({
+  x: leftMargin,
+  y: yPos - tableHeight,
+  width: contentWidth,
+  height: tableHeight,
+  color: rgb(0.1, 0.3, 0.6),
+});
+
+
+Pastikan juga teks header bermula dari leftMargin:
+
+let currentX = leftMargin; // bukan 0
+headers.forEach((header: string, index: number) => {
+  page.drawText(header, {
+    x: currentX + 5,
+    y: yPos - 17,
+    size: 7,
+    font: boldFont,
+    color: rgb(1,1,1),
+  });
+  currentX += columnWidths[index];
+});
+
+
+Nota: Baris data anda untuk jadual sudah guna leftMargin/contentWidth—teruskan begitu (dah OK).
+
+4) Footer: pastikan dalam margin
+
+Jika ada footer (tarikh/nombor muka surat), pastikan x bermula dari leftMargin dan lebar tak melebihi contentWidth:
+
+page.drawText(footerLine, {
+  x: leftMargin,
+  y: bottomMargin - 10, // contoh: dalam kawasan margin bawah
+  size: 8,
+  font,
+  color: rgb(0.2,0.2,0.2),
+});
+
+Ringkas (yang agent perlu buat)
+
+Ganti nilai margin → 28 / 22 / 18 / 18 mm (kod di Seksyen 1).
+
+Jangan ubah fungsi lain.
+
+Pastikan semua drawRectangle dan drawText kritikal:
+
+Header bar & teks header: guna leftMargin + contentWidth.
+
+Table header bar: tukar x: 0 → leftMargin dan width: width → contentWidth.
+
+Footer: anchor pada leftMargin, dalam bottomMargin.
