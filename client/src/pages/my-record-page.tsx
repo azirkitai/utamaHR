@@ -3113,26 +3113,26 @@ export default function MyRecordPage() {
               <TableHead>Break Off</TableHead>
               <TableHead>Clock Out</TableHead>
               <TableHead>Total Hour(s)</TableHead>
-              <TableHead>Gambar Kehadiran</TableHead>
+
               <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {activeTab !== 'attendance' ? (
               <TableRow>
-                <TableCell colSpan={hasAdminAccess ? 9 : 8} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={hasAdminAccess ? 8 : 7} className="text-center py-8 text-gray-500">
                   Click Attendance tab to view records...
                 </TableCell>
               </TableRow>
             ) : isLoadingAttendance ? (
               <TableRow>
-                <TableCell colSpan={hasAdminAccess ? 9 : 8} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={hasAdminAccess ? 8 : 7} className="text-center py-8 text-gray-500">
                   Loading attendance records...
                 </TableCell>
               </TableRow>
             ) : attendanceRecords.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={hasAdminAccess ? 9 : 8} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={hasAdminAccess ? 8 : 7} className="text-center py-8 text-gray-500">
                   No data available in table
                 </TableCell>
               </TableRow>
@@ -3160,30 +3160,43 @@ export default function MyRecordPage() {
                   <TableCell>
                     {record.clockInTime ? (
                       <div className="space-y-1">
-                        <span className={`${
-                          isLate ? 'text-red-600 font-bold bg-red-100 px-2 py-1 rounded border-2 border-red-500' : 'text-gray-800'
-                        }`}
-                        style={isLate ? { 
-                          backgroundColor: '#fee2e2', 
-                          color: '#dc2626', 
-                          fontWeight: 'bold',
-                          padding: '4px 8px',
-                          borderRadius: '4px',
-                          border: '2px solid #ef4444'
-                        } : {}}>
-                          {(() => {
-                            // Parse UTC time and convert to Malaysia time
-                            const utcDate = new Date(record.clockInTime);
-                            if (isNaN(utcDate.getTime())) return 'Invalid Date';
-                            return utcDate.toLocaleTimeString('en-MY', { 
-                              hour: '2-digit', 
-                              minute: '2-digit', 
-                              timeZone: 'Asia/Kuala_Lumpur',
-                              hour12: false 
-                            });
-                          })()}
-                          {isLate && ' ⚠️'}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className={`${
+                            isLate ? 'text-red-600 font-bold bg-red-100 px-2 py-1 rounded border-2 border-red-500' : 'text-gray-800'
+                          }`}
+                          style={isLate ? { 
+                            backgroundColor: '#fee2e2', 
+                            color: '#dc2626', 
+                            fontWeight: 'bold',
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            border: '2px solid #ef4444'
+                          } : {}}>
+                            {(() => {
+                              // Parse UTC time and convert to Malaysia time
+                              const utcDate = new Date(record.clockInTime);
+                              if (isNaN(utcDate.getTime())) return 'Invalid Date';
+                              return utcDate.toLocaleTimeString('en-MY', { 
+                                hour: '2-digit', 
+                                minute: '2-digit', 
+                                timeZone: 'Asia/Kuala_Lumpur',
+                                hour12: false 
+                              });
+                            })()}
+                            {isLate && ' ⚠️'}
+                          </span>
+                          {record.clockInImage && (
+                            <img 
+                              src={record.clockInImage.startsWith('/objects/') ? record.clockInImage : `/objects/${record.clockInImage.replace(/^\/+/, '')}`}
+                              alt="Clock In"
+                              className="w-8 h-8 object-cover rounded border cursor-pointer hover:scale-110 transition-transform"
+                              onClick={() => window.open(record.clockInImage.startsWith('/objects/') ? record.clockInImage : `/objects/${record.clockInImage.replace(/^\/+/, '')}`, '_blank')}
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          )}
+                        </div>
                         {isLate && extendedRecord.clockInRemarks && (
                           <div className="text-xs text-red-600 bg-red-50 p-1 rounded border mt-1">
                             {extendedRecord.clockInRemarks}
@@ -3200,29 +3213,42 @@ export default function MyRecordPage() {
                   <TableCell>
                     {(record as any).breakOutTime ? (
                       <div className="space-y-1">
-                        <span className={`${
-                          (record as any).isLateBreakOut ? 'text-red-600 font-bold bg-red-100 px-2 py-1 rounded border-2 border-red-500' : 'text-gray-800'
-                        }`}
-                        style={(record as any).isLateBreakOut ? { 
-                          backgroundColor: '#fee2e2', 
-                          color: '#dc2626', 
-                          fontWeight: 'bold',
-                          padding: '4px 8px',
-                          borderRadius: '4px',
-                          border: '2px solid #ef4444'
-                        } : {}}>
-                          {(() => {
-                            const utcDate = new Date((record as any).breakOutTime);
-                            if (isNaN(utcDate.getTime())) return 'Invalid Date';
-                            return utcDate.toLocaleTimeString('en-MY', { 
-                              hour: '2-digit', 
-                              minute: '2-digit', 
-                              timeZone: 'Asia/Kuala_Lumpur',
-                              hour12: false 
-                            });
-                          })()}
-                          {(record as any).isLateBreakOut && ' ⚠️'}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className={`${
+                            (record as any).isLateBreakOut ? 'text-red-600 font-bold bg-red-100 px-2 py-1 rounded border-2 border-red-500' : 'text-gray-800'
+                          }`}
+                          style={(record as any).isLateBreakOut ? { 
+                            backgroundColor: '#fee2e2', 
+                            color: '#dc2626', 
+                            fontWeight: 'bold',
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            border: '2px solid #ef4444'
+                          } : {}}>
+                            {(() => {
+                              const utcDate = new Date((record as any).breakOutTime);
+                              if (isNaN(utcDate.getTime())) return 'Invalid Date';
+                              return utcDate.toLocaleTimeString('en-MY', { 
+                                hour: '2-digit', 
+                                minute: '2-digit', 
+                                timeZone: 'Asia/Kuala_Lumpur',
+                                hour12: false 
+                              });
+                            })()}
+                            {(record as any).isLateBreakOut && ' ⚠️'}
+                          </span>
+                          {(record as any).breakOutImage && (
+                            <img 
+                              src={(record as any).breakOutImage.startsWith('/objects/') ? (record as any).breakOutImage : `/objects/${(record as any).breakOutImage.replace(/^\/+/, '')}`}
+                              alt="Break Out"
+                              className="w-8 h-8 object-cover rounded border cursor-pointer hover:scale-110 transition-transform"
+                              onClick={() => window.open((record as any).breakOutImage.startsWith('/objects/') ? (record as any).breakOutImage : `/objects/${(record as any).breakOutImage.replace(/^\/+/, '')}`, '_blank')}
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          )}
+                        </div>
                         {(record as any).isLateBreakOut && (record as any).breakOutRemarks && (
                           <div className="text-xs text-red-600 bg-red-50 p-1 rounded border">
                             {(record as any).breakOutRemarks}
@@ -3239,29 +3265,42 @@ export default function MyRecordPage() {
                   <TableCell>
                     {(record as any).breakInTime ? (
                       <div className="space-y-1">
-                        <span className={`${
-                          (record as any).isLateBreakIn ? 'text-red-600 font-bold bg-red-100 px-2 py-1 rounded border-2 border-red-500' : 'text-gray-800'
-                        }`}
-                        style={(record as any).isLateBreakIn ? { 
-                          backgroundColor: '#fee2e2', 
-                          color: '#dc2626', 
-                          fontWeight: 'bold',
-                          padding: '4px 8px',
-                          borderRadius: '4px',
-                          border: '2px solid #ef4444'
-                        } : {}}>
-                          {(() => {
-                            const utcDate = new Date((record as any).breakInTime);
-                            if (isNaN(utcDate.getTime())) return 'Invalid Date';
-                            return utcDate.toLocaleTimeString('en-MY', { 
-                              hour: '2-digit', 
-                              minute: '2-digit', 
-                              timeZone: 'Asia/Kuala_Lumpur',
-                              hour12: false 
-                            });
-                          })()}
-                          {(record as any).isLateBreakIn && ' ⚠️'}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className={`${
+                            (record as any).isLateBreakIn ? 'text-red-600 font-bold bg-red-100 px-2 py-1 rounded border-2 border-red-500' : 'text-gray-800'
+                          }`}
+                          style={(record as any).isLateBreakIn ? { 
+                            backgroundColor: '#fee2e2', 
+                            color: '#dc2626', 
+                            fontWeight: 'bold',
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            border: '2px solid #ef4444'
+                          } : {}}>
+                            {(() => {
+                              const utcDate = new Date((record as any).breakInTime);
+                              if (isNaN(utcDate.getTime())) return 'Invalid Date';
+                              return utcDate.toLocaleTimeString('en-MY', { 
+                                hour: '2-digit', 
+                                minute: '2-digit', 
+                                timeZone: 'Asia/Kuala_Lumpur',
+                                hour12: false 
+                              });
+                            })()}
+                            {(record as any).isLateBreakIn && ' ⚠️'}
+                          </span>
+                          {(record as any).breakInImage && (
+                            <img 
+                              src={(record as any).breakInImage.startsWith('/objects/') ? (record as any).breakInImage : `/objects/${(record as any).breakInImage.replace(/^\/+/, '')}`}
+                              alt="Break In"
+                              className="w-8 h-8 object-cover rounded border cursor-pointer hover:scale-110 transition-transform"
+                              onClick={() => window.open((record as any).breakInImage.startsWith('/objects/') ? (record as any).breakInImage : `/objects/${(record as any).breakInImage.replace(/^\/+/, '')}`, '_blank')}
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          )}
+                        </div>
                         {(record as any).isLateBreakIn && (record as any).breakInRemarks && (
                           <div className="text-xs text-red-600 bg-red-50 p-1 rounded border">
                             {(record as any).breakInRemarks}
@@ -3276,34 +3315,37 @@ export default function MyRecordPage() {
                   
                   {/* Clock Out */}
                   <TableCell>
-                    {record.clockOutTime ? (() => {
-                      const utcDate = new Date(record.clockOutTime);
-                      if (isNaN(utcDate.getTime())) return 'Invalid Date';
-                      return utcDate.toLocaleTimeString('en-MY', { 
-                        hour: '2-digit', 
-                        minute: '2-digit', 
-                        timeZone: 'Asia/Kuala_Lumpur',
-                        hour12: false 
-                      });
-                    })() : '-'}
+                    {record.clockOutTime ? (
+                      <div className="flex items-center gap-2">
+                        <span>
+                          {(() => {
+                            const utcDate = new Date(record.clockOutTime);
+                            if (isNaN(utcDate.getTime())) return 'Invalid Date';
+                            return utcDate.toLocaleTimeString('en-MY', { 
+                              hour: '2-digit', 
+                              minute: '2-digit', 
+                              timeZone: 'Asia/Kuala_Lumpur',
+                              hour12: false 
+                            });
+                          })()}
+                        </span>
+                        {record.clockOutImage && (
+                          <img 
+                            src={record.clockOutImage.startsWith('/objects/') ? record.clockOutImage : `/objects/${record.clockOutImage.replace(/^\/+/, '')}`}
+                            alt="Clock Out"
+                            className="w-8 h-8 object-cover rounded border cursor-pointer hover:scale-110 transition-transform"
+                            onClick={() => window.open(record.clockOutImage.startsWith('/objects/') ? record.clockOutImage : `/objects/${record.clockOutImage.replace(/^\/+/, '')}`, '_blank')}
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        )}
+                      </div>
+                    ) : '-'}
                   </TableCell>
 
                   
                   <TableCell>{record.totalHours ? parseFloat(record.totalHours).toFixed(2) : '0.00'}h</TableCell>
-                  
-                  {/* AttendanceImageViewer Column */}
-                  <TableCell>
-                    <AttendanceImageViewer 
-                      clockInImage={record.clockInImage}
-                      clockOutImage={record.clockOutImage}
-                      breakInImage={(record as any).breakInImage}
-                      breakOutImage={(record as any).breakOutImage}
-                      clockInTime={record.clockInTime}
-                      clockOutTime={record.clockOutTime}
-                      breakInTime={(record as any).breakInTime}
-                      breakOutTime={(record as any).breakOutTime}
-                    />
-                  </TableCell>
                   
                   <TableCell>
                     <div className="flex gap-1">
