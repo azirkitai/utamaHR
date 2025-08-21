@@ -85,6 +85,17 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
     queryKey: ["/api/group-policy-settings"],
   });
 
+  // Fetch employee leave eligibility records
+  const { data: leaveEligibilityRecords = [] } = useQuery<Array<{
+    employeeId: string;
+    leaveType: string;
+    isEligible: boolean;
+    remarks: string | null;
+  }>>({
+    queryKey: ["/api/leave-eligibility", employeeId],
+    enabled: !!employeeId,
+  });
+
   // Update individual employee leave eligibility mutation
   const updateEligibilityMutation = useMutation({
     mutationFn: async ({ leaveType, isEligible }: { leaveType: string; isEligible: boolean }) => {
@@ -137,6 +148,18 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
     
     // Check if employee's role is in the allowed roles
     return leaveTypeSettings.some((setting) => setting.role === employeeRole);
+  };
+
+  // Helper function to check if employee is eligible for a specific leave type
+  const isEmployeeEligibleForLeave = (leaveType: string) => {
+    // Find eligibility record for this leave type
+    const eligibilityRecord = leaveEligibilityRecords.find(
+      (record) => record.leaveType === leaveType
+    );
+    
+    // If no record exists, default to eligible (true)
+    // If record exists, use the isEligible value
+    return eligibilityRecord ? eligibilityRecord.isEligible : true;
   };
 
   // Filter policies based on search only - show all leave types but control access through company/role settings
@@ -324,7 +347,7 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
                           <td className="px-4 py-4 whitespace-nowrap">
                             <div className="flex items-center">
                               <Switch
-                                checked={policy.included || false}
+                                checked={isEmployeeEligibleForLeave(policy.leaveType || '')}
                                 onCheckedChange={(checked) => handleStatusToggle(policy.leaveType || '', checked)}
                                 disabled={updateEligibilityMutation.isPending || !isAccessible || !hasPrivilegedAccess()}
                                 data-testid={`switch-included-${policy.id}`}
@@ -333,7 +356,7 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
                                 {!hasPrivilegedAccess() 
                                   ? "Access Restricted" 
                                   : isAccessible 
-                                    ? (policy.included ? "Yes" : "No") 
+                                    ? (isEmployeeEligibleForLeave(policy.leaveType || '') ? "Yes" : "No") 
                                     : "Restricted"
                                 }
                               </span>
