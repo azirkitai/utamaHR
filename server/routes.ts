@@ -1788,9 +1788,20 @@ export function registerRoutes(app: Express): Server {
     try {
       const currentUser = req.user!;
       
-      // Only admin roles can update employment records
+      // Get the employment record to check if user can edit
+      const existingEmployment = await storage.getEmploymentById(req.params.id);
+      if (!existingEmployment) {
+        return res.status(404).json({ error: "Maklumat pekerjaan tidak dijumpai" });
+      }
+      
+      // Allow admin roles to update any employment record
       const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
-      if (!adminRoles.includes(currentUser.role)) {
+      const isAdmin = adminRoles.includes(currentUser.role);
+      
+      // Allow employees to update their own employment record
+      const isOwnRecord = existingEmployment.employeeId === currentUser.employeeId;
+      
+      if (!isAdmin && !isOwnRecord) {
         return res.status(403).json({ error: "Tidak dibenarkan untuk mengemaskini maklumat pekerjaan" });
       }
       

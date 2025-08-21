@@ -220,6 +220,7 @@ export interface IStorage {
   
   // =================== EMPLOYMENT METHODS ===================
   getEmploymentByEmployeeId(employeeId: string): Promise<Employment | undefined>;
+  getEmploymentById(id: string): Promise<Employment | undefined>;
   createEmployment(employment: InsertEmployment): Promise<Employment>;
   updateEmployment(id: string, employment: UpdateEmployment): Promise<Employment | undefined>;
   
@@ -589,6 +590,11 @@ export class DatabaseStorage implements IStorage {
   // =================== EMPLOYMENT METHODS ===================
   async getEmploymentByEmployeeId(employeeId: string): Promise<Employment | undefined> {
     const [record] = await db.select().from(employment).where(eq(employment.employeeId, employeeId));
+    return record || undefined;
+  }
+
+  async getEmploymentById(id: string): Promise<Employment | undefined> {
+    const [record] = await db.select().from(employment).where(eq(employment.id, id));
     return record || undefined;
   }
 
