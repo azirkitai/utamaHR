@@ -947,6 +947,18 @@ export function registerRoutes(app: Express): Server {
       const enabledPolicies = allGroupPolicySettings.filter(p => p.enabled === true);
       console.log('🔍 Enabled policies found:', enabledPolicies.length);
       console.log('🔍 Sample enabled policies:', enabledPolicies.slice(0, 5));
+      
+      // Check unique roles in policies vs employees
+      const policyRoles = [...new Set(allGroupPolicySettings.map(p => p.role))];
+      const employeeRoles = [...new Set(allEmployees.map(e => e.role))];
+      console.log('🔍 Policy roles:', policyRoles);
+      console.log('🔍 Employee roles:', employeeRoles);
+      
+      // Check unique leave types
+      const policyLeaveTypes = [...new Set(allGroupPolicySettings.map(p => p.leaveType))];
+      const companyLeaveTypeNames = enabledLeaveTypes.map(lt => lt.leaveType);
+      console.log('🔍 Policy leave types:', policyLeaveTypes.slice(0, 10));
+      console.log('🔍 Company leave types:', companyLeaveTypeNames);
 
       const employeeSummary = [];
 
