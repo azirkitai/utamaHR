@@ -333,53 +333,67 @@ export default function AttendanceTimesheetPage() {
     return false;
   };
 
-  // Calculate period-based attendance statistics for Summary tab
-  const summaryData = Array.isArray(employees) ? employees.map((employee: any) => {
-    // Get attendance records for this employee within the selected date range
-    const employeeRecords = Array.isArray(attendanceRecords) ? 
-      attendanceRecords.filter((record: any) => {
-        if (record.employeeId !== employee.id) return false;
-        
-        // Check if record date is within the selected range
-        const recordDate = new Date(record.date);
-        const fromDate = new Date(summaryDateFrom);
-        const toDate = new Date(summaryDateTo);
-        
-        return recordDate >= fromDate && recordDate <= toDate;
-      }) : [];
-    
-    // Apply department filter
-    if (summaryDepartment !== 'all' && employee.department !== summaryDepartment) {
-      return null;
-    }
-    
-    // Apply specific employee filter
-    if (summaryEmployee !== 'all' && employee.id !== summaryEmployee) {
-      return null;
-    }
-    
-    const presentDays = employeeRecords.filter((record: any) => record.clockInTime).length;
-    const totalWorkingDays = getWorkingDaysInPeriod(summaryDateFrom, summaryDateTo);
-    const absentDays = Math.max(0, totalWorkingDays - presentDays);
-    const lateDays = employeeRecords.filter((record: any) => record.isLateClockIn === true).length;
-    const earlyClockOutDays = employeeRecords.filter((record: any) => 
-      record.clockOutTime && isEarlyClockOut(record.clockOutTime, record.shiftId)
-    ).length;
-    
-
-    
-    const employeeName = `${employee.firstName || ''} ${employee.lastName || ''}`.trim();
-    
-    return {
-      id: employee.id,
-      employee: employeeName || 'Unknown Employee',
-      present: presentDays,
-      absent: absentDays,
-      late: lateDays,
-      earlyClockOut: earlyClockOutDays,
-      totalWorkingDays
-    };
-  }).filter(Boolean) : [];
+  // Calculate period-based attendance statistics for Summary tab - only show real employees
+  const summaryData = Array.isArray(employees) ? employees
+    .filter((employee: any) => {
+      // Only include employees with proper names (not test accounts or unknown)
+      const employeeName = `${employee.firstName || ''} ${employee.lastName || ''}`.trim();
+      
+      // Filter out test accounts and employees with no names
+      if (!employeeName || 
+          employeeName === 'Unknown Employee' ||
+          employee.id?.includes('test-') ||
+          employee.id?.includes('azir-') ||
+          !employee.firstName && !employee.lastName) {
+        return false;
+      }
+      
+      return true;
+    })
+    .map((employee: any) => {
+      // Get attendance records for this employee within the selected date range
+      const employeeRecords = Array.isArray(attendanceRecords) ? 
+        attendanceRecords.filter((record: any) => {
+          if (record.employeeId !== employee.id) return false;
+          
+          // Check if record date is within the selected range
+          const recordDate = new Date(record.date);
+          const fromDate = new Date(summaryDateFrom);
+          const toDate = new Date(summaryDateTo);
+          
+          return recordDate >= fromDate && recordDate <= toDate;
+        }) : [];
+      
+      // Apply department filter
+      if (summaryDepartment !== 'all' && employee.department !== summaryDepartment) {
+        return null;
+      }
+      
+      // Apply specific employee filter
+      if (summaryEmployee !== 'all' && employee.id !== summaryEmployee) {
+        return null;
+      }
+      
+      const presentDays = employeeRecords.filter((record: any) => record.clockInTime).length;
+      const totalWorkingDays = getWorkingDaysInPeriod(summaryDateFrom, summaryDateTo);
+      const absentDays = Math.max(0, totalWorkingDays - presentDays);
+      const lateDays = employeeRecords.filter((record: any) => record.isLateClockIn === true).length;
+      const earlyClockOutDays = employeeRecords.filter((record: any) => 
+        record.clockOutTime && isEarlyClockOut(record.clockOutTime, record.shiftId)
+      ).length;
+      
+      const employeeName = `${employee.firstName || ''} ${employee.lastName || ''}`.trim();
+      
+      return {
+        id: employee.id,
+        employee: employeeName,
+        present: presentDays,
+        absent: absentDays,
+        late: lateDays,
+        earlyClockOut: earlyClockOutDays,
+        totalWorkingDays
+      };
+    }).filter(Boolean) : [];
 
   // Calculate summary totals for the selected period
   const summaryTotals = {
