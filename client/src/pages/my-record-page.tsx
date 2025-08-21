@@ -1001,10 +1001,10 @@ export default function MyRecordPage() {
     }
   };
 
-  // Handle Attendance Record PDF Download - WITH SELFIE IMAGES
+  // Handle Attendance Record PDF Download - SIMPLE VERSION FIRST
   const handleAttendanceRecordPDFDownload = async () => {
     try {
-      console.log('🔄 Starting Attendance Record PDF generation with images...');
+      console.log('🔄 Starting Attendance Record PDF generation...');
       
       const filteredRecords = searchFilteredAttendanceRecords;
       
@@ -1107,11 +1107,11 @@ export default function MyRecordPage() {
         { header: 'No.', width: 25 },
         { header: 'Employee', width: 80 },
         { header: 'Date', width: 60 },
-        { header: 'Clock In\nTime/Image', width: 90 },
-        { header: 'Break Out\nTime/Image', width: 90 },
-        { header: 'Break In\nTime/Image', width: 90 },
-        { header: 'Clock Out\nTime/Image', width: 90 },
-        { header: 'Total\nHours', width: 50 },
+        { header: 'Clock In', width: 90 },
+        { header: 'Break Out', width: 90 },
+        { header: 'Break In', width: 90 },
+        { header: 'Clock Out', width: 90 },
+        { header: 'Total Hours', width: 50 },
         { header: 'Status', width: 50 }
       ];
       
@@ -1162,27 +1162,8 @@ export default function MyRecordPage() {
         });
       };
       
-      // Pre-download and embed all images for each record
-      console.log('📸 Pre-loading attendance images...');
-      const recordsWithImages = await Promise.all(
-        filteredRecords.map(async (record) => {
-          const clockInImage = record.clockInImage ? await downloadAndEmbedImage(record.clockInImage, pdfDoc) : null;
-          const clockOutImage = record.clockOutImage ? await downloadAndEmbedImage(record.clockOutImage, pdfDoc) : null;
-          const breakInImage = record.breakInImage ? await downloadAndEmbedImage(record.breakInImage, pdfDoc) : null;
-          const breakOutImage = record.breakOutImage ? await downloadAndEmbedImage(record.breakOutImage, pdfDoc) : null;
-          
-          return {
-            ...record,
-            embeddedImages: {
-              clockIn: clockInImage,
-              clockOut: clockOutImage,
-              breakIn: breakInImage,
-              breakOut: breakOutImage
-            }
-          };
-        })
-      );
-      console.log('✅ All images pre-loaded for PDF');
+      // Use filteredRecords directly for now (no image embedding)
+      console.log('📋 Creating PDF with attendance data...');
 
       // Helper function to draw table row WITH EMBEDDED IMAGES
       const drawTableRow = async (page: any, record: any, rowIndex: number, y: number) => {
@@ -1355,9 +1336,9 @@ export default function MyRecordPage() {
       drawTableHeader(currentPage, yPosition);
       yPosition -= rowHeight;
       
-      // Draw data rows with embedded images
-      for (let index = 0; index < recordsWithImages.length; index++) {
-        const record = recordsWithImages[index];
+      // Draw data rows
+      for (let index = 0; index < filteredRecords.length; index++) {
+        const record = filteredRecords[index];
         
         // Check if we need a new page
         if (yPosition < 100) {
@@ -1367,7 +1348,7 @@ export default function MyRecordPage() {
           yPosition -= rowHeight;
         }
         
-        await drawTableRow(currentPage, record, index, yPosition);
+        drawTableRow(currentPage, record, index, yPosition);
         yPosition -= rowHeight;
       }
       
@@ -1397,8 +1378,8 @@ export default function MyRecordPage() {
         color: rgb(0, 0, 0),
       });
       
-      const totalRecords = recordsWithImages.length;
-      const lateRecords = recordsWithImages.filter(r => r.isLateClockIn).length;
+      const totalRecords = filteredRecords.length;
+      const lateRecords = filteredRecords.filter(r => r.isLateClockIn).length;
       const onTimeRecords = totalRecords - lateRecords;
       
       currentPage.drawText(`Total Records: ${totalRecords}`, {
