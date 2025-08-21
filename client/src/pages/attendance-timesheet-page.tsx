@@ -125,6 +125,22 @@ export default function AttendanceTimesheetPage() {
       
       const shift = Array.isArray(shifts) ? shifts.find((s: any) => s.id === sc.shiftId) : null;
       
+      // Debug attendance data mapping for Today Attendance Record
+      if (employee && employee.firstName && employee.firstName.toLowerCase().includes('syed')) {
+        console.log('🔍 TODAY ATTENDANCE DEBUG - SYED data mapping:', {
+          employeeId: sc.employeeId,
+          employeeName: employee ? `${employee.firstName} ${employee.lastName}`.trim() : 'Unknown',
+          date: targetDate.toDateString(),
+          attendance: attendance,
+          clockInImage: attendance?.clockInImage,
+          clockOutImage: attendance?.clockOutImage,
+          willMapTo: {
+            clockInSelfie: attendance?.clockInImage,
+            clockOutSelfie: attendance?.clockOutImage
+          }
+        });
+      }
+      
       return {
         id: sc.employeeId,
         employee: employee ? `${employee.firstName} ${employee.lastName}`.trim() : 'Unknown',
@@ -143,7 +159,11 @@ export default function AttendanceTimesheetPage() {
           hour12: true 
         }) : '-',
         isOff: sc.isOff || false,
-        attendance: attendance,
+        attendance: {
+          ...attendance,
+          clockInSelfie: attendance?.clockInImage,
+          clockOutSelfie: attendance?.clockOutImage
+        },
         isLate: attendance?.isLateClockIn || false,
         isAbsent: !attendance && !sc.isOff ? 
           isEmployeeAbsent(shift?.startTime) : false
@@ -419,7 +439,16 @@ export default function AttendanceTimesheetPage() {
                           src={employee.attendance.clockInSelfie} 
                           alt="Clock In Photo" 
                           className="w-16 h-16 object-cover rounded-lg cursor-pointer hover:scale-110 transition-transform"
-                          onClick={() => window.open(employee.attendance.clockInSelfie, '_blank')}
+                          onClick={() => {
+                            console.log('🖼️ Today Attendance - Opening image:', employee.attendance.clockInSelfie);
+                            window.open(employee.attendance.clockInSelfie, '_blank');
+                          }}
+                          onLoad={() => {
+                            console.log('✅ Today Attendance - Image loaded:', employee.attendance.clockInSelfie);
+                          }}
+                          onError={(e) => {
+                            console.error('❌ Today Attendance - Image failed:', employee.attendance.clockInSelfie);
+                          }}
                         />
                       ) : (
                         <span className="text-gray-400 text-sm">No photo</span>
