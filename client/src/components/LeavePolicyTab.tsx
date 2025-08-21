@@ -139,6 +139,9 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
 
   // Helper function to check if a leave policy should be accessible (both company enabled and role allowed)
   const isPolicyAccessible = (policy: any) => {
+    // If policy has isRestricted flag, respect it
+    if (policy.isRestricted) return false;
+    
     const isEnabledForCompany = isLeaveTypeEnabledForCompany(policy.leaveType || "");
     const hasRoleAccess = isLeaveTypeAllowedForRole(policy.leaveType || "");
     return isEnabledForCompany && hasRoleAccess;

@@ -1268,7 +1268,7 @@ export class DatabaseStorage implements IStorage {
           console.log(`❌ No policy found for ${leaveType.leaveType} and role ${mappedRole}`);
           
           // Still include this leave type but mark as not accessible for this role
-          const [policySettings] = await db.select()
+          const policySettingsArray = await db.select()
             .from(leavePolicySettings)
             .where(eq(leavePolicySettings.leaveType, leaveType.id));
 
@@ -1283,7 +1283,7 @@ export class DatabaseStorage implements IStorage {
             included: false, // Not included for this role
             isRestricted: true, // Flag to show this is restricted
             groupPolicy: null,
-            policySettings: policySettings[0] || null
+            policySettings: policySettingsArray[0] || null
           });
         }
       }
