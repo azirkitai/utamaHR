@@ -1199,13 +1199,13 @@ export default function MyRecordPage() {
             const hasAnyImage = hasClockInImage || hasClockOutImage || hasBreakInImage || hasBreakOutImage;
             
             if (hasClockInImage && hasClockOutImage) {
-              pictureText = 'In/Out ✓';
+              pictureText = 'In/Out [Y]';
             } else if (hasClockInImage) {
-              pictureText = 'In ✓';
+              pictureText = 'In [Y]';
             } else if (hasClockOutImage) {
-              pictureText = 'Out ✓';
+              pictureText = 'Out [Y]';
             } else if (hasBreakInImage || hasBreakOutImage) {
-              pictureText = 'Break ✓';
+              pictureText = 'Break [Y]';
             } else {
               pictureText = 'No Images';
             }
