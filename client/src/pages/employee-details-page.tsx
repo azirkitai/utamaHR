@@ -1118,11 +1118,11 @@ export default function EmployeeDetailsPage() {
                     </div>
                     <div className="flex items-center gap-1 mt-2 text-sm">
                       <MapPin className="w-4 h-4" />
-                      <span>N/A</span>
+                      <span>{contactData?.address || "N/A"}</span>
                     </div>
                     <div className="flex items-center gap-1 mt-1 text-sm">
                       <Mail className="w-4 h-4" />
-                      <span>{"N/A"}</span>
+                      <span>{contactData?.email || "N/A"}</span>
                     </div>
                   </div>
                 </div>
