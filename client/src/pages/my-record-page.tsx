@@ -1035,6 +1035,12 @@ export default function MyRecordPage() {
         return;
       }
       
+      // Fetch company settings for header information
+      console.log('🏢 Fetching company settings for PDF header...');
+      const companyResponse = await fetch('/api/company-settings');
+      const companySettings = companyResponse.ok ? await companyResponse.json() : null;
+      console.log('🏢 Company settings:', companySettings);
+      
       // Import pdf-lib
       const { PDFDocument, rgb, StandardFonts } = await import('pdf-lib');
       
@@ -1063,44 +1069,128 @@ export default function MyRecordPage() {
         // Company header background
         page.drawRectangle({
           x: 0,
-          y: height - 80,
+          y: height - 120,
           width: width,
-          height: 80,
+          height: 120,
           color: rgb(0.1, 0.2, 0.4),
         });
         
-        // Logo placeholder
+        // Logo placeholder (white background)
         page.drawRectangle({
           x: 50,
-          y: height - 70,
-          width: 60,
-          height: 60,
+          y: height - 110,
+          width: 80,
+          height: 80,
           color: rgb(1, 1, 1),
           borderColor: rgb(0.8, 0.8, 0.8),
           borderWidth: 1,
         });
         
+        // Add "LOGO" text in the white box as placeholder
+        page.drawText('LOGO', {
+          x: 75,
+          y: height - 75,
+          size: 12,
+          font: boldFont,
+          color: rgb(0.7, 0.7, 0.7),
+        });
+        
+        // Company information section
+        const companyName = companySettings?.companyName || 'UTAMA MEDGROUP SDN BHD';
+        const companyPhone = companySettings?.phoneNumber || '';
+        const companyEmail = companySettings?.email || '';
+        const companyAddress = companySettings?.address || '';
+        const city = companySettings?.city || '';
+        const postcode = companySettings?.postcode || '';
+        const state = companySettings?.state || '';
+        
+        // Combine address components
+        const fullAddress = [companyAddress, city, postcode, state].filter(Boolean).join(', ');
+        
         // Company name
-        page.drawText('UTAMA MEDGROUP SDN BHD', {
-          x: 130,
-          y: height - 25,
+        page.drawText(companyName, {
+          x: 150,
+          y: height - 35,
           size: 16,
           font: boldFont,
           color: rgb(1, 1, 1),
         });
         
-        page.drawText('UtamaHR Management System', {
-          x: 130,
-          y: height - 45,
-          size: 12,
-          font: font,
-          color: rgb(0.9, 0.9, 0.9),
-        });
+        // Company contact details
+        let contactY = height - 55;
+        
+        if (companyPhone) {
+          page.drawText(`Tel: ${companyPhone}`, {
+            x: 150,
+            y: contactY,
+            size: 10,
+            font: font,
+            color: rgb(0.9, 0.9, 0.9),
+          });
+          contactY -= 15;
+        }
+        
+        if (companyEmail) {
+          page.drawText(`Email: ${companyEmail}`, {
+            x: 150,
+            y: contactY,
+            size: 10,
+            font: font,
+            color: rgb(0.9, 0.9, 0.9),
+          });
+          contactY -= 15;
+        }
+        
+        if (fullAddress) {
+          // Split long address if needed
+          const maxAddressLength = 60;
+          if (fullAddress.length > maxAddressLength) {
+            const words = fullAddress.split(' ');
+            let line1 = '';
+            let line2 = '';
+            let currentLine = 1;
+            
+            for (const word of words) {
+              if (currentLine === 1 && (line1 + word).length < maxAddressLength) {
+                line1 += (line1 ? ' ' : '') + word;
+              } else {
+                currentLine = 2;
+                line2 += (line2 ? ' ' : '') + word;
+              }
+            }
+            
+            page.drawText(line1, {
+              x: 150,
+              y: contactY,
+              size: 10,
+              font: font,
+              color: rgb(0.9, 0.9, 0.9),
+            });
+            
+            if (line2) {
+              page.drawText(line2, {
+                x: 150,
+                y: contactY - 12,
+                size: 10,
+                font: font,
+                color: rgb(0.9, 0.9, 0.9),
+              });
+            }
+          } else {
+            page.drawText(fullAddress, {
+              x: 150,
+              y: contactY,
+              size: 10,
+              font: font,
+              color: rgb(0.9, 0.9, 0.9),
+            });
+          }
+        }
         
         // Report title
         page.drawText('LAPORAN KEHADIRAN PEKERJA', {
           x: (width - boldFont.widthOfTextAtSize('LAPORAN KEHADIRAN PEKERJA', 18)) / 2,
-          y: height - 110,
+          y: height - 150,
           size: 18,
           font: boldFont,
           color: rgb(0.1, 0.2, 0.4),
@@ -1110,7 +1200,7 @@ export default function MyRecordPage() {
         const currentDate = format(new Date(), 'dd/MM/yyyy HH:mm');
         page.drawText(`Dijana pada: ${currentDate}`, {
           x: width - 200,
-          y: height - 110,
+          y: height - 150,
           size: 10,
           font: font,
           color: rgb(0.5, 0.5, 0.5),
@@ -1258,7 +1348,7 @@ export default function MyRecordPage() {
       
       // Employee info section
       const userEmployee = allEmployees?.find((emp: any) => emp.userId === user?.id);
-      let yPosition = height - 150;
+      let yPosition = height - 190;
       
       if (userEmployee) {
         currentPage.drawText(`Nama: ${userEmployee.firstName} ${userEmployee.lastName}`, {

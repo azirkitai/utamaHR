@@ -23,6 +23,7 @@ Preferred communication style: Simple, everyday language.
     - Role-based access control implemented for navigation, leave/claim policy management, calendar buttons, and other sensitive components.
     - Enhanced QR Clock-in/Out with intelligent status detection, real-time auto refresh, and cross-page synchronization for mobile operations.
     - Professional PDF report generation for leave records using pdf-lib library approach with enhanced styling, company branding, IC number display, and applicant name column.
+    - Enhanced attendance PDF reports with dynamic company branding: automatically fetches company settings (logo placeholder, name, phone, email, address) from System Settings for professional header formatting with expanded layout.
     - Comprehensive filtering and PDF download system across all My Record tabs (Leave, Claim, Overtime) with reusable filter components (`renderLeaveFilterSection`, `renderClaimFilterSection`, `renderOvertimeFilterSection`) ensuring UI consistency.
     - Advanced client-side filtering with date range selection, status filtering, claim type filtering, and search functionality with proper state management and connected dropdowns.
 
