@@ -1384,7 +1384,9 @@ export default function MyRecordPage() {
           color: rgb(0, 0, 0),
         });
         
-        currentPage.drawText(`IC: ${userEmployee.icNumber || userEmployee.staffId || 'N/A'}`, {
+        // Get IC number from employee data (check multiple possible fields)
+        const icNumber = userEmployee.nric || userEmployee.nricOld || userEmployee.icNumber || userEmployee.staffId || 'N/A';
+        currentPage.drawText(`IC: ${icNumber}`, {
           x: 300,
           y: yPosition,
           size: 11,
