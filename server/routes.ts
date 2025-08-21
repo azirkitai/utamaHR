@@ -944,6 +944,26 @@ export function registerRoutes(app: Express): Server {
 
         // For each enabled leave type, calculate this employee's usage
         for (const leaveType of enabledLeaveTypes) {
+          // Check individual employee eligibility first
+          const eligibilityRecord = await db
+            .select()
+            .from(employeeLeaveEligibility)
+            .where(
+              and(
+                eq(employeeLeaveEligibility.employeeId, employee.id),
+                eq(employeeLeaveEligibility.leaveType, leaveType.leaveType)
+              )
+            )
+            .limit(1);
+
+          // If eligibility record exists and employee is NOT eligible, skip this leave type
+          const isEligible = eligibilityRecord.length === 0 ? true : eligibilityRecord[0].isEligible;
+          
+          if (!isEligible) {
+            console.log(`⛔ Skipping ${leaveType.leaveType} for ${employee.fullName} - individually disabled`);
+            continue; // Skip this leave type for this employee
+          }
+
           const approvedApplications = await db
             .select()
             .from(leaveApplications)
@@ -963,7 +983,8 @@ export function registerRoutes(app: Express): Server {
             daysTaken: totalDaysTaken,
             applicationsCount: approvedApplications.length,
             entitlementDays: leaveType.entitlementDays || 0,
-            remainingDays: (leaveType.entitlementDays || 0) - totalDaysTaken
+            remainingDays: (leaveType.entitlementDays || 0) - totalDaysTaken,
+            isEligible: true // Only include if eligible
           };
         }
 
