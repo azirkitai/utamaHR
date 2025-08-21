@@ -166,6 +166,11 @@ export default function EmployeeDetailsPage() {
     queryKey: ["/api/approval-settings/leave"],
   });
 
+  // Get claim approval settings from system settings
+  const { data: claimApprovalSettings } = useQuery<any>({
+    queryKey: ["/api/approval-settings/claim"],
+  });
+
   // Get employees with approval roles for First and Second Approval dropdown
   const { data: approvalEmployees = [] } = useQuery<any[]>({
     queryKey: ["/api/employees/approval-roles"],
@@ -209,6 +214,19 @@ export default function EmployeeDetailsPage() {
     
     const firstLevel = getEmployeeNameById(leaveApprovalSettings.firstLevelApprovalId) || "NONE";
     const secondLevel = getEmployeeNameById(leaveApprovalSettings.secondLevelApprovalId) || "NONE";
+    
+    return {
+      firstLevel,
+      secondLevel
+    };
+  };
+
+  // Get current claim approval settings to display
+  const getCurrentClaimApprovalSettings = () => {
+    if (!claimApprovalSettings) return { firstLevel: "NONE", secondLevel: "NONE" };
+    
+    const firstLevel = getEmployeeNameById(claimApprovalSettings.firstLevelApprovalId) || "NONE";
+    const secondLevel = getEmployeeNameById(claimApprovalSettings.secondLevelApprovalId) || "NONE";
     
     return {
       firstLevel,
@@ -1903,17 +1921,16 @@ export default function EmployeeDetailsPage() {
                                   <SelectValue placeholder="Select supervisor" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="AZIRKITAI">AZIRKITAI</SelectItem>
-                                  <SelectItem value="SITI NADIAH SABRI">SITI NADIAH SABRI</SelectItem>
-                                  <SelectItem value="SYED IDRUS HASSIM">SYED IDRUS HASSIM</SelectItem>
-                                  <SelectItem value="SYED MUHYAZIR HASSIM">SYED MUHYAZIR HASSIM</SelectItem>
-                                  <SelectItem value="kamal ludin">kamal ludin</SelectItem>
-                                  <SelectItem value="maryam  maisarah">maryam  maisarah</SelectItem>
+                                  {allEmployees.map((emp: any) => (
+                                    <SelectItem key={emp.id} value={`${emp.firstName} ${emp.lastName}`.trim() || emp.name || ""}>
+                                      {`${emp.firstName} ${emp.lastName}`.trim() || emp.name || ""}
+                                    </SelectItem>
+                                  ))}
                                 </SelectContent>
                               </Select>
                             ) : (
                               <div className="mt-1 p-2 bg-gray-50 rounded border">
-                                {employmentForm.claimFirstApproval || "N/A"}
+                                {getCurrentClaimApprovalSettings().firstLevel}
                               </div>
                             )}
                           </div>
@@ -1925,17 +1942,16 @@ export default function EmployeeDetailsPage() {
                                   <SelectValue placeholder="Select supervisor" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="AZIRKITAI">AZIRKITAI</SelectItem>
-                                  <SelectItem value="SITI NADIAH SABRI">SITI NADIAH SABRI</SelectItem>
-                                  <SelectItem value="SYED IDRUS HASSIM">SYED IDRUS HASSIM</SelectItem>
-                                  <SelectItem value="SYED MUHYAZIR HASSIM">SYED MUHYAZIR HASSIM</SelectItem>
-                                  <SelectItem value="kamal ludin">kamal ludin</SelectItem>
-                                  <SelectItem value="maryam  maisarah">maryam  maisarah</SelectItem>
+                                  {allEmployees.map((emp: any) => (
+                                    <SelectItem key={emp.id} value={`${emp.firstName} ${emp.lastName}`.trim() || emp.name || ""}>
+                                      {`${emp.firstName} ${emp.lastName}`.trim() || emp.name || ""}
+                                    </SelectItem>
+                                  ))}
                                 </SelectContent>
                               </Select>
                             ) : (
                               <div className="mt-1 p-2 bg-gray-50 rounded border">
-                                {employmentForm.claimSecondApproval || "N/A"}
+                                {getCurrentClaimApprovalSettings().secondLevel}
                               </div>
                             )}
                           </div>
