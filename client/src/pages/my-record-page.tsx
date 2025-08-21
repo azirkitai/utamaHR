@@ -1114,39 +1114,7 @@ export default function MyRecordPage() {
           color: rgb(0.1, 0.2, 0.4),
         });
         
-        // Logo area (white background)
-        page.drawRectangle({
-          x: 50,
-          y: height - 110,
-          width: 80,
-          height: 80,
-          color: rgb(1, 1, 1),
-          borderColor: rgb(0.8, 0.8, 0.8),
-          borderWidth: 1,
-        });
-        
-        // Draw actual logo if available, otherwise show placeholder
-        if (logoImage) {
-          const logoScale = Math.min(75 / logoImage.width, 75 / logoImage.height);
-          const logoWidth = logoImage.width * logoScale;
-          const logoHeight = logoImage.height * logoScale;
-          
-          page.drawImage(logoImage, {
-            x: 50 + (80 - logoWidth) / 2, // Center horizontally
-            y: height - 110 + (80 - logoHeight) / 2, // Center vertically
-            width: logoWidth,
-            height: logoHeight,
-          });
-        } else {
-          // Add "LOGO" text as placeholder if no logo available
-          page.drawText('LOGO', {
-            x: 75,
-            y: height - 75,
-            size: 12,
-            font: boldFont,
-            color: rgb(0.7, 0.7, 0.7),
-          });
-        }
+        // Logo removed as per requirements
         
         // Company information section
         const companyName = companySettings?.companyName || 'UTAMA MEDGROUP SDN BHD';
@@ -1162,7 +1130,7 @@ export default function MyRecordPage() {
         
         // Company name
         page.drawText(companyName, {
-          x: 150,
+          x: 50,
           y: height - 35,
           size: 16,
           font: boldFont,
@@ -1174,7 +1142,7 @@ export default function MyRecordPage() {
         
         if (companyPhone) {
           page.drawText(`Tel: ${companyPhone}`, {
-            x: 150,
+            x: 50,
             y: contactY,
             size: 10,
             font: font,
@@ -1185,7 +1153,7 @@ export default function MyRecordPage() {
         
         if (companyEmail) {
           page.drawText(`Email: ${companyEmail}`, {
-            x: 150,
+            x: 50,
             y: contactY,
             size: 10,
             font: font,
@@ -1213,7 +1181,7 @@ export default function MyRecordPage() {
             }
             
             page.drawText(line1, {
-              x: 150,
+              x: 50,
               y: contactY,
               size: 10,
               font: font,
@@ -1222,7 +1190,7 @@ export default function MyRecordPage() {
             
             if (line2) {
               page.drawText(line2, {
-                x: 150,
+                x: 50,
                 y: contactY - 12,
                 size: 10,
                 font: font,
@@ -1231,7 +1199,7 @@ export default function MyRecordPage() {
             }
           } else {
             page.drawText(fullAddress, {
-              x: 150,
+              x: 50,
               y: contactY,
               size: 10,
               font: font,
@@ -1241,8 +1209,8 @@ export default function MyRecordPage() {
         }
         
         // Report title
-        page.drawText('LAPORAN KEHADIRAN PEKERJA', {
-          x: (width - boldFont.widthOfTextAtSize('LAPORAN KEHADIRAN PEKERJA', 18)) / 2,
+        page.drawText('EMPLOYEE ATTENDANCE REPORT', {
+          x: (width - boldFont.widthOfTextAtSize('EMPLOYEE ATTENDANCE REPORT', 18)) / 2,
           y: height - 150,
           size: 18,
           font: boldFont,
@@ -1251,7 +1219,7 @@ export default function MyRecordPage() {
         
         // Date generated
         const currentDate = format(new Date(), 'dd/MM/yyyy HH:mm');
-        page.drawText(`Dijana pada: ${currentDate}`, {
+        page.drawText(`Generated on: ${currentDate}`, {
           x: width - 200,
           y: height - 150,
           size: 10,
@@ -1264,7 +1232,7 @@ export default function MyRecordPage() {
       const drawTableHeader = (page: any, yPos: number) => {
         const tableHeight = 25;
         const columnWidths = [30, 140, 80, 70, 70, 70, 70, 80, 90];
-        const headers = ['No.', 'Nama Pekerja', 'Tarikh', 'Clock In', 'Break Out', 'Break In', 'Clock Out', 'Total Jam', 'Status'];
+        const headers = ['No.', 'Employee Name', 'Date', 'Clock In', 'Break Out', 'Break In', 'Clock Out', 'Total Hours', 'Status'];
         
         // Header background
         page.drawRectangle({
@@ -1348,7 +1316,7 @@ export default function MyRecordPage() {
           formatTime(record.breakInTime),
           formatTime(record.clockOutTime),
           record.totalHours || '-',
-          record.isLateClockIn ? 'Lewat' : (record.clockInTime ? 'Tepat Masa' : 'Absent')
+          record.isLateClockIn ? 'Late' : (record.clockInTime ? 'On Time' : 'Absent')
         ];
         
         let currentX = 50;
@@ -1364,8 +1332,8 @@ export default function MyRecordPage() {
           // Status color coding
           let textColor = rgb(0, 0, 0);
           if (colIndex === 8) { // Status column
-            if (data === 'Lewat') textColor = rgb(0.8, 0, 0); // Red
-            else if (data === 'Tepat Masa') textColor = rgb(0, 0.6, 0); // Green
+            if (data === 'Late') textColor = rgb(0.8, 0, 0); // Red
+            else if (data === 'On Time') textColor = rgb(0, 0.6, 0); // Green
             else textColor = rgb(0.5, 0.5, 0.5); // Grey for absent
           }
           
@@ -1404,7 +1372,7 @@ export default function MyRecordPage() {
       let yPosition = height - 190;
       
       if (userEmployee) {
-        currentPage.drawText(`Nama: ${userEmployee.firstName} ${userEmployee.lastName}`, {
+        currentPage.drawText(`Name: ${userEmployee.firstName} ${userEmployee.lastName}`, {
           x: 50,
           y: yPosition,
           size: 11,
@@ -1412,7 +1380,7 @@ export default function MyRecordPage() {
           color: rgb(0, 0, 0),
         });
         
-        currentPage.drawText(`Staff ID: ${userEmployee.staffId || 'N/A'}`, {
+        currentPage.drawText(`IC: ${userEmployee.icNumber || userEmployee.staffId || 'N/A'}`, {
           x: 300,
           y: yPosition,
           size: 11,
@@ -1421,7 +1389,7 @@ export default function MyRecordPage() {
         });
         
         yPosition -= 20;
-        currentPage.drawText(`Jabatan: ${userEmployee.department || 'N/A'}`, {
+        currentPage.drawText(`Department: ${userEmployee.department || 'N/A'}`, {
           x: 50,
           y: yPosition,
           size: 11,
@@ -1430,7 +1398,7 @@ export default function MyRecordPage() {
         });
         
         const filteredRecordsCount = filteredRecords.length;
-        currentPage.drawText(`Tempoh: ${filteredRecordsCount} hari kehadiran`, {
+        currentPage.drawText(`Period: ${filteredRecordsCount} attendance days`, {
           x: 300,
           y: yPosition,
           size: 11,
@@ -1482,7 +1450,7 @@ export default function MyRecordPage() {
         borderWidth: 1,
       });
       
-      currentPage.drawText('RINGKASAN KEHADIRAN', {
+      currentPage.drawText('ATTENDANCE SUMMARY', {
         x: 60,
         y: yPosition - 20,
         size: 12,
@@ -1495,7 +1463,7 @@ export default function MyRecordPage() {
       const onTimeRecords = filteredRecords.filter((r: any) => r.clockInTime && !r.isLateClockIn).length;
       const absentRecords = totalRecords - lateRecords - onTimeRecords;
       
-      currentPage.drawText(`Jumlah Kehadiran: ${totalRecords}`, {
+      currentPage.drawText(`Total Attendance: ${totalRecords}`, {
         x: 60,
         y: yPosition - 40,
         size: 10,
@@ -1503,7 +1471,7 @@ export default function MyRecordPage() {
         color: rgb(0, 0, 0),
       });
       
-      currentPage.drawText(`Tepat Masa: ${onTimeRecords}`, {
+      currentPage.drawText(`On Time: ${onTimeRecords}`, {
         x: 220,
         y: yPosition - 40,
         size: 10,
@@ -1511,7 +1479,7 @@ export default function MyRecordPage() {
         color: rgb(0, 0.6, 0),
       });
       
-      currentPage.drawText(`Lewat: ${lateRecords}`, {
+      currentPage.drawText(`Late: ${lateRecords}`, {
         x: 350,
         y: yPosition - 40,
         size: 10,
@@ -1530,7 +1498,7 @@ export default function MyRecordPage() {
       // Add footer to all pages
       const currentDate = format(new Date(), 'dd/MM/yyyy HH:mm');
       pages.forEach((page, pageIndex) => {
-        page.drawText(`Dijana pada: ${currentDate}`, {
+        page.drawText(`Generated on: ${currentDate}`, {
           x: 50,
           y: 30,
           size: 8,
@@ -1538,7 +1506,7 @@ export default function MyRecordPage() {
           color: rgb(0.5, 0.5, 0.5),
         });
         
-        page.drawText(`Halaman ${pageIndex + 1} dari ${pages.length}`, {
+        page.drawText(`Page ${pageIndex + 1} of ${pages.length}`, {
           x: width - 150,
           y: 30,
           size: 8,
