@@ -1039,13 +1039,9 @@ export default function MyRecordPage() {
       console.log('🏢 Fetching company settings for PDF header...');
       let companySettings = null;
       try {
-        const companyResponse = await fetch('/api/company-settings', {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
+        // Use the API request helper with JWT token
+        const { apiRequest } = await import('@/lib/queryClient');
+        const companyResponse = await apiRequest('GET', '/api/company-settings');
         
         if (companyResponse.ok) {
           companySettings = await companyResponse.json();
