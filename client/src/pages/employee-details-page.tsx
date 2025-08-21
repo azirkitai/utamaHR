@@ -640,6 +640,7 @@ export default function EmployeeDetailsPage() {
   };
 
   const handleSaveBankDetails = () => {
+    console.log('Saving bank details form:', bankDetailsForm);
     updateBankDetailsMutation.mutate(bankDetailsForm);
   };
 
@@ -2786,7 +2787,10 @@ export default function EmployeeDetailsPage() {
                         <div className="space-y-2">
                           <Label className="text-sm font-medium text-gray-700 block">Bank</Label>
                           {isEditingBankDetails ? (
-                            <Select>
+                            <Select 
+                              value={bankDetailsForm.bank}
+                              onValueChange={(value) => setBankDetailsForm(prev => ({...prev, bank: value}))}
+                            >
                               <SelectTrigger className="mt-1">
                                 <SelectValue placeholder="Select bank" />
                               </SelectTrigger>
@@ -2839,6 +2843,8 @@ export default function EmployeeDetailsPage() {
                           <Label className="text-sm font-medium text-gray-700 block">Account Number</Label>
                           {isEditingBankDetails ? (
                             <Input
+                              value={bankDetailsForm.accountNumber}
+                              onChange={(e) => setBankDetailsForm(prev => ({...prev, accountNumber: e.target.value}))}
                               placeholder="Account Number"
                               className="mt-1"
                               data-testid="input-account-number"
@@ -2853,7 +2859,10 @@ export default function EmployeeDetailsPage() {
                         <div className="space-y-2">
                           <Label className="text-sm font-medium text-gray-700 block">Account Type</Label>
                           {isEditingBankDetails ? (
-                            <Select>
+                            <Select
+                              value={bankDetailsForm.accountType}
+                              onValueChange={(value) => setBankDetailsForm(prev => ({...prev, accountType: value}))}
+                            >
                               <SelectTrigger className="mt-1">
                                 <SelectValue placeholder="Select account type" />
                               </SelectTrigger>
@@ -2873,6 +2882,8 @@ export default function EmployeeDetailsPage() {
                           <Label className="text-sm font-medium text-gray-700 block">Branch</Label>
                           {isEditingBankDetails ? (
                             <Input
+                              value={bankDetailsForm.branch}
+                              onChange={(e) => setBankDetailsForm(prev => ({...prev, branch: e.target.value}))}
                               placeholder="Branch"
                               className="mt-1"
                               data-testid="input-branch"
@@ -2880,6 +2891,23 @@ export default function EmployeeDetailsPage() {
                           ) : (
                             <div className="mt-1 p-2 bg-gray-50 rounded border">
                               {bankDetailsForm.branch || "N/A"}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium text-gray-700 block">Account Holder Name</Label>
+                          {isEditingBankDetails ? (
+                            <Input
+                              value={bankDetailsForm.accountHolderName}
+                              onChange={(e) => setBankDetailsForm(prev => ({...prev, accountHolderName: e.target.value}))}
+                              placeholder="Account Holder Name"
+                              className="mt-1"
+                              data-testid="input-account-holder"
+                            />
+                          ) : (
+                            <div className="mt-1 p-2 bg-gray-50 rounded border">
+                              {bankDetailsForm.accountHolderName || "N/A"}
                             </div>
                           )}
                         </div>

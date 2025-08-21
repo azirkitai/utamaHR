@@ -1731,9 +1731,32 @@ export function registerRoutes(app: Express): Server {
         }
       }
 
-      // For now, just return success since we don't have a specific bank details table
-      // In a real implementation, you would save the bank details to database
+      // Update compensation record with bank details
       console.log("Bank details update requested for employee:", req.params.id, req.body);
+      
+      // Get existing compensation or create new one
+      let compensation = await storage.getCompensation(req.params.id);
+      
+      if (compensation) {
+        // Update existing compensation
+        await storage.updateCompensation(req.params.id, {
+          bank: req.body.bank,
+          accountNumber: req.body.accountNumber,
+          accountType: req.body.accountType,
+          branch: req.body.branch,
+          accountHolderName: req.body.accountHolderName
+        });
+      } else {
+        // Create new compensation record
+        await storage.createCompensation({
+          employeeId: req.params.id,
+          bank: req.body.bank,
+          accountNumber: req.body.accountNumber,
+          accountType: req.body.accountType,
+          branch: req.body.branch,
+          accountHolderName: req.body.accountHolderName
+        });
+      }
       
       res.json({ 
         message: "Butiran bank berjaya dikemaskini",
