@@ -1104,10 +1104,10 @@ export default function MyRecordPage() {
       const pages = [currentPage];
       
       // Define margins in points (1mm = 2.83465 points)
-      const topMargin = 57; // 20mm
+      const topMargin = 28; // 10mm (reduced)
       const bottomMargin = 57; // 20mm
-      const leftMargin = 51; // 18mm
-      const rightMargin = 51; // 18mm
+      const leftMargin = 28; // 10mm (reduced)
+      const rightMargin = 28; // 10mm (reduced)
       const contentWidth = width - leftMargin - rightMargin; // 493 points
       const contentHeight = height - topMargin - bottomMargin; // 728 points
       
@@ -1225,28 +1225,20 @@ export default function MyRecordPage() {
           color: rgb(0.1, 0.2, 0.4),
         });
         
-        // Date generated
-        const currentDate = format(new Date(), 'dd/MM/yyyy HH:mm');
-        page.drawText(`Generated on: ${currentDate}`, {
-          x: width - rightMargin - 150,
-          y: height - topMargin - 150,
-          size: 10,
-          font: font,
-          color: rgb(0.5, 0.5, 0.5),
-        });
+        // Remove the generated date from header
       };
       
       // Draw table header function
       const drawTableHeader = (page: any, yPos: number) => {
         const tableHeight = 25;
-        const columnWidths = [25, 130, 65, 50, 50, 50, 50, 60, 65];
+        const columnWidths = [30, 150, 70, 55, 55, 55, 55, 65, 75];
         const headers = ['No.', 'Employee Name', 'Date', 'Clock In', 'Break Out', 'Break In', 'Clock Out', 'Total Hours', 'Status'];
         
-        // Header background
+        // Header background - extend fully across content width
         page.drawRectangle({
           x: leftMargin,
           y: yPos - tableHeight,
-          width: Math.min(columnWidths.reduce((a: number, b: number) => a + b, 0), contentWidth),
+          width: contentWidth,
           height: tableHeight,
           color: rgb(0.1, 0.3, 0.6), // Dark blue header
         });
@@ -1270,14 +1262,14 @@ export default function MyRecordPage() {
       // Draw table row function
       const drawTableRow = (page: any, record: any, rowIndex: number, yPos: number) => {
         const tableHeight = 25;
-        const columnWidths = [25, 130, 65, 50, 50, 50, 50, 60, 65];
+        const columnWidths = [30, 150, 70, 55, 55, 55, 55, 65, 75];
         
         // Alternating row background (striping)
         if (rowIndex % 2 === 0) {
           page.drawRectangle({
             x: leftMargin,
             y: yPos - tableHeight,
-            width: Math.min(columnWidths.reduce((a: number, b: number) => a + b, 0), contentWidth),
+            width: contentWidth,
             height: tableHeight,
             color: rgb(0.98, 0.98, 0.98), // Light grey for even rows
           });
@@ -1287,7 +1279,7 @@ export default function MyRecordPage() {
         page.drawRectangle({
           x: leftMargin,
           y: yPos - tableHeight,
-          width: Math.min(columnWidths.reduce((a: number, b: number) => a + b, 0), contentWidth),
+          width: contentWidth,
           height: tableHeight,
           borderColor: rgb(0.8, 0.8, 0.8),
           borderWidth: 0.5,
@@ -1297,8 +1289,8 @@ export default function MyRecordPage() {
         const employee = allEmployees?.find((emp: any) => emp.id === record.employeeId);
         const employeeDisplayName = employee ? `${employee.firstName} ${employee.lastName}`.trim() : 'Unknown Employee';
         
-        // Truncate name smartly
-        const truncateName = (name: string, maxLength: number = 18) => {
+        // Show full name without truncation (increased column width accommodates this)
+        const truncateName = (name: string, maxLength: number = 25) => {
           if (name.length <= maxLength) return name;
           const words = name.split(' ');
           if (words.length === 1) {
@@ -1317,7 +1309,7 @@ export default function MyRecordPage() {
         
         const rowData = [
           (rowIndex + 1).toString(),
-          truncateName(employeeDisplayName, 18),
+          truncateName(employeeDisplayName, 25),
           format(new Date(record.date), 'dd/MM/yyyy'),
           formatTime(record.clockInTime),
           formatTime(record.breakOutTime),
