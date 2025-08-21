@@ -532,62 +532,120 @@ export default function LeaveApprovalPage() {
     </Table>
   );
 
-  const renderBalanceCarryForwardTable = () => (
-    <Table>
-      <TableHeader>
-        <TableRow className="bg-gray-50">
-          <TableHead>No.</TableHead>
-          <TableHead>Employee Name</TableHead>
-          <TableHead>Staff ID</TableHead>
-          <TableHead>Leave Type</TableHead>
-          <TableHead>Year</TableHead>
-          <TableHead>Entitlement Days</TableHead>
-          <TableHead>Used Days</TableHead>
-          <TableHead>Remaining Days</TableHead>
-          <TableHead>Carried Forward</TableHead>
-          <TableHead>Status</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {carryForwardRecords.length === 0 ? (
-          <TableRow>
-            <TableCell colSpan={10} className="text-center py-8 text-gray-500">
-              No carry forward records available for {selectedYear}
-            </TableCell>
-          </TableRow>
-        ) : (
-          carryForwardRecords.flatMap((employeeData: any, empIndex: number) =>
-            employeeData.carryForwardRecords.map((record: any, recordIndex: number) => (
-              <TableRow key={`${employeeData.employee.id}-${record.id}`}>
-                <TableCell>{empIndex + 1}.{recordIndex + 1}</TableCell>
-                <TableCell className="font-medium">{employeeData.employee.fullName}</TableCell>
-                <TableCell>{employeeData.employee.staffId}</TableCell>
-                <TableCell>{record.leaveType}</TableCell>
-                <TableCell>{record.year}</TableCell>
-                <TableCell>{Number(record.entitlementDays).toFixed(1)}</TableCell>
-                <TableCell>{Number(record.usedDays).toFixed(1)}</TableCell>
-                <TableCell>{Number(record.remainingDays).toFixed(1)}</TableCell>
-                <TableCell className="font-semibold text-cyan-600">
-                  {Number(record.carriedForwardDays).toFixed(1)}
-                </TableCell>
-                <TableCell>
-                  <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                    record.status === 'active' 
-                      ? 'bg-green-100 text-green-800'
-                      : record.status === 'expired'
-                      ? 'bg-red-100 text-red-800'
-                      : 'bg-gray-100 text-gray-800'
-                  }`}>
-                    {record.status}
+  const renderBalanceCarryForwardTable = () => {
+    if (carryForwardRecords.length === 0) {
+      return (
+        <div className="text-center py-8 text-gray-500">
+          No carry forward records available for {selectedYear}
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-6 p-6">
+        {carryForwardRecords.map((employeeData: any, empIndex: number) => (
+          <div key={employeeData.employee.id} className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+            {/* Employee Header */}
+            <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-medium">{employeeData.employee.fullName}</h3>
+                  <p className="text-cyan-100 text-sm">Staff ID: {employeeData.employee.staffId}</p>
+                </div>
+                <div className="text-right">
+                  <span className="bg-cyan-100 text-cyan-800 px-3 py-1 rounded-full text-sm font-medium">
+                    {employeeData.carryForwardRecords.length} Record{employeeData.carryForwardRecords.length > 1 ? 's' : ''}
                   </span>
-                </TableCell>
-              </TableRow>
-            ))
-          )
-        )}
-      </TableBody>
-    </Table>
-  );
+                </div>
+              </div>
+            </div>
+
+            {/* Employee Records Table */}
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50">
+                    <TableHead className="w-16">No.</TableHead>
+                    <TableHead>Leave Type</TableHead>
+                    <TableHead>Year</TableHead>
+                    <TableHead className="text-center">Entitlement Days</TableHead>
+                    <TableHead className="text-center">Used Days</TableHead>
+                    <TableHead className="text-center">Remaining Days</TableHead>
+                    <TableHead className="text-center">Carried Forward</TableHead>
+                    <TableHead className="text-center">Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {employeeData.carryForwardRecords.map((record: any, recordIndex: number) => (
+                    <TableRow key={`${employeeData.employee.id}-${record.id}`} className="hover:bg-gray-50">
+                      <TableCell className="font-medium">{recordIndex + 1}</TableCell>
+                      <TableCell className="font-medium">{record.leaveType}</TableCell>
+                      <TableCell>{record.year}</TableCell>
+                      <TableCell className="text-center">{Number(record.entitlementDays).toFixed(1)}</TableCell>
+                      <TableCell className="text-center">{Number(record.usedDays).toFixed(1)}</TableCell>
+                      <TableCell className="text-center">{Number(record.remainingDays).toFixed(1)}</TableCell>
+                      <TableCell className="text-center font-semibold text-cyan-600">
+                        {Number(record.carriedForwardDays).toFixed(1)}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                          record.status === 'active' 
+                            ? 'bg-green-100 text-green-800'
+                            : record.status === 'expired'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {record.status}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Employee Summary Footer */}
+            <div className="bg-gray-50 p-4 border-t">
+              <div className="grid grid-cols-4 gap-4 text-sm">
+                <div className="text-center">
+                  <div className="font-medium text-gray-900">
+                    {employeeData.carryForwardRecords.reduce((sum: number, record: any) => 
+                      sum + Number(record.entitlementDays), 0
+                    ).toFixed(1)}
+                  </div>
+                  <div className="text-gray-600">Total Entitlement</div>
+                </div>
+                <div className="text-center">
+                  <div className="font-medium text-gray-900">
+                    {employeeData.carryForwardRecords.reduce((sum: number, record: any) => 
+                      sum + Number(record.usedDays), 0
+                    ).toFixed(1)}
+                  </div>
+                  <div className="text-gray-600">Total Used</div>
+                </div>
+                <div className="text-center">
+                  <div className="font-medium text-gray-900">
+                    {employeeData.carryForwardRecords.reduce((sum: number, record: any) => 
+                      sum + Number(record.remainingDays), 0
+                    ).toFixed(1)}
+                  </div>
+                  <div className="text-gray-600">Total Remaining</div>
+                </div>
+                <div className="text-center">
+                  <div className="font-medium text-cyan-600">
+                    {employeeData.carryForwardRecords.reduce((sum: number, record: any) => 
+                      sum + Number(record.carriedForwardDays), 0
+                    ).toFixed(1)}
+                  </div>
+                  <div className="text-gray-600">Total Carried Forward</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   const renderCurrentTable = () => {
     switch (activeTab) {
