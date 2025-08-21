@@ -35,13 +35,50 @@ export default function AttendanceTimesheetPage() {
   const [activeTab, setActiveTab] = useState("today");
   const [attendanceSubTab, setAttendanceSubTab] = useState("clock-in");
   const [selectedShift, setSelectedShift] = useState("all");
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState('2025-08-20'); // Use 20 August 2025 for testing consistency with My Record
   const [showPicture, setShowPicture] = useState(false);
 
-  // Fetch real attendance data
+  // Fetch attendance records using the same approach as My Record page
   const { data: attendanceRecords, isLoading: attendanceLoading } = useQuery({
-    queryKey: ['/api/attendance-records'],
+    queryKey: ['attendance-records-timesheet', selectedDate],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        dateFrom: selectedDate,
+        dateTo: selectedDate,
+      });
+      
+      console.log('🔄 Timesheet - Fetching attendance records with params:', params.toString());
+      
+      const token = localStorage.getItem('utamahr_token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+      
+      const response = await fetch(`/api/attendance-records?${params}&_t=${Date.now()}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Timesheet attendance records API error:', errorData);
+        throw new Error(errorData.error || 'Failed to fetch attendance records');
+      }
+      
+      const data = await response.json();
+      console.log('🎯 Timesheet - Attendance records fetched:', data.length, 'records');
+      
+      return data;
+    },
     enabled: true,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
+    staleTime: 0, 
+    gcTime: 0
   });
 
   const { data: employees, isLoading: employeesLoading } = useQuery({
@@ -395,11 +432,11 @@ export default function AttendanceTimesheetPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Shift</SelectItem>
-              {shifts?.map((shift: any) => (
+              {Array.isArray(shifts) ? shifts.map((shift: any) => (
                 <SelectItem key={shift.id} value={shift.id}>
                   {shift.name}
                 </SelectItem>
-              ))}
+              )) : null}
             </SelectContent>
           </Select>
         </div>
