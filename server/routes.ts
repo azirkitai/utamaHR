@@ -981,12 +981,18 @@ export function registerRoutes(app: Express): Server {
           }
 
           // Check role-based exclusion (System Settings level)
+          // Handle role mapping - "Staff/Employee" should match "Employee" in policies
+          let roleToMatch = employee.role;
+          if (employee.role === "Staff/Employee") {
+            roleToMatch = "Employee";
+          }
+          
           const roleBasedPolicy = allGroupPolicySettings.find((policy: any) => 
             policy.leaveType === leaveType.leaveType && 
-            policy.role === employee.role
+            policy.role === roleToMatch
           );
           
-          console.log(`🔍 Checking ${leaveType.leaveType} for ${employee.role}:`, 
+          console.log(`🔍 Checking ${leaveType.leaveType} for ${employee.role} (mapped to ${roleToMatch}):`, 
             roleBasedPolicy ? 
             `Found policy - enabled: ${roleBasedPolicy.enabled}` : 
             'No policy found'
