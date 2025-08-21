@@ -122,12 +122,34 @@ export default function LeaveApprovalPage() {
 
   // Fetch departments for dropdown filter
   const { data: departments = [] } = useQuery({
-    queryKey: ["/api/departments"]
+    queryKey: ["/api/departments"],
+    queryFn: async () => {
+      const response = await fetch('/api/departments', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('utamahr_token')}`
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch departments');
+      }
+      return response.json();
+    },
   });
 
   // Fetch years for dropdown filter (based on actual data)
   const { data: availableYears = [] } = useQuery({
-    queryKey: ["/api/years"]
+    queryKey: ["/api/years"],
+    queryFn: async () => {
+      const response = await fetch('/api/years', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('utamahr_token')}`
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch years');
+      }
+      return response.json();
+    },
   });
 
   // Fetch carry forward records
