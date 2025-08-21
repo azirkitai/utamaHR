@@ -160,7 +160,7 @@ export async function generateLeaveReportPDFLib(data: LeaveReportData, company: 
           font: boldFont,
         });
         
-        page.drawText(`Staff ID: ${employee.employeeId}`, {
+        page.drawText(`IC Number: ${employee.icNumber || employee.employeeId}`, {
           x: 55,
           y: yPosition - 35,
           size: 10,

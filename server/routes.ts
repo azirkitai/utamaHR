@@ -972,7 +972,18 @@ export function registerRoutes(app: Express): Server {
           employees: summaryData.employees.map((emp: any) => ({
             employeeId: emp.employeeId,
             employeeName: emp.employeeName,
-            leaveBreakdown: emp.leaveBreakdown
+            icNumber: emp.icNumber,
+            leaveBreakdown: Object.fromEntries(
+              Object.entries(emp.leaveBreakdown || {}).map(([leaveType, data]: [string, any]) => [
+                leaveType,
+                {
+                  entitlementDays: data.entitlementDays || 0,
+                  takenDays: data.daysTaken || 0, // Map from daysTaken to takenDays
+                  balanceDays: data.remainingDays || 0, // Map from remainingDays to balanceDays
+                  roleBasedExcluded: !data.isEligible // Map from isEligible to roleBasedExcluded
+                }
+              ])
+            )
           })),
           filters: { department, year },
           reportTitle
@@ -1011,7 +1022,18 @@ export function registerRoutes(app: Express): Server {
           employees: summaryData.employees.map((emp: any) => ({
             employeeId: emp.employeeId,
             employeeName: emp.employeeName,
-            leaveBreakdown: emp.leaveBreakdown
+            icNumber: emp.icNumber,
+            leaveBreakdown: Object.fromEntries(
+              Object.entries(emp.leaveBreakdown || {}).map(([leaveType, data]: [string, any]) => [
+                leaveType,
+                {
+                  entitlementDays: data.entitlementDays || 0,
+                  takenDays: data.daysTaken || 0, // Map from daysTaken to takenDays
+                  balanceDays: data.remainingDays || 0, // Map from remainingDays to balanceDays
+                  roleBasedExcluded: !data.isEligible // Map from isEligible to roleBasedExcluded
+                }
+              ])
+            )
           })),
           filters: { department, year },
           reportTitle
@@ -1064,7 +1086,8 @@ export function registerRoutes(app: Express): Server {
           id: employees.id,
           fullName: employees.fullName,
           userId: employees.userId,
-          role: employees.role
+          role: employees.role,
+          nric: employees.nric
         })
         .from(employees)
         .where(eq(employees.status, 'employed'));
@@ -1096,7 +1119,8 @@ export function registerRoutes(app: Express): Server {
             id: employees.id,
             fullName: employees.fullName,
             userId: employees.userId,
-            role: employees.role
+            role: employees.role,
+            nric: employees.nric
           })
           .from(employees)
           .where(
@@ -1153,6 +1177,7 @@ export function registerRoutes(app: Express): Server {
         const employeeData = {
           employeeId: employee.id,
           employeeName: employee.fullName,
+          icNumber: employee.nric,
           leaveBreakdown: {} as Record<string, any>
         };
 
