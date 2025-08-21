@@ -939,6 +939,9 @@ export function registerRoutes(app: Express): Server {
       const allGroupPolicySettings = await db
         .select()
         .from(groupPolicySettings);
+      
+      console.log('🔍 Group policy settings found:', allGroupPolicySettings.length);
+      console.log('🔍 Sample policies:', allGroupPolicySettings.slice(0, 3));
 
       const employeeSummary = [];
 
@@ -978,7 +981,8 @@ export function registerRoutes(app: Express): Server {
             policy.role === employee.role
           );
           
-          // If no role-based policy found, this leave type is excluded for this role
+          // If role-based policy found, this leave type is eligible for this role
+          // If no policy found, means it's excluded for this role (not available)
           const isRoleEligible = roleBasedPolicy ? true : false;
           
           const approvedApplications = await db
