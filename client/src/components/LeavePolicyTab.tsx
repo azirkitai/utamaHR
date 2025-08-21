@@ -34,12 +34,12 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
   const queryClient = useQueryClient();
 
   // Fetch current logged-in user data for role-based access control
-  const { data: currentUser } = useQuery({
+  const { data: currentUser } = useQuery<any>({
     queryKey: ["/api/user"],
   });
 
   // Fetch current user's employee data to get role
-  const { data: currentUserEmployee } = useQuery({
+  const { data: currentUserEmployee } = useQuery<any>({
     queryKey: ["/api/user/employee"],
     enabled: !!currentUser?.id,
   });
