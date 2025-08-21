@@ -1815,6 +1815,52 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Get contact details for an employee
+  app.get("/api/contact/:employeeId", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      const employeeId = req.params.employeeId;
+      
+      // Get the employee to check authorization
+      const employee = await storage.getEmployee(employeeId);
+      if (!employee) {
+        return res.status(404).json({ error: "Pekerja tidak dijumpai" });
+      }
+      
+      // Role-based access control
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC', 'Finance/Account'];
+      if (adminRoles.includes(currentUser.role)) {
+        // Admin roles can access any employee contact
+      } else {
+        // Regular employees can only access their own contact
+        if (employee.userId !== currentUser.id) {
+          return res.status(403).json({ error: "Tidak dibenarkan mengakses maklumat contact pekerja lain" });
+        }
+      }
+
+      const contact = await storage.getContactByEmployeeId(employeeId);
+      if (!contact) {
+        // If no contact exists, return empty contact object
+        return res.json({
+          id: null,
+          employeeId: employeeId,
+          phoneNumber: "",
+          email: "",
+          personalEmail: "",
+          address: "",
+          mailingAddress: "",
+          emergencyContactName: "",
+          emergencyContactPhone: ""
+        });
+      }
+      
+      res.json(contact);
+    } catch (error) {
+      console.error("Get contact error:", error);
+      res.status(500).json({ error: "Gagal mendapatkan maklumat contact" });
+    }
+  });
+
   app.post("/api/employees/:id/reset-password", authenticateToken, async (req, res) => {
     try {
       const currentUser = req.user!;

@@ -178,6 +178,12 @@ export default function EmployeeDetailsPage() {
     enabled: !!id
   });
 
+  // Get contact details for this employee
+  const { data: contactData, isLoading: contactLoading } = useQuery<any>({
+    queryKey: ["/api/contact", id],
+    enabled: !!id
+  });
+
   // Get current user data for role-based access
   const { data: currentUser } = useQuery<any>({
     queryKey: ["/api/user"],
@@ -849,6 +855,78 @@ export default function EmployeeDetailsPage() {
   const handleConfirmResetPassword = () => {
     resetPasswordMutation.mutate();
   };
+
+  // Effect to populate forms with employee data when loaded
+  useEffect(() => {
+    if (employee) {
+      // Populate employee basic form
+      setEmployeeForm({
+        firstName: employee.firstName || "",
+        lastName: employee.lastName || "",
+        nric: employee.nric || "",
+        nricOld: employee.nricOld || "",
+        dateOfBirth: employee.dateOfBirth ? new Date(employee.dateOfBirth) : undefined,
+        placeOfBirth: employee.placeOfBirth || "",
+        gender: employee.gender || "",
+        race: employee.race || "",
+        religion: employee.religion || "",
+        bloodType: employee.bloodType || "",
+        educationLevel: employee.educationLevel || "",
+        maritalStatus: employee.maritalStatus || "",
+        nationality: employee.nationality || "",
+        bumiStatus: employee.bumiStatus || "",
+        familyMembers: employee.familyMembers || 0,
+        drivingLicenseNumber: employee.drivingLicenseNumber || "",
+        drivingClass: employee.drivingClass || "",
+        drivingExpiryDate: employee.drivingExpiryDate ? new Date(employee.drivingExpiryDate) : undefined,
+      });
+
+      // Note: Contact form will be populated separately from contactData
+
+      // Set date states
+      setDateOfBirth(employee.dateOfBirth ? new Date(employee.dateOfBirth) : undefined);
+      setDrivingExpiryDate(employee.drivingExpiryDate ? new Date(employee.drivingExpiryDate) : undefined);
+    }
+  }, [employee]);
+
+  // Effect to populate employment form when employment data is loaded
+  useEffect(() => {
+    if (employment) {
+      setEmploymentForm({
+        staffId: employment.employeeNo || "",
+        designation: employment.designation || "",
+        department: employment.department || "",
+        dateJoining: employment.dateJoining ? new Date(employment.dateJoining) : undefined,
+        dateOfSign: employment.dateOfSign ? new Date(employment.dateOfSign) : undefined,
+        employmentStatus: employment.employmentStatus || "",
+        employmentType: employment.employmentType || "",
+        workingHours: employment.workingHours || "",
+        reportingManager: employment.reportingManager || "",
+        jobDescription: employment.jobDescription || "",
+        probationPeriod: employment.probationPeriod || "",
+        probationEndDate: employment.probationEndDate || "",
+        workLocation: employment.workLocation || "",
+      });
+
+      setDateJoining(employment.dateJoining ? new Date(employment.dateJoining) : undefined);
+      setDateOfSign(employment.dateOfSign ? new Date(employment.dateOfSign) : undefined);
+    }
+  }, [employment]);
+
+  // Effect to populate contact form when contact data is loaded
+  useEffect(() => {
+    if (contactData) {
+      setContactForm({
+        phoneNumber: contactData.phoneNumber || "",
+        email: contactData.email || "",
+        personalEmail: contactData.personalEmail || "",
+        address: contactData.address || "",
+        mailingAddress: contactData.mailingAddress || "",
+        emergencyContactName: contactData.emergencyContactName || "",
+        emergencyContactPhone: contactData.emergencyContactPhone || ""
+      });
+    }
+  }, [contactData]);
 
   const navigationTabs = [
     {
