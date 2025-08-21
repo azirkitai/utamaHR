@@ -320,6 +320,57 @@ export default function LeaveApprovalPage() {
     });
   };
 
+  // Handle print report
+  const handlePrintReport = async () => {
+    try {
+      const response = await fetch('/api/leave-report-pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('utamahr_token')}`
+        },
+        body: JSON.stringify({
+          department: selectedDepartment,
+          year: selectedYear,
+          reportType: activeTab // 'approval', 'summary', etc.
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Gagal menghasilkan laporan PDF');
+      }
+
+      // Create blob and download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      const reportName = activeTab === 'summary' ? 'Ringkasan' : 'Permohonan';
+      const fileName = `Laporan_Cuti_${reportName}_${new Date().toISOString().split('T')[0]}.pdf`;
+      link.download = fileName;
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: "Laporan PDF Berjaya",
+        description: `Laporan cuti ${reportName.toLowerCase()} telah dimuat turun`,
+        variant: "default",
+      });
+
+    } catch (error) {
+      console.error('Error generating PDF report:', error);
+      toast({
+        title: "Ralat",
+        description: "Gagal menghasilkan laporan PDF. Sila cuba lagi.",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Handle clear all filters
   const handleClearFilters = () => {
     setSearchQuery("");
@@ -922,6 +973,7 @@ export default function LeaveApprovalPage() {
                 )}
                 <Button 
                   variant="outline"
+                  onClick={handlePrintReport}
                   data-testid="button-print"
                 >
                   <Printer className="w-4 h-4 mr-2" />

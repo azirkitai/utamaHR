@@ -7,6 +7,7 @@ import { generatePayslipHTML } from './payslip-html-simple';
 import { generatePayslipExcel } from './payslip-excel-generator';
 import { generatePaymentVoucherPDF } from './payment-voucher-pdf-generator';
 import { EmployeePDFGenerator } from './employee-pdf-generator';
+import { generateLeaveReportPDF } from './leave-report-pdf-generator';
 import puppeteer from 'puppeteer';
 import htmlPdf from 'html-pdf-node';
 import Excel from 'exceljs';
@@ -910,6 +911,95 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Get leave statistics error:", error);
       res.status(500).json({ error: "Failed to get leave statistics" });
+    }
+  });
+
+  // Generate Leave Report PDF
+  app.post("/api/leave-report-pdf", authenticateToken, async (req, res) => {
+    try {
+      const { department, year, reportType } = req.body;
+      console.log('Generating leave report PDF with filters:', { department, year, reportType });
+
+      // Determine the data to get based on report type
+      let reportData;
+      let reportTitle;
+
+      if (reportType === 'summary') {
+        // Get Summary tab data
+        let url = "/api/leave-summary-all-employees";
+        const params = new URLSearchParams();
+        if (department && department !== 'all') {
+          params.append('department', department);
+        }
+        if (year) {
+          params.append('year', year);
+        }
+        if (params.toString()) {
+          url += `?${params.toString()}`;
+        }
+
+        // Fetch the summary data using internal call
+        const summaryResponse = await fetch(`http://localhost:5000${url}`, {
+          headers: {
+            'Authorization': req.headers.authorization || ''
+          }
+        });
+
+        if (!summaryResponse.ok) {
+          throw new Error('Failed to fetch leave summary data');
+        }
+
+        const summaryData = await summaryResponse.json();
+        reportTitle = 'Ringkasan Cuti Pekerja';
+        
+        // Transform summary data to match PDF generator format
+        reportData = {
+          employees: summaryData.employees.map((emp: any) => ({
+            employeeId: emp.employeeId,
+            employeeName: emp.employeeName,
+            leaveBreakdown: emp.leaveBreakdown
+          })),
+          filters: { department, year },
+          reportTitle
+        };
+
+      } else {
+        // Default to approval data (Applications tab)
+        const applicationsResponse = await fetch(`http://localhost:5000/api/leave-applications?department=${department || ''}&year=${year || ''}`, {
+          headers: {
+            'Authorization': req.headers.authorization || ''
+          }
+        });
+
+        if (!applicationsResponse.ok) {
+          throw new Error('Failed to fetch leave applications data');
+        }
+
+        const applicationsData = await applicationsResponse.json();
+        reportTitle = 'Laporan Permohonan Cuti';
+        
+        // Transform applications data - for now just show basic summary
+        // This can be expanded later to show detailed applications
+        reportData = {
+          employees: [], // Can be populated from applications if needed
+          filters: { department, year },
+          reportTitle
+        };
+      }
+
+      const pdfBuffer = await generateLeaveReportPDF(reportData);
+
+      const fileName = `Laporan_Cuti_${reportType}_${new Date().toISOString().split('T')[0]}.pdf`;
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+
+      res.send(pdfBuffer);
+
+    } catch (error) {
+      console.error('Error generating leave report PDF:', error);
+      res.status(500).json({ error: 'Failed to generate leave report PDF' });
     }
   });
 
