@@ -1103,13 +1103,21 @@ export default function MyRecordPage() {
       const { width, height } = currentPage.getSize();
       const pages = [currentPage];
       
+      // Define margins in points (1mm = 2.83465 points)
+      const topMargin = 57; // 20mm
+      const bottomMargin = 57; // 20mm
+      const leftMargin = 51; // 18mm
+      const rightMargin = 51; // 18mm
+      const contentWidth = width - leftMargin - rightMargin; // 493 points
+      const contentHeight = height - topMargin - bottomMargin; // 728 points
+      
       // Draw header function
       const drawHeader = (page: any) => {
         // Company header background
         page.drawRectangle({
-          x: 0,
-          y: height - 120,
-          width: width,
+          x: leftMargin,
+          y: height - topMargin - 120,
+          width: contentWidth,
           height: 120,
           color: rgb(0.1, 0.2, 0.4),
         });
@@ -1130,19 +1138,19 @@ export default function MyRecordPage() {
         
         // Company name
         page.drawText(companyName, {
-          x: 50,
-          y: height - 35,
+          x: leftMargin,
+          y: height - topMargin - 35,
           size: 16,
           font: boldFont,
           color: rgb(1, 1, 1),
         });
         
         // Company contact details
-        let contactY = height - 55;
+        let contactY = height - topMargin - 55;
         
         if (companyPhone) {
           page.drawText(`Tel: ${companyPhone}`, {
-            x: 50,
+            x: leftMargin,
             y: contactY,
             size: 10,
             font: font,
@@ -1153,7 +1161,7 @@ export default function MyRecordPage() {
         
         if (companyEmail) {
           page.drawText(`Email: ${companyEmail}`, {
-            x: 50,
+            x: leftMargin,
             y: contactY,
             size: 10,
             font: font,
@@ -1181,7 +1189,7 @@ export default function MyRecordPage() {
             }
             
             page.drawText(line1, {
-              x: 50,
+              x: leftMargin,
               y: contactY,
               size: 10,
               font: font,
@@ -1190,7 +1198,7 @@ export default function MyRecordPage() {
             
             if (line2) {
               page.drawText(line2, {
-                x: 50,
+                x: leftMargin,
                 y: contactY - 12,
                 size: 10,
                 font: font,
@@ -1199,7 +1207,7 @@ export default function MyRecordPage() {
             }
           } else {
             page.drawText(fullAddress, {
-              x: 50,
+              x: leftMargin,
               y: contactY,
               size: 10,
               font: font,
@@ -1211,7 +1219,7 @@ export default function MyRecordPage() {
         // Report title
         page.drawText('EMPLOYEE ATTENDANCE REPORT', {
           x: (width - boldFont.widthOfTextAtSize('EMPLOYEE ATTENDANCE REPORT', 18)) / 2,
-          y: height - 150,
+          y: height - topMargin - 150,
           size: 18,
           font: boldFont,
           color: rgb(0.1, 0.2, 0.4),
@@ -1220,8 +1228,8 @@ export default function MyRecordPage() {
         // Date generated
         const currentDate = format(new Date(), 'dd/MM/yyyy HH:mm');
         page.drawText(`Generated on: ${currentDate}`, {
-          x: width - 200,
-          y: height - 150,
+          x: width - rightMargin - 150,
+          y: height - topMargin - 150,
           size: 10,
           font: font,
           color: rgb(0.5, 0.5, 0.5),
@@ -1236,15 +1244,15 @@ export default function MyRecordPage() {
         
         // Header background
         page.drawRectangle({
-          x: 50,
+          x: leftMargin,
           y: yPos - tableHeight,
-          width: columnWidths.reduce((a: number, b: number) => a + b, 0),
+          width: Math.min(columnWidths.reduce((a: number, b: number) => a + b, 0), contentWidth),
           height: tableHeight,
           color: rgb(0.1, 0.3, 0.6), // Dark blue header
         });
         
         // Header text
-        let currentX = 50;
+        let currentX = leftMargin;
         headers.forEach((header: string, index: number) => {
           page.drawText(header, {
             x: currentX + 5,
@@ -1267,9 +1275,9 @@ export default function MyRecordPage() {
         // Alternating row background (striping)
         if (rowIndex % 2 === 0) {
           page.drawRectangle({
-            x: 50,
+            x: leftMargin,
             y: yPos - tableHeight,
-            width: columnWidths.reduce((a: number, b: number) => a + b, 0),
+            width: Math.min(columnWidths.reduce((a: number, b: number) => a + b, 0), contentWidth),
             height: tableHeight,
             color: rgb(0.98, 0.98, 0.98), // Light grey for even rows
           });
@@ -1277,9 +1285,9 @@ export default function MyRecordPage() {
         
         // Row border
         page.drawRectangle({
-          x: 50,
+          x: leftMargin,
           y: yPos - tableHeight,
-          width: columnWidths.reduce((a: number, b: number) => a + b, 0),
+          width: Math.min(columnWidths.reduce((a: number, b: number) => a + b, 0), contentWidth),
           height: tableHeight,
           borderColor: rgb(0.8, 0.8, 0.8),
           borderWidth: 0.5,
@@ -1319,7 +1327,7 @@ export default function MyRecordPage() {
           record.isLateClockIn ? 'Late' : (record.clockInTime ? 'On Time' : 'Absent')
         ];
         
-        let currentX = 50;
+        let currentX = leftMargin;
         rowData.forEach((data: string, colIndex: number) => {
           // Draw vertical line
           page.drawLine({
@@ -1369,11 +1377,11 @@ export default function MyRecordPage() {
       
       // Employee info section
       const userEmployee = allEmployees?.find((emp: any) => emp.userId === user?.id);
-      let yPosition = height - 190;
+      let yPosition = height - topMargin - 190;
       
       if (userEmployee) {
         currentPage.drawText(`Name: ${userEmployee.firstName} ${userEmployee.lastName}`, {
-          x: 50,
+          x: leftMargin,
           y: yPosition,
           size: 11,
           font: font,
@@ -1381,7 +1389,7 @@ export default function MyRecordPage() {
         });
         
         currentPage.drawText(`IC: ${userEmployee.icNumber || userEmployee.staffId || 'N/A'}`, {
-          x: 300,
+          x: leftMargin + 250,
           y: yPosition,
           size: 11,
           font: font,
@@ -1390,7 +1398,7 @@ export default function MyRecordPage() {
         
         yPosition -= 20;
         currentPage.drawText(`Department: ${userEmployee.department || 'N/A'}`, {
-          x: 50,
+          x: leftMargin,
           y: yPosition,
           size: 11,
           font: font,
@@ -1399,7 +1407,7 @@ export default function MyRecordPage() {
         
         const filteredRecordsCount = filteredRecords.length;
         currentPage.drawText(`Period: ${filteredRecordsCount} attendance days`, {
-          x: 300,
+          x: leftMargin + 250,
           y: yPosition,
           size: 11,
           font: font,
@@ -1419,10 +1427,10 @@ export default function MyRecordPage() {
         const record = filteredRecords[index];
         
         // Check if we need a new page
-        if (yPosition < 100) {
+        if (yPosition < bottomMargin + 100) {
           currentPage = pdfDoc.addPage([595, 842]);
           pages.push(currentPage);
-          yPosition = height - 80;
+          yPosition = height - topMargin - 80;
           drawTableHeader(currentPage, yPosition);
           yPosition -= rowHeight;
         }
@@ -1433,17 +1441,17 @@ export default function MyRecordPage() {
       
       // Summary Section
       yPosition -= 30;
-      if (yPosition < 120) {
+      if (yPosition < bottomMargin + 120) {
         currentPage = pdfDoc.addPage([595, 842]);
         pages.push(currentPage);
-        yPosition = height - 80;
+        yPosition = height - topMargin - 80;
       }
       
       const summaryBoxHeight = 60;
       currentPage.drawRectangle({
-        x: 50,
+        x: leftMargin,
         y: yPosition - summaryBoxHeight,
-        width: 495,
+        width: contentWidth,
         height: summaryBoxHeight,
         color: rgb(0.95, 0.95, 0.95),
         borderColor: rgb(0.8, 0.8, 0.8),
@@ -1451,7 +1459,7 @@ export default function MyRecordPage() {
       });
       
       currentPage.drawText('ATTENDANCE SUMMARY', {
-        x: 60,
+        x: leftMargin + 10,
         y: yPosition - 20,
         size: 12,
         font: boldFont,
@@ -1464,7 +1472,7 @@ export default function MyRecordPage() {
       const absentRecords = totalRecords - lateRecords - onTimeRecords;
       
       currentPage.drawText(`Total Attendance: ${totalRecords}`, {
-        x: 60,
+        x: leftMargin + 10,
         y: yPosition - 40,
         size: 10,
         font: font,
@@ -1472,7 +1480,7 @@ export default function MyRecordPage() {
       });
       
       currentPage.drawText(`On Time: ${onTimeRecords}`, {
-        x: 220,
+        x: leftMargin + 170,
         y: yPosition - 40,
         size: 10,
         font: font,
@@ -1480,7 +1488,7 @@ export default function MyRecordPage() {
       });
       
       currentPage.drawText(`Late: ${lateRecords}`, {
-        x: 350,
+        x: leftMargin + 300,
         y: yPosition - 40,
         size: 10,
         font: font,
@@ -1488,7 +1496,7 @@ export default function MyRecordPage() {
       });
       
       currentPage.drawText(`Absent: ${absentRecords}`, {
-        x: 450,
+        x: leftMargin + 400,
         y: yPosition - 40,
         size: 10,
         font: font,
@@ -1499,16 +1507,16 @@ export default function MyRecordPage() {
       const currentDate = format(new Date(), 'dd/MM/yyyy HH:mm');
       pages.forEach((page, pageIndex) => {
         page.drawText(`Generated on: ${currentDate}`, {
-          x: 50,
-          y: 30,
+          x: leftMargin,
+          y: bottomMargin - 20,
           size: 8,
           font: font,
           color: rgb(0.5, 0.5, 0.5),
         });
         
         page.drawText(`Page ${pageIndex + 1} of ${pages.length}`, {
-          x: width - 150,
-          y: 30,
+          x: width - rightMargin - 100,
+          y: bottomMargin - 20,
           size: 8,
           font: font,
           color: rgb(0.5, 0.5, 0.5),
