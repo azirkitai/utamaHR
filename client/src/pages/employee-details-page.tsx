@@ -112,6 +112,7 @@ export default function EmployeeDetailsPage() {
     bank: "",
     accountNumber: "",
     accountType: "",
+    branch: "",
     accountHolderName: ""
   });
 
@@ -181,6 +182,12 @@ export default function EmployeeDetailsPage() {
   // Get contact details for this employee
   const { data: contactData, isLoading: contactLoading } = useQuery<any>({
     queryKey: ["/api/contact", id],
+    enabled: !!id
+  });
+
+  // Get compensation details for this employee (bank details, statutory, income tax)
+  const { data: compensationData, isLoading: compensationLoading } = useQuery<any>({
+    queryKey: ["/api/compensation", id],
     enabled: !!id
   });
 
@@ -322,6 +329,40 @@ export default function EmployeeDetailsPage() {
       });
     }
   }, [contactData]);
+
+  // Initialize compensation forms when compensation data loads
+  useEffect(() => {
+    if (compensationData) {
+      // Bank details
+      setBankDetailsForm({
+        bank: compensationData.bank || "",
+        accountNumber: compensationData.accountNumber || "",
+        accountType: compensationData.accountType || "",
+        branch: compensationData.branch || "",
+        accountHolderName: compensationData.accountHolderName || ""
+      });
+
+      // Statutory details
+      setStatutoryDetailsForm({
+        epfNumber: compensationData.epfNumber || "",
+        epfContributionStartDate: compensationData.epfContributionStartDate || "after-aug-2001",
+        socsoNumber: compensationData.socsoNumber || "",
+        socsoContributionStartAge: compensationData.socsoContributionStartAge || "",
+        socsoCategory: compensationData.socsoCategory || "none",
+        incomeTaxNumber: compensationData.incomeTaxNumber || "",
+        vola: compensationData.vola || "0"
+      });
+
+      // Income tax details
+      setIncomeTaxDetailsForm({
+        hasChild: compensationData.hasChild || false,
+        spouseWorking: compensationData.spouseWorking || false,
+        spouseGender: compensationData.spouseGender || "",
+        spouseDisable: compensationData.spouseDisable || false,
+        employeeCategory: compensationData.employeeCategory || "none"
+      });
+    }
+  }, [compensationData]);
 
   // Update employee mutation
   const updateEmployeeMutation = useMutation({
@@ -2789,7 +2830,7 @@ export default function EmployeeDetailsPage() {
                             </Select>
                           ) : (
                             <div className="mt-1 p-2 bg-gray-50 rounded border">
-                              N/A
+                              {bankDetailsForm.bank || "N/A"}
                             </div>
                           )}
                         </div>
@@ -2804,7 +2845,7 @@ export default function EmployeeDetailsPage() {
                             />
                           ) : (
                             <div className="mt-1 p-2 bg-gray-50 rounded border">
-                              N/A
+                              {bankDetailsForm.accountNumber || "N/A"}
                             </div>
                           )}
                         </div>
@@ -2823,7 +2864,7 @@ export default function EmployeeDetailsPage() {
                             </Select>
                           ) : (
                             <div className="mt-1 p-2 bg-gray-50 rounded border">
-                              N/A
+                              {bankDetailsForm.accountType || "N/A"}
                             </div>
                           )}
                         </div>
@@ -2838,7 +2879,7 @@ export default function EmployeeDetailsPage() {
                             />
                           ) : (
                             <div className="mt-1 p-2 bg-gray-50 rounded border">
-                              N/A
+                              {bankDetailsForm.branch || "N/A"}
                             </div>
                           )}
                         </div>
@@ -2857,7 +2898,7 @@ export default function EmployeeDetailsPage() {
                             </Select>
                           ) : (
                             <div className="mt-1 p-2 bg-gray-50 rounded border">
-                              N/A
+                              Active
                             </div>
                           )}
                         </div>
@@ -2922,7 +2963,7 @@ export default function EmployeeDetailsPage() {
                               />
                             ) : (
                               <div className="mt-1 p-2 bg-gray-50 rounded border">
-                                N/A
+                                {statutoryDetailsForm.epfNumber || "N/A"}
                               </div>
                             )}
                           </div>
@@ -2941,7 +2982,7 @@ export default function EmployeeDetailsPage() {
                               </Select>
                             ) : (
                               <div className="mt-1 p-2 bg-gray-50 rounded border">
-                                After 1 August 2001
+                                {statutoryDetailsForm.epfContributionStartDate === "after-aug-2001" ? "After 1 August 2001" : "Before 1 August 2001"}
                               </div>
                             )}
                           </div>
@@ -2962,7 +3003,7 @@ export default function EmployeeDetailsPage() {
                               />
                             ) : (
                               <div className="mt-1 p-2 bg-gray-50 rounded border">
-                                N/A
+                                {statutoryDetailsForm.socsoNumber || "N/A"}
                               </div>
                             )}
                           </div>
@@ -2977,7 +3018,7 @@ export default function EmployeeDetailsPage() {
                               />
                             ) : (
                               <div className="mt-1 p-2 bg-gray-50 rounded border">
-                                N/A
+                                {statutoryDetailsForm.socsoContributionStartAge || "N/A"}
                               </div>
                             )}
                           </div>
@@ -2997,7 +3038,7 @@ export default function EmployeeDetailsPage() {
                               </Select>
                             ) : (
                               <div className="mt-1 p-2 bg-gray-50 rounded border">
-                                None
+                                {statutoryDetailsForm.socsoCategory === "none" ? "None" : statutoryDetailsForm.socsoCategory === "category-1" ? "Category 1" : statutoryDetailsForm.socsoCategory === "category-2" ? "Category 2" : "None"}
                               </div>
                             )}
                           </div>
@@ -3036,7 +3077,7 @@ export default function EmployeeDetailsPage() {
                               />
                             ) : (
                               <div className="mt-1 p-2 bg-gray-50 rounded border">
-                                N/A
+                                {statutoryDetailsForm.incomeTaxNumber || "N/A"}
                               </div>
                             )}
                           </div>
@@ -3052,7 +3093,7 @@ export default function EmployeeDetailsPage() {
                               />
                             ) : (
                               <div className="mt-1 p-2 bg-gray-50 rounded border">
-                                0
+                                {statutoryDetailsForm.vola || "0"}
                               </div>
                             )}
                           </div>
@@ -3119,7 +3160,7 @@ export default function EmployeeDetailsPage() {
                               </div>
                             ) : (
                               <div className="mt-1 p-2 bg-gray-50 rounded border">
-                                No
+                                {incomeTaxDetailsForm.hasChild ? "Yes" : "No"}
                               </div>
                             )}
                           </div>
@@ -3141,7 +3182,7 @@ export default function EmployeeDetailsPage() {
                               </div>
                             ) : (
                               <div className="mt-1 p-2 bg-gray-50 rounded border">
-                                No
+                                {incomeTaxDetailsForm.spouseWorking ? "Yes" : "No"}
                               </div>
                             )}
                           </div>
@@ -3160,7 +3201,7 @@ export default function EmployeeDetailsPage() {
                               </Select>
                             ) : (
                               <div className="mt-1 p-2 bg-gray-50 rounded border">
-                                N/A
+                                {incomeTaxDetailsForm.spouseGender === "male" ? "Male" : incomeTaxDetailsForm.spouseGender === "female" ? "Female" : "N/A"}
                               </div>
                             )}
                           </div>
@@ -3176,7 +3217,7 @@ export default function EmployeeDetailsPage() {
                               </div>
                             ) : (
                               <div className="mt-1 p-2 bg-gray-50 rounded border">
-                                No
+                                {incomeTaxDetailsForm.spouseDisable ? "Yes" : "No"}
                               </div>
                             )}
                           </div>
@@ -3219,7 +3260,10 @@ export default function EmployeeDetailsPage() {
                               </Select>
                             ) : (
                               <div className="mt-1 p-2 bg-gray-50 rounded border">
-                                None
+                                {incomeTaxDetailsForm.employeeCategory === "none" ? "None" : 
+                                 incomeTaxDetailsForm.employeeCategory === "rep" ? "Returning Expert Programme (REP)" :
+                                 incomeTaxDetailsForm.employeeCategory === "knowledge-worker" ? "Knowledge Worker" :
+                                 incomeTaxDetailsForm.employeeCategory === "sarawak" ? "Specific Region (Sarawak Malaysia)" : "None"}
                               </div>
                             )}
                           </div>

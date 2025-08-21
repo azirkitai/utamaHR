@@ -1955,6 +1955,58 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Get compensation details for an employee (bank, statutory, income tax details)
+  app.get("/api/compensation/:employeeId", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      const employeeId = req.params.employeeId;
+      
+      // Get the employee to check authorization
+      const employee = await storage.getEmployee(employeeId);
+      if (!employee) {
+        return res.status(404).json({ error: "Pekerja tidak dijumpai" });
+      }
+      
+      // Role-based access control
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC', 'Finance/Account'];
+      if (adminRoles.includes(currentUser.role)) {
+        // Admin roles can view any employee compensation
+      } else {
+        // Regular employees can only view their own compensation
+        if (employee.userId !== currentUser.id) {
+          return res.status(403).json({ error: "Tidak dibenarkan mengakses data compensation pekerja lain" });
+        }
+      }
+
+      // Get compensation details - for now return existing employee data
+      // This will be replaced when we have separate compensation table
+      const compensation = {
+        bank: employee.bank || "",
+        accountNumber: employee.accountNumber || "",
+        accountType: employee.accountType || "",
+        branch: employee.branch || "",
+        accountHolderName: employee.accountHolderName || "",
+        epfNumber: employee.epfNumber || "",
+        epfContributionStartDate: employee.epfContributionStartDate || "after-aug-2001",
+        socsoNumber: employee.socsoNumber || "",
+        socsoContributionStartAge: employee.socsoContributionStartAge || "",
+        socsoCategory: employee.socsoCategory || "none",
+        incomeTaxNumber: employee.incomeTaxNumber || "",
+        vola: employee.vola || "0",
+        hasChild: employee.hasChild || false,
+        spouseWorking: employee.spouseWorking || false,
+        spouseGender: employee.spouseGender || "",
+        spouseDisable: employee.spouseDisable || false,
+        employeeCategory: employee.employeeCategory || "none"
+      };
+      
+      res.json(compensation);
+    } catch (error) {
+      console.error("Get compensation error:", error);
+      res.status(500).json({ error: "Gagal mendapatkan maklumat compensation" });
+    }
+  });
+
   // Employment management routes
   app.get("/api/employment/:employeeId", authenticateToken, async (req, res) => {
     try {
