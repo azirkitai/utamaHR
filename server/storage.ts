@@ -550,15 +550,17 @@ export class DatabaseStorage implements IStorage {
 
   async getUniqueDepartments(): Promise<string[]> {
     try {
-      const result = await db
-        .selectDistinct({ department: employees.department })
-        .from(employees)
-        .where(isNotNull(employees.department));
+      console.log("Fetching unique departments from employees table...");
+      const result = await db.select({ department: employees.department }).from(employees);
+      console.log("Raw departments result:", result);
       
-      return result
+      const uniqueDepartments = [...new Set(result
         .map(row => row.department)
         .filter(dept => dept && dept.trim() !== '') // Filter out empty/null departments
-        .sort(); // Sort alphabetically
+      )].sort(); // Sort alphabetically
+      
+      console.log("Unique departments:", uniqueDepartments);
+      return uniqueDepartments;
     } catch (error) {
       console.error("Error getting unique departments:", error);
       return [];
