@@ -2001,26 +2001,28 @@ export function registerRoutes(app: Express): Server {
         }
       }
 
-      // Get compensation details - for now return existing employee data
-      // This will be replaced when we have separate compensation table
+      // Get compensation details from compensation table
+      const compensationRecord = await storage.getCompensation(employeeId);
+      
       const compensation = {
-        bank: employee.bank || "",
-        accountNumber: employee.accountNumber || "",
-        accountType: employee.accountType || "",
-        branch: employee.branch || "",
-        accountHolderName: employee.accountHolderName || "",
-        epfNumber: employee.epfNumber || "",
-        epfContributionStartDate: employee.epfContributionStartDate || "after-aug-2001",
-        socsoNumber: employee.socsoNumber || "",
-        socsoContributionStartAge: employee.socsoContributionStartAge || "",
-        socsoCategory: employee.socsoCategory || "none",
-        incomeTaxNumber: employee.incomeTaxNumber || "",
-        vola: employee.vola || "0",
-        hasChild: employee.hasChild || false,
-        spouseWorking: employee.spouseWorking || false,
-        spouseGender: employee.spouseGender || "",
-        spouseDisable: employee.spouseDisable || false,
-        employeeCategory: employee.employeeCategory || "none"
+        bank: compensationRecord?.bank || "",
+        accountNumber: compensationRecord?.accountNumber || "",
+        accountType: compensationRecord?.accountType || "",
+        branch: compensationRecord?.branch || "",
+        accountHolderName: compensationRecord?.accountHolderName || "",
+        accountStatus: compensationRecord?.accountStatus || "active",
+        epfNumber: compensationRecord?.epfNumber || "",
+        epfContributionStartDate: compensationRecord?.epfContributionStartDate || "after-aug-2001",
+        socsoNumber: compensationRecord?.socsoNumber || "",
+        socsoContributionStartAge: compensationRecord?.socsoContributionStartAge || "",
+        socsoCategory: compensationRecord?.socsoCategory || "none",
+        incomeTaxNumber: compensationRecord?.incomeTaxNumber || "",
+        vola: compensationRecord?.volaValue || "0",
+        hasChild: compensationRecord?.employeeHasChild || false,
+        spouseWorking: compensationRecord?.spouseIsWorking || false,
+        spouseGender: compensationRecord?.spouseGender || "",
+        spouseDisable: compensationRecord?.spouseIsDisable || false,
+        employeeCategory: compensationRecord?.employeeCategory || "none"
       };
       
       res.json(compensation);
