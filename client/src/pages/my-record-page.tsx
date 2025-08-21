@@ -1340,6 +1340,7 @@ export default function MyRecordPage() {
       
     } catch (error) {
       console.error('❌ Error generating Attendance Record PDF:', error);
+      console.error('❌ ERROR DETAILS:', error.message, error.stack);
       alert('Failed to generate PDF: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
   };

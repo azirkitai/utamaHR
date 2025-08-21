@@ -2923,7 +2923,7 @@ export function registerRoutes(app: Express): Server {
       console.log(`🔄 RE-RUNNING universal compliance for all attendance records...`);
       
       // Get all attendance records
-      const allRecords = await storage.getAllAttendanceRecords();
+      const allRecords = await storage.getAttendanceRecords();
       let processedCount = 0;
       
       for (const record of allRecords) {
