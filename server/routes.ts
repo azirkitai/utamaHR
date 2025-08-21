@@ -128,7 +128,8 @@ import {
   forms,
   disciplinaryRecords,
   insertDisciplinaryRecordSchema,
-  updateDisciplinaryRecordSchema
+  updateDisciplinaryRecordSchema,
+  employeeLeaveEligibility
 } from "@shared/schema";
 
 // Helper function to get month name
