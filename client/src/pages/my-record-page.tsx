@@ -905,6 +905,8 @@ export default function MyRecordPage() {
                 totalResults: searchFilteredAttendanceRecords.length,
                 originalTotal: attendanceRecords.length
               });
+              // Force refetch attendance data
+              refetchAttendance();
             }}
             data-testid="button-attendance-search"
           >
@@ -1022,8 +1024,11 @@ export default function MyRecordPage() {
         color: rgb(0, 0, 0),
       });
       
-      // Employee info section
+      // Employee info section - Get proper employee data
       const employeeName = user?.username || 'N/A';
+      const employeeData = currentEmployee || {};
+      const icNumber = employeeData.icNumber || employeeData.ic || '-';
+      
       let yPosition = height - 130;
       
       // Employee info box
@@ -1053,7 +1058,7 @@ export default function MyRecordPage() {
         color: rgb(0, 0, 0),
       });
       
-      page.drawText(`IC Number: -`, {
+      page.drawText(`IC Number: ${icNumber}`, {
         x: 300,
         y: yPosition - 30,
         size: 10,
@@ -1063,8 +1068,8 @@ export default function MyRecordPage() {
       
       yPosition -= 60;
       
-      // Table headers
-      const columnWidths = [50, 150, 80, 80, 80, 80, 80, 80, 100];
+      // Table headers with adjusted widths to prevent text overlap
+      const columnWidths = [40, 120, 70, 70, 70, 70, 70, 70, 80];
       const headers = ['No.', 'Employee', 'Date', 'Clock In', 'Break Out', 'Break In', 'Clock Out', 'Total Hours', 'Status'];
       let xPosition = 50;
       
@@ -1124,16 +1129,28 @@ export default function MyRecordPage() {
           borderWidth: 0.5,
         });
         
-        // Data cells
+        // Data cells - format time properly
         const employeeDisplayName = record.employeeName || record.fullName || 'N/A';
+        
+        // Format time fields properly
+        const formatTime = (timeString: string | null) => {
+          if (!timeString) return '-';
+          try {
+            const time = new Date(timeString);
+            return format(time, 'HH:mm');
+          } catch {
+            return timeString || '-';
+          }
+        };
+        
         const rowData = [
           (index + 1).toString(),
           employeeDisplayName,
           format(new Date(record.date), 'dd/MM/yyyy'),
-          record.clockInTime || '-',
-          record.breakOutTime || '-',
-          record.breakInTime || '-',
-          record.clockOutTime || '-',
+          formatTime(record.clockInTime),
+          formatTime(record.breakOutTime),
+          formatTime(record.breakInTime),
+          formatTime(record.clockOutTime),
           record.totalHours || '-',
           record.isLateClockIn ? 'Late' : 'On Time'
         ];
@@ -1147,19 +1164,51 @@ export default function MyRecordPage() {
             textColor = record.isLateClockIn ? rgb(0.8, 0, 0) : rgb(0, 0.6, 0);
           }
           
-          // Handle text wrapping for long employee names
-          if (colIndex === 1 && data.length > 15) {
-            drawWrappedText(page, data, xPosition + 5, yPosition - 10, columnWidths[colIndex] - 10, 9, font, textColor);
+          // Calculate available width for text
+          const availableWidth = columnWidths[colIndex] - 10; // 5px padding on each side
+          
+          // Handle text based on column and length
+          if (colIndex === 1) { // Employee name column
+            if (data.length > 14) {
+              // Use text wrapping for long names
+              const wrappedHeight = drawWrappedText(page, data, xPosition + 5, yPosition - 10, availableWidth, 8, font, textColor);
+              // Check if wrapped text exceeds row height and adjust if needed
+              if (wrappedHeight > rowHeight - 5) {
+                // If text is too long, truncate and add ellipsis
+                const maxChars = Math.floor(availableWidth / 6); // Approximate char width
+                const truncatedText = data.length > maxChars ? data.substring(0, maxChars - 3) + '...' : data;
+                page.drawText(truncatedText, {
+                  x: xPosition + 5,
+                  y: yPosition - 15,
+                  size: 8,
+                  font: font,
+                  color: textColor,
+                });
+              }
+            } else {
+              page.drawText(data, {
+                x: xPosition + 5,
+                y: yPosition - 15,
+                size: 8,
+                font: font,
+                color: textColor,
+              });
+            }
           } else {
+            // For other columns, use standard text with truncation if needed
             let displayText = data;
-            if (data.length > 12 && (colIndex === 1)) {
-              displayText = data.substring(0, 9) + '...';
+            const maxWidth = font.widthOfTextAtSize(data, 8);
+            
+            if (maxWidth > availableWidth) {
+              // Truncate text to fit column width
+              const maxChars = Math.floor((availableWidth / maxWidth) * data.length);
+              displayText = data.substring(0, Math.max(1, maxChars - 3)) + '...';
             }
             
             page.drawText(displayText, {
               x: xPosition + 5,
               y: yPosition - 15,
-              size: 9,
+              size: 8,
               font: font,
               color: textColor,
             });
