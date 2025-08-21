@@ -1434,65 +1434,68 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log("Getting filtered leave applications with filters:", filters);
       
-      // Start with basic query
-      let whereConditions = [];
+      // Get all leave applications first
+      const rawApplications = await db
+        .select()
+        .from(leaveApplications)
+        .orderBy(desc(leaveApplications.appliedDate));
+
+      // Get all employees
+      const allEmployees = await db.select().from(employees);
       
-      // Add year filter
+      // Get all company leave types
+      const allLeaveTypes = await db.select().from(companyLeaveTypes);
+
+      // Map data together manually
+      const allApplications = rawApplications.map(app => {
+        const employee = allEmployees.find(emp => emp.id === app.employeeId);
+        const leaveType = allLeaveTypes.find(lt => lt.id === app.leaveTypeId);
+        
+        return {
+          id: app.id,
+          employeeId: app.employeeId,
+          leaveTypeId: app.leaveTypeId,
+          startDate: app.startDate,
+          endDate: app.endDate,
+          appliedDate: app.appliedDate,
+          reason: app.reason,
+          status: app.status,
+          approverComments: app.approverComments,
+          documentPath: app.documentPath,
+          createdAt: app.createdAt,
+          updatedAt: app.updatedAt,
+          applicant: employee?.fullName || 'Unknown Employee',
+          leaveType: leaveType?.name || 'Unknown Leave Type',
+          department: employee?.department || 'Unknown Department'
+        };
+      });
+
+      console.log("Total applications from DB:", allApplications.length);
+
+      // Apply filters in JavaScript
+      let filteredResults = allApplications;
+
+      // Apply year filter
       if (filters.year) {
         const yearNum = parseInt(filters.year);
         if (yearNum && !isNaN(yearNum) && yearNum !== 2025) {
-          whereConditions.push(
-            or(
-              sql`EXTRACT(YEAR FROM ${leaveApplications.startDate}) = ${yearNum}`,
-              sql`EXTRACT(YEAR FROM ${leaveApplications.appliedDate}) = ${yearNum}`
-            )
-          );
+          filteredResults = filteredResults.filter(app => {
+            const startYear = app.startDate ? new Date(app.startDate).getFullYear() : null;
+            const appliedYear = app.appliedDate ? new Date(app.appliedDate).getFullYear() : null;
+            return startYear === yearNum || appliedYear === yearNum;
+          });
         }
       }
-      
-      // Add department filter
+
+      // Apply department filter
       if (filters.department && filters.department !== 'all') {
-        whereConditions.push(eq(employees.department, filters.department));
-      }
-      
-      // Build query with proper joins and conditions
-      let query = db
-        .select({
-          id: leaveApplications.id,
-          employeeId: leaveApplications.employeeId,
-          leaveTypeId: leaveApplications.leaveTypeId,
-          startDate: leaveApplications.startDate,
-          endDate: leaveApplications.endDate,
-          appliedDate: leaveApplications.appliedDate,
-          reason: leaveApplications.reason,
-          status: leaveApplications.status,
-          approverComments: leaveApplications.approverComments,
-          documentPath: leaveApplications.documentPath,
-          createdAt: leaveApplications.createdAt,
-          updatedAt: leaveApplications.updatedAt,
-          applicant: employees.fullName,
-          leaveType: companyLeaveTypes.name,
-          department: employees.department
-        })
-        .from(leaveApplications)
-        .leftJoin(employees, eq(leaveApplications.employeeId, employees.id))
-        .leftJoin(companyLeaveTypes, eq(leaveApplications.leaveTypeId, companyLeaveTypes.id));
-
-      // Apply where conditions if any
-      if (whereConditions.length > 0) {
-        if (whereConditions.length === 1) {
-          query = query.where(whereConditions[0]);
-        } else {
-          query = query.where(and(...whereConditions));
-        }
+        filteredResults = filteredResults.filter(app => app.department === filters.department);
       }
 
-      const results = await query.orderBy(desc(leaveApplications.appliedDate));
-      console.log("Filtered query returned", results.length, "records");
-      return results;
+      console.log("Filtered results:", filteredResults.length, "records");
+      return filteredResults;
     } catch (error) {
       console.error("Error in getAllLeaveApplicationsWithFilters:", error);
-      // Return empty array instead of throwing to prevent UI breaking
       return [];
     }
   }
