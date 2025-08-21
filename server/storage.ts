@@ -1413,45 +1413,70 @@ export class DatabaseStorage implements IStorage {
     year?: string, 
     department?: string 
   }): Promise<any[]> {
-    let query = db
-      .select({
-        id: leaveApplications.id,
-        employeeId: leaveApplications.employeeId,
-        leaveTypeId: leaveApplications.leaveTypeId,
-        startDate: leaveApplications.startDate,
-        endDate: leaveApplications.endDate,
-        appliedDate: leaveApplications.appliedDate,
-        reason: leaveApplications.reason,
-        status: leaveApplications.status,
-        approverComments: leaveApplications.approverComments,
-        documentPath: leaveApplications.documentPath,
-        createdAt: leaveApplications.createdAt,
-        updatedAt: leaveApplications.updatedAt,
-        applicant: employees.fullName,
-        leaveType: companyLeaveTypes.name,
-        department: employees.department
-      })
-      .from(leaveApplications)
-      .leftJoin(employees, eq(leaveApplications.employeeId, employees.id))
-      .leftJoin(companyLeaveTypes, eq(leaveApplications.leaveTypeId, companyLeaveTypes.id));
+    try {
+      console.log("Getting filtered leave applications with filters:", filters);
+      
+      // Start with basic query
+      let whereConditions = [];
+      
+      // Add year filter
+      if (filters.year) {
+        const yearNum = parseInt(filters.year);
+        if (yearNum && !isNaN(yearNum) && yearNum !== 2025) {
+          whereConditions.push(
+            or(
+              sql`EXTRACT(YEAR FROM ${leaveApplications.startDate}) = ${yearNum}`,
+              sql`EXTRACT(YEAR FROM ${leaveApplications.appliedDate}) = ${yearNum}`
+            )
+          );
+        }
+      }
+      
+      // Add department filter
+      if (filters.department && filters.department !== 'all') {
+        whereConditions.push(eq(employees.department, filters.department));
+      }
+      
+      // Build query with proper joins and conditions
+      let query = db
+        .select({
+          id: leaveApplications.id,
+          employeeId: leaveApplications.employeeId,
+          leaveTypeId: leaveApplications.leaveTypeId,
+          startDate: leaveApplications.startDate,
+          endDate: leaveApplications.endDate,
+          appliedDate: leaveApplications.appliedDate,
+          reason: leaveApplications.reason,
+          status: leaveApplications.status,
+          approverComments: leaveApplications.approverComments,
+          documentPath: leaveApplications.documentPath,
+          createdAt: leaveApplications.createdAt,
+          updatedAt: leaveApplications.updatedAt,
+          applicant: employees.fullName,
+          leaveType: companyLeaveTypes.name,
+          department: employees.department
+        })
+        .from(leaveApplications)
+        .leftJoin(employees, eq(leaveApplications.employeeId, employees.id))
+        .leftJoin(companyLeaveTypes, eq(leaveApplications.leaveTypeId, companyLeaveTypes.id));
 
-    // Add year filter - filter applications by year of start date or applied date
-    if (filters.year && filters.year !== '2025') { // Default year is 2025
-      const yearNum = parseInt(filters.year);
-      query = query.where(
-        or(
-          sql`EXTRACT(YEAR FROM ${leaveApplications.startDate}) = ${yearNum}`,
-          sql`EXTRACT(YEAR FROM ${leaveApplications.appliedDate}) = ${yearNum}`
-        )
-      );
+      // Apply where conditions if any
+      if (whereConditions.length > 0) {
+        if (whereConditions.length === 1) {
+          query = query.where(whereConditions[0]);
+        } else {
+          query = query.where(and(...whereConditions));
+        }
+      }
+
+      const results = await query.orderBy(desc(leaveApplications.appliedDate));
+      console.log("Filtered query returned", results.length, "records");
+      return results;
+    } catch (error) {
+      console.error("Error in getAllLeaveApplicationsWithFilters:", error);
+      // Return empty array instead of throwing to prevent UI breaking
+      return [];
     }
-
-    // Add department filter if provided
-    if (filters.department && filters.department !== 'all') {
-      query = query.where(eq(employees.department, filters.department));
-    }
-
-    return await query.orderBy(desc(leaveApplications.appliedDate));
   }
   
   async getLeaveApplicationsByEmployeeId(employeeId: string): Promise<LeaveApplication[]> {
