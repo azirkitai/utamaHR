@@ -1099,7 +1099,7 @@ export default function MyRecordPage() {
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
       const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
       
-      let currentPage = pdfDoc.addPage([842, 595]); // A4 landscape
+      let currentPage = pdfDoc.addPage([595, 842]); // A4 portrait
       const { width, height } = currentPage.getSize();
       const pages = [currentPage];
       
@@ -1231,7 +1231,7 @@ export default function MyRecordPage() {
       // Draw table header function
       const drawTableHeader = (page: any, yPos: number) => {
         const tableHeight = 25;
-        const columnWidths = [30, 180, 80, 70, 70, 70, 70, 80, 90];
+        const columnWidths = [25, 130, 65, 50, 50, 50, 50, 60, 65];
         const headers = ['No.', 'Employee Name', 'Date', 'Clock In', 'Break Out', 'Break In', 'Clock Out', 'Total Hours', 'Status'];
         
         // Header background
@@ -1262,7 +1262,7 @@ export default function MyRecordPage() {
       // Draw table row function
       const drawTableRow = (page: any, record: any, rowIndex: number, yPos: number) => {
         const tableHeight = 25;
-        const columnWidths = [30, 180, 80, 70, 70, 70, 70, 80, 90];
+        const columnWidths = [25, 130, 65, 50, 50, 50, 50, 60, 65];
         
         // Alternating row background (striping)
         if (rowIndex % 2 === 0) {
@@ -1290,7 +1290,7 @@ export default function MyRecordPage() {
         const employeeDisplayName = employee ? `${employee.firstName} ${employee.lastName}`.trim() : 'Unknown Employee';
         
         // Truncate name smartly
-        const truncateName = (name: string, maxLength: number = 25) => {
+        const truncateName = (name: string, maxLength: number = 18) => {
           if (name.length <= maxLength) return name;
           const words = name.split(' ');
           if (words.length === 1) {
@@ -1309,7 +1309,7 @@ export default function MyRecordPage() {
         
         const rowData = [
           (rowIndex + 1).toString(),
-          truncateName(employeeDisplayName, 25),
+          truncateName(employeeDisplayName, 18),
           format(new Date(record.date), 'dd/MM/yyyy'),
           formatTime(record.clockInTime),
           formatTime(record.breakOutTime),
@@ -1420,7 +1420,7 @@ export default function MyRecordPage() {
         
         // Check if we need a new page
         if (yPosition < 100) {
-          currentPage = pdfDoc.addPage([842, 595]);
+          currentPage = pdfDoc.addPage([595, 842]);
           pages.push(currentPage);
           yPosition = height - 80;
           drawTableHeader(currentPage, yPosition);
@@ -1434,7 +1434,7 @@ export default function MyRecordPage() {
       // Summary Section
       yPosition -= 30;
       if (yPosition < 120) {
-        currentPage = pdfDoc.addPage([842, 595]);
+        currentPage = pdfDoc.addPage([595, 842]);
         pages.push(currentPage);
         yPosition = height - 80;
       }
@@ -1443,7 +1443,7 @@ export default function MyRecordPage() {
       currentPage.drawRectangle({
         x: 50,
         y: yPosition - summaryBoxHeight,
-        width: 630,
+        width: 495,
         height: summaryBoxHeight,
         color: rgb(0.95, 0.95, 0.95),
         borderColor: rgb(0.8, 0.8, 0.8),
