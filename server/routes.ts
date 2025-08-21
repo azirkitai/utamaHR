@@ -1015,8 +1015,8 @@ export function registerRoutes(app: Express): Server {
           employeeData.leaveBreakdown[leaveType.leaveType] = {
             daysTaken: totalDaysTaken,
             applicationsCount: approvedApplications.length,
-            entitlementDays: roleBasedPolicy?.entitlementDays || leaveType.entitlementDays || 0,
-            remainingDays: (roleBasedPolicy?.entitlementDays || leaveType.entitlementDays || 0) - totalDaysTaken,
+            entitlementDays: leaveType.entitlementDays || 0,
+            remainingDays: (leaveType.entitlementDays || 0) - totalDaysTaken,
             isEligible: isRoleEligible, // Role-based eligibility
             isIndividuallyEnabled: isIndividuallyEligible // Individual eligibility
           };
