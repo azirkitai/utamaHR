@@ -45,6 +45,7 @@ interface SidebarItem {
   icon: React.ReactNode;
   href: string;
   badge?: string;
+  disabled?: boolean;
   children?: SidebarItem[];
 }
 
@@ -186,6 +187,7 @@ const navigationItems: { category: string; items: SidebarItem[] }[] = [
         label: "Yearly Form",
         icon: <FileText className="w-4 h-4" />,
         href: "/yearly-form",
+        disabled: true,
       },
       {
         id: "payment",

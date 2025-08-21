@@ -321,16 +321,7 @@ export default function SystemSettingPage() {
     firstLevel: "",
     secondLevel: "",
   });
-  const [timeoffApproval, setTimeoffApproval] = useState({
-    firstLevel: "",
-    secondLevel: "",
-  });
-  const [timeoffSettings, setTimeoffSettings] = useState({
-    enableAttachment: true,
-    applicationLimitHour: true,
-    minHour: 0,
-    maxHour: 4,
-  });
+  
   
   const [financialApproval, setFinancialApproval] = useState({
     firstLevel: "",
@@ -2062,43 +2053,7 @@ export default function SystemSettingPage() {
     }
   };
 
-  const handleSaveTimeoffApproval = async () => {
-    try {
-      const token = localStorage.getItem("utamahr_token");
-      if (!token) {
-        alert("Sila log masuk semula.");
-        return;
-      }
-
-      const response = await fetch("/api/approval-settings", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          type: "timeoff",
-          firstLevelApprovalId: timeoffApproval.firstLevel,
-          secondLevelApprovalId: timeoffApproval.secondLevel,
-        }),
-      });
-      
-      if (response.ok) {
-        console.log("Timeoff approval settings saved successfully");
-        alert("Tetapan kelulusan timeoff berjaya disimpan!");
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to save approval settings");
-      }
-    } catch (error) {
-      console.error("Error saving timeoff approval:", error);
-      alert("Gagal menyimpan tetapan kelulusan timeoff. Sila cuba lagi.");
-    }
-  };
-
-  const handleSaveTimeoffSettings = () => {
-    console.log("Save timeoff settings:", timeoffSettings);
-  };
+  
 
 
 
@@ -3457,7 +3412,7 @@ export default function SystemSettingPage() {
 
   const renderLeaveForm = () => (
     <div className="space-y-6">
-      {/* Tab Navigation */}
+      {/* Tab Navigation - Timeoff removed */}
       <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
         <button
           onClick={() => setActiveTab("leave")}
@@ -3470,18 +3425,6 @@ export default function SystemSettingPage() {
           data-testid="tab-leave"
         >
           Leave
-        </button>
-        <button
-          onClick={() => setActiveTab("timeoff")}
-          className={cn(
-            "px-4 py-2 rounded-md text-sm font-medium transition-colors",
-            activeTab === "timeoff"
-              ? "bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white"
-              : "text-gray-600 hover:text-gray-900"
-          )}
-          data-testid="tab-timeoff"
-        >
-          Timeoff
         </button>
       </div>
 
@@ -3873,151 +3816,7 @@ export default function SystemSettingPage() {
         </>
       )}
 
-      {/* Timeoff Tab Content */}
-      {activeTab === "timeoff" && (
-        <>
-          {/* Timeoff Approval */}
-          <div className="bg-gradient-to-r from-slate-900 to-cyan-800 text-white p-4 rounded-lg">
-            <h3 className="text-lg font-semibold">Timeoff Approval</h3>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg border">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">First Level Approval</Label>
-                <Select 
-                  value={timeoffApproval.firstLevel} 
-                  onValueChange={(value) => setTimeoffApproval(prev => ({
-                    ...prev, 
-                    firstLevel: value,
-                    secondLevel: prev.secondLevel === value ? "none" : prev.secondLevel
-                  }))}
-                >
-                  <SelectTrigger data-testid="select-timeoff-first-level-approval">
-                    <SelectValue placeholder="Select first leave approval" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {approvalEmployees?.map((employee) => (
-                      <SelectItem key={employee.id} value={employee.id}>
-                        {employee.fullName} ({employee.role})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Second Level Approval</Label>
-                <Select 
-                  value={timeoffApproval.secondLevel} 
-                  onValueChange={(value) => setTimeoffApproval(prev => ({...prev, secondLevel: value}))}
-                >
-                  <SelectTrigger data-testid="select-timeoff-second-level-approval">
-                    <SelectValue placeholder="None" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    {approvalEmployees?.filter(employee => employee.id !== timeoffApproval.firstLevel).map((employee) => (
-                      <SelectItem key={employee.id} value={employee.id}>
-                        {employee.fullName} ({employee.role})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Button 
-                  onClick={handleSaveTimeoffApproval}
-                  className="bg-blue-900 hover:bg-blue-800 text-white"
-                  data-testid="button-save-timeoff-approval"
-                >
-                  Save Changes
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Timeoff Settings */}
-          <div className="bg-gradient-to-r from-slate-900 to-cyan-800 text-white p-4 rounded-lg">
-            <h3 className="text-lg font-semibold">Timeoff Setting</h3>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg border space-y-6">
-            {/* Enable Attachment */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-medium text-gray-900">Enable Attachment</h4>
-                <p className="text-sm text-gray-500">Turn on and off attachment compulsory for timeoff application</p>
-              </div>
-              <Switch 
-                checked={timeoffSettings.enableAttachment}
-                onCheckedChange={(checked) => setTimeoffSettings(prev => ({...prev, enableAttachment: checked}))}
-                className="data-[state=checked]:bg-blue-900"
-                data-testid="switch-enable-attachment"
-              />
-            </div>
-
-            {/* Application Limit Hour */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium text-gray-900">Application Limit Hour</h4>
-                  <p className="text-sm text-gray-500">Set the minimum and maximum hour limit per application</p>
-                </div>
-                <Switch 
-                  checked={timeoffSettings.applicationLimitHour}
-                  onCheckedChange={(checked) => setTimeoffSettings(prev => ({...prev, applicationLimitHour: checked}))}
-                  className="data-[state=checked]:bg-blue-900"
-                  data-testid="switch-application-limit-hour"
-                />
-              </div>
-
-              {timeoffSettings.applicationLimitHour && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Minimum Hour(s)</Label>
-                    <div className="flex items-center space-x-2">
-                      <Input
-                        type="number"
-                        value={timeoffSettings.minHour}
-                        onChange={(e) => setTimeoffSettings(prev => ({...prev, minHour: parseInt(e.target.value) || 0}))}
-                        className="flex-1"
-                        data-testid="input-min-hour"
-                      />
-                      <span className="text-sm text-gray-500">Hour(s)</span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Maximum Hour(s)</Label>
-                    <div className="flex items-center space-x-2">
-                      <Input
-                        type="number"
-                        value={timeoffSettings.maxHour}
-                        onChange={(e) => setTimeoffSettings(prev => ({...prev, maxHour: parseInt(e.target.value) || 0}))}
-                        className="flex-1"
-                        data-testid="input-max-hour"
-                      />
-                      <span className="text-sm text-gray-500">Hour(s)</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="flex justify-end">
-              <Button 
-                onClick={handleSaveTimeoffSettings}
-                className="bg-blue-900 hover:bg-blue-800 text-white"
-                data-testid="button-save-timeoff-settings"
-              >
-                Save Changes
-              </Button>
-            </div>
-          </div>
-        </>
-      )}
+      
     </div>
   );
 
