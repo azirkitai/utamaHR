@@ -118,12 +118,26 @@ export default function MyRecordPage() {
           id: record.id,
           date: record.date,
           clockInTime: record.clockInTime,
+          clockInSelfie: record.clockInSelfie,
+          clockOutSelfie: record.clockOutSelfie,
+          breakInSelfie: record.breakInSelfie,
+          breakOutSelfie: record.breakOutSelfie,
           isLateClockIn: record.isLateClockIn,
           clockInRemarks: record.clockInRemarks
         });
         
         if (record.isLateClockIn) {
           console.log(`🚨 LATE DETECTED in Record ${index + 1}:`, record.clockInRemarks);
+        }
+        
+        // Debug selfie data
+        if (record.clockInSelfie || record.clockOutSelfie) {
+          console.log(`📸 SELFIE DATA in Record ${index + 1}:`, {
+            clockInSelfie: record.clockInSelfie,
+            clockOutSelfie: record.clockOutSelfie,
+            breakInSelfie: record.breakInSelfie,
+            breakOutSelfie: record.breakOutSelfie
+          });
         }
       });
       
