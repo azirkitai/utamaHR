@@ -533,7 +533,7 @@ export default function LeaveApprovalPage() {
   );
 
   const renderBalanceCarryForwardTable = () => {
-    if (!allEmployeesLeaveSummary?.employees || allEmployeesLeaveSummary.employees.length === 0) {
+    if (!employeeLeaveSummary?.employees || employeeLeaveSummary.employees.length === 0) {
       return (
         <div className="text-center py-8 text-gray-500">
           No employee leave data available
@@ -544,7 +544,7 @@ export default function LeaveApprovalPage() {
     return (
       <div className="space-y-6 p-6">
         {/* Employee Cards */}
-        {allEmployeesLeaveSummary.employees.map((employee: any, empIndex: number) => (
+        {employeeLeaveSummary.employees.map((employee: any, empIndex: number) => (
           <div key={employee.employeeId} className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
             {/* Employee Header */}
             <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-4">
