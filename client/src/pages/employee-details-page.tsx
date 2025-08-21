@@ -1847,7 +1847,7 @@ export default function EmployeeDetailsPage() {
                         <h3 className="text-lg font-semibold text-gray-800 mb-4">1) Leave Supervisor</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
                           <div className="space-y-2">
-                            <Label className="text-sm font-medium text-gray-700 block">First Approval : {getCurrentLeaveApprovalSettings().firstLevel}</Label>
+                            <Label className="text-sm font-medium text-gray-700 block">First Approval</Label>
                             {isEditingApproval ? (
                               <Select value={employmentForm.leaveFirstApproval || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, leaveFirstApproval: value })}>
                                 <SelectTrigger className="mt-1">
@@ -1863,12 +1863,12 @@ export default function EmployeeDetailsPage() {
                               </Select>
                             ) : (
                               <div className="mt-1 p-2 bg-gray-50 rounded border">
-                                {employmentForm.leaveFirstApproval || "N/A"}
+                                {getCurrentLeaveApprovalSettings().firstLevel}
                               </div>
                             )}
                           </div>
                           <div className="space-y-2">
-                            <Label className="text-sm font-medium text-gray-700 block">Second Approval : {getCurrentLeaveApprovalSettings().secondLevel}</Label>
+                            <Label className="text-sm font-medium text-gray-700 block">Second Approval</Label>
                             {isEditingApproval ? (
                               <Select value={employmentForm.leaveSecondApproval || ""} onValueChange={(value) => setEmploymentForm({ ...employmentForm, leaveSecondApproval: value })}>
                                 <SelectTrigger className="mt-1">
@@ -1884,7 +1884,7 @@ export default function EmployeeDetailsPage() {
                               </Select>
                             ) : (
                               <div className="mt-1 p-2 bg-gray-50 rounded border">
-                                {employmentForm.leaveSecondApproval || "N/A"}
+                                {getCurrentLeaveApprovalSettings().secondLevel}
                               </div>
                             )}
                           </div>
