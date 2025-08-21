@@ -964,24 +964,40 @@ export function registerRoutes(app: Express): Server {
         };
 
       } else {
-        // Default to approval data (Applications tab)
-        const applicationsResponse = await fetch(`http://localhost:5000/api/leave-applications?department=${department || ''}&year=${year || ''}`, {
+        // Default to summary data (like Summary tab)
+        let url = "/api/leave-summary-all-employees";
+        const params = new URLSearchParams();
+        if (department && department !== 'all') {
+          params.append('department', department);
+        }
+        if (year) {
+          params.append('year', year);
+        }
+        if (params.toString()) {
+          url += `?${params.toString()}`;
+        }
+
+        // Fetch the summary data using internal call
+        const summaryResponse = await fetch(`http://localhost:5000${url}`, {
           headers: {
             'Authorization': req.headers.authorization || ''
           }
         });
 
-        if (!applicationsResponse.ok) {
-          throw new Error('Failed to fetch leave applications data');
+        if (!summaryResponse.ok) {
+          throw new Error('Failed to fetch leave summary data');
         }
 
-        const applicationsData = await applicationsResponse.json();
+        const summaryData = await summaryResponse.json();
         reportTitle = 'Laporan Permohonan Cuti';
         
-        // Transform applications data - for now just show basic summary
-        // This can be expanded later to show detailed applications
+        // Transform summary data to match PDF generator format
         reportData = {
-          employees: [], // Can be populated from applications if needed
+          employees: summaryData.employees.map((emp: any) => ({
+            employeeId: emp.employeeId,
+            employeeName: emp.employeeName,
+            leaveBreakdown: emp.leaveBreakdown
+          })),
           filters: { department, year },
           reportTitle
         };

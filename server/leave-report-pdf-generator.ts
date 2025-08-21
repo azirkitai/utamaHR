@@ -38,8 +38,19 @@ export async function generateLeaveReportPDF(data: LeaveReportData): Promise<Buf
       companyEmail: ''
     };
 
+    console.log('PDF generation input data:', {
+      employeeCount: data.employees.length,
+      filters: data.filters,
+      reportTitle: data.reportTitle,
+      sampleEmployee: data.employees[0] ? {
+        name: data.employees[0].employeeName,
+        leaveTypesCount: Object.keys(data.employees[0].leaveBreakdown || {}).length
+      } : null
+    });
+
     // Generate HTML content
     const htmlContent = generateLeaveReportHTML(data, company);
+    console.log('HTML content generated, length:', htmlContent.length);
     
     // Launch browser with EXACT same config as working payslip system
     browser = await puppeteer.launch({
@@ -351,7 +362,7 @@ function generateLeaveReportHTML(data: LeaveReportData, company: any): string {
     ${filterText.length > 0 ? `<div class="filters-info">Tapisan: ${filterText.join(' | ')}</div>` : ''}
   </div>
 
-  ${data.employees.map(employee => {
+  ${data.employees && data.employees.length > 0 ? data.employees.map(employee => {
     const leaveTypes = Object.entries(employee.leaveBreakdown);
     const leaveTypeCount = leaveTypes.length;
     
@@ -423,7 +434,7 @@ function generateLeaveReportHTML(data: LeaveReportData, company: any): string {
       </div>
     </div>
     `;
-  }).join('')}
+  }).join('') : '<div style="text-align: center; padding: 40px; color: #666;"><h3>Tiada Data Pekerja Ditemui</h3><p>Sila pastikan tapisan yang dipilih betul dan terdapat data pekerja dalam sistem.</p></div>'}
 </body>
 </html>
   `;
