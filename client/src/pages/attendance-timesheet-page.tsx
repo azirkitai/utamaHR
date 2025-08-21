@@ -199,7 +199,16 @@ export default function AttendanceTimesheetPage() {
       withAttendance: shiftEmployees.filter(emp => emp.attendance && emp.attendance.clockInTime).length,
       onLeave: shiftEmployees.filter(emp => emp.isOff).length,
       absent: shiftEmployees.filter(emp => emp.isAbsent && !emp.isOff).length
-    }
+    },
+    // Debug each employee attendance data
+    employeesDebug: shiftEmployees.map(emp => ({
+      id: emp.id,
+      name: emp.employee,
+      isOff: emp.isOff,
+      hasAttendance: !!emp.attendance,
+      clockInTime: emp.attendance?.clockInTime,
+      clockInExists: !!emp.attendance?.clockInTime
+    }))
   });
 
   // Filter employees based on sub-tab
