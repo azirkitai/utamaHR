@@ -3396,7 +3396,11 @@ export default function MyRecordPage() {
                         src={record.clockInImage}
                         alt="Clock In"
                         className="w-16 h-16 object-cover rounded border cursor-pointer hover:scale-105 transition-transform shadow-sm"
-                        onClick={() => window.open(record.clockInImage, '_blank')}
+                        onClick={() => {
+                          if (record.clockInImage) {
+                            window.open(record.clockInImage, '_blank');
+                          }
+                        }}
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
                         }}
@@ -3528,7 +3532,11 @@ export default function MyRecordPage() {
                         src={record.clockOutImage}
                         alt="Clock Out"
                         className="w-16 h-16 object-cover rounded border cursor-pointer hover:scale-105 transition-transform shadow-sm"
-                        onClick={() => window.open(record.clockOutImage, '_blank')}
+                        onClick={() => {
+                          if (record.clockOutImage) {
+                            window.open(record.clockOutImage, '_blank');
+                          }
+                        }}
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
                         }}
