@@ -151,6 +151,7 @@ export const compensation = pgTable("compensation", {
   accountNumber: text("account_number"),
   accountType: text("account_type"),
   branch: text("branch"),
+  accountHolderName: text("account_holder_name"),
   accountStatus: text("account_status"),
   
   // Statutory Details
