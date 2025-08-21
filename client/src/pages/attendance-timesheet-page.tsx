@@ -37,14 +37,23 @@ export default function AttendanceTimesheetPage() {
   const [selectedShift, setSelectedShift] = useState("all");
   const [selectedDate, setSelectedDate] = useState('2025-08-20'); // Use 20 August 2025 for testing consistency with My Record
   const [showPicture, setShowPicture] = useState(false);
+  
+  // Summary tab filters
+  const [summaryDateFrom, setSummaryDateFrom] = useState('2025-08-01');
+  const [summaryDateTo, setSummaryDateTo] = useState('2025-08-31');
+  const [summaryDepartment, setSummaryDepartment] = useState('all');
+  const [summaryEmployee, setSummaryEmployee] = useState('all');
 
-  // Fetch attendance records using the same approach as My Record page
+  // Fetch attendance records - use different date ranges for different tabs
   const { data: attendanceRecords, isLoading: attendanceLoading } = useQuery({
-    queryKey: ['attendance-records-timesheet', selectedDate],
+    queryKey: ['attendance-records-timesheet', activeTab === 'summary' ? summaryDateFrom : selectedDate, activeTab === 'summary' ? summaryDateTo : selectedDate],
     queryFn: async () => {
+      const dateFrom = activeTab === 'summary' ? summaryDateFrom : selectedDate;
+      const dateTo = activeTab === 'summary' ? summaryDateTo : selectedDate;
+      
       const params = new URLSearchParams({
-        dateFrom: selectedDate,
-        dateTo: selectedDate,
+        dateFrom,
+        dateTo,
       });
       
       console.log('🔄 Timesheet - Fetching attendance records with params:', params.toString());
@@ -301,22 +310,72 @@ export default function AttendanceTimesheetPage() {
     };
   }) : [];
 
-  // Calculate summary data from attendance records
+  // Helper functions for Summary tab calculations
+  const getWorkingDaysInPeriod = (dateFrom: string, dateTo: string) => {
+    const start = new Date(dateFrom);
+    const end = new Date(dateTo);
+    let workingDays = 0;
+    
+    for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
+      const dayOfWeek = date.getDay();
+      // Count Monday to Friday as working days (0 = Sunday, 6 = Saturday)
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+        workingDays++;
+      }
+    }
+    
+    return workingDays;
+  };
+
+  const isEarlyClockOut = (clockOutTime: string, shiftId: string) => {
+    // This would need shift data to determine if clock out was early
+    // For now, return false as placeholder
+    return false;
+  };
+
+  // Calculate period-based attendance statistics for Summary tab
   const summaryData = Array.isArray(employees) ? employees.map((employee: any, index: number) => {
     const employeeRecords = Array.isArray(attendanceRecords) ? attendanceRecords.filter((record: any) => record.employeeId === employee.id) : [];
+    
+    // Filter by department if selected
+    if (summaryDepartment !== 'all' && employee.department !== summaryDepartment) {
+      return null;
+    }
+    
+    // Filter by specific employee if selected
+    if (summaryEmployee !== 'all' && employee.id !== summaryEmployee) {
+      return null;
+    }
+    
     const presentDays = employeeRecords.filter((record: any) => record.clockInTime).length;
-    const absentDays = employeeRecords.length - presentDays;
+    const totalWorkingDays = getWorkingDaysInPeriod(summaryDateFrom, summaryDateTo);
+    const absentDays = Math.max(0, totalWorkingDays - presentDays);
     const lateDays = employeeRecords.filter((record: any) => record.isLateClockIn).length;
+    const earlyClockOutDays = employeeRecords.filter((record: any) => 
+      record.clockOutTime && isEarlyClockOut(record.clockOutTime, record.shiftId)
+    ).length;
     
     return {
-      id: index + 1,
+      id: employee.id,
       employee: `${employee.firstName} ${employee.lastName}`.trim(),
       present: presentDays,
       absent: absentDays,
       late: lateDays,
-      earlyClockOut: 0 // This would need additional logic to calculate
+      earlyClockOut: earlyClockOutDays,
+      totalWorkingDays
     };
-  }) : [];
+  }).filter(Boolean) : [];
+
+  // Calculate summary totals for the selected period
+  const summaryTotals = {
+    totalEmployees: summaryData.length,
+    totalPresent: summaryData.reduce((sum, emp) => emp ? sum + emp.present : sum, 0),
+    totalAbsent: summaryData.reduce((sum, emp) => emp ? sum + emp.absent : sum, 0),
+    totalLate: summaryData.reduce((sum, emp) => emp ? sum + emp.late : sum, 0),
+    totalEarlyClockOut: summaryData.reduce((sum, emp) => emp ? sum + emp.earlyClockOut : sum, 0),
+    averageAttendanceRate: summaryData.length > 0 ? 
+      (summaryData.reduce((sum, emp) => emp ? sum + (emp.present / emp.totalWorkingDays * 100) : sum, 0) / summaryData.length).toFixed(1) : 0
+  };
 
   const renderTabNavigation = () => (
     <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6">
@@ -558,48 +617,148 @@ export default function AttendanceTimesheetPage() {
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white p-4 rounded-lg">
         <h3 className="text-lg font-semibold">Attendance Summary</h3>
+        <p className="text-sm text-blue-100 mt-1">
+          Period: {new Date(summaryDateFrom).toLocaleDateString()} to {new Date(summaryDateTo).toLocaleDateString()}
+        </p>
+      </div>
+
+      {/* Summary Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <Card className="border-blue-200">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Users className="w-8 h-8 text-blue-600" />
+              <div>
+                <p className="text-2xl font-bold text-gray-900">{summaryTotals.totalEmployees}</p>
+                <p className="text-sm text-gray-600">Total Employees</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-green-200">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <UserCheck className="w-8 h-8 text-green-600" />
+              <div>
+                <p className="text-2xl font-bold text-gray-900">{summaryTotals.totalPresent}</p>
+                <p className="text-sm text-gray-600">Total Present</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-red-200">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <UserX className="w-8 h-8 text-red-600" />
+              <div>
+                <p className="text-2xl font-bold text-gray-900">{summaryTotals.totalAbsent}</p>
+                <p className="text-sm text-gray-600">Total Absent</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-orange-200">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Clock className="w-8 h-8 text-orange-600" />
+              <div>
+                <p className="text-2xl font-bold text-gray-900">{summaryTotals.totalLate}</p>
+                <p className="text-sm text-gray-600">Total Late</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-purple-200">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Calendar className="w-8 h-8 text-purple-600" />
+              <div>
+                <p className="text-2xl font-bold text-gray-900">{summaryTotals.averageAttendanceRate}%</p>
+                <p className="text-sm text-gray-600">Avg Attendance</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filters */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Date Period</label>
-          <Input type="date" defaultValue="2025-08-01" className="text-sm" />
+          <label className="block text-sm font-medium text-gray-700 mb-1">Date From</label>
+          <Input 
+            type="date" 
+            value={summaryDateFrom}
+            onChange={(e) => setSummaryDateFrom(e.target.value)}
+            className="text-sm" 
+            data-testid="input-summary-date-from"
+          />
         </div>
         <div>
-          <Input type="date" defaultValue="2025-08-31" className="text-sm mt-6" />
+          <label className="block text-sm font-medium text-gray-700 mb-1">Date To</label>
+          <Input 
+            type="date" 
+            value={summaryDateTo}
+            onChange={(e) => setSummaryDateTo(e.target.value)}
+            className="text-sm" 
+            data-testid="input-summary-date-to"
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
-          <Select defaultValue="all">
+          <Select value={summaryDepartment} onValueChange={setSummaryDepartment}>
             <SelectTrigger className="text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All department</SelectItem>
               <SelectItem value="hr">Human Resources</SelectItem>
+              <SelectItem value="finance">Finance</SelectItem>
+              <SelectItem value="operations">Operations</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Employee</label>
-          <Select defaultValue="all">
+          <Select value={summaryEmployee} onValueChange={setSummaryEmployee}>
             <SelectTrigger className="text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All employee</SelectItem>
+              {Array.isArray(employees) ? employees.map((emp: any) => (
+                <SelectItem key={emp.id} value={emp.id}>
+                  {`${emp.firstName} ${emp.lastName}`.trim()}
+                </SelectItem>
+              )) : null}
             </SelectContent>
           </Select>
         </div>
       </div>
 
       <div className="flex justify-start items-center space-x-2">
-        <Button className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700" data-testid="button-filter-summary">
-          <Filter className="w-4 h-4" />
+        <Button 
+          className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700" 
+          data-testid="button-filter-summary"
+          onClick={() => {
+            // Force refresh data with current filters
+            console.log('📊 Applying summary filters:', { summaryDateFrom, summaryDateTo, summaryDepartment, summaryEmployee });
+          }}
+        >
+          <Filter className="w-4 h-4 mr-2" />
+          Apply Filter
         </Button>
-        <Button variant="outline" data-testid="button-reset-filter-summary">
-          <X className="w-4 h-4" />
+        <Button 
+          variant="outline" 
+          data-testid="button-reset-filter-summary"
+          onClick={() => {
+            setSummaryDateFrom('2025-08-01');
+            setSummaryDateTo('2025-08-31');
+            setSummaryDepartment('all');
+            setSummaryEmployee('all');
+          }}
+        >
+          <X className="w-4 h-4 mr-2" />
+          Reset
         </Button>
       </div>
 
@@ -631,7 +790,7 @@ export default function AttendanceTimesheetPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              summaryData.map((item, index) => (
+              summaryData.filter(Boolean).map((item, index) => item && (
                 <TableRow key={item.id}>
                   <TableCell>{index + 1}</TableCell>
                   <TableCell className="font-medium">{item.employee}</TableCell>
