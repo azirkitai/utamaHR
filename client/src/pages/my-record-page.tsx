@@ -1035,11 +1035,27 @@ export default function MyRecordPage() {
         return;
       }
       
-      // Fetch company settings for header information
+      // Fetch company settings for header information using authenticated fetch
       console.log('🏢 Fetching company settings for PDF header...');
-      const companyResponse = await fetch('/api/company-settings');
-      const companySettings = companyResponse.ok ? await companyResponse.json() : null;
-      console.log('🏢 Company settings:', companySettings);
+      let companySettings = null;
+      try {
+        const companyResponse = await fetch('/api/company-settings', {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (companyResponse.ok) {
+          companySettings = await companyResponse.json();
+          console.log('🏢 Company settings fetched successfully:', companySettings);
+        } else {
+          console.log('🚨 Failed to fetch company settings:', companyResponse.status, companyResponse.statusText);
+        }
+      } catch (error) {
+        console.error('🚨 Error fetching company settings:', error);
+      }
       
       // Import pdf-lib
       const { PDFDocument, rgb, StandardFonts } = await import('pdf-lib');
@@ -1057,6 +1073,33 @@ export default function MyRecordPage() {
       
       // Create new PDF document
       const pdfDoc = await PDFDocument.create();
+      
+      // Load company logo if available
+      let logoImage = null;
+      if (companySettings?.logoUrl) {
+        try {
+          console.log('🖼️ Loading company logo from:', companySettings.logoUrl);
+          const logoResponse = await fetch(companySettings.logoUrl, {
+            credentials: 'include'
+          });
+          
+          if (logoResponse.ok) {
+            const logoBytes = await logoResponse.arrayBuffer();
+            const logoType = companySettings.logoUrl.toLowerCase();
+            
+            if (logoType.includes('.png')) {
+              logoImage = await pdfDoc.embedPng(logoBytes);
+            } else if (logoType.includes('.jpg') || logoType.includes('.jpeg')) {
+              logoImage = await pdfDoc.embedJpg(logoBytes);
+            }
+            console.log('✅ Company logo loaded successfully');
+          } else {
+            console.log('🚨 Failed to load company logo:', logoResponse.status);
+          }
+        } catch (error) {
+          console.error('🚨 Error loading company logo:', error);
+        }
+      }
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
       const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
       
@@ -1075,7 +1118,7 @@ export default function MyRecordPage() {
           color: rgb(0.1, 0.2, 0.4),
         });
         
-        // Logo placeholder (white background)
+        // Logo area (white background)
         page.drawRectangle({
           x: 50,
           y: height - 110,
@@ -1086,14 +1129,28 @@ export default function MyRecordPage() {
           borderWidth: 1,
         });
         
-        // Add "LOGO" text in the white box as placeholder
-        page.drawText('LOGO', {
-          x: 75,
-          y: height - 75,
-          size: 12,
-          font: boldFont,
-          color: rgb(0.7, 0.7, 0.7),
-        });
+        // Draw actual logo if available, otherwise show placeholder
+        if (logoImage) {
+          const logoScale = Math.min(75 / logoImage.width, 75 / logoImage.height);
+          const logoWidth = logoImage.width * logoScale;
+          const logoHeight = logoImage.height * logoScale;
+          
+          page.drawImage(logoImage, {
+            x: 50 + (80 - logoWidth) / 2, // Center horizontally
+            y: height - 110 + (80 - logoHeight) / 2, // Center vertically
+            width: logoWidth,
+            height: logoHeight,
+          });
+        } else {
+          // Add "LOGO" text as placeholder if no logo available
+          page.drawText('LOGO', {
+            x: 75,
+            y: height - 75,
+            size: 12,
+            font: boldFont,
+            color: rgb(0.7, 0.7, 0.7),
+          });
+        }
         
         // Company information section
         const companyName = companySettings?.companyName || 'UTAMA MEDGROUP SDN BHD';
