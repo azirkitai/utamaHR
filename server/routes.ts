@@ -1843,6 +1843,17 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Get unique years for dropdown filters (based on actual leave application data)
+  app.get("/api/years", authenticateToken, async (req, res) => {
+    try {
+      const years = await storage.getUniqueYears();
+      res.json(years);
+    } catch (error) {
+      console.error("Get years error:", error);
+      res.status(500).json({ error: "Gagal mendapatkan senarai tahun" });
+    }
+  });
+
   // Get employees with approval roles (Super Admin, Admin, HR Manager, PIC)
   app.get("/api/employees/approval-roles", authenticateToken, async (req, res) => {
     try {

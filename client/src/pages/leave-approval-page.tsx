@@ -125,6 +125,11 @@ export default function LeaveApprovalPage() {
     queryKey: ["/api/departments"]
   });
 
+  // Fetch years for dropdown filter (based on actual data)
+  const { data: availableYears = [] } = useQuery({
+    queryKey: ["/api/years"]
+  });
+
   // Fetch carry forward records
   const { data: carryForwardRecords = [] } = useQuery({
     queryKey: ["/api/leave-balance-carry-forward", selectedYear],
@@ -832,11 +837,15 @@ export default function LeaveApprovalPage() {
                       <SelectValue placeholder="2025" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="2025">2025</SelectItem>
-                      <SelectItem value="2024">2024</SelectItem>
-                      <SelectItem value="2023">2023</SelectItem>
-                      <SelectItem value="2022">2022</SelectItem>
-                      <SelectItem value="2021">2021</SelectItem>
+                      {availableYears.length > 0 ? (
+                        availableYears.map((year: number) => (
+                          <SelectItem key={year} value={year.toString()}>
+                            {year}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="2025">2025</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>

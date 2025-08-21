@@ -565,6 +565,32 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Get unique years from leave applications data
+  async getUniqueYears(): Promise<number[]> {
+    try {
+      const applications = await db.select({
+        startDate: leaveApplications.startDate,
+        appliedDate: leaveApplications.appliedDate
+      }).from(leaveApplications);
+
+      const years = new Set<number>();
+      
+      applications.forEach(app => {
+        if (app.startDate) {
+          years.add(new Date(app.startDate).getFullYear());
+        }
+        if (app.appliedDate) {
+          years.add(new Date(app.appliedDate).getFullYear());
+        }
+      });
+
+      return Array.from(years).sort((a, b) => b - a); // Sort descending (newest first)
+    } catch (error) {
+      console.error("Error getting unique years:", error);
+      return [new Date().getFullYear()]; // Return current year as fallback
+    }
+  }
+
   async getEmployee(id: string): Promise<Employee | undefined> {
     const [employee] = await db.select().from(employees).where(eq(employees.id, id));
     return employee || undefined;
