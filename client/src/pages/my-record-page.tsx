@@ -1231,7 +1231,7 @@ export default function MyRecordPage() {
       // Draw table header function
       const drawTableHeader = (page: any, yPos: number) => {
         const tableHeight = 25;
-        const columnWidths = [30, 140, 80, 70, 70, 70, 70, 80, 90];
+        const columnWidths = [30, 180, 80, 70, 70, 70, 70, 80, 90];
         const headers = ['No.', 'Employee Name', 'Date', 'Clock In', 'Break Out', 'Break In', 'Clock Out', 'Total Hours', 'Status'];
         
         // Header background
@@ -1262,7 +1262,7 @@ export default function MyRecordPage() {
       // Draw table row function
       const drawTableRow = (page: any, record: any, rowIndex: number, yPos: number) => {
         const tableHeight = 25;
-        const columnWidths = [30, 140, 80, 70, 70, 70, 70, 80, 90];
+        const columnWidths = [30, 180, 80, 70, 70, 70, 70, 80, 90];
         
         // Alternating row background (striping)
         if (rowIndex % 2 === 0) {
@@ -1290,7 +1290,7 @@ export default function MyRecordPage() {
         const employeeDisplayName = employee ? `${employee.firstName} ${employee.lastName}`.trim() : 'Unknown Employee';
         
         // Truncate name smartly
-        const truncateName = (name: string, maxLength: number = 18) => {
+        const truncateName = (name: string, maxLength: number = 25) => {
           if (name.length <= maxLength) return name;
           const words = name.split(' ');
           if (words.length === 1) {
@@ -1309,7 +1309,7 @@ export default function MyRecordPage() {
         
         const rowData = [
           (rowIndex + 1).toString(),
-          truncateName(employeeDisplayName, 18),
+          truncateName(employeeDisplayName, 25),
           format(new Date(record.date), 'dd/MM/yyyy'),
           formatTime(record.clockInTime),
           formatTime(record.breakOutTime),
