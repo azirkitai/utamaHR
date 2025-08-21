@@ -1106,19 +1106,19 @@ export default function MyRecordPage() {
       // 1mm = 2.83465 pt
       const mm = (n: number) => n * 2.83465;
       
-      // A4 portrait margins
-      const topMargin = mm(28); // 28mm
-      const bottomMargin = mm(22); // 22mm
-      const leftMargin = mm(18); // 18mm
-      const rightMargin = mm(18); // 18mm
+      // Reduced margins for better space utilization
+      const topMargin = mm(10); // 10mm
+      const bottomMargin = mm(20); // 20mm
+      const leftMargin = mm(8); // 8mm
+      const rightMargin = mm(8); // 8mm
       
       const contentWidth = width - leftMargin - rightMargin;
       const contentHeight = height - topMargin - bottomMargin;
       
       // Draw header function
       const drawHeader = (page: any) => {
-        // Company header background
-        const headerH = mm(28);
+        // Company header background  
+        const headerH = mm(22); // Reduced header height
         const headerY = height - topMargin - headerH;
         
         page.drawRectangle({
@@ -1238,9 +1238,9 @@ export default function MyRecordPage() {
       // Draw table header function
       const drawTableHeader = (page: any, yPos: number) => {
         const tableHeight = 25;
-        // Adjust column widths to equal contentWidth
-        const totalContentWidth = contentWidth; // 508.15 points (595 - 18mm*2)
-        const columnWidths = [35, 140, 65, 50, 50, 50, 50, 60, 68]; // Total = 568, need to scale down
+        // Better column distribution with more space (8mm margins = 548.5 points content width)
+        const totalContentWidth = contentWidth; // ~548.5 points with 8mm left/right margins
+        const columnWidths = [32, 160, 68, 58, 58, 58, 58, 60, 75]; // Better proportions
         // Scale proportionally to fit contentWidth
         const currentTotal = columnWidths.reduce((a, b) => a + b, 0);
         const scaledWidths = columnWidths.map(w => Math.floor(w * (totalContentWidth / currentTotal)));
@@ -1274,9 +1274,9 @@ export default function MyRecordPage() {
       // Draw table row function
       const drawTableRow = (page: any, record: any, rowIndex: number, yPos: number) => {
         const tableHeight = 25;
-        // Use same scaled column widths
+        // Use same improved column widths
         const totalContentWidth = contentWidth;
-        const columnWidths = [35, 140, 65, 50, 50, 50, 50, 60, 68];
+        const columnWidths = [32, 160, 68, 58, 58, 58, 58, 60, 75]; // Same as header
         const currentTotal = columnWidths.reduce((a, b) => a + b, 0);
         const scaledWidths = columnWidths.map(w => Math.floor(w * (totalContentWidth / currentTotal)));
         
@@ -1383,9 +1383,9 @@ export default function MyRecordPage() {
       // Draw header on first page
       drawHeader(currentPage);
       
-      // Employee info section
+      // Employee info section - adjusted for smaller header
       const userEmployee = allEmployees?.find((emp: any) => emp.userId === user?.id);
-      let yPosition = height - topMargin - 190;
+      let yPosition = height - topMargin - 140;
       
       if (userEmployee) {
         currentPage.drawText(`Name: ${userEmployee.firstName} ${userEmployee.lastName}`, {
