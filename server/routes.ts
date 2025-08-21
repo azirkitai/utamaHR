@@ -942,6 +942,11 @@ export function registerRoutes(app: Express): Server {
       
       console.log('🔍 Group policy settings found:', allGroupPolicySettings.length);
       console.log('🔍 Sample policies:', allGroupPolicySettings.slice(0, 3));
+      
+      // Check enabled policies specifically
+      const enabledPolicies = allGroupPolicySettings.filter(p => p.enabled === true);
+      console.log('🔍 Enabled policies found:', enabledPolicies.length);
+      console.log('🔍 Sample enabled policies:', enabledPolicies.slice(0, 5));
 
       const employeeSummary = [];
 
