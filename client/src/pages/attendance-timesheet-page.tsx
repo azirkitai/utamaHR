@@ -184,8 +184,8 @@ export default function AttendanceTimesheetPage() {
   // Calculate stats based on selected shift and date (not entire system)
   const todayStats = {
     totalStaff: shiftEmployees.length, // Staff assigned to selected shift/date
-    totalClockIn: shiftEmployees.filter(emp => emp.attendance && emp.attendance.clockInTime && !emp.isOff).length,
-    totalAbsent: shiftEmployees.filter(emp => emp.isAbsent && !emp.isOff).length,
+    totalClockIn: shiftEmployees.filter(emp => emp.clockIn && emp.clockIn !== '' && !emp.isOff).length,
+    totalAbsent: shiftEmployees.filter(emp => (!emp.clockIn || emp.clockIn === '') && !emp.isOff && !emp.isAbsent).length,
     onLeave: shiftEmployees.filter(emp => emp.isOff).length
   };
   
@@ -196,7 +196,8 @@ export default function AttendanceTimesheetPage() {
     shiftEmployeesTotal: shiftEmployees.length,
     todayStats,
     shiftEmployeesBreakdown: {
-      withAttendance: shiftEmployees.filter(emp => emp.attendance && emp.attendance.clockInTime).length,
+      withClockIn: shiftEmployees.filter(emp => emp.clockIn && emp.clockIn !== '' && !emp.isOff).length,
+      withoutClockIn: shiftEmployees.filter(emp => (!emp.clockIn || emp.clockIn === '') && !emp.isOff).length,
       onLeave: shiftEmployees.filter(emp => emp.isOff).length,
       absent: shiftEmployees.filter(emp => emp.isAbsent && !emp.isOff).length
     },
@@ -206,8 +207,11 @@ export default function AttendanceTimesheetPage() {
       name: emp.employee,
       isOff: emp.isOff,
       hasAttendance: !!emp.attendance,
+      attendanceFullData: emp.attendance,
       clockInTime: emp.attendance?.clockInTime,
-      clockInExists: !!emp.attendance?.clockInTime
+      clockInExists: !!emp.attendance?.clockInTime,
+      clockIn: emp.clockIn,
+      clockInDisplay: emp.attendance?.clockIn
     }))
   });
 
