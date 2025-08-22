@@ -298,10 +298,6 @@ export default function DisciplinaryRecordsPage() {
                                         <span className="text-sm font-medium">{fileName}</span>
                                         <div className="ml-auto flex gap-1">
                                           <Button variant="ghost" size="sm" className="h-6 px-2">
-                                            <Eye className="h-3 w-3 mr-1" />
-                                            <span className="text-xs">View</span>
-                                          </Button>
-                                          <Button variant="ghost" size="sm" className="h-6 px-2">
                                             <Download className="h-3 w-3 mr-1" />
                                             <span className="text-xs">Download</span>
                                           </Button>
