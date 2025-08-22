@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext } from "react";
+import { createContext, ReactNode, useContext, useEffect, useRef, useCallback } from "react";
 import {
   useQuery,
   useMutation,
@@ -42,6 +42,13 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
+  
+  // Auto-logout constants
+  const IDLE_TIMEOUT = 10 * 60 * 1000; // 10 minutes
+  const WARNING_TIME = 2 * 60 * 1000; // 2 minutes warning
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const warningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const warningShownRef = useRef(false);
   
   // Custom fetch function that includes JWT token
   const authenticatedFetch = async (url: string): Promise<any> => {
@@ -178,6 +185,110 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
     },
   });
+
+  // Auto-logout functionality
+  const resetTimer = useCallback(() => {
+    // Clear existing timers
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    if (warningTimeoutRef.current) {
+      clearTimeout(warningTimeoutRef.current);
+    }
+    
+    // Reset warning flag
+    warningShownRef.current = false;
+
+    // Only set timer if user is logged in
+    if (!user) return;
+
+    // Set warning timer (8 minutes - show warning 2 minutes before logout)
+    warningTimeoutRef.current = setTimeout(() => {
+      if (!warningShownRef.current) {
+        warningShownRef.current = true;
+        toast({
+          title: "Session Timeout Warning",
+          description: "You will be automatically logged out in 2 minutes due to inactivity. Move your mouse or click anywhere to stay logged in.",
+          variant: "destructive",
+          duration: 10000, // Show for 10 seconds
+        });
+      }
+    }, IDLE_TIMEOUT - WARNING_TIME);
+
+    // Set logout timer (10 minutes)
+    timeoutRef.current = setTimeout(() => {
+      toast({
+        title: "Session Expired",
+        description: "You have been automatically logged out due to inactivity.",
+        variant: "destructive",
+        duration: 5000,
+      });
+      
+      // Perform logout after a short delay to show the toast
+      setTimeout(() => {
+        logoutMutation.mutate();
+      }, 1000);
+    }, IDLE_TIMEOUT);
+  }, [user, logoutMutation, toast, IDLE_TIMEOUT, WARNING_TIME]);
+
+  const handleActivity = useCallback(() => {
+    resetTimer();
+  }, [resetTimer]);
+
+  // Initialize idle timeout functionality
+  useEffect(() => {
+    // List of events that indicate user activity
+    const events = [
+      'mousedown',
+      'mousemove', 
+      'keypress',
+      'scroll',
+      'touchstart',
+      'click',
+      'wheel'
+    ];
+
+    // Add event listeners for user activity
+    events.forEach(event => {
+      document.addEventListener(event, handleActivity, { passive: true });
+    });
+
+    // Start the timer when component mounts and user is logged in
+    if (user) {
+      resetTimer();
+    }
+
+    // Cleanup function
+    return () => {
+      // Remove event listeners
+      events.forEach(event => {
+        document.removeEventListener(event, handleActivity);
+      });
+      
+      // Clear timers
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      if (warningTimeoutRef.current) {
+        clearTimeout(warningTimeoutRef.current);
+      }
+    };
+  }, [user, handleActivity, resetTimer]);
+
+  // Reset timer when user changes (login/logout)
+  useEffect(() => {
+    if (user) {
+      resetTimer();
+    } else {
+      // Clear timers when user logs out
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      if (warningTimeoutRef.current) {
+        clearTimeout(warningTimeoutRef.current);
+      }
+    }
+  }, [user, resetTimer]);
 
   return (
     <AuthContext.Provider

@@ -3,6 +3,8 @@ UtamaHR is a comprehensive HR Management System built with React, TypeScript, an
 
 **CRITICAL MILESTONE IN PROGRESS (August 2025)**: Comprehensive language standardization to English underway across the entire application. Major components completed include QR Clock-in system, employee management pages, authentication system, and error messages. Remaining work focuses on mobile clock-in/out pages and a few remaining user interface elements. All compliance messages now display standardized English format: "Late X hours Y minutes from shift time Z. Needs supervisor review." Core system now displays professional English throughout most components.
 
+**NEW FEATURE COMPLETED (August 2025)**: Auto-logout security system implemented - users are automatically logged out after 10 minutes of inactivity with 2-minute warning notification. This enhances security compliance and prevents unauthorized access to sensitive HR data.
+
 # User Preferences
 Preferred communication style: Simple, everyday language.
 
