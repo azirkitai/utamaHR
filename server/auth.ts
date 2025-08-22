@@ -134,7 +134,7 @@ export function setupAuth(app: Express) {
       const token = generateToken(user);
 
       res.json({
-        message: "Login berjaya",
+        message: "Login successful",
         user: {
           id: user.id,
           username: user.username,
@@ -159,6 +159,6 @@ export function setupAuth(app: Express) {
 
   // Logout endpoint (client-side akan remove token)
   app.post("/api/logout", (req, res) => {
-    res.json({ message: "Logout berjaya" });
+    res.json({ message: "Logout successful" });
   });
 }

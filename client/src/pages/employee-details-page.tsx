@@ -387,6 +387,8 @@ export default function EmployeeDetailsPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/employees", id] });
       // Also invalidate the user employee query to update header role display
       queryClient.invalidateQueries({ queryKey: ["/api/user/employee"] });
+      // Also invalidate the auth user query in case the current user's role was updated
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
     },
     onError: () => {
       toast({
