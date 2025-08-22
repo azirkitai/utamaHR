@@ -5391,15 +5391,22 @@ export function registerRoutes(app: Express): Server {
   app.post("/api/page-permissions", authenticateToken, async (req, res) => {
     try {
       const currentUser = req.user!;
+      
+      // Get the user's employee record to check their actual role
+      const employee = await storage.getEmployeeByUserId(currentUser.id);
       console.log("=== PAGE PERMISSIONS DEBUG ===");
       console.log("Current user object:", JSON.stringify(currentUser, null, 2));
-      console.log("Current user role:", currentUser.role);
-      console.log("Role comparison:", currentUser.role === "Super Admin");
+      console.log("User role from users table:", currentUser.role);
+      console.log("Employee role from employees table:", employee?.role);
       console.log("===============================");
       
-      // Only Super Admin can save page permissions
-      if (currentUser.role !== "Super Admin") {
-        console.log("Access denied - user role is not Super Admin:", currentUser.role);
+      // Check both user role and employee role for Super Admin access
+      const userRole = currentUser.role;
+      const employeeRole = employee?.role;
+      const isSuperAdmin = userRole === "Super Admin" || employeeRole === "Super Admin";
+      
+      if (!isSuperAdmin) {
+        console.log("Access denied - neither user role nor employee role is Super Admin:", { userRole, employeeRole });
         return res.status(403).json({ error: "Access denied. Only Super Admin can modify page permissions." });
       }
 
@@ -5425,8 +5432,15 @@ export function registerRoutes(app: Express): Server {
     try {
       const currentUser = req.user!;
       
-      // Only Super Admin can view page permissions
-      if (currentUser.role !== "Super Admin") {
+      // Get the user's employee record to check their actual role
+      const employee = await storage.getEmployeeByUserId(currentUser.id);
+      
+      // Check both user role and employee role for Super Admin access
+      const userRole = currentUser.role;
+      const employeeRole = employee?.role;
+      const isSuperAdmin = userRole === "Super Admin" || employeeRole === "Super Admin";
+      
+      if (!isSuperAdmin) {
         return res.status(403).json({ error: "Access denied. Only Super Admin can view page permissions." });
       }
 
