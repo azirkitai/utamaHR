@@ -573,7 +573,55 @@ export function registerRoutes(app: Express): Server {
       res.json(payrollRecords);
     } catch (error) {
       console.error("Get user payroll records error:", error);
-      res.status(500).json({ error: "Failed to mendapatkan rekod gaji pengguna" });
+      res.status(500).json({ error: "Failed to get user payroll records" });
+    }
+  });
+
+  // Get current user's payslips for notifications
+  app.get("/api/payslips/user", authenticateToken, async (req, res) => {
+    try {
+      const userId = (req as any).user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      // Get user's employee record
+      const employee = await storage.getUserEmployee(userId);
+      if (!employee) {
+        return res.status(404).json({ error: "Employee not found" });
+      }
+
+      // Get payroll items for this employee (recent payslips)
+      const payrollItems = await storage.getPayrollItemsByEmployeeId(employee.id);
+      
+      // Get document details for each payroll item
+      const payslipsWithDetails = await Promise.all(
+        payrollItems.slice(0, 5).map(async (item: any) => {
+          const document = await storage.getPayrollDocument(item.documentId);
+          return {
+            id: item.id,
+            documentId: item.documentId,
+            month: document?.month,
+            year: document?.year,
+            status: document?.status,
+            createdAt: document?.createdAt,
+            generatedAt: item.createdAt,
+            grossPay: item.grossPay,
+            netPay: item.netPay,
+            totalDeductions: item.totalDeductions
+          };
+        })
+      );
+
+      // Filter out approved/finalized payslips and sort by most recent
+      const approvedPayslips = payslipsWithDetails
+        .filter(p => p.status === 'approved' || p.status === 'finalized')
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+      res.json(approvedPayslips);
+    } catch (error) {
+      console.error("Get user payslips error:", error);
+      res.status(500).json({ error: "Failed to get user payslips" });
     }
   });
 
@@ -3707,7 +3755,51 @@ export function registerRoutes(app: Express): Server {
       res.json(employeeShifts);
     } catch (error) {
       console.error("Get employee shifts by date error:", error);
-      res.status(500).json({ error: "Failed to mendapatkan senarai shift pework untuk tarikh tersebut" });
+      res.status(500).json({ error: "Failed to get employee shifts for date" });
+    }
+  });
+
+  // Get current user's shifts for today
+  app.get("/api/shifts/user-today", authenticateToken, async (req, res) => {
+    try {
+      const userId = (req as any).user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      // Get user's employee record
+      const employee = await storage.getUserEmployee(userId);
+      if (!employee) {
+        return res.status(404).json({ error: "Employee not found" });
+      }
+
+      // Get today's date
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Get employee's shifts for today
+      const employeeShifts = await storage.getEmployeeShiftsByDate(today);
+      const userShifts = employeeShifts.filter((es: any) => es.employeeId === employee.id);
+      
+      // Get shift details
+      const shiftsWithDetails = await Promise.all(
+        userShifts.map(async (es: any) => {
+          const shift = await storage.getShift(es.shiftId);
+          return {
+            id: shift?.id,
+            name: shift?.name,
+            startTime: shift?.startTime,
+            endTime: shift?.endTime,
+            date: es.assignedDate,
+            employeeShiftId: es.id
+          };
+        })
+      );
+
+      res.json(shiftsWithDetails);
+    } catch (error) {
+      console.error("Get user shifts today error:", error);
+      res.status(500).json({ error: "Failed to get user shifts for today" });
     }
   });
 

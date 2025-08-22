@@ -33,70 +33,170 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const { user, logoutMutation } = useAuth();
 
-  // Sample notification data - this would come from API in real implementation
-  const notifications = [
-    {
-      id: 1,
-      type: "leave_approval",
-      title: "Leave Request Pending",
-      message: "Your annual leave request for March 15-17 is awaiting supervisor approval.",
-      timestamp: "2 hours ago",
-      isRead: false,
-      priority: "medium"
-    },
-    {
-      id: 2,
-      type: "system_update",
-      title: "System Maintenance",
-      message: "Scheduled maintenance will occur this Saturday from 2:00 AM to 4:00 AM.",
-      timestamp: "1 day ago",
-      isRead: true,
-      priority: "low"
-    },
-    {
-      id: 3,
-      type: "payslip_ready",
-      title: "Payslip Available",
-      message: "Your February 2025 payslip is now ready for download.",
-      timestamp: "3 days ago",
-      isRead: false,
-      priority: "high"
-    },
-    {
-      id: 4,
-      type: "policy_update",
-      title: "Updated HR Policy",
-      message: "New attendance policy has been implemented. Please review the changes.",
-      timestamp: "1 week ago",
-      isRead: true,
-      priority: "medium"
-    },
-    {
-      id: 5,
-      type: "training_reminder",
-      title: "Training Session Reminder",
-      message: "Monthly safety training is scheduled for tomorrow at 10:00 AM.",
-      timestamp: "2 weeks ago",
-      isRead: false,
-      priority: "high"
-    }
-  ];
+  // Fetch real notification data from APIs
+  const { data: announcements } = useQuery({
+    queryKey: ["/api/announcements/unread"],
+    enabled: !!user?.id,
+  });
 
+  const { data: pendingApprovals } = useQuery({
+    queryKey: ["/api/pending-approval-statistics"],
+    enabled: !!user?.id,
+  });
+
+  const { data: shifts } = useQuery({
+    queryKey: ["/api/shifts/user-today"],
+    enabled: !!user?.id,
+  });
+
+  const { data: userPayslips } = useQuery({
+    queryKey: ["/api/payslips/user"],
+    enabled: !!user?.id,
+  });
+
+  // Generate real notifications based on actual data
+  const generateNotifications = () => {
+    const notifications = [];
+    let id = 1;
+
+    // Clock-in reminders - 30 minutes before shift
+    if (shifts && Array.isArray(shifts) && shifts.length > 0) {
+      shifts.forEach((shift: any) => {
+        const shiftStart = new Date(`${shift.date}T${shift.startTime}`);
+        const now = new Date();
+        const timeDiff = shiftStart.getTime() - now.getTime();
+        const minutesUntilShift = Math.floor(timeDiff / (1000 * 60));
+
+        if (minutesUntilShift <= 30 && minutesUntilShift > 0) {
+          notifications.push({
+            id: id++,
+            type: "clock_in_reminder",
+            title: "Clock-In Reminder",
+            message: `Your shift starts in ${minutesUntilShift} minutes at ${shift.startTime}. Don't forget to clock in!`,
+            timestamp: "Now",
+            isRead: false,
+            priority: "high"
+          });
+        }
+      });
+    }
+
+    // Announcements
+    if (announcements && Array.isArray(announcements) && announcements.length > 0) {
+      announcements.forEach((announcement: any) => {
+        const createdDate = new Date(announcement.createdAt);
+        const timeAgo = getTimeAgo(createdDate);
+        
+        notifications.push({
+          id: id++,
+          type: "announcement",
+          title: announcement.title || "New Announcement",
+          message: announcement.content || announcement.message || "New announcement available",
+          timestamp: timeAgo,
+          isRead: false,
+          priority: announcement.priority || "medium"
+        });
+      });
+    }
+
+    // Approval notifications
+    if (pendingApprovals && typeof pendingApprovals === 'object') {
+      const approvals = pendingApprovals as any;
+      
+      if (approvals.pendingLeave > 0) {
+        notifications.push({
+          id: id++,
+          type: "leave_approval",
+          title: "Leave Request Pending",
+          message: `You have ${approvals.pendingLeave} leave request(s) pending approval.`,
+          timestamp: "Recent",
+          isRead: false,
+          priority: "medium"
+        });
+      }
+
+      if (approvals.pendingClaim > 0) {
+        notifications.push({
+          id: id++,
+          type: "claim_approval",
+          title: "Claim Request Pending",
+          message: `You have ${approvals.pendingClaim} claim request(s) pending approval.`,
+          timestamp: "Recent",
+          isRead: false,
+          priority: "medium"
+        });
+      }
+
+      if (approvals.pendingOvertime > 0) {
+        notifications.push({
+          id: id++,
+          type: "overtime_approval",
+          title: "Overtime Request Pending",
+          message: `You have ${approvals.pendingOvertime} overtime request(s) pending approval.`,
+          timestamp: "Recent",
+          isRead: false,
+          priority: "medium"
+        });
+      }
+    }
+
+    // Payslip notifications - last 3 generated payslips
+    if (userPayslips && Array.isArray(userPayslips) && userPayslips.length > 0) {
+      userPayslips.slice(0, 3).forEach((payslip: any) => {
+        const generatedDate = new Date(payslip.generatedAt || payslip.createdAt);
+        const timeAgo = getTimeAgo(generatedDate);
+        
+        notifications.push({
+          id: id++,
+          type: "payslip_ready",
+          title: "Payslip Available",
+          message: `Your ${payslip.month}/${payslip.year} payslip is ready for download.`,
+          timestamp: timeAgo,
+          isRead: false,
+          priority: "high"
+        });
+      });
+    }
+
+    return notifications;
+  };
+
+  // Helper function to calculate time ago
+  const getTimeAgo = (date: Date) => {
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 60) {
+      return `${diffInMinutes} minutes ago`;
+    } else if (diffInMinutes < 1440) {
+      const hours = Math.floor(diffInMinutes / 60);
+      return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    } else {
+      const days = Math.floor(diffInMinutes / 1440);
+      return `${days} day${days > 1 ? 's' : ''} ago`;
+    }
+  };
+
+  const notifications = generateNotifications();
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   // Helper function to get notification icon based on type
   const getNotificationIcon = (type: string) => {
     switch (type) {
+      case "clock_in_reminder":
+        return <Clock className="w-4 h-4 text-red-500" />;
+      case "announcement":
+        return <MessageSquare className="w-4 h-4 text-blue-500" />;
       case "leave_approval":
-        return <Calendar className="w-4 h-4 text-blue-500" />;
-      case "system_update":
-        return <Settings className="w-4 h-4 text-gray-500" />;
+        return <Calendar className="w-4 h-4 text-orange-500" />;
+      case "claim_approval":
+        return <User className="w-4 h-4 text-purple-500" />;
+      case "overtime_approval":
+        return <Clock className="w-4 h-4 text-yellow-500" />;
       case "payslip_ready":
         return <User className="w-4 h-4 text-green-500" />;
-      case "policy_update":
-        return <MessageSquare className="w-4 h-4 text-orange-500" />;
-      case "training_reminder":
-        return <Clock className="w-4 h-4 text-purple-500" />;
+      case "system_update":
+        return <Settings className="w-4 h-4 text-gray-500" />;
       default:
         return <Bell className="w-4 h-4 text-gray-500" />;
     }
