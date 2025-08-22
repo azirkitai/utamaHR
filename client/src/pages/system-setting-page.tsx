@@ -927,6 +927,7 @@ export default function SystemSettingPage() {
   const [showAddDepartmentDialog, setShowAddDepartmentDialog] = useState(false);
   const [expandedDepartments, setExpandedDepartments] = useState<number[]>([]);
   const [editingDepartment, setEditingDepartment] = useState<number | null>(null);
+  const [editingDepartmentName, setEditingDepartmentName] = useState<string>("");
   const [newDepartmentForm, setNewDepartmentForm] = useState({
     name: "",
     code: "",
@@ -2936,7 +2937,11 @@ export default function SystemSettingPage() {
   };
 
   const handleEditDepartmentName = (departmentId: number) => {
-    setEditingDepartment(departmentId);
+    const department = departments.find(dept => dept.id === departmentId);
+    if (department) {
+      setEditingDepartmentName(department.name);
+      setEditingDepartment(departmentId);
+    }
   };
 
   const handleSaveDepartmentName = (departmentId: number, newName: string) => {
@@ -2945,6 +2950,7 @@ export default function SystemSettingPage() {
       data: { name: newName }
     });
     setEditingDepartment(null);
+    setEditingDepartmentName("");
   };
 
   const handleDeleteDepartment = (departmentId: number) => {
@@ -5355,7 +5361,7 @@ export default function SystemSettingPage() {
       {/* Department List */}
       <div className="bg-white rounded-lg border">
         <div className="divide-y">
-          {localDepartments.map((department) => {
+          {departments.map((department) => {
             const isExpanded = expandedDepartments.includes(department.id);
             const isEditing = editingDepartment === department.id;
             
@@ -5367,12 +5373,9 @@ export default function SystemSettingPage() {
                     {isEditing ? (
                       <div className="flex items-center space-x-2">
                         <Input
-                          value={department.name}
+                          value={editingDepartmentName}
                           onChange={(e) => {
-                            const newName = e.target.value;
-                            setLocalDepartments(prev => prev.map(dept => 
-                              dept.id === department.id ? { ...dept, name: newName } : dept
-                            ));
+                            setEditingDepartmentName(e.target.value);
                           }}
                           className="font-medium text-gray-900 w-64"
                           data-testid={`input-edit-department-${department.id}`}
@@ -5381,7 +5384,7 @@ export default function SystemSettingPage() {
                           size="sm" 
                           variant="outline"
                           onClick={() => {
-                            handleSaveDepartmentName(department.id, department.name);
+                            handleSaveDepartmentName(department.id, editingDepartmentName);
                           }}
                           data-testid={`button-save-department-${department.id}`}
                         >
@@ -5390,7 +5393,10 @@ export default function SystemSettingPage() {
                         <Button 
                           size="sm" 
                           variant="ghost"
-                          onClick={() => setEditingDepartment(null)}
+                          onClick={() => {
+                            setEditingDepartment(null);
+                            setEditingDepartmentName("");
+                          }}
                           data-testid={`button-cancel-edit-department-${department.id}`}
                         >
                           Cancel
