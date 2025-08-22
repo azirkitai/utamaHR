@@ -654,42 +654,52 @@ export class DatabaseStorage implements IStorage {
 
   async deleteEmployee(id: string): Promise<boolean> {
     try {
-      // Start transaction to ensure all deletions succeed or fail together
-      await db.transaction(async (tx) => {
-        // Delete employment records first (this was the main foreign key constraint)
-        await tx.delete(employment).where(eq(employment.employeeId, id));
-        
-        // Delete contact records
-        await tx.delete(employeeContacts).where(eq(employeeContacts.employeeId, id));
-        
-        // Delete compensation records
-        await tx.delete(employeeCompensation).where(eq(employeeCompensation.employeeId, id));
-        
-        // Delete family details records
-        await tx.delete(familyDetails).where(eq(familyDetails.employeeId, id));
-        
-        // Delete documents
-        await tx.delete(documents).where(eq(documents.employeeId, id));
-        
-        // Delete equipment records
-        await tx.delete(equipment).where(eq(equipment.employeeId, id));
-        
-        // Delete work experiences
-        await tx.delete(workExperiences).where(eq(workExperiences.employeeId, id));
-        
-        // Delete any payroll records
-        await tx.delete(payrollItems).where(eq(payrollItems.employeeId, id));
-        
-        // Delete any attendance records
-        await tx.delete(clockInOut).where(eq(clockInOut.employeeId, id));
-        
-        // Delete any leave applications
-        await tx.delete(leaveApplications).where(eq(leaveApplications.employeeId, id));
-        
-        // Finally delete the employee record
-        await tx.delete(employees).where(eq(employees.id, id));
-      });
+      console.log("=== ATTEMPTING TO DELETE EMPLOYEE ===", id);
       
+      // Check if employee exists first
+      const existingEmployee = await db.select().from(employees).where(eq(employees.id, id));
+      if (existingEmployee.length === 0) {
+        console.log("Employee not found:", id);
+        return false;
+      }
+      
+      console.log("Employee found, proceeding with deletion");
+      
+      // Delete related records first (cascade deletion)
+      console.log("Deleting employment records...");
+      await db.delete(employment).where(eq(employment.employeeId, id));
+      
+      console.log("Deleting contact records...");
+      await db.delete(employeeContacts).where(eq(employeeContacts.employeeId, id));
+      
+      console.log("Deleting compensation records...");
+      await db.delete(employeeCompensation).where(eq(employeeCompensation.employeeId, id));
+      
+      console.log("Deleting family details records...");
+      await db.delete(familyDetails).where(eq(familyDetails.employeeId, id));
+      
+      console.log("Deleting documents...");
+      await db.delete(documents).where(eq(documents.employeeId, id));
+      
+      console.log("Deleting equipment records...");
+      await db.delete(equipment).where(eq(equipment.employeeId, id));
+      
+      console.log("Deleting work experiences...");
+      await db.delete(workExperiences).where(eq(workExperiences.employeeId, id));
+      
+      console.log("Deleting payroll records...");
+      await db.delete(payrollItems).where(eq(payrollItems.employeeId, id));
+      
+      console.log("Deleting attendance records...");
+      await db.delete(clockInOut).where(eq(clockInOut.employeeId, id));
+      
+      console.log("Deleting leave applications...");
+      await db.delete(leaveApplications).where(eq(leaveApplications.employeeId, id));
+      
+      console.log("Deleting main employee record...");
+      const deleteResult = await db.delete(employees).where(eq(employees.id, id));
+      
+      console.log("Delete operation completed successfully");
       return true;
     } catch (error) {
       console.error('Error deleting employee with all related records:', error);
