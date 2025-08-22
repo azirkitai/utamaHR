@@ -126,6 +126,11 @@ import {
   type LeavePolicySetting,
   type InsertLeavePolicySetting,
   type UpdateLeavePolicySetting,
+  // Department types
+  departments,
+  type Department,
+  type InsertDepartment,
+  type UpdateDepartment,
   // Leave Balance Carry Forward
   leaveBalanceCarryForward,
   type LeaveBalanceCarryForward,
@@ -580,6 +585,79 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error getting unique departments:", error);
       return [];
+    }
+  }
+
+  // =================== DEPARTMENT METHODS ===================
+  async getDepartments(): Promise<Department[]> {
+    try {
+      console.log("Fetching all departments from departments table...");
+      const result = await db.select().from(departments).where(eq(departments.isActive, true)).orderBy(departments.name);
+      console.log("Departments result:", result);
+      return result;
+    } catch (error) {
+      console.error("Error getting departments:", error);
+      return [];
+    }
+  }
+
+  async createDepartment(insertDepartment: InsertDepartment): Promise<Department> {
+    try {
+      console.log("Creating department:", insertDepartment);
+      const [result] = await db.insert(departments).values(insertDepartment).returning();
+      console.log("Created department:", result);
+      return result;
+    } catch (error) {
+      console.error("Error creating department:", error);
+      throw error;
+    }
+  }
+
+  async updateDepartment(id: string, updateDepartment: UpdateDepartment): Promise<Department | undefined> {
+    try {
+      console.log("Updating department:", id, updateDepartment);
+      const [result] = await db
+        .update(departments)
+        .set({
+          ...updateDepartment,
+          updatedAt: new Date()
+        })
+        .where(eq(departments.id, id))
+        .returning();
+      console.log("Updated department:", result);
+      return result;
+    } catch (error) {
+      console.error("Error updating department:", error);
+      throw error;
+    }
+  }
+
+  async deleteDepartment(id: string): Promise<boolean> {
+    try {
+      console.log("Deleting department:", id);
+      // Soft delete by setting isActive to false
+      const result = await db
+        .update(departments)
+        .set({
+          isActive: false,
+          updatedAt: new Date()
+        })
+        .where(eq(departments.id, id));
+      console.log("Deleted department (soft delete):", id);
+      return (result.rowCount ?? 0) > 0;
+    } catch (error) {
+      console.error("Error deleting department:", error);
+      throw error;
+    }
+  }
+
+  async getDepartmentById(id: string): Promise<Department | undefined> {
+    try {
+      const [result] = await db.select().from(departments).where(eq(departments.id, id));
+      return result;
+    } catch (error) {
+      console.error("Error getting department by ID:", error);
+      return undefined;
     }
   }
 

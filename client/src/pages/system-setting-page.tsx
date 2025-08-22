@@ -695,6 +695,11 @@ export default function SystemSettingPage() {
     enabled: true
   });
 
+  // Department management queries
+  const { data: systemDepartments = [], refetch: refetchDepartments } = useQuery({
+    queryKey: ["/api/departments"]
+  });
+
   // Overtime API queries
   const { data: overtimeApprovalSettings } = useQuery({
     queryKey: ["/api/overtime/approval-settings"]
@@ -766,6 +771,69 @@ export default function SystemSettingPage() {
       toast({
         title: "Error", 
         description: "Failed to save overtime settings",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Department mutations
+  const createDepartmentMutation = useMutation({
+    mutationFn: async (data: { name: string; code: string; description?: string }) => {
+      return await apiRequest("POST", "/api/departments", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/departments"] });
+      toast({
+        title: "Success",
+        description: "Department created successfully",
+      });
+      setShowAddDepartmentDialog(false);
+      setNewDepartmentForm({ name: "", code: "" });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to create department",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const updateDepartmentMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: { name?: string; code?: string; description?: string } }) => {
+      return await apiRequest("PUT", `/api/departments/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/departments"] });
+      toast({
+        title: "Success",
+        description: "Department updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to update department",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const deleteDepartmentMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest("DELETE", `/api/departments/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/departments"] });
+      toast({
+        title: "Success",
+        description: "Department deleted successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete department",
         variant: "destructive",
       });
     }
@@ -919,21 +987,21 @@ export default function SystemSettingPage() {
 
   // Department states
   const [showAddDepartmentDialog, setShowAddDepartmentDialog] = useState(false);
-  const [expandedDepartments, setExpandedDepartments] = useState<number[]>([]);
-  const [editingDepartment, setEditingDepartment] = useState<number | null>(null);
+  const [expandedDepartments, setExpandedDepartments] = useState<string[]>([]);
+  const [editingDepartment, setEditingDepartment] = useState<string | null>(null);
   const [newDepartmentForm, setNewDepartmentForm] = useState({
     name: "",
     code: "",
   });
 
-  // Generate departments with real employee data
+  // Generate departments display data by combining system departments with employee data
   const departments = useMemo(() => {
-    if (!allEmployees || allEmployees.length === 0) {
+    if (!systemDepartments || systemDepartments.length === 0) {
       return [];
     }
 
-    // Group employees by department
-    const departmentGroups = allEmployees.reduce((acc: any, employee: any) => {
+    // Group employees by department for counting
+    const employeesByDepartment = allEmployees?.reduce((acc: any, employee: any) => {
       const departmentName = employee.employment?.department || 'Unassigned';
       
       if (!acc[departmentName]) {
@@ -949,17 +1017,18 @@ export default function SystemSettingPage() {
       });
       
       return acc;
-    }, {});
+    }, {}) || {};
 
-    // Convert to department array format
-    return Object.entries(departmentGroups).map(([deptName, employees]: [string, any]) => ({
-      id: Math.abs(deptName.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a; }, 0)),
-      name: deptName.charAt(0).toUpperCase() + deptName.slice(1).toLowerCase(),
-      code: deptName.substring(0, 3).toUpperCase(),
-      employeeCount: employees.length,
-      employees: employees
+    // Map system departments with employee counts
+    return systemDepartments.map((dept: any) => ({
+      id: dept.id,
+      name: dept.name,
+      code: dept.code,
+      description: dept.description,
+      employeeCount: employeesByDepartment[dept.name.toLowerCase()]?.length || 0,
+      employees: employeesByDepartment[dept.name.toLowerCase()] || []
     }));
-  }, [allEmployees]);
+  }, [systemDepartments, allEmployees]);
 
   const [localDepartments, setLocalDepartments] = useState(departments);
 
@@ -2834,20 +2903,15 @@ export default function SystemSettingPage() {
 
   const handleSaveNewDepartment = () => {
     if (newDepartmentForm.name && newDepartmentForm.code) {
-      const newDepartment = {
-        id: localDepartments.length + 1,
+      createDepartmentMutation.mutate({
         name: newDepartmentForm.name,
-        code: newDepartmentForm.code,
-        employeeCount: 0,
-        employees: []
-      };
-      setLocalDepartments([...localDepartments, newDepartment]);
-      setShowAddDepartmentDialog(false);
+        code: newDepartmentForm.code
+      });
     }
   };
 
   // Department expansion handlers
-  const handleToggleDepartmentExpansion = (departmentId: number) => {
+  const handleToggleDepartmentExpansion = (departmentId: string) => {
     setExpandedDepartments(prev => 
       prev.includes(departmentId) 
         ? prev.filter(id => id !== departmentId)
@@ -2855,22 +2919,21 @@ export default function SystemSettingPage() {
     );
   };
 
-  const handleEditDepartmentName = (departmentId: number) => {
+  const handleEditDepartmentName = (departmentId: string) => {
     setEditingDepartment(departmentId);
   };
 
-  const handleSaveDepartmentName = (departmentId: number, newName: string) => {
-    setLocalDepartments(prev => prev.map(dept => 
-      dept.id === departmentId ? { ...dept, name: newName } : dept
-    ));
+  const handleSaveDepartmentName = (departmentId: string, newName: string) => {
+    updateDepartmentMutation.mutate({
+      id: departmentId,
+      data: { name: newName }
+    });
     setEditingDepartment(null);
   };
 
-  const handleDeleteDepartment = (departmentId: number) => {
+  const handleDeleteDepartment = (departmentId: string) => {
     if (window.confirm("Are you sure you want to delete this department? This action cannot be undone.")) {
-      setLocalDepartments(prev => prev.filter(dept => dept.id !== departmentId));
-      // Also remove from expanded departments if it was expanded
-      setExpandedDepartments(prev => prev.filter(id => id !== departmentId));
+      deleteDepartmentMutation.mutate(departmentId);
     }
   };
 
