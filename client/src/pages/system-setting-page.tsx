@@ -66,11 +66,55 @@ const MALAYSIAN_CITIES_BY_STATE = {
   "penang": ["George Town", "Butterworth", "Bukit Mertajam", "Nibong Tebal", "Permatang Pauh", "Bayan Lepas", "Tanjung Bungah", "Gurney Drive", "Jelutong", "Air Itam", "Batu Ferringhi", "Balik Pulau", "Seberang Perai", "Perai", "Simpang Ampat", "Bukit Tambun", "Sungai Bakap", "Bagan Ajam", "Penang Hill", "Komtar"],
   "sabah": ["Kota Kinabalu", "Sandakan", "Tawau", "Lahad Datu", "Keningau", "Ranau", "Papar", "Beaufort", "Kudat", "Semporna", "Penampang", "Putatan", "Kinarut", "Membakut", "Sipitang", "Kuala Penyu", "Kinabatangan", "Beluran", "Tongod", "Nabawan", "Tambunan", "Tuaran"],
   "sarawak": ["Kuching", "Miri", "Sibu", "Bintulu", "Limbang", "Sarikei", "Sri Aman", "Kapit", "Mukah", "Betong", "Lawas", "Marudi", "Song", "Kanowit", "Dalat", "Daro", "Matu", "Tatau", "Belaga", "Lubok Antu", "Engkilili", "Saratok"],
-  "selangor": ["Shah Alam", "Petaling Jaya", "Subang Jaya", "Klang", "Kajang", "Ampang", "Cheras", "Bandar Baru Bangi", "Puchong", "Seri Kembangan", "Damansara", "Cyberjaya", "Sepang", "Rawang", "Selayang", "Gombak", "Banting", "Jenjarom", "Morib", "Teluk Panglima Garang", "Bandar Saujana Putra", "Bandar Bukit Tinggi", "Semenyih", "Beranang", "Dengkil", "Hulu Langat", "Sungai Buloh", "Kota Damansara", "Bandar Sri Damansara", "Taman Tun Dr Ismail", "Bandar Utama", "Mutiara Damansara", "SS2", "Taman Paramount", "Taman Megah", "Kelana Jaya", "Ara Damansara", "Kota Kemuning", "Glenmarie", "Saujana", "Bandar Kinrara", "Bukit Jalil", "Sri Petaling", "OUG", "Happy Garden", "Taman Desa", "Bangsar South", "Mid Valley", "KL Sentral", "Brickfields", "Pudu", "Setia Alam", "Bandar Bukit Raja", "Meru", "Pandamaran", "Bandar Botanik", "Bandar Bukit Tinggi", "Balakong", "Serdang", "UPM", "Putra Heights", "Subang Bestari", "USJ", "Taipan", "Sunway", "Bandar Sunway", "PJ Old Town", "PJ New Town", "Section 14", "Section 17", "Damansara Utama", "Damansara Kim", "Damansara Jaya", "Taman Mayang", "Taman Medan", "Taman Paramount", "Kelana Centre Point", "Kelana Square", "Kelana Parkview", "SS15", "SS18", "SS19", "SS22", "SS24", "SS25", "Kota Emerald", "Bandar Putra Permai", "Seri Serdang", "Taman Equine", "Mines Resort", "Taman Tasik Prima", "Bandar Teknologi Kajang", "Bandar Sungai Long", "Batu 9 Cheras", "Taman Connaught", "Taman Midah", "Taman Shamelin", "Taman Len Sen", "Cheras Leisure Mall", "Mahkota Cheras", "Bandar Mahkota Cheras", "Alam Damai", "Cheras Perdana", "Balakong Jaya", "Taman Bukit Segar", "Taman Rakan"],
+  "selangor": ["Shah Alam", "Petaling Jaya", "Subang Jaya", "Klang", "Kajang", "Ampang", "Cheras", "Bandar Baru Bangi", "Puchong", "Seri Kembangan", "Damansara", "Cyberjaya", "Sepang", "Rawang", "Selayang", "Gombak", "Banting", "Jenjarom", "Morib", "Teluk Panglima Garang", "Bandar Saujana Putra", "Bandar Bukit Tinggi", "Semenyih", "Beranang", "Dengkil", "Hulu Langat", "Sungai Buloh", "Kota Damansara", "Bandar Sri Damansara", "Taman Tun Dr Ismail", "Bandar Utama", "Mutiara Damansara", "SS2", "Taman Paramount", "Taman Megah", "Kelana Jaya", "Ara Damansara", "Kota Kemuning", "Glenmarie", "Saujana", "Bandar Kinrara", "Bukit Jalil", "Sri Petaling", "OUG", "Happy Garden", "Taman Desa", "Bangsar South", "Mid Valley", "KL Sentral", "Brickfields", "Pudu", "Setia Alam", "Bandar Bukit Raja", "Meru", "Pandamaran", "Bandar Botanik", "Balakong", "Serdang", "UPM", "Putra Heights", "Subang Bestari", "USJ", "Taipan", "Sunway", "Bandar Sunway", "PJ Old Town", "PJ New Town", "Section 14", "Section 17", "Damansara Utama", "Damansara Kim", "Damansara Jaya", "Taman Mayang", "Taman Medan", "Kelana Centre Point", "Kelana Square", "Kelana Parkview", "SS15", "SS18", "SS19", "SS22", "SS24", "SS25", "Kota Emerald", "Bandar Putra Permai", "Seri Serdang", "Taman Equine", "Mines Resort", "Taman Tasik Prima", "Bandar Teknologi Kajang", "Bandar Sungai Long", "Batu 9 Cheras", "Taman Connaught", "Taman Midah", "Taman Shamelin", "Taman Len Sen", "Cheras Leisure Mall", "Mahkota Cheras", "Bandar Mahkota Cheras", "Alam Damai", "Cheras Perdana", "Balakong Jaya", "Taman Bukit Segar", "Taman Rakan"],
   "terengganu": ["Kuala Terengganu", "Kemaman", "Dungun", "Marang", "Besut", "Setiu", "Hulu Terengganu", "Jerteh", "Kuala Nerus", "Chukai", "Kerteh", "Paka", "Bandar Al-Muktafi Billah Shah", "Chendering", "Gong Badak", "Kampung Raja", "Merang", "Redang Island", "Perhentian Islands", "Rantau Abang"],
   "kuala-lumpur": ["Kuala Lumpur", "KLCC", "Bangsar", "Mont Kiara", "Desa Park City", "Damansara Heights", "Kenny Hills", "Taman Tun Dr Ismail", "Sentul", "Wangsa Maju", "Bukit Bintang", "Chow Kit", "Titiwangsa", "Segambut", "Setapak", "Kepong", "Batu Caves", "Setiawangsa", "Ampang Hilir", "Dutamas"],
   "labuan": ["Victoria", "Rancha-Rancha", "Pohon Batu", "Layang-Layangan", "Batu Manikar", "Ganggarak", "Kiamsam", "Patau-Patau", "Sungai Bedaun", "Sungai Lada", "Batu Arang", "Nagos", "Bukit Kalam", "Durian Tunjong", "Sungai Keling"],
   "putrajaya": ["Putrajaya", "Presint 1", "Presint 2", "Presint 3", "Presint 4", "Presint 5", "Presint 6", "Presint 7", "Presint 8", "Presint 9", "Presint 10", "Presint 11", "Presint 12", "Presint 13", "Presint 14", "Presint 15", "Presint 16", "Presint 17", "Presint 18", "Presint 19"]
+};
+
+// City to postcode mapping for Malaysian cities
+const MALAYSIAN_POSTCODES_BY_CITY = {
+  // Selangor postcodes
+  "shah-alam": ["40000", "40100", "40150", "40160", "40170", "40200", "40300", "40400", "40450", "40460", "40470", "40500", "40512", "40520", "40529", "40550", "40560", "40564", "40570", "40572", "40576", "40578", "40582", "40590", "40592", "40594", "40596", "40598", "40604", "40607", "40610", "40612", "40620", "40622", "40626", "40632", "40646", "40648", "40660", "40664", "40670", "40672", "40673", "40675", "40676", "40680", "40682", "40684", "40688", "40690", "40692", "40694", "40700", "40702", "40704", "40706", "40708", "40710", "40712", "40714", "40716", "40718", "40720", "40722", "40724", "40726", "40728", "40730", "40732", "40800", "40802", "40804", "40806", "40808", "40810", "40820", "40900", "40902", "40906", "40908", "40910", "40920", "40926", "40928", "40929", "40930", "40932", "40934", "40960", "40962", "40964", "40968", "40970", "40972", "40980", "40988", "40990", "40992", "40994", "40996", "40998"],
+  "petaling-jaya": ["46000", "46050", "46100", "46150", "46160", "46200", "46300", "46350", "46400", "46506", "46547", "46549", "46551", "46564", "46582", "46598", "46662", "46667", "46672", "46675", "46700", "46710", "46720", "46730", "46740", "46750", "46760", "46770", "46780", "46781", "46782", "46783", "46784", "46785", "46786", "46787", "46788", "46789", "46790", "46791", "46792", "46793", "46794", "46795", "46796", "46797", "46798", "46799", "46800", "46801", "46802", "46803", "46804", "46805", "46806", "46860", "46870", "46960", "46962", "46964", "46966", "46968", "46970", "46972", "46974", "46976", "46978", "46980", "46990", "46995", "47300", "47301", "47400", "47410", "47500", "47800", "47801", "47810", "47820", "47830"],
+  "subang-jaya": ["47500", "47600", "47610", "47620", "47630", "47640", "47650", "47800", "47810"],
+  "klang": ["41000", "41050", "41100", "41150", "41200", "41250", "41300", "41400", "41675", "41700", "41710", "41720", "41760", "41770", "41780", "41800", "41810", "41820", "41830", "41900", "41902", "41904", "41906", "41908", "41910", "41912", "41914", "41916", "41918", "41920", "41922", "41924", "41926", "41928", "41929", "41930", "41932", "41934", "41936", "41938", "41940", "41946", "41948", "41950", "41952", "41954", "41956", "41958", "41960", "41962", "41964", "41966", "41968", "41970", "41972", "41974", "41976", "41990", "41992", "41994", "41996", "41998"],
+  "kajang": ["43000", "43007", "43009", "43100", "43200", "43300", "43400", "43500", "43600", "43650", "43700", "43800", "43900", "43920", "43950"],
+  "ampang": ["68000"],
+  "cheras": ["43200", "43300", "56000", "56100"],
+  "bandar-baru-bangi": ["43650"],
+  "puchong": ["47100", "47120", "47130", "47140", "47160", "47170", "47180", "47190"],
+  "seri-kembangan": ["43300"],
+  "cyberjaya": ["63000"],
+  "sepang": ["64000"],
+  "rawang": ["48000", "48010", "48020", "48030", "48050"],
+  "selayang": ["68100"],
+  "gombak": ["53100"],
+  "banting": ["42700"],
+  "sungai-buloh": ["47000"],
+  
+  // Kuala Lumpur postcodes
+  "kuala-lumpur": ["50000", "50050", "50088", "50100", "50150", "50200", "50250", "50300", "50350", "50400", "50450", "50460", "50470", "50480", "50490", "50500", "50502", "50504", "50505", "50506", "50508", "50510", "50512", "50514", "50515", "50516", "50517", "50518", "50519", "50520", "50529", "50530", "50532", "50534", "50536", "50538", "50540", "50544", "50546", "50548", "50550", "50551", "50552", "50554", "50556", "50560", "50562", "50564", "50566", "50568", "50570", "50572", "50574", "50576", "50578", "50580", "50582", "50586", "50588", "50590", "50592", "50594", "50596", "50598", "50603", "50604", "50605", "50608", "50609", "50612", "50614", "50620", "50622", "50626", "50630", "50632", "50634", "50636", "50638", "50640", "50642", "50644", "50646", "50648", "50650", "50652", "50653", "50658", "50660", "50664", "50670", "50672", "50673", "50676", "50677", "50678", "50680", "50682", "50684", "50686", "50688", "50690", "50694", "50700", "50702", "50704", "50706", "50708", "50710", "50712", "50714", "50716", "50718", "50720", "50722", "50724", "50726", "50728", "50730", "50732", "50734", "50736", "50738", "50740", "50742", "50744", "50746", "50748", "50750", "50752", "50754", "50756", "50758", "50760", "50762", "50764", "50766", "50768", "50770", "50772", "50774", "50776", "50778", "50782", "50784", "50786", "50788", "50790", "50792", "50794", "50796", "50798", "50800", "50802", "50804", "50806", "50808", "50810", "50812", "50814", "50816", "50818", "50900", "50902", "50906", "50908", "50909", "50912", "50914", "50916", "50918", "50920", "50922", "50924", "50926", "50928", "50929", "50930", "50932", "50934", "50988", "50990", "50996", "51000", "51050", "51100", "51200", "52000", "52100", "52200", "53000", "53100", "53200", "53300", "54000", "55000", "56000", "57000", "58000", "59000", "60000"],
+  "klcc": ["50088", "50450"],
+  "bangsar": ["59000"],
+  "mont-kiara": ["50480"],
+  
+  // Johor postcodes
+  "johor-bahru": ["80000", "80100", "80150", "80200", "80250", "80300", "80350", "80400", "80500", "80990"],
+  "batu-pahat": ["83000", "83100", "83200", "83300", "83400", "83500", "83600", "83700", "83800", "83900"],
+  "muar": ["84000", "84007", "84009", "84100", "84200", "84300", "84400", "84500", "84600", "84700", "84800", "84900"],
+  
+  // Penang postcodes
+  "george-town": ["10000", "10050", "10100", "10150", "10200", "10250", "10300", "10350", "10400", "10450", "10460", "10470", "10500", "10502", "10503", "10504", "10505", "10506", "10508", "10512", "10514", "10516", "10518", "10520", "10530", "10532", "10534", "10536", "10538", "10540", "10542", "10544", "10546", "10548", "10550", "10551", "10552", "10554", "10556", "10558", "10560", "10564", "10566", "10570", "10576", "10578", "10582", "10590", "10592", "10594", "10596", "10600", "10604", "10609", "10612", "10620", "10622", "10626", "10628", "10630", "10632", "10634", "10636", "10638", "10640", "10642", "10644", "10646", "10648", "10650", "10660", "10670", "10672", "10673", "10675", "10676", "10690", "10692", "10700", "10710", "10720", "10730", "10740", "10750", "10760", "10770", "10780", "10790", "10800", "10810", "10820", "10830", "10840", "10850", "10860", "10900", "10910", "10920", "10930", "10990"],
+  "butterworth": ["12000", "12100", "12200", "12300", "12700", "12720"],
+  "bukit-mertajam": ["14000", "14007", "14020"],
+  
+  // Putrajaya postcodes
+  "putrajaya": ["62000", "62007", "62050", "62100", "62150", "62200", "62250", "62300", "62502", "62504", "62505", "62506", "62510", "62512", "62514", "62516", "62518", "62519", "62520", "62524", "62526", "62527", "62530", "62532", "62536", "62540", "62542", "62546", "62550", "62551", "62570", "62574", "62576", "62582", "62584", "62590", "62592", "62594", "62596", "62605", "62623", "62630", "62648", "62652", "62654", "62662", "62675", "62677", "62686", "62692", "62988", "62990", "62992", "62994", "62996", "62998"],
+  
+  // Default fallback for cities without specific mapping
+  "default": ["10000", "20000", "30000", "40000", "50000", "60000", "70000", "80000", "90000"]
 };
 
 const settingsMenuItems = [
@@ -1266,12 +1310,21 @@ export default function SystemSettingPage() {
 
   const handleInputChange = (field: string, value: string) => {
     setCompanyData(prev => {
-      // Clear city when state changes
+      // Clear city and postcode when state changes
       if (field === 'state') {
         return {
           ...prev,
           [field]: value,
-          city: '' // Reset city when state changes
+          city: '', // Reset city when state changes
+          postcode: '' // Reset postcode when state changes
+        };
+      }
+      // Clear postcode when city changes
+      if (field === 'city') {
+        return {
+          ...prev,
+          [field]: value,
+          postcode: '' // Reset postcode when city changes
         };
       }
       return {
@@ -2613,14 +2666,21 @@ export default function SystemSettingPage() {
 
             <div className="space-y-2">
               <Label htmlFor="postcode" className="text-sm font-medium">Postcode</Label>
-              <Select value={companyData.postcode} onValueChange={(value) => handleInputChange('postcode', value)}>
+              <Select 
+                value={companyData.postcode} 
+                onValueChange={(value) => handleInputChange('postcode', value)}
+                disabled={!companyData.city}
+              >
                 <SelectTrigger data-testid="select-postcode">
-                  <SelectValue />
+                  <SelectValue placeholder={companyData.city ? "Select postcode" : "Select city first"} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="43650">43650</SelectItem>
-                  <SelectItem value="43000">43000</SelectItem>
-                  <SelectItem value="62000">62000</SelectItem>
+                  {companyData.city && (
+                    MALAYSIAN_POSTCODES_BY_CITY[companyData.city as keyof typeof MALAYSIAN_POSTCODES_BY_CITY] || 
+                    MALAYSIAN_POSTCODES_BY_CITY.default
+                  )?.map((postcode) => (
+                    <SelectItem key={postcode} value={postcode}>{postcode}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
