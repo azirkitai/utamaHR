@@ -455,38 +455,39 @@ export default function DashboardHome() {
     <DashboardLayout>
       <div className="p-6 space-y-6">
         {/* Welcome Hero Section */}
-        <div className="relative bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 rounded-2xl p-8 text-white overflow-hidden pt-[4px] pb-[4px]">
+        <div className="relative bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 rounded-2xl p-4 sm:p-6 lg:p-8 text-white overflow-hidden">
           <div className="relative z-10">
-            <div className="flex justify-between items-start">
-              <div className="pt-[79px] pb-[79px] text-[48px] font-semibold">
-                <h1 className="text-5xl font-bold mt-[-7px] mb-[-7px]" data-testid="text-welcome">
+            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 lg:gap-8">
+              {/* Welcome Text - Mobile First Design */}
+              <div className="flex-1 text-center lg:text-left py-4 lg:py-16">
+                <h1 className="text-2xl sm:text-3xl lg:text-5xl font-bold mb-1 lg:mb-2" data-testid="text-welcome">
                   Hey,
                 </h1>
-                <h2 className="font-bold text-cyan-100 mt-[-4px] mb-[-4px] text-[56px]">
+                <h2 className="font-bold text-cyan-100 text-2xl sm:text-3xl lg:text-5xl mb-1 lg:mb-2">
                   {getGreeting()}
                 </h2>
-                <h3 className="font-semibold text-[44px] mt-[-11px] mb-[-11px]">
+                <h3 className="font-semibold text-xl sm:text-2xl lg:text-4xl mb-2 lg:mb-4 break-words">
                   {userName.toUpperCase()}!
                 </h3>
-                <p className="text-cyan-100 text-2xl">
+                <p className="text-cyan-100 text-sm sm:text-base lg:text-xl leading-relaxed">
                   We are delighted to have you here today.
                 </p>
               </div>
               
-              {/* UTAMA Medgroup Image */}
-              <div className="min-w-[300px] flex justify-center items-center">
+              {/* UTAMA Medgroup Image - Responsive */}
+              <div className="flex justify-center items-center lg:min-w-[280px] lg:max-w-[350px]">
                 <img 
                   src={utamaMedgroupImage} 
                   alt="UTAMA Medgroup - Panel Klinik" 
-                  className="w-full max-w-sm h-auto object-contain"
+                  className="w-48 sm:w-64 lg:w-full max-w-sm h-auto object-contain"
                 />
               </div>
             </div>
           </div>
           
-          {/* Decorative elements */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32"></div>
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-24 -translate-x-24"></div>
+          {/* Decorative elements - Hidden on mobile for cleaner look */}
+          <div className="hidden lg:block absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32"></div>
+          <div className="hidden lg:block absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-24 -translate-x-24"></div>
         </div>
 
         {/* Today Statistics - Only visible to privileged users */}
