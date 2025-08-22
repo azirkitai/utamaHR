@@ -2543,10 +2543,22 @@ export default function SystemSettingPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="selangor">Selangor</SelectItem>
-                  <SelectItem value="kuala-lumpur">Kuala Lumpur</SelectItem>
                   <SelectItem value="johor">Johor</SelectItem>
+                  <SelectItem value="kedah">Kedah</SelectItem>
+                  <SelectItem value="kelantan">Kelantan</SelectItem>
+                  <SelectItem value="malacca">Malacca</SelectItem>
+                  <SelectItem value="negeri-sembilan">Negeri Sembilan</SelectItem>
+                  <SelectItem value="pahang">Pahang</SelectItem>
+                  <SelectItem value="perak">Perak</SelectItem>
+                  <SelectItem value="perlis">Perlis</SelectItem>
                   <SelectItem value="penang">Penang</SelectItem>
+                  <SelectItem value="sabah">Sabah</SelectItem>
+                  <SelectItem value="sarawak">Sarawak</SelectItem>
+                  <SelectItem value="selangor">Selangor</SelectItem>
+                  <SelectItem value="terengganu">Terengganu</SelectItem>
+                  <SelectItem value="kuala-lumpur">Kuala Lumpur</SelectItem>
+                  <SelectItem value="labuan">Labuan</SelectItem>
+                  <SelectItem value="putrajaya">Putrajaya</SelectItem>
                 </SelectContent>
               </Select>
             </div>
