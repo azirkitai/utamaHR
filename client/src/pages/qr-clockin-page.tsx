@@ -449,7 +449,7 @@ export default function QRClockInPage() {
                       <div className="inline-block p-4 bg-white border-2 border-gray-200 rounded-lg shadow-sm">
                         <img 
                           src={qrCodeDataUrl} 
-                          alt={attendanceStatus?.needsClockOut ? "QR Code untuk Clock-Out" : "QR Code untuk Clock-In"} 
+                          alt={attendanceStatus?.needsClockOut ? "QR Code for Clock-Out" : "QR Code for Clock-In"} 
                           className="w-64 h-64 mx-auto"
                           data-testid="qr-code-image"
                         />
@@ -461,13 +461,13 @@ export default function QRClockInPage() {
                   <div className="text-center">
                     <div className="flex items-center justify-center gap-2 mb-2">
                       <Clock className="h-4 w-4 text-amber-600" />
-                      <span className="text-sm text-gray-600">Masa tinggal:</span>
+                      <span className="text-sm text-gray-600">Time remaining:</span>
                       <Badge variant="outline" className="font-mono text-lg px-3 py-1">
                         {formatTime(timeRemaining)}
                       </Badge>
                     </div>
                     <p className="text-xs text-gray-500">
-                      QR Code akan expired secara automatik
+                      QR Code will expire automatically
                     </p>
                   </div>
 
@@ -481,7 +481,7 @@ export default function QRClockInPage() {
                       data-testid="button-regenerate-qr"
                     >
                       <RefreshCw className="mr-2 h-3 w-3" />
-                      Jana QR Baharu
+                      Generate New QR
                     </Button>
                   </div>
                 </div>
@@ -507,7 +507,7 @@ export default function QRClockInPage() {
                   </div>
                   <div>
                     <p className="font-medium text-blue-800">Generate QR Code</p>
-                    <p className="text-blue-600 text-sm">Klik butang "Generate QR Code Baharu" di atas</p>
+                    <p className="text-blue-600 text-sm">Click "Generate New QR Code" button di atas</p>
                   </div>
                 </div>
 
@@ -517,7 +517,7 @@ export default function QRClockInPage() {
                   </div>
                   <div>
                     <p className="font-medium text-blue-800">Scan with Phone</p>
-                    <p className="text-blue-600 text-sm">Use phone camera untuk scan QR Code (tidak perlu aplikasi khas)</p>
+                    <p className="text-blue-600 text-sm">Use phone camera to scan QR Code (no special app required)</p>
                   </div>
                 </div>
 
@@ -527,7 +527,7 @@ export default function QRClockInPage() {
                   </div>
                   <div>
                     <p className="font-medium text-blue-800">Ambil Selfie & GPS</p>
-                    <p className="text-blue-600 text-sm">Di halaman mobile, ambil selfie dan benarkan akses lokasi</p>
+                    <p className="text-blue-600 text-sm">On mobile page, take selfie and allow location access</p>
                   </div>
                 </div>
 
@@ -536,8 +536,8 @@ export default function QRClockInPage() {
                     4
                   </div>
                   <div>
-                    <p className="font-medium text-blue-800">Clock-In/Out Berjaya</p>
-                    <p className="text-blue-600 text-sm">Sistem akan validkan lokasi dan automatik detect clock-in atau clock-out</p>
+                    <p className="font-medium text-blue-800">Clock-In/Out Successful</p>
+                    <p className="text-blue-600 text-sm">System will validate location and automatically detect clock-in atau clock-out</p>
                   </div>
                 </div>
 
@@ -547,10 +547,10 @@ export default function QRClockInPage() {
                     <div>
                       <p className="text-amber-800 text-sm font-medium">Nota Penting:</p>
                       <ul className="text-amber-700 text-xs mt-1 space-y-1">
-                        <li>• QR Code valid selama 2 minit validaja</li>
+                        <li>• QR Code valid for 2 minutes only</li>
                         <li>• Each QR Code hanya boleh used sekali</li>
-                        <li>• Sistem automatik detect clock-in atau clock-out</li>
-                        <li>• Employee mesti berada dalam radius 50m dari pejabat</li>
+                        <li>• System automatically detects clock-in or clock-out</li>
+                        <li>• Employee must be within 50m radius from office</li>
                         <li>• Selfie dan lokasi GPS wajib untuk pengevalidan</li>
                       </ul>
                     </div>
@@ -570,9 +570,9 @@ export default function QRClockInPage() {
                   <Clock className="h-6 w-6 text-green-600" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl text-gray-800">Sejarah Kehadiran</CardTitle>
+                  <CardTitle className="text-xl text-gray-800">Attendance History</CardTitle>
                   <CardDescription>
-                    Rekod clock-in dan clock-out pekerja menggunakan sistem QR Code
+                    Employee clock-in and clock-out records using QR Code system
                   </CardDescription>
                 </div>
               </div>
@@ -591,9 +591,9 @@ export default function QRClockInPage() {
                   <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
                     <Clock className="h-8 w-8 text-gray-400" />
                   </div>
-                  <p className="text-gray-600 mb-2">Tiada rekod clock-in</p>
+                  <p className="text-gray-600 mb-2">No clock-in records</p>
                   <p className="text-gray-500 text-sm">
-                    Gunakan sistem QR Code untuk memulakan clock-in pertama
+                    Use QR Code system to start your first clock-in
                   </p>
                 </div>
               ) : (
@@ -625,7 +625,7 @@ export default function QRClockInPage() {
                         <div className="text-right">
                           {record.totalHours && (
                             <Badge variant="outline" className="text-xs">
-                              {record.totalHours} jam
+                              {record.totalHours} hours
                             </Badge>
                           )}
                         </div>
@@ -670,7 +670,7 @@ export default function QRClockInPage() {
                                   variant={record.clockInLocationStatus === "valid" ? "secondary" : "destructive"}
                                   className="text-xs"
                                 >
-                                  {record.clockInLocationStatus === "valid" ? "Lokasi Sah" : "Lokasi Tidak Sah"}
+                                  {record.clockInLocationStatus === "valid" ? "Valid Location" : "Invalid Location"}
                                 </Badge>
                               )}
                               {record.clockInLatitude && record.clockInLongitude && (
@@ -682,12 +682,12 @@ export default function QRClockInPage() {
                               {record.clockInImage && (
                                 <div className="text-xs text-gray-500">
                                   <Camera className="h-3 w-3 inline mr-1" />
-                                  Selfie tersimpan
+                                  Selfie saved
                                 </div>
                               )}
                             </div>
                           ) : (
-                            <p className="pl-6 text-sm text-gray-400">Belum clock-in</p>
+                            <p className="pl-6 text-sm text-gray-400">Not clocked in yet</p>
                           )}
                         </div>
 
@@ -729,7 +729,7 @@ export default function QRClockInPage() {
                                   variant={record.clockOutLocationStatus === "valid" ? "secondary" : "destructive"}
                                   className="text-xs"
                                 >
-                                  {record.clockOutLocationStatus === "valid" ? "Lokasi Sah" : "Lokasi Tidak Sah"}
+                                  {record.clockOutLocationStatus === "valid" ? "Valid Location" : "Invalid Location"}
                                 </Badge>
                               )}
                               {record.clockOutLatitude && record.clockOutLongitude && (
@@ -741,12 +741,12 @@ export default function QRClockInPage() {
                               {record.clockOutImage && (
                                 <div className="text-xs text-gray-500">
                                   <Camera className="h-3 w-3 inline mr-1" />
-                                  Selfie tersimpan
+                                  Selfie saved
                                 </div>
                               )}
                             </div>
                           ) : (
-                            <p className="pl-6 text-sm text-gray-400">Belum clock-out</p>
+                            <p className="pl-6 text-sm text-gray-400">Not clocked out yet</p>
                           )}
                         </div>
 
@@ -754,7 +754,7 @@ export default function QRClockInPage() {
                         <div className="space-y-2 col-span-full mt-4 border-t pt-4">
                           <div className="flex items-center gap-2 text-sm font-medium text-blue-700">
                             <Clock className="h-4 w-4" />
-                            Break-In (Balik dari Rehat)
+                            Break Return (Back from Break)
                           </div>
                           {(record as any).breakInTime ? (
                             <div className="pl-6 space-y-1">
@@ -786,12 +786,12 @@ export default function QRClockInPage() {
                               {(record as any).breakInImage && (
                                 <div className="text-xs text-gray-500">
                                   <Camera className="h-3 w-3 inline mr-1" />
-                                  Selfie tersimpan
+                                  Selfie saved
                                 </div>
                               )}
                             </div>
                           ) : (
-                            <p className="pl-6 text-sm text-gray-400">Belum break-in</p>
+                            <p className="pl-6 text-sm text-gray-400">Not break-in yet</p>
                           )}
                         </div>
                       </div>
