@@ -755,13 +755,13 @@ export class DatabaseStorage implements IStorage {
 
   // =================== CONTACT METHODS ===================
   async getContactByEmployeeId(employeeId: string): Promise<Contact | undefined> {
-    const [record] = await db.select().from(contact).where(eq(contact.employeeId, employeeId));
+    const [record] = await db.select().from(employeeContacts).where(eq(employeeContacts.employeeId, employeeId));
     return record || undefined;
   }
 
   async createContact(insertContact: InsertContact): Promise<Contact> {
     const [record] = await db
-      .insert(contact)
+      .insert(employeeContacts)
       .values(insertContact)
       .returning();
     return record;
@@ -769,12 +769,12 @@ export class DatabaseStorage implements IStorage {
 
   async updateContact(id: string, updateContact: UpdateContact): Promise<Contact | undefined> {
     const [record] = await db
-      .update(contact)
+      .update(employeeContacts)
       .set({
         ...updateContact,
         updatedAt: new Date()
       })
-      .where(eq(contact.id, id))
+      .where(eq(employeeContacts.id, id))
       .returning();
     return record || undefined;
   }
@@ -811,13 +811,13 @@ export class DatabaseStorage implements IStorage {
 
   // =================== COMPENSATION METHODS ===================
   async getCompensation(employeeId: string): Promise<Compensation | undefined> {
-    const [record] = await db.select().from(compensation).where(eq(compensation.employeeId, employeeId));
+    const [record] = await db.select().from(employeeCompensation).where(eq(employeeCompensation.employeeId, employeeId));
     return record || undefined;
   }
 
   async createCompensation(insertCompensation: InsertCompensation): Promise<Compensation> {
     const [record] = await db
-      .insert(compensation)
+      .insert(employeeCompensation)
       .values(insertCompensation)
       .returning();
     return record;
@@ -825,12 +825,12 @@ export class DatabaseStorage implements IStorage {
 
   async updateCompensation(employeeId: string, updateCompensation: UpdateCompensation): Promise<Compensation | undefined> {
     const [record] = await db
-      .update(compensation)
+      .update(employeeCompensation)
       .set({
         ...updateCompensation,
         updatedAt: new Date()
       })
-      .where(eq(compensation.employeeId, employeeId))
+      .where(eq(employeeCompensation.employeeId, employeeId))
       .returning();
     return record || undefined;
   }
