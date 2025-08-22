@@ -2835,13 +2835,13 @@ export default function SystemSettingPage() {
   const handleSaveNewDepartment = () => {
     if (newDepartmentForm.name && newDepartmentForm.code) {
       const newDepartment = {
-        id: departments.length + 1,
+        id: localDepartments.length + 1,
         name: newDepartmentForm.name,
         code: newDepartmentForm.code,
         employeeCount: 0,
         employees: []
       };
-      setDepartments([...departments, newDepartment]);
+      setLocalDepartments([...localDepartments, newDepartment]);
       setShowAddDepartmentDialog(false);
     }
   };
