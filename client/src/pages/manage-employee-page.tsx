@@ -19,7 +19,6 @@ import {
   Trash2,
   Eye,
   Download,
-  Upload,
   ChevronDown,
   FileText,
   AlertTriangle,
@@ -39,8 +38,6 @@ export default function ManageEmployeePage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("active");
   const [isAddEmployeeOpen, setIsAddEmployeeOpen] = useState(false);
-  const [isImportOpen, setIsImportOpen] = useState(false);
-  
   // Form states
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -53,7 +50,6 @@ export default function ManageEmployeePage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [userRole, setUserRole] = useState("");
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   
   const { toast } = useToast();
   
@@ -288,84 +284,7 @@ export default function ManageEmployeePage() {
     });
   };
 
-  const handleImportFile = () => {
-    if (selectedFile) {
-      console.log("Importing file:", selectedFile.name);
-      // Import logic here
-      setSelectedFile(null);
-      setIsImportOpen(false);
-    }
-  };
-
-  const downloadTemplate = async () => {
-    try {
-      console.log("Downloading template");
-      
-      // Get token from localStorage for proper JWT authentication
-      const token = localStorage.getItem('utamahr_token');
-      if (!token) {
-        toast({
-          title: "Authentication Required",
-          description: "Sila log masuk semula",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      // Call API to download Excel template with proper JWT authentication
-      const response = await fetch('/api/download-staff-template', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        if (response.status === 403) {
-          toast({
-            title: "Akses Ditolak",
-            description: "Hanya admin yang dibenarkan untuk download template",
-            variant: "destructive",
-          });
-          return;
-        }
-        throw new Error('Gagal download template');
-      }
-
-      // Get the blob from response
-      const blob = await response.blob();
-      
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = 'Staff_Import_Template.xlsx';
-      
-      // Trigger download
-      document.body.appendChild(a);
-      a.click();
-      
-      // Cleanup
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      
-      toast({
-        title: "Template Downloaded",
-        description: "Template Excel untuk import staff telah dimuat turun",
-        variant: "default",
-      });
-      
-    } catch (error) {
-      console.error("Download template error:", error);
-      toast({
-        title: "Download Gagal",
-        description: "Gagal memuat turun template Excel",
-        variant: "destructive",
-      });
-    }
-  };
+  
 
   const downloadEmployeePDF = async () => {
     try {
@@ -677,93 +596,6 @@ export default function ManageEmployeePage() {
                           data-testid="button-add-staff"
                         >
                           {createStaffMutation.isPending ? "Adding..." : "Add Staff"}
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button 
-                        className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700 text-white"
-                        data-testid="button-export-staff"
-                      >
-                        Export Staff
-                        <ChevronDown className="w-4 h-4 ml-2" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => console.log("Export Excel")}>
-                        <FileText className="w-4 h-4 mr-2" />
-                        Download as Excel
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={downloadEmployeePDF}>
-                        <FileText className="w-4 h-4 mr-2" />
-                        Download as PDF
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-
-                  <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
-                    <DialogTrigger asChild>
-                      <Button 
-                        className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700 text-white"
-                        data-testid="button-import-staff"
-                      >
-                        Import Staff
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Import Staff Excel/CSV</DialogTitle>
-                      </DialogHeader>
-                      
-                      <div className="space-y-4">
-                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                          <input
-                            type="file"
-                            accept=".xlsx,.xls,.csv"
-                            onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                            className="hidden"
-                            id="file-upload"
-                          />
-                          <label htmlFor="file-upload" className="cursor-pointer">
-                            <Upload className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-                            <div className="text-sm text-gray-600">
-                              {selectedFile ? selectedFile.name : "Choose file"}
-                            </div>
-                            <div className="text-xs text-red-500 mt-1">
-                              {selectedFile ? "" : "No file chosen"}
-                            </div>
-                          </label>
-                        </div>
-                        
-                        <div className="text-xs text-gray-500">
-                          <div>📋 Limit to 5 MB size.</div>
-                          <button 
-                            onClick={downloadTemplate}
-                            className="text-blue-600 hover:underline"
-                          >
-                            📥 Download Template
-                          </button>
-                        </div>
-                      </div>
-                      
-                      <DialogFooter className="gap-2">
-                        <Button 
-                          variant="outline" 
-                          onClick={() => setIsImportOpen(false)}
-                          data-testid="button-cancel-import"
-                        >
-                          Cancel
-                        </Button>
-                        <Button 
-                          onClick={handleImportFile}
-                          disabled={!selectedFile}
-                          className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700"
-                          data-testid="button-upload"
-                        >
-                          Upload
                         </Button>
                       </DialogFooter>
                     </DialogContent>
