@@ -378,8 +378,7 @@ export default function ManageEmployeePage() {
           {/* Helper Text */}
           <div className="mb-6">
             <p className="text-gray-600">
-              Use this page to add, edit, or manage your company staff information. 
-              You can also export and import staff data in bulk.
+              Use this page to add, edit, or manage your company staff information.
             </p>
           </div>
 
@@ -557,7 +556,7 @@ export default function ManageEmployeePage() {
                           {hasPasswordMismatch && (
                             <div className="flex items-center gap-2 mt-2 text-red-600 text-sm" data-testid="password-mismatch-warning">
                               <AlertTriangle className="w-4 h-4" />
-                              <span>Password dan Confirm Password tidak sama</span>
+                              <span>Passwords do not match</span>
                             </div>
                           )}
                         </div>
