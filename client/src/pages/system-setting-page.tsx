@@ -52,6 +52,7 @@ import { cn } from "@/lib/utils";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import type { FinancialClaimPolicy, InsertFinancialClaimPolicy } from "@shared/schema";
 
 // Malaysian states and their cities mapping
@@ -602,6 +603,7 @@ const overtimePolicies = [
 export default function SystemSettingPage() {
   const [location] = useLocation();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("leave");
   const [claimActiveTab, setClaimActiveTab] = useState("financial");
   
@@ -5791,6 +5793,15 @@ export default function SystemSettingPage() {
     </div>
   );
 
+  // Filter settings menu items based on user role
+  const filteredSettingsMenuItems = settingsMenuItems.filter(item => {
+    // Hide Role Configuration for non-Super Admin users
+    if (item.id === "role-configuration") {
+      return user?.role === "Super Admin";
+    }
+    return true;
+  });
+
   return (
     <DashboardLayout>
       <div className="flex h-screen">
@@ -5813,7 +5824,7 @@ export default function SystemSettingPage() {
             
             <div className="bg-gray-50 border border-gray-200 rounded-b-lg">
               <nav className="py-2">
-                {settingsMenuItems.map((item) => (
+                {filteredSettingsMenuItems.map((item) => (
                   <RouterLink key={item.id} href={item.href}>
                     <button
                       className={cn(
