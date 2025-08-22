@@ -825,6 +825,8 @@ export default function SystemSettingPage() {
 
   // Department states
   const [showAddDepartmentDialog, setShowAddDepartmentDialog] = useState(false);
+  const [expandedDepartments, setExpandedDepartments] = useState<number[]>([]);
+  const [editingDepartment, setEditingDepartment] = useState<number | null>(null);
   const [newDepartmentForm, setNewDepartmentForm] = useState({
     name: "",
     code: "",
@@ -835,24 +837,46 @@ export default function SystemSettingPage() {
       name: "Human Resource",
       code: "HR",
       employeeCount: 2,
+      employees: [
+        { id: "emp1", name: "John Doe", position: "HR Manager" },
+        { id: "emp2", name: "Jane Smith", position: "HR Assistant" }
+      ]
     },
     {
       id: 2,
       name: "Information Technology",
       code: "IT",
       employeeCount: 5,
+      employees: [
+        { id: "emp3", name: "Mike Johnson", position: "Software Developer" },
+        { id: "emp4", name: "Sarah Wilson", position: "System Administrator" },
+        { id: "emp5", name: "David Chen", position: "DevOps Engineer" },
+        { id: "emp6", name: "Lisa Park", position: "UI/UX Designer" },
+        { id: "emp7", name: "Tom Brown", position: "Database Administrator" }
+      ]
     },
     {
       id: 3,
       name: "Finance & Accounting",
       code: "FA",
       employeeCount: 3,
+      employees: [
+        { id: "emp8", name: "Amanda Lee", position: "Finance Manager" },
+        { id: "emp9", name: "Robert Taylor", position: "Accountant" },
+        { id: "emp10", name: "Emma Davis", position: "Finance Assistant" }
+      ]
     },
     {
       id: 4,
       name: "Marketing",
       code: "MKT",
       employeeCount: 4,
+      employees: [
+        { id: "emp11", name: "Chris Martinez", position: "Marketing Manager" },
+        { id: "emp12", name: "Jennifer White", position: "Digital Marketing Specialist" },
+        { id: "emp13", name: "Kevin Zhang", position: "Content Creator" },
+        { id: "emp14", name: "Maria Garcia", position: "Social Media Specialist" }
+      ]
     },
   ]);
 
@@ -2687,9 +2711,38 @@ export default function SystemSettingPage() {
         name: newDepartmentForm.name,
         code: newDepartmentForm.code,
         employeeCount: 0,
+        employees: []
       };
       setDepartments([...departments, newDepartment]);
       setShowAddDepartmentDialog(false);
+    }
+  };
+
+  // Department expansion handlers
+  const handleToggleDepartmentExpansion = (departmentId: number) => {
+    setExpandedDepartments(prev => 
+      prev.includes(departmentId) 
+        ? prev.filter(id => id !== departmentId)
+        : [...prev, departmentId]
+    );
+  };
+
+  const handleEditDepartmentName = (departmentId: number) => {
+    setEditingDepartment(departmentId);
+  };
+
+  const handleSaveDepartmentName = (departmentId: number, newName: string) => {
+    setDepartments(prev => prev.map(dept => 
+      dept.id === departmentId ? { ...dept, name: newName } : dept
+    ));
+    setEditingDepartment(null);
+  };
+
+  const handleDeleteDepartment = (departmentId: number) => {
+    if (window.confirm("Are you sure you want to delete this department? This action cannot be undone.")) {
+      setDepartments(prev => prev.filter(dept => dept.id !== departmentId));
+      // Also remove from expanded departments if it was expanded
+      setExpandedDepartments(prev => prev.filter(id => id !== departmentId));
     }
   };
 
@@ -5093,29 +5146,131 @@ export default function SystemSettingPage() {
       {/* Department List */}
       <div className="bg-white rounded-lg border">
         <div className="divide-y">
-          {departments.map((department) => (
-            <div key={department.id} className="p-4 flex items-center justify-between">
-              <div>
-                <h4 className="font-medium text-gray-900">{department.name}</h4>
-                <p className="text-sm text-gray-500">{department.employeeCount} Employee(s)</p>
+          {departments.map((department) => {
+            const isExpanded = expandedDepartments.includes(department.id);
+            const isEditing = editingDepartment === department.id;
+            
+            return (
+              <div key={department.id} className="p-4">
+                {/* Main Department Row */}
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    {isEditing ? (
+                      <div className="flex items-center space-x-2">
+                        <Input
+                          value={department.name}
+                          onChange={(e) => {
+                            const newName = e.target.value;
+                            setDepartments(prev => prev.map(dept => 
+                              dept.id === department.id ? { ...dept, name: newName } : dept
+                            ));
+                          }}
+                          className="font-medium text-gray-900 w-64"
+                          data-testid={`input-edit-department-${department.id}`}
+                        />
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => {
+                            handleSaveDepartmentName(department.id, department.name);
+                          }}
+                          data-testid={`button-save-department-${department.id}`}
+                        >
+                          Save
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="ghost"
+                          onClick={() => setEditingDepartment(null)}
+                          data-testid={`button-cancel-edit-department-${department.id}`}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    ) : (
+                      <div>
+                        <h4 className="font-medium text-gray-900">{department.name}</h4>
+                        <p className="text-sm text-gray-500">{department.employeeCount} Employee(s)</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="text-cyan-600 hover:text-cyan-700"
+                      onClick={() => handleToggleDepartmentExpansion(department.id)}
+                      data-testid={`button-see-more-${department.id}`}
+                    >
+                      {isExpanded ? 'See Less' : 'See More'}
+                    </Button>
+                    <Switch 
+                      defaultChecked={true}
+                      className="data-[state=checked]:bg-blue-900"
+                      data-testid={`switch-department-${department.id}`}
+                    />
+                  </div>
+                </div>
+
+                {/* Expanded Content */}
+                {isExpanded && (
+                  <div className="mt-4 pt-4 border-t space-y-4">
+                    {/* Department Actions */}
+                    <div className="flex items-center space-x-3">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleEditDepartmentName(department.id)}
+                        data-testid={`button-edit-department-${department.id}`}
+                      >
+                        <Edit2 className="w-4 h-4 mr-2" />
+                        Edit Name
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        className="text-red-600 border-red-600 hover:bg-red-50"
+                        onClick={() => handleDeleteDepartment(department.id)}
+                        data-testid={`button-delete-department-${department.id}`}
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete
+                      </Button>
+                    </div>
+
+                    {/* Employee List */}
+                    <div>
+                      <h5 className="font-medium text-gray-900 mb-3">Department Employees</h5>
+                      {department.employees && department.employees.length > 0 ? (
+                        <div className="bg-gray-50 rounded-lg p-4">
+                          <div className="grid gap-3">
+                            {department.employees.map((employee, index) => (
+                              <div 
+                                key={employee.id} 
+                                className="flex items-center justify-between p-3 bg-white rounded border"
+                                data-testid={`employee-item-${employee.id}`}
+                              >
+                                <div>
+                                  <p className="font-medium text-gray-900">{employee.name}</p>
+                                  <p className="text-sm text-gray-500">{employee.position}</p>
+                                </div>
+                                <div className="w-2 h-2 bg-green-500 rounded-full" title="Active Employee"></div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-gray-50 rounded-lg p-4 text-center">
+                          <Users className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-gray-500">No employees assigned to this department</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="flex items-center space-x-3">
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  className="text-cyan-600 hover:text-cyan-700"
-                  data-testid={`button-see-more-${department.id}`}
-                >
-                  See More
-                </Button>
-                <Switch 
-                  defaultChecked={true}
-                  className="data-[state=checked]:bg-blue-900"
-                  data-testid={`switch-department-${department.id}`}
-                />
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
