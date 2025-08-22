@@ -277,24 +277,24 @@ export function Sidebar({ isCollapsed, onToggleCollapse }: SidebarProps) {
     <div
       className={cn(
         "bg-gradient-to-b from-slate-900 via-blue-900 to-cyan-800 text-white transition-all duration-300 ease-in-out flex flex-col h-full",
-        isCollapsed ? "w-16" : "w-64"
+        isCollapsed ? "w-16" : "w-60 sm:w-64"
       )}
     >
       {/* Header */}
-      <div className="p-4 border-b border-slate-700 relative">
+      <div className="p-3 md:p-4 border-b border-slate-700 relative">
         <div className="flex items-center justify-center">
           {!isCollapsed && (
             <img 
               src={utamaHRLogo} 
               alt="UTAMA Human Resources" 
-              className="w-48 h-auto object-contain md:w-48 sm:w-40"
+              className="w-36 md:w-48 h-auto object-contain"
             />
           )}
           {isCollapsed && (
             <img 
               src={utamaHRLogo} 
               alt="UTAMA HR" 
-              className="w-10 h-auto object-contain"
+              className="w-8 md:w-10 h-auto object-contain"
             />
           )}
         </div>
