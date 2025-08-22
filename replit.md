@@ -5,6 +5,8 @@ UtamaHR is a comprehensive HR Management System built with React, TypeScript, an
 
 **NEW FEATURE COMPLETED (August 2025)**: Auto-logout security system implemented - users are automatically logged out after 10 minutes of inactivity with 2-minute warning notification. This enhances security compliance and prevents unauthorized access to sensitive HR data.
 
+**SECURITY ENHANCEMENT COMPLETED (August 2025)**: Role Configuration menu access now restricted to Super Admin users only. Non-Super Admin users (Admin, HR Manager, Finance, Staff/Employee) can no longer see or access the Role Configuration option in System Settings, ensuring proper security controls for user role management functionality.
+
 # User Preferences
 Preferred communication style: Simple, everyday language.
 

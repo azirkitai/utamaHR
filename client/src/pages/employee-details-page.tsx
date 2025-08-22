@@ -1935,7 +1935,7 @@ export default function EmployeeDetailsPage() {
                           <Label className="text-sm font-medium text-gray-700 block">Company</Label>
                           <div className="mt-1 p-2 bg-gray-100 rounded border border-gray-300">
                             <span className="text-gray-700 font-medium">
-                              {companySettings?.companyName || "Name syarikat belum ditetapkan"}
+                              {companySettings?.companyName || "Company name not set"}
                             </span>
                           </div>
                         </div>
