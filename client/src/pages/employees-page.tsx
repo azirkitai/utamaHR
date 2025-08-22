@@ -50,11 +50,11 @@ import { Link } from "wouter";
 import { insertEmployeeSchema, updateEmployeeSchema, Employee, InsertEmployee, UpdateEmployee } from "@shared/schema";
 import { z } from "zod";
 
-// Custom fetch function dengan JWT token
+// Custom fetch function with JWT token
 const authenticatedFetch = async (url: string, options: RequestInit = {}): Promise<any> => {
   const token = localStorage.getItem("utamahr_token");
   if (!token) {
-    throw new Error("Token tidak ditemui");
+    throw new Error("Token not found");
   }
 
   const response = await fetch(url, {
@@ -70,7 +70,7 @@ const authenticatedFetch = async (url: string, options: RequestInit = {}): Promi
     if (response.status === 401 || response.status === 403) {
       localStorage.removeItem("utamahr_token");
       window.location.href = "/auth";
-      throw new Error("Token tidak valid");
+      throw new Error("Token not valid");
     }
     const errorData = await response.json();
     throw new Error(errorData.error || `HTTP ${response.status}`);
@@ -220,7 +220,7 @@ export default function EmployeesPage() {
   };
 
   const handleDeleteEmployee = (id: string) => {
-    if (confirm("Adakah anda pasti mahu menghapuskan pekerja ini?")) {
+    if (confirm("Are you sure you want to delete this employee?")) {
       deleteEmployeeMutation.mutate(id);
     }
   };
@@ -242,10 +242,10 @@ export default function EmployeesPage() {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h2 className="text-2xl font-bold text-gray-900" data-testid="text-employees-title">
-              Pengurusan Employee
+              Employee Management
             </h2>
             <p className="text-gray-600" data-testid="text-employees-count">
-              {employees ? `${employees.length} pekerja didaftarkan` : 'Memuat...'}
+              {employees ? `${employees.length} employees registered` : 'Loading...'}
             </p>
           </div>
 
@@ -253,14 +253,14 @@ export default function EmployeesPage() {
             <DialogTrigger asChild>
               <Button data-testid="button-add-employee">
                 <Plus className="w-4 h-4 mr-2" />
-                Tambah Employee
+                Add Employee
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
-                <DialogTitle>Tambah Employee Baru</DialogTitle>
+                <DialogTitle>Add New Employee</DialogTitle>
                 <DialogDescription>
-                  Masukkan maklumat pekerja baru untuk didaftarkan ke dalam sistem.
+                  Enter new employee information to register in the system.
                 </DialogDescription>
               </DialogHeader>
               
@@ -272,7 +272,7 @@ export default function EmployeesPage() {
                       name="fullName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Name Penuh</FormLabel>
+                          <FormLabel>Full Name</FormLabel>
                           <FormControl>
                             <Input {...field} data-testid="input-employee-name" />
                           </FormControl>
@@ -285,7 +285,7 @@ export default function EmployeesPage() {
                       name="firstName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Name Pertama</FormLabel>
+                          <FormLabel>First Name</FormLabel>
                           <FormControl>
                             <Input {...field} data-testid="input-employee-first-name" />
                           </FormControl>
@@ -301,7 +301,7 @@ export default function EmployeesPage() {
                       name="lastName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Name Akhir</FormLabel>
+                          <FormLabel>Last Name</FormLabel>
                           <FormControl>
                             <Input {...field} data-testid="input-employee-last-name" />
                           </FormControl>
@@ -334,7 +334,7 @@ export default function EmployeesPage() {
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-employee-status">
-                                <SelectValue placeholder="Pilih status" />
+                                <SelectValue placeholder="Select status" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -357,7 +357,7 @@ export default function EmployeesPage() {
                       disabled={createEmployeeMutation.isPending}
                       data-testid="button-create-employee"
                     >
-                      {createEmployeeMutation.isPending ? "Menyimpan..." : "Simpan Employee"}
+                      {createEmployeeMutation.isPending ? "Saving..." : "Save Employee"}
                     </Button>
                   </DialogFooter>
                 </form>
@@ -371,18 +371,18 @@ export default function EmployeesPage() {
           <CardContent className="p-0">
             {isLoading ? (
               <div className="text-center py-8">
-                <p>Memuat senarai pekerja...</p>
+                <p>Loading employees list...</p>
               </div>
             ) : !employees || employees.length === 0 ? (
               <div className="text-center py-8">
                 <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500 mb-4">Belum ada pekerja didaftarkan</p>
+                <p className="text-gray-500 mb-4">No employees registered yet</p>
                 <Button 
                   onClick={() => setIsCreateDialogOpen(true)}
                   data-testid="button-add-first-employee"
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  Tambah Employee Pertama
+                  Add First Employee
                 </Button>
               </div>
             ) : (
@@ -391,11 +391,11 @@ export default function EmployeesPage() {
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
-                    <TableHead>Jawatan</TableHead>
-                    <TableHead>Jabatan</TableHead>
+                    <TableHead>Position</TableHead>
+                    <TableHead>Department</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Date Mula</TableHead>
-                    <TableHead className="text-right">Tindakan</TableHead>
+                    <TableHead>Start Date</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
