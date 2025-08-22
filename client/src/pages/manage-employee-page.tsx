@@ -497,14 +497,11 @@ export default function ManageEmployeePage() {
                               <SelectValue placeholder="Select department" />
                             </SelectTrigger>
                             <SelectContent>
-                              {availableDepartments.map((dept) => (
-                                <SelectItem key={dept} value={dept}>
-                                  {dept === 'it' ? 'Information Technology' :
-                                   dept === 'human-resource' ? 'Human Resource' :
-                                   dept === 'finance' ? 'Finance' :
-                                   dept.charAt(0).toUpperCase() + dept.slice(1)}
+                              {availableDepartments?.filter(dept => dept)?.map((dept) => (
+                                <SelectItem key={dept} value={dept.toLowerCase().replace(/\s+/g, '-')}>
+                                  {dept}
                                 </SelectItem>
-                              ))}
+                              )) || []}
                             </SelectContent>
                           </Select>
                         </div>
