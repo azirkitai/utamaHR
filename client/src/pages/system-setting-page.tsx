@@ -631,6 +631,25 @@ export default function SystemSettingPage() {
     queryKey: ["/api/overtime/settings"]
   });
 
+  // Get current employee data for up-to-date role information
+  const { data: currentEmployee } = useQuery({
+    queryKey: ["/api/user/employee"],
+    queryFn: async () => {
+      const token = localStorage.getItem("utamahr_token");
+      if (!token) throw new Error("Token not found");
+      
+      const response = await fetch("/api/user/employee", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      if (!response.ok) throw new Error("Failed to fetch employee data");
+      return response.json();
+    },
+    enabled: !!user?.id,
+  });
+
   // Overtime mutations
   const saveOvertimeApprovalMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -5797,7 +5816,8 @@ export default function SystemSettingPage() {
   const filteredSettingsMenuItems = settingsMenuItems.filter(item => {
     // Hide Role Configuration for non-Super Admin users
     if (item.id === "role-configuration") {
-      return user?.role === "Super Admin";
+      const userRole = currentEmployee?.role || user?.role;
+      return userRole === "Super Admin";
     }
     return true;
   });
