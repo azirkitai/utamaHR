@@ -935,7 +935,12 @@ export default function SystemSettingPage() {
 
   // Generate departments with combined database and employee data
   const departments = useMemo(() => {
+    console.log('🔍 Debugging department data:');
+    console.log('databaseDepartments:', databaseDepartments);
+    console.log('allEmployees:', allEmployees);
+    
     if (!databaseDepartments || databaseDepartments.length === 0) {
+      console.log('❌ No database departments found');
       return [];
     }
 
@@ -944,6 +949,7 @@ export default function SystemSettingPage() {
     if (allEmployees && allEmployees.length > 0) {
       allEmployees.forEach((employee: any) => {
         const departmentName = employee.employment?.department || 'Unassigned';
+        console.log('👤 Employee department:', departmentName, 'for', employee.fullName);
         if (!employeesByDepartment[departmentName]) {
           employeesByDepartment[departmentName] = [];
         }
@@ -957,14 +963,19 @@ export default function SystemSettingPage() {
       });
     }
 
+    console.log('📊 Employees by department:', employeesByDepartment);
+
     // Map database departments with employee counts
-    return databaseDepartments.map((dept: any) => ({
+    const result = databaseDepartments.map((dept: any) => ({
       id: dept.id,
       name: dept.name,
       code: dept.code,
       employeeCount: employeesByDepartment[dept.name]?.length || 0,
       employees: employeesByDepartment[dept.name] || []
     }));
+    
+    console.log('🏢 Final departments result:', result);
+    return result;
   }, [databaseDepartments, allEmployees]);
 
   // Payment states
