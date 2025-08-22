@@ -86,6 +86,18 @@ export default function EmployeesPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
 
+  // Get current user data for role-based access
+  const { data: currentUser } = useQuery<any>({
+    queryKey: ["/api/user"],
+  });
+
+  // Check if current user has admin access (Super Admin or Admin only)
+  const hasPrivilegedAccess = () => {
+    if (!currentUser) return false;
+    const privilegedRoles = ["Super Admin", "Admin"];
+    return privilegedRoles.includes(currentUser.role);
+  };
+
   // Fetch employees
   const { data: employees, isLoading } = useQuery<Employee[]>({
     queryKey: ["/api/employees"],
@@ -249,13 +261,14 @@ export default function EmployeesPage() {
             </p>
           </div>
 
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button data-testid="button-add-employee">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Employee
-              </Button>
-            </DialogTrigger>
+          {hasPrivilegedAccess() && (
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button data-testid="button-add-employee">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Employee
+                </Button>
+              </DialogTrigger>
             <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
                 <DialogTitle>Add New Employee</DialogTitle>
@@ -364,6 +377,7 @@ export default function EmployeesPage() {
               </Form>
             </DialogContent>
           </Dialog>
+          )}
         </div>
 
         {/* Employees Table */}
@@ -377,13 +391,15 @@ export default function EmployeesPage() {
               <div className="text-center py-8">
                 <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-500 mb-4">No employees registered yet</p>
-                <Button 
-                  onClick={() => setIsCreateDialogOpen(true)}
-                  data-testid="button-add-first-employee"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add First Employee
-                </Button>
+                {hasPrivilegedAccess() && (
+                  <Button 
+                    onClick={() => setIsCreateDialogOpen(true)}
+                    data-testid="button-add-first-employee"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add First Employee
+                  </Button>
+                )}
               </div>
             ) : (
               <Table>
@@ -409,32 +425,38 @@ export default function EmployeesPage() {
                       <TableCell>{new Date(employee.createdAt).toLocaleDateString('ms-MY')}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end space-x-2">
-                          <Link href={`/employee-details/${employee.id}`}>
+                          {hasPrivilegedAccess() && (
+                            <Link href={`/employee-details/${employee.id}`}>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                data-testid={`button-view-employee-${employee.id}`}
+                              >
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                            </Link>
+                          )}
+                          {hasPrivilegedAccess() && (
                             <Button
                               variant="outline"
                               size="sm"
-                              data-testid={`button-view-employee-${employee.id}`}
+                              onClick={() => handleEditEmployee(employee)}
+                              data-testid={`button-edit-employee-${employee.id}`}
                             >
-                              <Eye className="w-4 h-4" />
+                              <Edit className="w-4 h-4" />
                             </Button>
-                          </Link>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditEmployee(employee)}
-                            data-testid={`button-edit-employee-${employee.id}`}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeleteEmployee(employee.id)}
-                            disabled={deleteEmployeeMutation.isPending}
-                            data-testid={`button-delete-employee-${employee.id}`}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          )}
+                          {hasPrivilegedAccess() && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteEmployee(employee.id)}
+                              disabled={deleteEmployeeMutation.isPending}
+                              data-testid={`button-delete-employee-${employee.id}`}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
