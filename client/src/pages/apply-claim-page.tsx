@@ -607,7 +607,7 @@ export default function ApplyClaimPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl">
               {/* Financial Claim */}
               <Card 
-                className="cursor-pointer hover:shadow-lg transition-shadow bg-gradient-to-br from-cyan-400 to-cyan-800 text-white border-none"
+                className="cursor-pointer hover:shadow-lg transition-shadow bg-gradient-to-br from-slate-900 via-blue-900 to-cyan-800 text-white border-none"
                 onClick={() => setSelectedCategory('financial')}
                 data-testid="card-financial-claim"
               >
@@ -633,15 +633,7 @@ export default function ApplyClaimPage() {
                 </CardContent>
               </Card>
 
-              {/* Coming Soon */}
-              <Card className="opacity-50 cursor-not-allowed bg-gray-300 text-gray-500 border-none">
-                <CardContent className="p-8 text-center">
-                  <div className="mb-4 flex justify-center">
-                    <Timer className="w-16 h-16 text-gray-500" />
-                  </div>
-                  <h3 className="text-xl font-semibold">Coming Soon</h3>
-                </CardContent>
-              </Card>
+              
             </div>
           </div>
         )}
