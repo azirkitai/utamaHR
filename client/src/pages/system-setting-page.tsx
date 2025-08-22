@@ -2227,6 +2227,50 @@ export default function SystemSettingPage() {
     }
   };
 
+  const handleSavePagePermissions = async () => {
+    try {
+      const token = localStorage.getItem("utamahr_token");
+      
+      if (!token) {
+        toast({
+          title: "Error",
+          description: "Please log in again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const response = await fetch("/api/page-permissions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify(pagePermissions),
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Page permissions saved:", result);
+        toast({
+          title: "Success",
+          description: "Page permissions have been saved successfully!",
+        });
+      } else {
+        const errorData = await response.json();
+        console.log("Error response:", errorData);
+        throw new Error(errorData.error || "Failed to save page permissions");
+      }
+    } catch (error) {
+      console.error("Error saving page permissions:", error);
+      toast({
+        title: "Error",
+        description: `Failed to save page permissions: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        variant: "destructive",
+      });
+    }
+  };
+
   // Handler untuk toggle leave policy switch
   // Create mutation for updating company leave types
   const updateLeaveTypeMutation = useMutation({
@@ -5774,6 +5818,7 @@ export default function SystemSettingPage() {
               </Button>
               <Button 
                 className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white shadow-sm"
+                onClick={handleSavePagePermissions}
                 data-testid="button-save-role-config"
               >
                 Save Page Permissions
