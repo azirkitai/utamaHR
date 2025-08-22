@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
@@ -219,8 +219,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             {/* Right side - User info and actions */}
             <div className="flex items-center space-x-2 md:space-x-4">
               {/* Notifications */}
-              <Dialog open={isNotificationOpen} onOpenChange={setIsNotificationOpen}>
-                <DialogTrigger asChild>
+              <Popover open={isNotificationOpen} onOpenChange={setIsNotificationOpen}>
+                <PopoverTrigger asChild>
                   <div className="relative">
                     <Button 
                       variant="ghost" 
@@ -236,96 +236,102 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                       </Badge>
                     )}
                   </div>
-                </DialogTrigger>
-                <DialogContent className="max-w-md max-h-[600px]" data-testid="dialog-notifications">
-                  <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                      <Bell className="w-5 h-5" />
-                      Notifications ({unreadCount} unread)
-                    </DialogTitle>
-                  </DialogHeader>
-                  <ScrollArea className="h-[400px] pr-4">
+                </PopoverTrigger>
+                <PopoverContent 
+                  className="w-80 p-0 mr-4" 
+                  align="end"
+                  data-testid="popover-notifications"
+                >
+                  <div className="p-4 border-b">
+                    <div className="flex items-center gap-2">
+                      <Bell className="w-4 h-4" />
+                      <h3 className="font-medium text-sm">Notifications</h3>
+                      <Badge variant="secondary" className="ml-auto text-xs">
+                        {unreadCount} unread
+                      </Badge>
+                    </div>
+                  </div>
+                  <ScrollArea className="h-80">
                     {notifications.length === 0 ? (
-                      <div className="text-center py-8 text-gray-500">
-                        <Bell className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                        <p>No notifications available</p>
+                      <div className="text-center py-8 text-gray-500 px-4">
+                        <Bell className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                        <p className="text-sm">No notifications</p>
                       </div>
                     ) : (
-                      <div className="space-y-4">
+                      <div className="p-2">
                         {notifications.map((notification, index) => (
-                          <div key={notification.id}>
+                          <div key={notification.id} className="mb-2">
                             <div 
                               className={cn(
-                                "p-4 rounded-lg border transition-colors hover:bg-gray-50 cursor-pointer",
+                                "p-3 rounded-lg border transition-colors hover:bg-gray-50 cursor-pointer",
                                 notification.isRead 
-                                  ? "bg-white border-gray-200" 
+                                  ? "bg-white border-gray-100" 
                                   : "bg-blue-50 border-blue-200"
                               )}
                               data-testid={`notification-item-${notification.id}`}
                             >
-                              <div className="flex items-start gap-3">
+                              <div className="flex items-start gap-2">
                                 {getNotificationIcon(notification.type)}
                                 <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 mb-1">
+                                  <div className="flex items-center gap-1 mb-1">
                                     <h4 className={cn(
-                                      "text-sm font-medium truncate",
+                                      "text-xs font-medium truncate",
                                       !notification.isRead && "text-blue-900"
                                     )}>
                                       {notification.title}
                                     </h4>
+                                    {!notification.isRead && (
+                                      <div className="w-1.5 h-1.5 bg-blue-500 rounded-full flex-shrink-0"></div>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-gray-600 mb-1 line-clamp-2">
+                                    {notification.message}
+                                  </p>
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs text-gray-400">
+                                      {notification.timestamp}
+                                    </span>
                                     <span className={cn(
-                                      "px-2 py-1 text-xs rounded-full border",
+                                      "px-1.5 py-0.5 text-xs rounded-full border",
                                       getPriorityColor(notification.priority)
                                     )}>
                                       {notification.priority}
                                     </span>
                                   </div>
-                                  <p className="text-sm text-gray-600 mb-2">
-                                    {notification.message}
-                                  </p>
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-xs text-gray-500">
-                                      {notification.timestamp}
-                                    </span>
-                                    {!notification.isRead && (
-                                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                    )}
-                                  </div>
                                 </div>
                               </div>
                             </div>
-                            {index < notifications.length - 1 && (
-                              <Separator className="my-3" />
-                            )}
                           </div>
                         ))}
                       </div>
                     )}
                   </ScrollArea>
-                  <div className="border-t pt-4 flex justify-between">
+                  <div className="border-t p-3 flex justify-between">
                     <Button 
-                      variant="outline" 
+                      variant="ghost" 
                       size="sm"
                       onClick={() => {
                         // Mark all as read functionality would go here
                         console.log("Mark all as read");
                       }}
+                      className="text-xs"
                       data-testid="button-mark-all-read"
                     >
-                      <CheckCircle className="w-4 h-4 mr-2" />
+                      <CheckCircle className="w-3 h-3 mr-1" />
                       Mark All Read
                     </Button>
                     <Button 
                       variant="ghost" 
                       size="sm"
                       onClick={() => setIsNotificationOpen(false)}
+                      className="text-xs"
                       data-testid="button-close-notifications"
                     >
                       Close
                     </Button>
                   </div>
-                </DialogContent>
-              </Dialog>
+                </PopoverContent>
+              </Popover>
 
               
 
