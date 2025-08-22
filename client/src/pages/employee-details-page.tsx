@@ -227,6 +227,11 @@ export default function EmployeeDetailsPage() {
     queryKey: ["/api/employees"],
   });
 
+  // Fetch departments from API
+  const { data: departmentNames = [] } = useQuery<string[]>({
+    queryKey: ["/api/departments/names"],
+  });
+
   // Check if current user can manage roles
   const canManageRoles = () => {
     if (!currentUser) return false;
@@ -2056,10 +2061,11 @@ export default function EmployeeDetailsPage() {
                                 <SelectValue placeholder="Select department" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="administration">Administration</SelectItem>
-                                <SelectItem value="finance">Finance</SelectItem>
-                                <SelectItem value="human-resource">Human Resource</SelectItem>
-                                <SelectItem value="it">Information Technology</SelectItem>
+                                {departmentNames.map((dept) => (
+                                  <SelectItem key={dept} value={dept.toLowerCase().replace(/\s+/g, '-')}>
+                                    {dept}
+                                  </SelectItem>
+                                ))}
                               </SelectContent>
                             </Select>
                           ) : (
