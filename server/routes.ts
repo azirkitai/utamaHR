@@ -482,7 +482,7 @@ export function registerRoutes(app: Express): Server {
       res.json(statistics);
     } catch (error) {
       console.error("Dashboard statistics error:", error);
-      res.status(500).json({ error: "Failed to mendapatkan statistik dashboard" });
+      res.status(500).json({ error: "Failed to get dashboard statistics" });
     }
   });
 
@@ -494,7 +494,7 @@ export function registerRoutes(app: Express): Server {
       res.json(statistics);
     } catch (error) {
       console.error("User statistics error:", error);
-      res.status(500).json({ error: "Failed to mendapatkan statistik pengguna" });
+      res.status(500).json({ error: "Failed to get user statistics" });
     }
   });
 
@@ -505,7 +505,7 @@ export function registerRoutes(app: Express): Server {
       res.json(statistics);
     } catch (error) {
       console.error("Pending approval statistics error:", error);
-      res.status(500).json({ error: "Failed to mendapatkan statistik pending approval" });
+      res.status(500).json({ error: "Failed to get pending approval statistics" });
     }
   });
 
@@ -560,7 +560,7 @@ export function registerRoutes(app: Express): Server {
       res.json(employee);
     } catch (error) {
       console.error("Get user employee error:", error);
-      res.status(500).json({ error: "Failed to mendapatkan data pework" });
+      res.status(500).json({ error: "Failed to get employee data" });
     }
   });
 
@@ -586,7 +586,7 @@ export function registerRoutes(app: Express): Server {
       }
 
       // Get user's employee record
-      const employee = await storage.getUserEmployee(userId);
+      const employee = await storage.getEmployeeByUserId(userId);
       if (!employee) {
         return res.status(404).json({ error: "Employee not found" });
       }
@@ -633,7 +633,7 @@ export function registerRoutes(app: Express): Server {
       res.json(announcements);
     } catch (error) {
       console.error("Get announcements error:", error);
-      res.status(500).json({ error: "Failed to mendapatkan pengumuman" });
+      res.status(500).json({ error: "Failed to get announcements" });
     }
   });
 
@@ -660,7 +660,7 @@ export function registerRoutes(app: Express): Server {
       res.json({ success: true, announcement });
     } catch (error) {
       console.error("Create announcement error:", error);
-      res.status(500).json({ error: "Failed to mencipta pengumuman" });
+      res.status(500).json({ error: "Failed to create announcement" });
     }
   });
 
@@ -693,7 +693,7 @@ export function registerRoutes(app: Express): Server {
       res.json(unreadAnnouncements);
     } catch (error) {
       console.error("Get unread announcements error:", error);
-      res.status(500).json({ error: "Failed to mendapatkan pengumuman yang belum dibaca" });
+      res.status(500).json({ error: "Failed to get announcements yang belum dibaca" });
     }
   });
 
@@ -3678,7 +3678,7 @@ export function registerRoutes(app: Express): Server {
 
       const location = await storage.updateOfficeLocation(req.params.id, validationResult.data);
       if (!location) {
-        return res.status(404).json({ error: "Lokasi not found" });
+        return res.status(404).json({ error: "Location not found" });
       }
       res.json(location);
     } catch (error) {
@@ -3691,12 +3691,12 @@ export function registerRoutes(app: Express): Server {
     try {
       const success = await storage.deleteOfficeLocation(req.params.id);
       if (!success) {
-        return res.status(404).json({ error: "Lokasi not found" });
+        return res.status(404).json({ error: "Location not found" });
       }
-      res.json({ message: "Lokasi berjaya dipadam" });
+      res.json({ message: "Location successfully deleted" });
     } catch (error) {
       console.error("Delete office location error:", error);
-      res.status(500).json({ error: "Failed to memadamkan lokasi pejabat" });
+      res.status(500).json({ error: "Failed to delete office location" });
     }
   });
 
@@ -3708,7 +3708,7 @@ export function registerRoutes(app: Express): Server {
       res.json(shifts);
     } catch (error) {
       console.error("Get shifts error:", error);
-      res.status(500).json({ error: "Failed to mendapatkan senarai syif" });
+      res.status(500).json({ error: "Failed to get shifts list" });
     }
   });
 
@@ -3717,12 +3717,12 @@ export function registerRoutes(app: Express): Server {
     try {
       const shift = await storage.getShift(req.params.id);
       if (!shift) {
-        return res.status(404).json({ error: "Syif not found" });
+        return res.status(404).json({ error: "Shift not found" });
       }
       res.json(shift);
     } catch (error) {
       console.error("Get shift error:", error);
-      res.status(500).json({ error: "Failed to mendapatkan syif" });
+      res.status(500).json({ error: "Failed to get shift" });
     }
   });
 
@@ -3741,7 +3741,7 @@ export function registerRoutes(app: Express): Server {
       res.status(201).json(shift);
     } catch (error) {
       console.error("Create shift error:", error);
-      res.status(500).json({ error: "Failed to mencipta syif" });
+      res.status(500).json({ error: "Failed to create shift" });
     }
   });
 
@@ -3758,12 +3758,12 @@ export function registerRoutes(app: Express): Server {
 
       const shift = await storage.updateShift(req.params.id, validationResult.data);
       if (!shift) {
-        return res.status(404).json({ error: "Syif not found" });
+        return res.status(404).json({ error: "Shift not found" });
       }
       res.json(shift);
     } catch (error) {
       console.error("Update shift error:", error);
-      res.status(500).json({ error: "Failed to mengemaskini syif" });
+      res.status(500).json({ error: "Failed to update shift" });
     }
   });
 
@@ -3772,12 +3772,12 @@ export function registerRoutes(app: Express): Server {
     try {
       const success = await storage.deleteShift(req.params.id);
       if (!success) {
-        return res.status(404).json({ error: "Syif not found" });
+        return res.status(404).json({ error: "Shift not found" });
       }
-      res.json({ message: "Syif berjaya dipadam" });
+      res.json({ message: "Shift successfully deleted" });
     } catch (error) {
       console.error("Delete shift error:", error);
-      res.status(500).json({ error: "Failed to memadamkan syif" });
+      res.status(500).json({ error: "Failed to delete shift" });
     }
   });
 
@@ -3829,7 +3829,7 @@ export function registerRoutes(app: Express): Server {
       res.json(employeeShifts);
     } catch (error) {
       console.error("Get employee shifts error:", error);
-      res.status(500).json({ error: "Failed to mendapatkan senarai shift pework" });
+      res.status(500).json({ error: "Failed to get employee shifts list" });
     }
   });
 
@@ -3855,7 +3855,7 @@ export function registerRoutes(app: Express): Server {
       }
 
       // Get user's employee record
-      const employee = await storage.getUserEmployee(userId);
+      const employee = await storage.getEmployeeByUserId(userId);
       if (!employee) {
         return res.status(404).json({ error: "Employee not found" });
       }
