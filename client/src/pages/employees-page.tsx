@@ -261,123 +261,7 @@ export default function EmployeesPage() {
             </p>
           </div>
 
-          {hasPrivilegedAccess() && (
-            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-              <DialogTrigger asChild>
-                <Button data-testid="button-add-employee">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Employee
-                </Button>
-              </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
-              <DialogHeader>
-                <DialogTitle>Add New Employee</DialogTitle>
-                <DialogDescription>
-                  Enter new employee information to register in the system.
-                </DialogDescription>
-              </DialogHeader>
-              
-              <Form {...createForm}>
-                <form onSubmit={createForm.handleSubmit(handleCreateEmployee)} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={createForm.control}
-                      name="fullName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Full Name</FormLabel>
-                          <FormControl>
-                            <Input {...field} data-testid="input-employee-name" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={createForm.control}
-                      name="firstName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>First Name</FormLabel>
-                          <FormControl>
-                            <Input {...field} data-testid="input-employee-first-name" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={createForm.control}
-                      name="lastName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Last Name</FormLabel>
-                          <FormControl>
-                            <Input {...field} data-testid="input-employee-last-name" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={createForm.control}
-                      name="userId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>User ID</FormLabel>
-                          <FormControl>
-                            <Input {...field} data-testid="input-employee-user-id" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={createForm.control}
-                      name="status"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Status</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger data-testid="select-employee-status">
-                                <SelectValue placeholder="Select status" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="employed">Employed</SelectItem>
-                              <SelectItem value="terminated">Terminated</SelectItem>
-                              <SelectItem value="retired">Retired</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-
-
-                  <DialogFooter>
-                    <Button 
-                      type="submit" 
-                      disabled={createEmployeeMutation.isPending}
-                      data-testid="button-create-employee"
-                    >
-                      {createEmployeeMutation.isPending ? "Saving..." : "Save Employee"}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
-          )}
         </div>
 
         {/* Employees Table */}
@@ -391,15 +275,7 @@ export default function EmployeesPage() {
               <div className="text-center py-8">
                 <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-500 mb-4">No employees registered yet</p>
-                {hasPrivilegedAccess() && (
-                  <Button 
-                    onClick={() => setIsCreateDialogOpen(true)}
-                    data-testid="button-add-first-employee"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add First Employee
-                  </Button>
-                )}
+
               </div>
             ) : (
               <Table>
