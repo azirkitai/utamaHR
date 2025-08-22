@@ -129,8 +129,8 @@ export default function ManageEmployeePage() {
       queryClient.invalidateQueries({ queryKey: ["/api/employees"] });
       
       toast({
-        title: "Berjaya!",
-        description: "Staff baru telah ditambah dengan jayanya.",
+        title: "Success!",
+        description: "New staff has been added successfully.",
       });
       
       // Reset form and close dialog
@@ -152,8 +152,8 @@ export default function ManageEmployeePage() {
       }
       
       toast({
-        title: "Ralat",
-        description: `Gagal menambah staff: ${errorMessage}`,
+        title: "Error",
+        description: `Failed to add staff: ${errorMessage}`,
         variant: "destructive",
       });
     },
@@ -248,8 +248,8 @@ export default function ManageEmployeePage() {
       });
       
       toast({
-        title: "Ralat",
-        description: "Sila isi semua field yang required.",
+        title: "Error",
+        description: "Please fill in all required fields.",
         variant: "destructive",
       });
       return;
@@ -260,8 +260,8 @@ export default function ManageEmployeePage() {
       console.log("Password match:", password === confirmPassword);
       
       toast({
-        title: "Ralat", 
-        description: "Password dan confirm password tidak sama.",
+        title: "Error", 
+        description: "Password and confirm password do not match.",
         variant: "destructive",
       });
       return;
@@ -295,7 +295,7 @@ export default function ManageEmployeePage() {
       if (!token) {
         toast({
           title: "Authentication Required",
-          description: "Sila log masuk semula",
+          description: "Please log in again",
           variant: "destructive",
         });
         return;
@@ -313,13 +313,13 @@ export default function ManageEmployeePage() {
       if (!response.ok) {
         if (response.status === 403) {
           toast({
-            title: "Akses Rejected",
-            description: "Hanya admin yang dibenarkan untuk download laporan",
+            title: "Access Denied",
+            description: "Only admins are allowed to download reports",
             variant: "destructive",
           });
           return;
         }
-        throw new Error('Gagal download laporan PDF');
+        throw new Error('Failed to download PDF report');
       }
 
       // Get the blob from response
@@ -342,16 +342,16 @@ export default function ManageEmployeePage() {
       document.body.removeChild(a);
       
       toast({
-        title: "Laporan PDF Downloaded",
-        description: "Laporan PDF semua employee telah dimuat turun",
+        title: "PDF Report Downloaded",
+        description: "All employee PDF report has been downloaded",
         variant: "default",
       });
       
     } catch (error) {
       console.error("PDF download error:", error);
       toast({
-        title: "Download Gagal",
-        description: "Gagal memuat turun laporan PDF",
+        title: "Download Failed",
+        description: "Failed to download PDF report",
         variant: "destructive",
       });
     }
@@ -378,8 +378,8 @@ export default function ManageEmployeePage() {
           {/* Helper Text */}
           <div className="mb-6">
             <p className="text-gray-600">
-              Gunakan halaman ini untuk menambah, menyunting atau mengurus maklumat staf syarikat anda. 
-              Anda juga boleh eksport dan import data staf secara pukal.
+              Use this page to add, edit, or manage your company staff information. 
+              You can also export and import staff data in bulk.
             </p>
           </div>
 
@@ -611,7 +611,7 @@ export default function ManageEmployeePage() {
                         <CardTitle>List of Employees</CardTitle>
                         {searchTerm.trim() && (
                           <p className="text-sm text-white/80 mt-1">
-                            Menunjukkan {filteredEmployees.length} hasil untuk "{searchTerm}"
+                            Showing {filteredEmployees.length} results for "{searchTerm}"
                           </p>
                         )}
                       </div>
@@ -619,7 +619,7 @@ export default function ManageEmployeePage() {
                         <div className="relative">
                           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white w-4 h-4" />
                           <Input
-                            placeholder="Cari nama, jawatan, email, telefon..."
+                            placeholder="Search name, position, email, phone..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="pl-9 pr-10 w-64 bg-white/20 border-white/30 text-white placeholder:text-white/70"
@@ -710,8 +710,8 @@ export default function ManageEmployeePage() {
                             <tr>
                               <td colSpan={8} className="text-center py-8 text-gray-500">
                                 {searchTerm.trim() ? 
-                                  `Tiada hasil ditemui untuk "${searchTerm}"` : 
-                                  "Tiada data tersedia dalam jadual"
+                                  `No results found for "${searchTerm}"` : 
+                                  "No data available in table"
                                 }
                               </td>
                             </tr>
@@ -746,7 +746,7 @@ export default function ManageEmployeePage() {
                         <CardTitle>List of Resigned Employees</CardTitle>
                         {searchTerm.trim() && (
                           <p className="text-sm text-white/80 mt-1">
-                            Menunjukkan {filteredEmployees.filter(e => e.status !== "employed").length} hasil untuk "{searchTerm}"
+                            Showing {filteredEmployees.filter(e => e.status !== "employed").length} results for "{searchTerm}"
                           </p>
                         )}
                       </div>
@@ -754,7 +754,7 @@ export default function ManageEmployeePage() {
                         <div className="relative">
                           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white w-4 h-4" />
                           <Input
-                            placeholder="Cari nama, jawatan, email, telefon..."
+                            placeholder="Search name, position, email, phone..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="pl-9 pr-10 w-64 bg-white/20 border-white/30 text-white placeholder:text-white/70"

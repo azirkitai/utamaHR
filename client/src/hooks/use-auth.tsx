@@ -43,11 +43,11 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   
-  // Custom fetch function yang include JWT token
+  // Custom fetch function that includes JWT token
   const authenticatedFetch = async (url: string): Promise<any> => {
     const token = getStoredToken();
     if (!token) {
-      throw new Error("Token tidak ditemui");
+      throw new Error("Token not found");
     }
 
     const response = await fetch(url, {
@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (response.status === 401 || response.status === 403) {
         removeStoredToken();
         queryClient.setQueryData(["/api/user"], null);
-        throw new Error("Token tidak valid");
+        throw new Error("Token is invalid");
       }
       throw new Error("Request failed");
     }
@@ -92,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.error || "Login gagal");
+        throw new Error(errorData.error || "Login failed");
       }
 
       return res.json();
@@ -101,14 +101,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setStoredToken(response.token);
       queryClient.setQueryData(["/api/user"], response.user);
       toast({
-        title: "Berjaya!",
-        description: response.message || "Login successfully",
+        title: "Success!",
+        description: response.message || "Login successful",
         variant: "default",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Login Gagal",
+        title: "Login Failed",
         description: error.message,
         variant: "destructive",
       });
@@ -127,7 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.error || "Registration gagal");
+        throw new Error(errorData.error || "Registration failed");
       }
 
       return res.json();
@@ -136,14 +136,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setStoredToken(response.token);
       queryClient.setQueryData(["/api/user"], response.user);
       toast({
-        title: "Berjaya!",
-        description: response.message || "Akaun successfully dibuat",
+        title: "Success!",
+        description: response.message || "Account successfully created",
         variant: "default",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Pendaftaran Gagal",
+        title: "Registration Failed",
         description: error.message,
         variant: "destructive",
       });
@@ -172,7 +172,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.setQueryData(["/api/user"], null);
       queryClient.clear();
       toast({
-        title: "Logout Berjaya",
+        title: "Logout Successful",
         description: "You have been logged out",
         variant: "default",
       });
