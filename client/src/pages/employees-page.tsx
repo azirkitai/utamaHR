@@ -429,16 +429,6 @@ export default function EmployeesPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleEditEmployee(employee)}
-                              data-testid={`button-edit-employee-${employee.id}`}
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                          )}
-                          {hasPrivilegedAccess() && (
-                            <Button
-                              variant="outline"
-                              size="sm"
                               onClick={() => handleDeleteEmployee(employee.id)}
                               disabled={deleteEmployeeMutation.isPending}
                               data-testid={`button-delete-employee-${employee.id}`}
