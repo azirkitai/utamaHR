@@ -2407,7 +2407,7 @@ export function registerRoutes(app: Express): Server {
       } else {
         // Regular employees can only update their own record
         if (existingEmployee.userId !== currentUser.id) {
-          return res.status(403).json({ error: "Tidak dibenarkan mengemaskini data pework lain" });
+          return res.status(403).json({ error: "Not authorized to update other employee records" });
         }
       }
       
@@ -2416,7 +2416,7 @@ export function registerRoutes(app: Express): Server {
       res.json(employee);
     } catch (error) {
       console.error("Update employee error:", error);
-      res.status(400).json({ error: "Failed to mengemaskini pework" });
+      res.status(400).json({ error: "Failed to update employee" });
     }
   });
 
@@ -2424,19 +2424,33 @@ export function registerRoutes(app: Express): Server {
     try {
       const currentUser = req.user!;
       
-      // Only Super Admin and Admin can delete employee records
-      if (currentUser.role !== 'Super Admin' && currentUser.role !== 'Admin') {
-        return res.status(403).json({ error: "Hanya Super Admin dan Admin yang dibenarkan menghapuskan data pework" });
+      // Get the user's employee record to check their actual role
+      const employee = await storage.getEmployeeByUserId(currentUser.id);
+      console.log("=== DELETE EMPLOYEE DEBUG ===");
+      console.log("Current user object:", JSON.stringify(currentUser, null, 2));
+      console.log("User role from users table:", currentUser.role);
+      console.log("Employee role from employees table:", employee?.role);
+      console.log("===============================");
+      
+      // Check both user role and employee role for Super Admin/Admin access
+      const userRole = currentUser.role;
+      const employeeRole = employee?.role;
+      const hasDeleteAccess = (userRole === "Super Admin" || userRole === "Admin") || 
+                             (employeeRole === "Super Admin" || employeeRole === "Admin");
+      
+      if (!hasDeleteAccess) {
+        console.log("Access denied - user does not have delete permissions:", { userRole, employeeRole });
+        return res.status(403).json({ error: "Only Super Admin and Admin can delete employee records" });
       }
       
       const deleted = await storage.deleteEmployee(req.params.id);
       if (!deleted) {
         return res.status(404).json({ error: "Employee not found" });
       }
-      res.json({ message: "Employee berjaya dihapuskan" });
+      res.json({ message: "Employee deleted successfully" });
     } catch (error) {
       console.error("Delete employee error:", error);
-      res.status(500).json({ error: "Failed to menghapuskan pework" });
+      res.status(500).json({ error: "Failed to delete employee" });
     }
   });
 
