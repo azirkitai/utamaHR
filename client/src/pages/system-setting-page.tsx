@@ -1019,14 +1019,14 @@ export default function SystemSettingPage() {
       return acc;
     }, {}) || {};
 
-    // Map system departments with employee counts
+    // Map system departments with employee counts (exact name matching)
     return systemDepartments.map((dept: any) => ({
       id: dept.id,
       name: dept.name,
       code: dept.code,
       description: dept.description,
-      employeeCount: employeesByDepartment[dept.name.toLowerCase()]?.length || 0,
-      employees: employeesByDepartment[dept.name.toLowerCase()] || []
+      employeeCount: employeesByDepartment[dept.name]?.length || 0,
+      employees: employeesByDepartment[dept.name] || []
     }));
   }, [systemDepartments, allEmployees]);
 
