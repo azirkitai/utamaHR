@@ -82,9 +82,9 @@ import {
   users, 
   employees,
   employment,
-  contact,
+  contact as employeeContacts,
   familyDetails,
-  compensation,
+  compensation as employeeCompensation,
   documents,
   equipment,
   leavePolicy,
@@ -97,10 +97,11 @@ import {
   officeLocations,
   shifts,
   employeeShifts,
-  clockInRecords,
+  clockInRecords as clockInOut,
   attendanceRecords,
   leaveApplications,
   groupPolicySettings,
+  payrollItems,
   employeeLeaveEntitlementAdjustments,
   employeeLeaveEligibility,
   // Leave Application types
@@ -652,8 +653,48 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteEmployee(id: string): Promise<boolean> {
-    const result = await db.delete(employees).where(eq(employees.id, id));
-    return (result.rowCount ?? 0) > 0;
+    try {
+      // Start transaction to ensure all deletions succeed or fail together
+      await db.transaction(async (tx) => {
+        // Delete employment records first (this was the main foreign key constraint)
+        await tx.delete(employment).where(eq(employment.employeeId, id));
+        
+        // Delete contact records
+        await tx.delete(employeeContacts).where(eq(employeeContacts.employeeId, id));
+        
+        // Delete compensation records
+        await tx.delete(employeeCompensation).where(eq(employeeCompensation.employeeId, id));
+        
+        // Delete family details records
+        await tx.delete(familyDetails).where(eq(familyDetails.employeeId, id));
+        
+        // Delete documents
+        await tx.delete(documents).where(eq(documents.employeeId, id));
+        
+        // Delete equipment records
+        await tx.delete(equipment).where(eq(equipment.employeeId, id));
+        
+        // Delete work experiences
+        await tx.delete(workExperiences).where(eq(workExperiences.employeeId, id));
+        
+        // Delete any payroll records
+        await tx.delete(payrollItems).where(eq(payrollItems.employeeId, id));
+        
+        // Delete any attendance records
+        await tx.delete(clockInOut).where(eq(clockInOut.employeeId, id));
+        
+        // Delete any leave applications
+        await tx.delete(leaveApplications).where(eq(leaveApplications.employeeId, id));
+        
+        // Finally delete the employee record
+        await tx.delete(employees).where(eq(employees.id, id));
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Error deleting employee with all related records:', error);
+      return false;
+    }
   }
 
   async getEmployeesWithApprovalRoles(): Promise<Employee[]> {

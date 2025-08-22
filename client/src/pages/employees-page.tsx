@@ -449,9 +449,9 @@ export default function EmployeesPage() {
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
-              <DialogTitle>Kemaskini Employee</DialogTitle>
+              <DialogTitle>Edit Employee</DialogTitle>
               <DialogDescription>
-                Kemaskini maklumat pekerja yang dipilih.
+                Update the selected employee information.
               </DialogDescription>
             </DialogHeader>
             
@@ -463,7 +463,7 @@ export default function EmployeesPage() {
                     name="fullName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Name Penuh</FormLabel>
+                        <FormLabel>Full Name</FormLabel>
                         <FormControl>
                           <Input {...field} data-testid="input-edit-employee-name" />
                         </FormControl>
@@ -476,7 +476,7 @@ export default function EmployeesPage() {
                     name="firstName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Name Pertama</FormLabel>
+                        <FormLabel>First Name</FormLabel>
                         <FormControl>
                           <Input {...field} data-testid="input-edit-employee-first-name" />
                         </FormControl>
@@ -492,7 +492,7 @@ export default function EmployeesPage() {
                     name="lastName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Name Akhir</FormLabel>
+                        <FormLabel>Last Name</FormLabel>
                         <FormControl>
                           <Input {...field} data-testid="input-edit-employee-last-name" />
                         </FormControl>
@@ -509,7 +509,7 @@ export default function EmployeesPage() {
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-edit-employee-status">
-                              <SelectValue placeholder="Pilih status" />
+                              <SelectValue placeholder="Select status" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -530,7 +530,7 @@ export default function EmployeesPage() {
                     disabled={updateEmployeeMutation.isPending}
                     data-testid="button-update-employee"
                   >
-                    {updateEmployeeMutation.isPending ? "Menyimpan..." : "Kemaskini Employee"}
+                    {updateEmployeeMutation.isPending ? "Saving..." : "Update Employee"}
                   </Button>
                 </DialogFooter>
               </form>
