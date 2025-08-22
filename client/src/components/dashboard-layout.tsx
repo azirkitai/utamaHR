@@ -231,7 +231,32 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       });
     }
 
-    return notifications;
+    // Sort notifications: unread first, then by priority (high, medium, low), then by timestamp
+    return notifications.sort((a, b) => {
+      // First, sort by read status (unread first)
+      if (a.isRead !== b.isRead) {
+        return a.isRead ? 1 : -1;
+      }
+      
+      // Then by priority (high > medium > low)
+      const priorityOrder = { high: 3, medium: 2, low: 1 };
+      const aPriority = priorityOrder[a.priority as keyof typeof priorityOrder] || 1;
+      const bPriority = priorityOrder[b.priority as keyof typeof priorityOrder] || 1;
+      
+      if (aPriority !== bPriority) {
+        return bPriority - aPriority;
+      }
+      
+      // Finally by timestamp (most recent first for same priority)
+      const aTime = a.timestamp === "Now" ? Date.now() : 
+                   a.timestamp === "Recent" ? Date.now() - 60000 : 
+                   Date.now() - 3600000;
+      const bTime = b.timestamp === "Now" ? Date.now() : 
+                   b.timestamp === "Recent" ? Date.now() - 60000 : 
+                   Date.now() - 3600000;
+      
+      return bTime - aTime;
+    });
   };
 
   // Helper function to calculate time ago
