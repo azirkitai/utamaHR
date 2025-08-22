@@ -1341,8 +1341,8 @@ export default function SystemSettingPage() {
       // Upload logo first if there's a new file
       if (logoFile) {
         toast({
-          title: "Memuat naik logo...",
-          description: "Sila tunggu sementara logo sedang dimuat naik",
+          title: "Uploading logo...",
+          description: "Please wait while the logo is being uploaded",
         });
         
         logoPath = await uploadLogoToServer(logoFile);
@@ -1395,8 +1395,8 @@ export default function SystemSettingPage() {
 
     } catch (error) {
       toast({
-        title: "Ralat",
-        description: error instanceof Error ? error.message : "Gagal memuat naik logo",
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to upload logo",
         variant: "destructive",
       });
     }
@@ -1408,7 +1408,7 @@ export default function SystemSettingPage() {
       console.log("Token from localStorage:", token);
       
       if (!token) {
-        alert("Sila log masuk semula.");
+        alert("Please log in again.");
         return;
       }
 
@@ -2393,22 +2393,22 @@ export default function SystemSettingPage() {
                 {isUploadingLogo ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Memuat naik...
+                    Uploading...
                   </>
                 ) : (
                   <>
                     <Upload className="w-4 h-4 mr-2" />
-                    {logoFile ? 'Tukar Logo' : 'Muat Naik Logo'}
+                    {logoFile ? 'Change Logo' : 'Upload Logo'}
                   </>
                 )}
               </Button>
               {logoFile && (
                 <p className="text-xs text-green-600">
-                  Logo baru dipilih: {logoFile.name}
+                  New logo selected: {logoFile.name}
                 </p>
               )}
               <p className="text-xs text-gray-500">
-                JPG, PNG atau GIF (Max: 5MB)
+                JPG, PNG or GIF (Max: 5MB)
               </p>
             </div>
           </div>
