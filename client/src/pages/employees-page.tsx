@@ -426,17 +426,6 @@ export default function EmployeesPage() {
                       <TableCell className="text-right">
                         <div className="flex justify-end space-x-2">
                           {hasPrivilegedAccess() && (
-                            <Link href={`/employee-details/${employee.id}`}>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                data-testid={`button-view-employee-${employee.id}`}
-                              >
-                                <Eye className="w-4 h-4" />
-                              </Button>
-                            </Link>
-                          )}
-                          {hasPrivilegedAccess() && (
                             <Button
                               variant="outline"
                               size="sm"
