@@ -1,6 +1,8 @@
 # Overview
 UtamaHR is a comprehensive HR Management System built with React, TypeScript, and Express.js. Its core purpose is to provide a secure, full-featured HR solution, starting with robust authentication and expanding to cover essential HR functionalities. Key capabilities include secure JWT-based authentication, complete employee management (CRUD), detailed system settings, standardized employee detail layouts, real-time dashboard statistics, unread announcement tracking, comprehensive financial claim policy management with multi-level approval workflows, complete payroll system including PDF and Excel payslip generation with dynamic company data integration, and advanced shift management system with per-date assignment capabilities, manual state tracking, and database persistence through Save button workflow. The business vision is to deliver an intuitive and compliant HR platform capable of handling complex HR workflows including sophisticated shift scheduling.
 
+**CRITICAL MILESTONE COMPLETED (August 2025)**: Complete language standardization to English achieved across the entire application, replacing all Malay terminology with professional English equivalents throughout UI, PDF generation, compliance messages, and server responses.
+
 # User Preferences
 Preferred communication style: Simple, everyday language.
 
@@ -26,6 +28,7 @@ Preferred communication style: Simple, everyday language.
     - Enhanced attendance PDF reports with dynamic company branding: automatically fetches company settings (logo placeholder, name, phone, email, address) from System Settings for professional header formatting with expanded layout.
     - Comprehensive filtering and PDF download system across all My Record tabs (Leave, Claim, Overtime) with reusable filter components (`renderLeaveFilterSection`, `renderClaimFilterSection`, `renderOvertimeFilterSection`) ensuring UI consistency.
     - Advanced client-side filtering with date range selection, status filtering, claim type filtering, and search functionality with proper state management and connected dropdowns.
+    - **Complete Language Standardization (August 2025)**: Systematic conversion from mixed Malay-English to professional English throughout the application including UI elements, PDF reports, compliance messages, server responses, and error handling with standardized attendance compliance messaging format: "Late X hours Y minutes from shift time Z. Needs supervisor review."
 
 ## Backend Architecture
 - **Runtime**: Node.js with Express.js.

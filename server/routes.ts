@@ -461,7 +461,7 @@ export function registerRoutes(app: Express): Server {
       const user = await storage.getUser(req.user!.id);
       
       res.json({
-        message: "Selamat datang ke UtamaHR Dashboard",
+        message: "Welcome to UtamaHR Dashboard",
         user: {
           id: req.user!.id,
           username: req.user!.username,
