@@ -44,7 +44,8 @@ import {
   Trash2,
   Edit2,
   Eye,
-  Download
+  Download,
+  Shield
 } from "lucide-react";
 import { useLocation, Link as RouterLink } from "wouter";
 import { cn } from "@/lib/utils";
@@ -507,6 +508,12 @@ const settingsMenuItems = [
     label: "Department",
     icon: <Users className="w-4 h-4" />,
     href: "/system-setting/department",
+  },
+  {
+    id: "role-configuration",
+    label: "Role Configuration",
+    icon: <Shield className="w-4 h-4" />,
+    href: "/system-setting/role-configuration",
   },
   {
     id: "payment",
@@ -5599,6 +5606,101 @@ export default function SystemSettingPage() {
     );
   };
 
+  // Role Configuration Form
+  const renderRoleConfigurationForm = () => {
+    const rolePermissions = [
+      { id: 'dashboard', name: 'Dashboard Access', description: 'Access to main dashboard and analytics' },
+      { id: 'employees', name: 'Employee Management', description: 'Add, edit, and manage employee records' },
+      { id: 'payroll', name: 'Payroll Management', description: 'Process payroll and manage salary information' },
+      { id: 'attendance', name: 'Attendance Management', description: 'View and manage attendance records' },
+      { id: 'leave', name: 'Leave Management', description: 'Approve and manage leave requests' },
+      { id: 'claims', name: 'Claims Management', description: 'Process and approve expense claims' },
+      { id: 'reports', name: 'Reports Access', description: 'Generate and view system reports' },
+      { id: 'system-settings', name: 'System Settings', description: 'Configure system-wide settings' },
+      { id: 'user-management', name: 'User Management', description: 'Manage user accounts and roles' },
+    ];
+
+    const roles = [
+      { id: 'super-admin', name: 'Super Admin', description: 'Full system access with all permissions' },
+      { id: 'admin', name: 'Admin', description: 'Administrative access with most permissions' },
+      { id: 'hr-manager', name: 'HR Manager', description: 'Human resources management access' },
+      { id: 'finance', name: 'Finance', description: 'Financial operations and payroll access' },
+      { id: 'staff', name: 'Staff/Employee', description: 'Basic employee access to personal records' },
+    ];
+
+    return (
+      <div className="space-y-6">
+        <div className="bg-white rounded-lg border">
+          <div className="text-white p-3 rounded-t-lg shadow-sm bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800">
+            <h3 className="font-semibold text-white">Role Configuration</h3>
+          </div>
+          <div className="p-6 space-y-6">
+            {/* Role Management Section */}
+            <div className="space-y-4">
+              <h4 className="text-lg font-semibold text-gray-900">User Roles & Permissions</h4>
+              <p className="text-sm text-gray-600">Configure role-based access control for different user types in the system.</p>
+              
+              {roles.map((role) => (
+                <div key={role.id} className="border rounded-lg p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h5 className="font-medium text-gray-900">{role.name}</h5>
+                      <p className="text-sm text-gray-500">{role.description}</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                      data-testid={`button-configure-${role.id}`}
+                    >
+                      <Settings className="w-4 h-4 mr-2" />
+                      Configure
+                    </Button>
+                  </div>
+                  
+                  {/* Permission Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4 pt-4 border-t">
+                    {rolePermissions.map((permission) => (
+                      <div key={permission.id} className="flex items-center space-x-3">
+                        <Checkbox
+                          id={`${role.id}-${permission.id}`}
+                          defaultChecked={role.id === 'super-admin' || (role.id === 'admin' && permission.id !== 'user-management')}
+                          data-testid={`checkbox-${role.id}-${permission.id}`}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <Label
+                            htmlFor={`${role.id}-${permission.id}`}
+                            className="text-sm font-medium text-gray-700 cursor-pointer"
+                          >
+                            {permission.name}
+                          </Label>
+                          <p className="text-xs text-gray-500 truncate">{permission.description}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end space-x-3 pt-4 border-t">
+              <Button variant="outline" data-testid="button-reset-roles">
+                Reset to Default
+              </Button>
+              <Button 
+                className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white shadow-sm"
+                data-testid="button-save-role-config"
+              >
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderPlaceholderContent = (section: string) => (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-slate-900 to-cyan-800 text-white p-4 rounded-lg">
@@ -5664,6 +5766,7 @@ export default function SystemSettingPage() {
              currentSection === "leave" ? renderLeaveForm() : 
              currentSection === "claim" ? renderClaimForm() :
              currentSection === "department" ? renderDepartmentForm() :
+             currentSection === "role-configuration" ? renderRoleConfigurationForm() :
              currentSection === "payment" ? renderPaymentForm() :
              
              currentSection === "attendance" ? renderAttendanceForm() :
