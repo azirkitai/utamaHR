@@ -917,6 +917,12 @@ export default function SystemSettingPage() {
     enabled: true
   });
 
+  // Query for departments from database
+  const { data: databaseDepartments = [] } = useQuery({
+    queryKey: ["/api/departments"],
+    retry: false,
+  });
+
   // Department states
   const [showAddDepartmentDialog, setShowAddDepartmentDialog] = useState(false);
   const [expandedDepartments, setExpandedDepartments] = useState<number[]>([]);
@@ -926,47 +932,39 @@ export default function SystemSettingPage() {
     code: "",
   });
 
-  // Generate departments with real employee data
+  // Generate departments with combined database and employee data
   const departments = useMemo(() => {
-    if (!allEmployees || allEmployees.length === 0) {
+    if (!databaseDepartments || databaseDepartments.length === 0) {
       return [];
     }
 
-    // Group employees by department
-    const departmentGroups = allEmployees.reduce((acc: any, employee: any) => {
-      const departmentName = employee.employment?.department || 'Unassigned';
-      
-      if (!acc[departmentName]) {
-        acc[departmentName] = [];
-      }
-      
-      acc[departmentName].push({
-        id: employee.id,
-        name: employee.fullName || `${employee.firstName} ${employee.lastName}`.trim(),
-        position: employee.employment?.designation || employee.role || 'Staff',
-        email: employee.contact?.email || 'No email',
-        status: employee.status || 'employed'
+    // Group employees by department for counting
+    const employeesByDepartment: { [key: string]: any[] } = {};
+    if (allEmployees && allEmployees.length > 0) {
+      allEmployees.forEach((employee: any) => {
+        const departmentName = employee.employment?.department || 'Unassigned';
+        if (!employeesByDepartment[departmentName]) {
+          employeesByDepartment[departmentName] = [];
+        }
+        employeesByDepartment[departmentName].push({
+          id: employee.id,
+          name: employee.fullName || `${employee.firstName} ${employee.lastName}`.trim(),
+          position: employee.employment?.designation || employee.role || 'Staff',
+          email: employee.contact?.email || 'No email',
+          status: employee.status || 'employed'
+        });
       });
-      
-      return acc;
-    }, {});
+    }
 
-    // Convert to department array format
-    return Object.entries(departmentGroups).map(([deptName, employees]: [string, any]) => ({
-      id: Math.abs(deptName.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a; }, 0)),
-      name: deptName.charAt(0).toUpperCase() + deptName.slice(1).toLowerCase(),
-      code: deptName.substring(0, 3).toUpperCase(),
-      employeeCount: employees.length,
-      employees: employees
+    // Map database departments with employee counts
+    return databaseDepartments.map((dept: any) => ({
+      id: dept.id,
+      name: dept.name,
+      code: dept.code,
+      employeeCount: employeesByDepartment[dept.name]?.length || 0,
+      employees: employeesByDepartment[dept.name] || []
     }));
-  }, [allEmployees]);
-
-  const [localDepartments, setLocalDepartments] = useState(departments);
-
-  // Sync localDepartments when departments data changes
-  useEffect(() => {
-    setLocalDepartments(departments);
-  }, [departments]);
+  }, [databaseDepartments, allEmployees]);
 
   // Payment states
   const [paymentSettings, setPaymentSettings] = useState({
@@ -1290,6 +1288,91 @@ export default function SystemSettingPage() {
       toast({
         title: "Error",
         description: "Gagal mengemaskini shift",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Department mutations
+  const createDepartmentMutation = useMutation({
+    mutationFn: async (departmentData: {
+      name: string;
+      code: string;
+      description: string;
+      enabled: boolean;
+    }) => {
+      return await apiRequest("POST", "/api/departments", {
+        name: departmentData.name,
+        code: departmentData.code,
+        description: departmentData.description,
+        isActive: departmentData.enabled
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Department successfully created",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/departments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/departments/names"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/employees"] });
+      setShowAddDepartmentDialog(false);
+      setNewDepartmentForm({
+        name: "",
+        code: "",
+      });
+    },
+    onError: (error: Error) => {
+      console.error("Create department error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create department",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const updateDepartmentMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: { name: string } }) => {
+      return await apiRequest("PUT", `/api/departments/${id}`, data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Department successfully updated",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/departments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/departments/names"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/employees"] });
+    },
+    onError: (error: Error) => {
+      console.error("Update department error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update department",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const deleteDepartmentMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest("DELETE", `/api/departments/${id}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Department successfully deleted",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/departments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/departments/names"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/employees"] });
+    },
+    onError: (error: Error) => {
+      console.error("Delete department error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete department",
         variant: "destructive",
       });
     }
@@ -2834,15 +2917,12 @@ export default function SystemSettingPage() {
 
   const handleSaveNewDepartment = () => {
     if (newDepartmentForm.name && newDepartmentForm.code) {
-      const newDepartment = {
-        id: localDepartments.length + 1,
+      createDepartmentMutation.mutate({
         name: newDepartmentForm.name,
         code: newDepartmentForm.code,
-        employeeCount: 0,
-        employees: []
-      };
-      setLocalDepartments([...localDepartments, newDepartment]);
-      setShowAddDepartmentDialog(false);
+        description: `${newDepartmentForm.name} Department`,
+        enabled: true
+      });
     }
   };
 
@@ -2860,15 +2940,16 @@ export default function SystemSettingPage() {
   };
 
   const handleSaveDepartmentName = (departmentId: number, newName: string) => {
-    setLocalDepartments(prev => prev.map(dept => 
-      dept.id === departmentId ? { ...dept, name: newName } : dept
-    ));
+    updateDepartmentMutation.mutate({
+      id: departmentId.toString(),
+      data: { name: newName }
+    });
     setEditingDepartment(null);
   };
 
   const handleDeleteDepartment = (departmentId: number) => {
     if (window.confirm("Are you sure you want to delete this department? This action cannot be undone.")) {
-      setLocalDepartments(prev => prev.filter(dept => dept.id !== departmentId));
+      deleteDepartmentMutation.mutate(departmentId.toString());
       // Also remove from expanded departments if it was expanded
       setExpandedDepartments(prev => prev.filter(id => id !== departmentId));
     }
