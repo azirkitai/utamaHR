@@ -5391,9 +5391,15 @@ export function registerRoutes(app: Express): Server {
   app.post("/api/page-permissions", authenticateToken, async (req, res) => {
     try {
       const currentUser = req.user!;
+      console.log("=== PAGE PERMISSIONS DEBUG ===");
+      console.log("Current user object:", JSON.stringify(currentUser, null, 2));
+      console.log("Current user role:", currentUser.role);
+      console.log("Role comparison:", currentUser.role === "Super Admin");
+      console.log("===============================");
       
       // Only Super Admin can save page permissions
       if (currentUser.role !== "Super Admin") {
+        console.log("Access denied - user role is not Super Admin:", currentUser.role);
         return res.status(403).json({ error: "Access denied. Only Super Admin can modify page permissions." });
       }
 
