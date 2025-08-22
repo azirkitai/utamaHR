@@ -546,9 +546,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               
 
               {/* User Menu */}
-              <div className="flex items-center space-x-1 border-l border-gray-200 pl-1 md:pl-2">
+              <div className="flex items-center space-x-1 md:space-x-2 border-l border-gray-200 pl-2 md:pl-3">
                 <div 
-                  className="text-right hidden lg:block cursor-pointer hover:bg-gray-50 rounded px-1 py-1 transition-colors"
+                  className="text-right hidden sm:block cursor-pointer hover:bg-gray-50 rounded px-2 py-1 transition-colors min-w-0 flex-shrink-0"
                   onClick={() => {
                     if (currentEmployee?.id) {
                       window.location.href = `/employee-details/${currentEmployee.id}`;
@@ -556,7 +556,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   }}
                   data-testid="link-header-user-profile"
                 >
-                  <div className="text-xs font-medium text-gray-900 truncate max-w-20" data-testid="text-header-username">
+                  <div className="text-xs font-medium text-gray-900 max-w-32 md:max-w-40 lg:max-w-48 whitespace-nowrap overflow-hidden text-ellipsis" data-testid="text-header-username">
                     {currentEmployee?.fullName || user?.username || 'UTAMA HR'}
                   </div>
                   <div className="text-xs text-gray-500 truncate">
