@@ -60,7 +60,7 @@ export default function ManageEmployeePage() {
 
   // Fetch departments from API
   const { data: availableDepartments = [] } = useQuery<string[]>({
-    queryKey: ["/api/departments"],
+    queryKey: ["/api/departments/names"],
   });
 
   // Mutation for creating user and employee

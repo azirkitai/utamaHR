@@ -213,6 +213,11 @@ import {
   type Event,
   type InsertEvent,
   type UpdateEvent,
+  // Department types
+  departments,
+  type Department,
+  type InsertDepartment,
+  type UpdateDepartment,
   // Employee Leave Eligibility types
   employeeLeaveEligibility,
   type EmployeeLeaveEligibility,
@@ -244,6 +249,13 @@ export interface IStorage {
   deleteEmployee(id: string): Promise<boolean>;
   getUniqueDepartments(): Promise<string[]>;
   getEmployeesWithApprovalRoles(): Promise<Employee[]>;
+  
+  // =================== DEPARTMENTS METHODS ===================
+  getAllDepartments(): Promise<Department[]>;
+  getDepartment(id: string): Promise<Department | undefined>;
+  createDepartment(departmentData: InsertDepartment): Promise<Department>;
+  updateDepartment(id: string, departmentData: UpdateDepartment): Promise<Department | undefined>;
+  deleteDepartment(id: string): Promise<boolean>;
   
   // =================== EMPLOYMENT METHODS ===================
   getEmploymentByEmployeeId(employeeId: string): Promise<Employment | undefined>;
@@ -2935,20 +2947,89 @@ export class DatabaseStorage implements IStorage {
   }
 
   // =================== DEPARTMENTS METHODS ===================
+  async getAllDepartments(): Promise<Department[]> {
+    try {
+      const departmentList = await db
+        .select()
+        .from(departments)
+        .where(eq(departments.isActive, true))
+        .orderBy(asc(departments.name));
+      
+      return departmentList;
+    } catch (error) {
+      console.error('Error getting departments:', error);
+      return [];
+    }
+  }
+
+  async getDepartment(id: string): Promise<Department | undefined> {
+    try {
+      const [department] = await db
+        .select()
+        .from(departments)
+        .where(eq(departments.id, id));
+      
+      return department || undefined;
+    } catch (error) {
+      console.error('Error getting department:', error);
+      return undefined;
+    }
+  }
+
+  async createDepartment(departmentData: InsertDepartment): Promise<Department> {
+    try {
+      const [department] = await db
+        .insert(departments)
+        .values(departmentData)
+        .returning();
+      
+      return department;
+    } catch (error) {
+      console.error('Error creating department:', error);
+      throw error;
+    }
+  }
+
+  async updateDepartment(id: string, departmentData: UpdateDepartment): Promise<Department | undefined> {
+    try {
+      const [department] = await db
+        .update(departments)
+        .set({
+          ...departmentData,
+          updatedAt: new Date()
+        })
+        .where(eq(departments.id, id))
+        .returning();
+      
+      return department || undefined;
+    } catch (error) {
+      console.error('Error updating department:', error);
+      throw error;
+    }
+  }
+
+  async deleteDepartment(id: string): Promise<boolean> {
+    try {
+      // Soft delete by setting isActive to false
+      const result = await db
+        .update(departments)
+        .set({ 
+          isActive: false,
+          updatedAt: new Date()
+        })
+        .where(eq(departments.id, id));
+      
+      return (result.rowCount ?? 0) > 0;
+    } catch (error) {
+      console.error('Error deleting department:', error);
+      return false;
+    }
+  }
+
   async getUniqueDepartments(): Promise<string[]> {
     try {
-      const departments = await db
-        .selectDistinct({ department: employment.department })
-        .from(employment)
-        .where(and(
-          isNotNull(employment.department),
-          ne(employment.department, '')
-        ))
-        .orderBy(asc(employment.department));
-      
-      return departments
-        .map(row => row.department)
-        .filter(dept => dept != null) as string[];
+      const departmentList = await this.getAllDepartments();
+      return departmentList.map(dept => dept.name);
     } catch (error) {
       console.error('Error getting unique departments:', error);
       return [];

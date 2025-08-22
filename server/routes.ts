@@ -95,6 +95,8 @@ import {
   updateEventSchema,
   insertFormSchema,
   updateFormSchema,
+  insertDepartmentSchema,
+  updateDepartmentSchema,
   type AttendanceRecord
 } from "@shared/schema";
 import { checkEnvironmentSecrets } from "./env-check";
@@ -3905,14 +3907,82 @@ export function registerRoutes(app: Express): Server {
   });
 
   // =================== DEPARTMENTS ROUTES ===================
-  // Get unique departments from employment records
+  // Get all departments
   app.get("/api/departments", authenticateToken, async (req, res) => {
     try {
-      const departments = await storage.getUniqueDepartments();
-      res.json(departments);
+      const departmentList = await storage.getAllDepartments();
+      res.json(departmentList);
     } catch (error) {
       console.error("Get departments error:", error);
       res.status(500).json({ error: "Failed to get departments" });
+    }
+  });
+
+  // Get unique department names (for dropdowns)
+  app.get("/api/departments/names", authenticateToken, async (req, res) => {
+    try {
+      const departmentNames = await storage.getUniqueDepartments();
+      res.json(departmentNames);
+    } catch (error) {
+      console.error("Get department names error:", error);
+      res.status(500).json({ error: "Failed to get department names" });
+    }
+  });
+
+  // Create department
+  app.post("/api/departments", authenticateToken, async (req, res) => {
+    try {
+      const validationResult = insertDepartmentSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Invalid department data",
+          details: validationResult.error.errors
+        });
+      }
+
+      const department = await storage.createDepartment(validationResult.data);
+      res.status(201).json(department);
+    } catch (error) {
+      console.error("Create department error:", error);
+      res.status(500).json({ error: "Failed to create department" });
+    }
+  });
+
+  // Update department
+  app.put("/api/departments/:id", authenticateToken, async (req, res) => {
+    try {
+      const validationResult = updateDepartmentSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Invalid department data",
+          details: validationResult.error.errors
+        });
+      }
+
+      const department = await storage.updateDepartment(req.params.id, validationResult.data);
+      if (!department) {
+        return res.status(404).json({ error: "Department not found" });
+      }
+
+      res.json(department);
+    } catch (error) {
+      console.error("Update department error:", error);
+      res.status(500).json({ error: "Failed to update department" });
+    }
+  });
+
+  // Delete department
+  app.delete("/api/departments/:id", authenticateToken, async (req, res) => {
+    try {
+      const success = await storage.deleteDepartment(req.params.id);
+      if (!success) {
+        return res.status(404).json({ error: "Department not found" });
+      }
+
+      res.json({ message: "Department successfully deleted" });
+    } catch (error) {
+      console.error("Delete department error:", error);
+      res.status(500).json({ error: "Failed to delete department" });
     }
   });
 
