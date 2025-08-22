@@ -241,6 +241,13 @@ export default function EmployeeDetailsPage() {
     return privilegedRoles.includes(currentUser.role);
   };
 
+  // Check if current user has admin access (Super Admin or Admin only)
+  const hasAdminAccess = () => {
+    if (!currentUser) return false;
+    const adminRoles = ["Super Admin", "Admin"];
+    return adminRoles.includes(currentUser.role);
+  };
+
   // Helper function to get employee name by ID (check approval employees first, then all employees)
   const getEmployeeNameById = (employeeId: string | null) => {
     if (!employeeId) return "NONE";
@@ -1098,16 +1105,18 @@ export default function EmployeeDetailsPage() {
         <div className="bg-white border-b px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setLocation("/employees")}
-                className="text-blue-600 hover:text-blue-700"
-                data-testid="button-back-to-list"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Employee List
-              </Button>
+              {hasAdminAccess() && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setLocation("/employees")}
+                  className="text-blue-600 hover:text-blue-700"
+                  data-testid="button-back-to-list"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Employee List
+                </Button>
+              )}
               <div>
                 <h1 className="text-xl font-semibold text-gray-900">Employee Detail</h1>
                 <div className="flex items-center gap-2 text-sm text-gray-500">
