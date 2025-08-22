@@ -418,11 +418,11 @@ export default function EmployeesPage() {
                   {employees.map((employee) => (
                     <TableRow key={employee.id} data-testid={`row-employee-${employee.id}`}>
                       <TableCell className="font-medium">{employee.fullName}</TableCell>
-                      <TableCell>N/A</TableCell>
-                      <TableCell>N/A</TableCell>
-                      <TableCell>N/A</TableCell>
+                      <TableCell>{employee.contact?.email || "N/A"}</TableCell>
+                      <TableCell>{employee.employment?.designation || "N/A"}</TableCell>
+                      <TableCell>{employee.employment?.department || "N/A"}</TableCell>
                       <TableCell>{getStatusBadge(employee.status)}</TableCell>
-                      <TableCell>{new Date(employee.createdAt).toLocaleDateString('ms-MY')}</TableCell>
+                      <TableCell>{employee.employment?.dateJoining ? new Date(employee.employment.dateJoining).toLocaleDateString('ms-MY') : new Date(employee.createdAt).toLocaleDateString('ms-MY')}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end space-x-2">
                           {hasPrivilegedAccess() && (
