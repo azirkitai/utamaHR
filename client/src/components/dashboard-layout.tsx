@@ -62,6 +62,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     enabled: !!user?.id,
   });
 
+  // Fetch company settings for dynamic company name
+  const { data: companySettings } = useQuery({
+    queryKey: ["/api/company-settings"],
+    enabled: !!user?.id,
+  });
+
   // Handle notification click - mark as read and open detail dialog
   const handleNotificationClick = async (notification: any) => {
     // Mark as read locally
@@ -399,7 +405,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             {/* Center - Company name (mobile-first) */}
             <div className="flex-1 flex flex-col items-center md:items-start md:flex-row md:space-x-4">
               <div className="text-sm md:text-lg font-semibold text-gray-700 text-center md:text-left">
-                UTAMA MEDGROUP
+                {companySettings?.companyName || 'UTAMA MEDGROUP'}
               </div>
               
               {/* Date and Time - Stacked on mobile, inline on desktop */}
