@@ -607,6 +607,83 @@ export default function SystemSettingPage() {
   const [activeTab, setActiveTab] = useState("leave");
   const [claimActiveTab, setClaimActiveTab] = useState("financial");
   
+  // Role configuration state - must be at top level to avoid hooks ordering issues
+  const systemPages = [
+    {
+      id: 'dashboard',
+      name: 'Dashboard',
+      description: 'Main dashboard showing company overview, attendance summary, recent activities, notifications, and key metrics for quick insights.',
+      features: ['View attendance statistics', 'Company announcements', 'Quick access to reports', 'System notifications'],
+      defaultRoles: ['Super Admin', 'Admin', 'HR Manager', 'Finance']
+    },
+    {
+      id: 'employee-management',
+      name: 'Employee Management',
+      description: 'Comprehensive employee records management including personal details, employment information, contact details, and document management.',
+      features: ['Add/Edit employee records', 'Upload employee documents', 'Manage employment details', 'View employee profiles'],
+      defaultRoles: ['Super Admin', 'Admin', 'HR Manager']
+    },
+    {
+      id: 'attendance',
+      name: 'Attendance Management', 
+      description: 'Track and manage employee attendance including clock-in/out records, shift management, overtime tracking, and attendance reports.',
+      features: ['View attendance records', 'Manage shifts', 'Generate attendance reports', 'Track overtime'],
+      defaultRoles: ['Super Admin', 'Admin', 'HR Manager']
+    },
+    {
+      id: 'leave-management',
+      name: 'Leave Management',
+      description: 'Handle leave applications, approvals, leave balances, leave policies configuration, and leave reports for all employees.',
+      features: ['Approve/Reject leave requests', 'View leave balances', 'Configure leave policies', 'Generate leave reports'],
+      defaultRoles: ['Super Admin', 'Admin', 'HR Manager']
+    },
+    {
+      id: 'payroll',
+      name: 'Payroll Management',
+      description: 'Process monthly payroll, generate payslips, manage salary structures, calculate statutory contributions (EPF, SOCSO, EIS), and handle salary reports.',
+      features: ['Process payroll', 'Generate payslips', 'Manage salary structures', 'Calculate deductions'],
+      defaultRoles: ['Super Admin', 'Admin', 'Finance']
+    },
+    {
+      id: 'claims',
+      name: 'Claims Management',
+      description: 'Process expense claims, reimbursement requests, travel allowances, medical claims with approval workflows and claim reporting.',
+      features: ['Process expense claims', 'Approve reimbursements', 'Manage claim policies', 'Generate claim reports'],
+      defaultRoles: ['Super Admin', 'Admin', 'Finance', 'HR Manager']
+    },
+    {
+      id: 'reports',
+      name: 'Reports & Analytics',
+      description: 'Generate comprehensive reports including attendance, payroll, leave, claims, employee analytics, and export capabilities in PDF/Excel formats.',
+      features: ['Generate attendance reports', 'Payroll reports', 'Leave analytics', 'Export to PDF/Excel'],
+      defaultRoles: ['Super Admin', 'Admin', 'HR Manager', 'Finance']
+    },
+    {
+      id: 'system-settings',
+      name: 'System Settings',
+      description: 'Configure company settings, leave policies, claim policies, attendance settings, payroll configuration, and system-wide preferences.',
+      features: ['Company configuration', 'Policy management', 'System preferences', 'Backup settings'],
+      defaultRoles: ['Super Admin', 'Admin']
+    }
+  ];
+
+  const [pagePermissions, setPagePermissions] = useState(() => {
+    const initial: Record<string, string[]> = {};
+    systemPages.forEach(page => {
+      initial[page.id] = [...page.defaultRoles];
+    });
+    return initial;
+  });
+
+  const handleRoleToggle = (pageId: string, role: string) => {
+    setPagePermissions(prev => ({
+      ...prev,
+      [pageId]: prev[pageId].includes(role) 
+        ? prev[pageId].filter(r => r !== role)
+        : [...prev[pageId], role]
+    }));
+  };
+  
   // Get real leave policies data from API
   const { data: companyLeaveTypes = [] } = useQuery({
     queryKey: ["/api/company-leave-types"]
@@ -5612,85 +5689,9 @@ export default function SystemSettingPage() {
 
   // Role Configuration Form - Page by Page Access Control
   const renderRoleConfigurationForm = () => {
-    const systemPages = [
-      {
-        id: 'dashboard',
-        name: 'Dashboard',
-        description: 'Main dashboard showing company overview, attendance summary, recent activities, notifications, and key metrics for quick insights.',
-        features: ['View attendance statistics', 'Company announcements', 'Quick access to reports', 'System notifications'],
-        defaultRoles: ['Super Admin', 'Admin', 'HR Manager', 'Finance']
-      },
-      {
-        id: 'employee-management',
-        name: 'Employee Management',
-        description: 'Comprehensive employee records management including personal details, employment information, contact details, and document management.',
-        features: ['Add/Edit employee records', 'Upload employee documents', 'Manage employment details', 'View employee profiles'],
-        defaultRoles: ['Super Admin', 'Admin', 'HR Manager']
-      },
-      {
-        id: 'attendance',
-        name: 'Attendance Management', 
-        description: 'Track and manage employee attendance including clock-in/out records, shift management, overtime tracking, and attendance reports.',
-        features: ['View attendance records', 'Manage shifts', 'Generate attendance reports', 'Track overtime'],
-        defaultRoles: ['Super Admin', 'Admin', 'HR Manager']
-      },
-      {
-        id: 'leave-management',
-        name: 'Leave Management',
-        description: 'Handle leave applications, approvals, leave balances, leave policies configuration, and leave reports for all employees.',
-        features: ['Approve/Reject leave requests', 'View leave balances', 'Configure leave policies', 'Generate leave reports'],
-        defaultRoles: ['Super Admin', 'Admin', 'HR Manager']
-      },
-      {
-        id: 'payroll',
-        name: 'Payroll Management',
-        description: 'Process monthly payroll, generate payslips, manage salary structures, calculate statutory contributions (EPF, SOCSO, EIS), and handle salary reports.',
-        features: ['Process payroll', 'Generate payslips', 'Manage salary structures', 'Calculate deductions'],
-        defaultRoles: ['Super Admin', 'Admin', 'Finance']
-      },
-      {
-        id: 'claims',
-        name: 'Claims Management',
-        description: 'Process expense claims, reimbursement requests, travel allowances, medical claims with approval workflows and claim reporting.',
-        features: ['Process expense claims', 'Approve reimbursements', 'Manage claim policies', 'Generate claim reports'],
-        defaultRoles: ['Super Admin', 'Admin', 'Finance', 'HR Manager']
-      },
-      {
-        id: 'reports',
-        name: 'Reports & Analytics',
-        description: 'Generate comprehensive reports including attendance, payroll, leave, claims, employee analytics, and export capabilities in PDF/Excel formats.',
-        features: ['Generate attendance reports', 'Payroll reports', 'Leave analytics', 'Export to PDF/Excel'],
-        defaultRoles: ['Super Admin', 'Admin', 'HR Manager', 'Finance']
-      },
-      {
-        id: 'system-settings',
-        name: 'System Settings',
-        description: 'Configure company settings, leave policies, claim policies, attendance settings, payroll configuration, and system-wide preferences.',
-        features: ['Company configuration', 'Policy management', 'System preferences', 'Backup settings'],
-        defaultRoles: ['Super Admin', 'Admin']
-      }
-    ];
-
     const availableRoles = [
       'Super Admin', 'Admin', 'HR Manager', 'Finance', 'Staff/Employee'
     ];
-
-    const [pagePermissions, setPagePermissions] = useState(() => {
-      const initial: Record<string, string[]> = {};
-      systemPages.forEach(page => {
-        initial[page.id] = [...page.defaultRoles];
-      });
-      return initial;
-    });
-
-    const handleRoleToggle = (pageId: string, role: string) => {
-      setPagePermissions(prev => ({
-        ...prev,
-        [pageId]: prev[pageId].includes(role) 
-          ? prev[pageId].filter(r => r !== role)
-          : [...prev[pageId], role]
-      }));
-    };
 
     return (
       <div className="space-y-6">
