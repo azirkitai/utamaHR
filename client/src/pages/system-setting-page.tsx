@@ -894,6 +894,14 @@ export default function SystemSettingPage() {
   
   // Exclude Employee state
   const [excludedEmployees, setExcludedEmployees] = useState<string[]>([]);
+  
+  // Create Leave Policy Dialog State
+  const [isCreateLeavePolicyDialogOpen, setIsCreateLeavePolicyDialogOpen] = useState(false);
+  const [newLeavePolicyForm, setNewLeavePolicyForm] = useState({
+    leaveType: "",
+    entitlementDays: "14",
+    description: ""
+  });
   const [newPolicyForm, setNewPolicyForm] = useState({
     claimName: "",
     mileageBased: false,
@@ -2412,6 +2420,42 @@ export default function SystemSettingPage() {
     }
   });
 
+  // Create mutation for creating new leave policy
+  const createLeavePolicyMutation = useMutation({
+    mutationFn: ({ leaveType, entitlementDays, description }: { leaveType: string, entitlementDays: number, description: string }) => 
+      apiRequest("POST", "/api/company-leave-types", { 
+        leaveType: leaveType,
+        name: leaveType,
+        entitlementDays: entitlementDays,
+        description: description,
+        enabled: true
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/company-leave-types"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/active-leave-policies"] });
+      setIsCreateLeavePolicyDialogOpen(false);
+      setNewLeavePolicyForm({
+        leaveType: "",
+        entitlementDays: "14",
+        description: ""
+      });
+      toast({
+        title: "✅ Success",
+        description: "Leave policy has been created successfully.",
+        duration: 3000,
+      });
+    },
+    onError: (error) => {
+      console.error("Failed to create leave policy:", error);
+      toast({
+        title: "❌ Error",
+        description: "Failed to create leave policy. Please try again.",
+        variant: "destructive",
+        duration: 3000,
+      });
+    }
+  });
+
   const handleToggleLeavePolicy = async (policyId: string, enabled: boolean) => {
     try {
       // Find the policy to get the leave type name
@@ -2435,6 +2479,36 @@ export default function SystemSettingPage() {
     } catch (error) {
       console.error("Error toggling leave policy:", error);
     }
+  };
+
+  // Handle create new leave policy
+  const handleCreateLeavePolicy = () => {
+    if (!newLeavePolicyForm.leaveType.trim()) {
+      toast({
+        title: "❌ Validation Error",
+        description: "Please enter a leave type name.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
+
+    // Check if leave type already exists
+    if (leavePolicies.some(policy => policy.name.toLowerCase() === newLeavePolicyForm.leaveType.toLowerCase())) {
+      toast({
+        title: "❌ Duplicate Error",
+        description: "This leave type already exists. Please choose a different name.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
+
+    createLeavePolicyMutation.mutate({
+      leaveType: newLeavePolicyForm.leaveType,
+      entitlementDays: parseInt(newLeavePolicyForm.entitlementDays) || 14,
+      description: newLeavePolicyForm.description
+    });
   };
 
   const handleToggleExpand = (policyId: string) => {
@@ -4257,6 +4331,7 @@ export default function SystemSettingPage() {
               variant="secondary"
               size="sm"
               className="bg-white text-cyan-600 hover:bg-gray-100"
+              onClick={() => setIsCreateLeavePolicyDialogOpen(true)}
               data-testid="button-create-leave-policy"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -7136,6 +7211,93 @@ export default function SystemSettingPage() {
                 <>
                   <Plus className="w-4 h-4 mr-2" />
                   Save Form
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Leave Policy Dialog */}
+      <Dialog open={isCreateLeavePolicyDialogOpen} onOpenChange={setIsCreateLeavePolicyDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Plus className="w-5 h-5" />
+              Create New Leave Policy
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="leave-type" className="text-sm font-medium">
+                Leave Type Name *
+              </Label>
+              <Input
+                id="leave-type"
+                placeholder="e.g. Medical Leave, Maternity Leave"
+                value={newLeavePolicyForm.leaveType}
+                onChange={(e) => setNewLeavePolicyForm(prev => ({ ...prev, leaveType: e.target.value }))}
+                data-testid="input-leave-type-name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="entitlement-days" className="text-sm font-medium">
+                Default Entitlement Days *
+              </Label>
+              <Input
+                id="entitlement-days"
+                type="number"
+                min="0"
+                max="365"
+                value={newLeavePolicyForm.entitlementDays}
+                onChange={(e) => setNewLeavePolicyForm(prev => ({ ...prev, entitlementDays: e.target.value }))}
+                data-testid="input-entitlement-days"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description" className="text-sm font-medium">
+                Description (Optional)
+              </Label>
+              <Input
+                id="description"
+                placeholder="Brief description of this leave type"
+                value={newLeavePolicyForm.description}
+                onChange={(e) => setNewLeavePolicyForm(prev => ({ ...prev, description: e.target.value }))}
+                data-testid="input-description"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsCreateLeavePolicyDialogOpen(false);
+                setNewLeavePolicyForm({
+                  leaveType: "",
+                  entitlementDays: "14",
+                  description: ""
+                });
+              }}
+              disabled={createLeavePolicyMutation.isPending}
+              data-testid="button-cancel-create-leave-policy"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateLeavePolicy}
+              disabled={createLeavePolicyMutation.isPending}
+              className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white"
+              data-testid="button-create-leave-policy-submit"
+            >
+              {createLeavePolicyMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Policy
                 </>
               )}
             </Button>

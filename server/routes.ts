@@ -5605,7 +5605,7 @@ export function registerRoutes(app: Express): Server {
       res.status(201).json(newType);
     } catch (error) {
       console.error("Error creating company leave type:", error);
-      res.status(500).json({ error: "Failed to mencipta jenis cuti syarikat" });
+      res.status(500).json({ error: "Failed to create company leave type" });
     }
   });
 
