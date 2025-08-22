@@ -691,7 +691,15 @@ export class DatabaseStorage implements IStorage {
       await db.delete(payrollItems).where(eq(payrollItems.employeeId, id));
       
       console.log("Deleting attendance records...");
-      await db.delete(clockInOut).where(eq(clockInOut.employeeId, id));
+      // clockInRecords uses userId, not employeeId - need to get user ID first
+      const employee = await db.select().from(employees).where(eq(employees.id, id));
+      if (employee.length > 0) {
+        await db.delete(clockInOut).where(eq(clockInOut.userId, employee[0].userId));
+      }
+      
+      console.log("Deleting attendance record entries...");
+      // attendanceRecords uses employeeId
+      await db.delete(attendanceRecords).where(eq(attendanceRecords.employeeId, id));
       
       console.log("Deleting leave applications...");
       await db.delete(leaveApplications).where(eq(leaveApplications.employeeId, id));
