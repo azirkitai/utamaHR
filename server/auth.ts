@@ -149,12 +149,24 @@ export function setupAuth(app: Express) {
   });
 
   // Get current user endpoint
-  app.get("/api/user", authenticateToken, (req, res) => {
-    res.json({
-      id: req.user!.id,
-      username: req.user!.username,
-      role: req.user!.role,
-    });
+  app.get("/api/user", authenticateToken, async (req, res) => {
+    try {
+      // Get fresh employee data from database to get current role
+      const employee = await storage.getEmployeeByUserId(req.user!.id);
+      res.json({
+        id: req.user!.id,
+        username: req.user!.username,
+        role: employee?.role || req.user!.role, // Use employee role, fallback to JWT role
+      });
+    } catch (error) {
+      console.error("Error fetching user employee data:", error);
+      // Fallback to JWT data if database query fails
+      res.json({
+        id: req.user!.id,
+        username: req.user!.username,
+        role: req.user!.role,
+      });
+    }
   });
 
   // Logout endpoint (client-side akan remove token)
