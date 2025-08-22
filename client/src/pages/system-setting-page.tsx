@@ -53,6 +53,26 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { FinancialClaimPolicy, InsertFinancialClaimPolicy } from "@shared/schema";
 
+// Malaysian states and their cities mapping
+const MALAYSIAN_CITIES_BY_STATE = {
+  "johor": ["Johor Bahru", "Batu Pahat", "Muar", "Kluang", "Pontian", "Segamat", "Kulai", "Skudai", "Senai", "Tampoi"],
+  "kedah": ["Alor Setar", "Sungai Petani", "Kulim", "Langkawi", "Pendang", "Baling", "Yan", "Padang Serai", "Kuala Kedah", "Jitra"],
+  "kelantan": ["Kota Bharu", "Kuala Krai", "Tanah Merah", "Machang", "Pasir Mas", "Tumpat", "Bachok", "Pasir Puteh", "Gua Musang", "Jeli"],
+  "malacca": ["Melaka", "Alor Gajah", "Jasin", "Merlimau", "Masjid Tanah", "Ayer Keroh", "Batu Berendam", "Bukit Baru", "Cheng", "Durian Tunggal"],
+  "negeri-sembilan": ["Seremban", "Port Dickson", "Nilai", "Rembau", "Tampin", "Kuala Pilah", "Johol", "Labu", "Senawang", "Ampangan"],
+  "pahang": ["Kuantan", "Temerloh", "Bentong", "Raub", "Jerantut", "Pekan", "Kuala Lipis", "Mentakab", "Maran", "Rompin"],
+  "perak": ["Ipoh", "Taiping", "Teluk Intan", "Sitiawan", "Parit Buntar", "Lumut", "Kuala Kangsar", "Tanjung Malim", "Batu Gajah", "Kampar"],
+  "perlis": ["Kangar", "Arau", "Padang Besar", "Wang Kelian", "Kuala Perlis", "Simpang Empat", "Mata Ayer", "Kaki Bukit", "Beseri", "Chuping"],
+  "penang": ["George Town", "Butterworth", "Bukit Mertajam", "Nibong Tebal", "Permatang Pauh", "Bayan Lepas", "Tanjung Bungah", "Gurney Drive", "Jelutong", "Air Itam"],
+  "sabah": ["Kota Kinabalu", "Sandakan", "Tawau", "Lahad Datu", "Keningau", "Ranau", "Papar", "Beaufort", "Kudat", "Semporna"],
+  "sarawak": ["Kuching", "Miri", "Sibu", "Bintulu", "Limbang", "Sarikei", "Sri Aman", "Kapit", "Mukah", "Betong"],
+  "selangor": ["Shah Alam", "Petaling Jaya", "Subang Jaya", "Klang", "Kajang", "Ampang", "Cheras", "Bandar Baru Bangi", "Puchong", "Seri Kembangan"],
+  "terengganu": ["Kuala Terengganu", "Kemaman", "Dungun", "Marang", "Besut", "Setiu", "Hulu Terengganu", "Jerteh", "Kuala Nerus", "Chukai"],
+  "kuala-lumpur": ["Kuala Lumpur", "KLCC", "Bangsar", "Mont Kiara", "Desa Park City", "Damansara Heights", "Kenny Hills", "Taman Tun Dr Ismail", "Sentul", "Wangsa Maju"],
+  "labuan": ["Victoria", "Rancha-Rancha", "Pohon Batu", "Layang-Layangan", "Batu Manikar", "Ganggarak", "Kiamsam", "Patau-Patau", "Sungai Bedaun", "Sungai Lada"],
+  "putrajaya": ["Putrajaya", "Presint 1", "Presint 2", "Presint 3", "Presint 4", "Presint 5", "Presint 6", "Presint 7", "Presint 8", "Presint 9"]
+};
+
 const settingsMenuItems = [
   {
     id: "company",
@@ -1245,10 +1265,20 @@ export default function SystemSettingPage() {
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setCompanyData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setCompanyData(prev => {
+      // Clear city when state changes
+      if (field === 'state') {
+        return {
+          ...prev,
+          [field]: value,
+          city: '' // Reset city when state changes
+        };
+      }
+      return {
+        ...prev,
+        [field]: value
+      };
+    });
   };
 
   // Company settings mutation
@@ -2565,14 +2595,18 @@ export default function SystemSettingPage() {
 
             <div className="space-y-2">
               <Label htmlFor="city" className="text-sm font-medium">City</Label>
-              <Select value={companyData.city} onValueChange={(value) => handleInputChange('city', value)}>
+              <Select 
+                value={companyData.city} 
+                onValueChange={(value) => handleInputChange('city', value)}
+                disabled={!companyData.state}
+              >
                 <SelectTrigger data-testid="select-city">
-                  <SelectValue />
+                  <SelectValue placeholder={companyData.state ? "Select city" : "Select state first"} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="bandar-baru-bangi">Bandar Baru Bangi</SelectItem>
-                  <SelectItem value="kajang">Kajang</SelectItem>
-                  <SelectItem value="putrajaya">Putrajaya</SelectItem>
+                  {companyData.state && MALAYSIAN_CITIES_BY_STATE[companyData.state as keyof typeof MALAYSIAN_CITIES_BY_STATE]?.map((city) => (
+                    <SelectItem key={city} value={city.toLowerCase().replace(/\s+/g, '-')}>{city}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
