@@ -82,6 +82,12 @@ export default function EmployeeDetailsPage() {
     allowClockInAnyLocation: true,
     enforceBreakClockOut: true
   });
+
+  // Fetch attendance settings from database
+  const { data: attendanceSettings, isLoading: isLoadingAttendanceSettings } = useQuery({
+    queryKey: ["/api/employees", id, "attendance-settings"],
+    enabled: !!id
+  });
   const [employeeForm, setEmployeeForm] = useState<Partial<Employee>>({});
   const [employmentForm, setEmploymentForm] = useState<Partial<Employment>>({});
   const [contactForm, setContactForm] = useState({
@@ -382,6 +388,17 @@ export default function EmployeeDetailsPage() {
       });
     }
   }, [compensationData]);
+
+  // Update attendance settings when fetched from database
+  useEffect(() => {
+    if (attendanceSettings && !isLoadingAttendanceSettings) {
+      console.log("Loading attendance settings from database:", attendanceSettings);
+      setLocationSettings({
+        allowClockInAnyLocation: attendanceSettings.allowClockInAnyLocation ?? true,
+        enforceBreakClockOut: attendanceSettings.enforceBreakClockOut ?? true
+      });
+    }
+  }, [attendanceSettings, isLoadingAttendanceSettings]);
 
   // Update employee mutation
   const updateEmployeeMutation = useMutation({

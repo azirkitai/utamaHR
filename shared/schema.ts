@@ -463,6 +463,16 @@ export const clockInRecords = pgTable("clock_in_records", {
 });
 
 // Attendance records for My Record page
+// Employee attendance settings table
+export const employeeAttendanceSettings = pgTable("employee_attendance_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  employeeId: varchar("employee_id").notNull().references(() => employees.id),
+  allowClockInAnyLocation: boolean("allow_clock_in_any_location").default(true),
+  enforceBreakClockOut: boolean("enforce_break_clock_out").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const attendanceRecords = pgTable("attendance_records", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   employeeId: varchar("employee_id").notNull().references(() => employees.id),
@@ -1593,6 +1603,11 @@ export type MobileClockInData = z.infer<typeof mobileClockInSchema>;
 export type AttendanceRecord = typeof attendanceRecords.$inferSelect;
 export type InsertAttendanceRecord = z.infer<typeof insertAttendanceRecordSchema>;
 export type UpdateAttendanceRecord = z.infer<typeof updateAttendanceRecordSchema>;
+
+// Employee attendance settings types
+export type EmployeeAttendanceSettings = typeof employeeAttendanceSettings.$inferSelect;
+export type InsertEmployeeAttendanceSettings = typeof employeeAttendanceSettings.$inferInsert;
+export type UpdateEmployeeAttendanceSettings = typeof employeeAttendanceSettings.$inferUpdate;
 
 // Approval Settings types
 export type ApprovalSetting = typeof approvalSettings.$inferSelect;

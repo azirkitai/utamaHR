@@ -77,6 +77,10 @@ import {
   type AttendanceRecord,
   type InsertAttendanceRecord,
   type UpdateAttendanceRecord,
+  // Employee Attendance Settings types
+  type EmployeeAttendanceSettings,
+  type InsertEmployeeAttendanceSettings,
+  type UpdateEmployeeAttendanceSettings,
 
   // Tables
   users, 
@@ -99,6 +103,7 @@ import {
   employeeShifts,
   clockInRecords as clockInOut,
   attendanceRecords,
+  employeeAttendanceSettings,
   leaveApplications,
   groupPolicySettings,
   payrollItems,
@@ -2943,6 +2948,61 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error deleting leave balance carry forward:', error);
       throw error;
+    }
+  }
+
+  // =================== EMPLOYEE ATTENDANCE SETTINGS METHODS ===================
+  async getEmployeeAttendanceSettings(employeeId: string): Promise<any> {
+    try {
+      const [settings] = await db
+        .select()
+        .from(employeeAttendanceSettings)
+        .where(eq(employeeAttendanceSettings.employeeId, employeeId));
+      
+      // Return default settings if no record exists
+      return settings || {
+        allowClockInAnyLocation: true,
+        enforceBreakClockOut: true
+      };
+    } catch (error) {
+      console.error('Error getting employee attendance settings:', error);
+      return {
+        allowClockInAnyLocation: true,
+        enforceBreakClockOut: true
+      };
+    }
+  }
+
+  async updateEmployeeAttendanceSetting(employeeId: string, setting: string, value: boolean): Promise<void> {
+    try {
+      // First check if record exists
+      const [existing] = await db
+        .select()
+        .from(employeeAttendanceSettings)
+        .where(eq(employeeAttendanceSettings.employeeId, employeeId));
+
+      if (existing) {
+        // Update existing record
+        await db
+          .update(employeeAttendanceSettings)
+          .set({
+            [setting]: value,
+            updatedAt: new Date()
+          })
+          .where(eq(employeeAttendanceSettings.employeeId, employeeId));
+      } else {
+        // Create new record
+        await db
+          .insert(employeeAttendanceSettings)
+          .values({
+            employeeId,
+            allowClockInAnyLocation: setting === 'allowClockInAnyLocation' ? value : true,
+            enforceBreakClockOut: setting === 'enforceBreakClockOut' ? value : true
+          });
+      }
+    } catch (error) {
+      console.error('Error updating employee attendance setting:', error);
+      throw new Error('Failed to update attendance setting');
     }
   }
 

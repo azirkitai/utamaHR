@@ -2232,6 +2232,21 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Get employee attendance settings
+  app.get("/api/employees/:id/attendance-settings", authenticateToken, async (req, res) => {
+    try {
+      const employeeId = req.params.id;
+      
+      // Get attendance settings from database for this employee
+      const settings = await storage.getEmployeeAttendanceSettings(employeeId);
+      
+      res.json(settings);
+    } catch (error) {
+      console.error("Get attendance settings error:", error);
+      res.status(500).json({ error: "Failed to fetch attendance settings" });
+    }
+  });
+
   // Update employee attendance settings
   app.put("/api/employees/:id/attendance-settings", authenticateToken, async (req, res) => {
     try {
@@ -2249,7 +2264,8 @@ export function registerRoutes(app: Express): Server {
         return res.status(400).json({ error: "Invalid setting" });
       }
       
-      // For now, just return success - in production this would save to database
+      // Save to database
+      await storage.updateEmployeeAttendanceSetting(employeeId, setting, value);
       console.log(`Attendance setting updated for employee ${employeeId}: ${setting} = ${value}`);
       
       res.json({ 
