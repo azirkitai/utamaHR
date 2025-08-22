@@ -838,7 +838,7 @@ export default function ClaimApprovalPage() {
         <p className="text-gray-600">Please select claim category</p>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Financial Claim */}
         <Card 
           className="cursor-pointer hover:shadow-lg transition-shadow bg-gradient-to-br from-slate-900 to-cyan-800 text-white border-0"
@@ -863,13 +863,7 @@ export default function ClaimApprovalPage() {
           </CardContent>
         </Card>
 
-        {/* Coming Soon */}
-        <Card className="opacity-50 cursor-not-allowed bg-gray-100 border-gray-200">
-          <CardContent className="p-8 text-center">
-            <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-            <h3 className="text-xl font-semibold text-gray-500">Coming Soon</h3>
-          </CardContent>
-        </Card>
+        
       </div>
     </div>
   );
