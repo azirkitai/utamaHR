@@ -918,9 +918,15 @@ export default function SystemSettingPage() {
   });
 
   // Query for departments from database
-  const { data: databaseDepartments = [] } = useQuery({
+  const { data: databaseDepartments = [], isLoading: departmentsLoading, error: departmentsError } = useQuery({
     queryKey: ["/api/departments"],
     retry: false,
+  });
+
+  console.log('🔍 Department query status:', { 
+    isLoading: departmentsLoading, 
+    error: departmentsError?.message,
+    data: databaseDepartments 
   });
 
   // Department states

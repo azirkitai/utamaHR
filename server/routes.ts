@@ -2182,14 +2182,14 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Get unique departments for dropdown filters
-  app.get("/api/departments", authenticateToken, async (req, res) => {
+  // Get unique department names for dropdown filters  
+  app.get("/api/departments/dropdown", authenticateToken, async (req, res) => {
     try {
       const departments = await storage.getUniqueDepartments();
       res.json(departments);
     } catch (error) {
       console.error("Get departments error:", error);
-      res.status(500).json({ error: "Failed to mendapatkan senarai jabatan" });
+      res.status(500).json({ error: "Failed to get department list" });
     }
   });
 
