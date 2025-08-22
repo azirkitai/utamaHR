@@ -604,25 +604,6 @@ export default function SystemSettingPage() {
   const [location] = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
-  
-  // Get current employee data for up-to-date role information
-  const { data: currentEmployee } = useQuery({
-    queryKey: ["/api/user/employee"],
-    queryFn: async () => {
-      const token = localStorage.getItem("utamahr_token");
-      if (!token) throw new Error("Token not found");
-      
-      const response = await fetch("/api/user/employee", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      
-      if (!response.ok) throw new Error("Failed to fetch employee data");
-      return response.json();
-    },
-    enabled: !!user?.id,
-  });
   const [activeTab, setActiveTab] = useState("leave");
   const [claimActiveTab, setClaimActiveTab] = useState("financial");
   
@@ -5816,7 +5797,7 @@ export default function SystemSettingPage() {
   const filteredSettingsMenuItems = settingsMenuItems.filter(item => {
     // Hide Role Configuration for non-Super Admin users
     if (item.id === "role-configuration") {
-      return currentEmployee?.role === "Super Admin" || user?.role === "Super Admin";
+      return user?.role === "Super Admin";
     }
     return true;
   });
