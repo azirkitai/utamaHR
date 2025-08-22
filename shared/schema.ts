@@ -894,17 +894,6 @@ export const events = pgTable('events', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// Departments Table (for system settings department management)
-export const departments = pgTable('departments', {
-  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
-  name: text('name').notNull().unique(),
-  code: text('code').notNull().unique(),
-  description: text('description'),
-  isActive: boolean('is_active').notNull().default(true),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
-
 // Employee Individual Leave Entitlement Adjustments Table
 export const employeeLeaveEntitlementAdjustments = pgTable('employee_leave_entitlement_adjustments', {
   id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
@@ -1405,14 +1394,6 @@ export const insertEventSchema = createInsertSchema(events).omit({
 });
 export const updateEventSchema = insertEventSchema.partial();
 
-// Department schemas
-export const insertDepartmentSchema = createInsertSchema(departments).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-export const updateDepartmentSchema = insertDepartmentSchema.partial();
-
 // =================== TYPESCRIPT TYPES ===================
 
 // User types
@@ -1464,11 +1445,6 @@ export type UpdateDocument = z.infer<typeof updateDocumentSchema>;
 export type Form = typeof forms.$inferSelect;
 export type InsertForm = z.infer<typeof insertFormSchema>;
 export type UpdateForm = z.infer<typeof updateFormSchema>;
-
-// Department types
-export type Department = typeof departments.$inferSelect;
-export type InsertDepartment = z.infer<typeof insertDepartmentSchema>;
-export type UpdateDepartment = z.infer<typeof updateDepartmentSchema>;
 
 // Equipment types
 export type Equipment = typeof equipment.$inferSelect;

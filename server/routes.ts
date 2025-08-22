@@ -2180,87 +2180,14 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Get unique departments for dropdown filters (legacy endpoint)
-  app.get("/api/departments-unique", authenticateToken, async (req, res) => {
+  // Get unique departments for dropdown filters
+  app.get("/api/departments", authenticateToken, async (req, res) => {
     try {
       const departments = await storage.getUniqueDepartments();
       res.json(departments);
     } catch (error) {
-      console.error("Get unique departments error:", error);
-      res.status(500).json({ error: "Failed to fetch unique departments" });
-    }
-  });
-
-  // Department management endpoints
-  app.get("/api/departments", authenticateToken, async (req, res) => {
-    try {
-      const departments = await storage.getDepartments();
-      res.json(departments);
-    } catch (error) {
       console.error("Get departments error:", error);
-      res.status(500).json({ error: "Failed to fetch departments" });
-    }
-  });
-
-  app.post("/api/departments", authenticateToken, async (req, res) => {
-    try {
-      const { name, code, description } = req.body;
-      
-      if (!name || !code) {
-        return res.status(400).json({ error: "Department name and code are required" });
-      }
-
-      const insertDepartment = {
-        name: name.trim(),
-        code: code.trim().toUpperCase(),
-        description: description?.trim() || null,
-        isActive: true
-      };
-
-      const newDepartment = await storage.createDepartment(insertDepartment);
-      res.status(201).json(newDepartment);
-    } catch (error) {
-      console.error("Create department error:", error);
-      res.status(500).json({ error: "Failed to create department" });
-    }
-  });
-
-  app.put("/api/departments/:id", authenticateToken, async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { name, code, description } = req.body;
-
-      const updateData: any = {};
-      if (name) updateData.name = name.trim();
-      if (code) updateData.code = code.trim().toUpperCase();
-      if (description !== undefined) updateData.description = description?.trim() || null;
-
-      const updatedDepartment = await storage.updateDepartment(id, updateData);
-      
-      if (!updatedDepartment) {
-        return res.status(404).json({ error: "Department not found" });
-      }
-
-      res.json(updatedDepartment);
-    } catch (error) {
-      console.error("Update department error:", error);
-      res.status(500).json({ error: "Failed to update department" });
-    }
-  });
-
-  app.delete("/api/departments/:id", authenticateToken, async (req, res) => {
-    try {
-      const { id } = req.params;
-      const success = await storage.deleteDepartment(id);
-      
-      if (!success) {
-        return res.status(404).json({ error: "Department not found" });
-      }
-
-      res.json({ message: "Department deleted successfully" });
-    } catch (error) {
-      console.error("Delete department error:", error);
-      res.status(500).json({ error: "Failed to delete department" });
+      res.status(500).json({ error: "Failed to mendapatkan senarai jabatan" });
     }
   });
 

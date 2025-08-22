@@ -695,11 +695,6 @@ export default function SystemSettingPage() {
     enabled: true
   });
 
-  // Department management queries
-  const { data: systemDepartments = [], refetch: refetchDepartments } = useQuery<any[]>({
-    queryKey: ["/api/departments"]
-  });
-
   // Overtime API queries
   const { data: overtimeApprovalSettings } = useQuery({
     queryKey: ["/api/overtime/approval-settings"]
@@ -771,69 +766,6 @@ export default function SystemSettingPage() {
       toast({
         title: "Error", 
         description: "Failed to save overtime settings",
-        variant: "destructive",
-      });
-    }
-  });
-
-  // Department mutations
-  const createDepartmentMutation = useMutation({
-    mutationFn: async (data: { name: string; code: string; description?: string }) => {
-      return await apiRequest("POST", "/api/departments", data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/departments"] });
-      toast({
-        title: "Success",
-        description: "Department created successfully",
-      });
-      setShowAddDepartmentDialog(false);
-      setNewDepartmentForm({ name: "", code: "" });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: "Failed to create department",
-        variant: "destructive",
-      });
-    }
-  });
-
-  const updateDepartmentMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: { name?: string; code?: string; description?: string } }) => {
-      return await apiRequest("PUT", `/api/departments/${id}`, data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/departments"] });
-      toast({
-        title: "Success",
-        description: "Department updated successfully",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: "Failed to update department",
-        variant: "destructive",
-      });
-    }
-  });
-
-  const deleteDepartmentMutation = useMutation({
-    mutationFn: async (id: string) => {
-      return await apiRequest("DELETE", `/api/departments/${id}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/departments"] });
-      toast({
-        title: "Success",
-        description: "Department deleted successfully",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: "Failed to delete department",
         variant: "destructive",
       });
     }
@@ -987,21 +919,21 @@ export default function SystemSettingPage() {
 
   // Department states
   const [showAddDepartmentDialog, setShowAddDepartmentDialog] = useState(false);
-  const [expandedDepartments, setExpandedDepartments] = useState<string[]>([]);
-  const [editingDepartment, setEditingDepartment] = useState<string | null>(null);
+  const [expandedDepartments, setExpandedDepartments] = useState<number[]>([]);
+  const [editingDepartment, setEditingDepartment] = useState<number | null>(null);
   const [newDepartmentForm, setNewDepartmentForm] = useState({
     name: "",
     code: "",
   });
 
-  // Generate departments display data by combining system departments with employee data
+  // Generate departments with real employee data
   const departments = useMemo(() => {
-    if (!systemDepartments || systemDepartments.length === 0) {
+    if (!allEmployees || allEmployees.length === 0) {
       return [];
     }
 
-    // Group employees by department for counting
-    const employeesByDepartment = allEmployees?.reduce((acc: any, employee: any) => {
+    // Group employees by department
+    const departmentGroups = allEmployees.reduce((acc: any, employee: any) => {
       const departmentName = employee.employment?.department || 'Unassigned';
       
       if (!acc[departmentName]) {
@@ -1017,18 +949,17 @@ export default function SystemSettingPage() {
       });
       
       return acc;
-    }, {}) || {};
+    }, {});
 
-    // Map system departments with employee counts (exact name matching)
-    return systemDepartments.map((dept: any) => ({
-      id: dept.id,
-      name: dept.name,
-      code: dept.code,
-      description: dept.description,
-      employeeCount: employeesByDepartment[dept.name]?.length || 0,
-      employees: employeesByDepartment[dept.name] || []
+    // Convert to department array format
+    return Object.entries(departmentGroups).map(([deptName, employees]: [string, any]) => ({
+      id: Math.abs(deptName.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a; }, 0)),
+      name: deptName.charAt(0).toUpperCase() + deptName.slice(1).toLowerCase(),
+      code: deptName.substring(0, 3).toUpperCase(),
+      employeeCount: employees.length,
+      employees: employees
     }));
-  }, [systemDepartments, allEmployees]);
+  }, [allEmployees]);
 
   const [localDepartments, setLocalDepartments] = useState(departments);
 
@@ -1623,7 +1554,7 @@ export default function SystemSettingPage() {
       setFinancialPolicyForm(prev => {
         const newForm = { ...prev };
         Object.keys(newForm).forEach(key => {
-          if (key === (data as any)?.id) {
+          if (key === data?.id || key === arguments[0]) {
             delete newForm[key];
           }
         });
@@ -1715,14 +1646,14 @@ export default function SystemSettingPage() {
             // Reset all roles to false first
             setGroupPolicySettings(prev => {
               const resetSettings = Object.keys(prev).reduce((acc, role) => {
-                (acc as any)[role] = { selected: false, days: (prev as any)[role].days };
+                acc[role] = { selected: false, days: prev[role].days };
                 return acc;
               }, {} as typeof prev);
               
               // Then set existing settings to true with their entitlement days
               existingSettings.forEach((setting: any) => {
-                if ((resetSettings as any)[setting.role]) {
-                  (resetSettings as any)[setting.role] = {
+                if (resetSettings[setting.role]) {
+                  resetSettings[setting.role] = {
                     selected: true,
                     days: setting.entitlementDays.toString()
                   };
@@ -1744,7 +1675,7 @@ export default function SystemSettingPage() {
       // Reset all selections when no policy is expanded
       setGroupPolicySettings(prev => {
         const resetSettings = Object.keys(prev).reduce((acc, role) => {
-          (acc as any)[role] = { selected: false, days: (prev as any)[role].days };
+          acc[role] = { selected: false, days: prev[role].days };
           return acc;
         }, {} as typeof prev);
         return resetSettings;
@@ -1930,33 +1861,32 @@ export default function SystemSettingPage() {
   // Update state when data changes (replaces deprecated onSuccess)
   useEffect(() => {
     if (existingCompanySettings) {
-      const settings = existingCompanySettings as any;
       // Update companyData state with real data from database
       setCompanyData({
-        companyName: settings.companyName || "",
-        companyShortName: settings.companyShortName || "",
-        companyRegNo: settings.companyRegistrationNumber || "",
-        companyType: settings.companyType || "",
-        industry: settings.industry || "",
-        companyEmail: settings.email || "",
-        companyPhone: settings.phoneNumber || "",
-        companyFax: settings.faxNumber || "",
-        streetAddress: settings.address || "",
-        state: settings.state || "",
-        city: settings.city || "",
-        postcode: settings.postcode || "",
-        country: settings.country || "",
-        logoUrl: settings.logoUrl || null,
-        bankName: settings.bankName || "",
-        bankAccountNo: settings.bankAccountNumber || "",
-        epfNo: settings.epfNumber || "",
-        socsoNo: settings.socsoNumber || "",
-        incomeTaxNo: settings.incomeTaxNumber || "",
-        employerNo: settings.employerNumber || "",
-        lhdnBranch: settings.lhdnBranch || "",
-        originatorId: settings.originatorId || "",
-        zakatNo: settings.zakatNumber || "",
-        cNumber: settings.cNumber || ""
+        companyName: existingCompanySettings.companyName || "",
+        companyShortName: existingCompanySettings.companyShortName || "",
+        companyRegNo: existingCompanySettings.companyRegistrationNumber || "",
+        companyType: existingCompanySettings.companyType || "",
+        industry: existingCompanySettings.industry || "",
+        companyEmail: existingCompanySettings.email || "",
+        companyPhone: existingCompanySettings.phoneNumber || "",
+        companyFax: existingCompanySettings.faxNumber || "",
+        streetAddress: existingCompanySettings.address || "",
+        state: existingCompanySettings.state || "",
+        city: existingCompanySettings.city || "",
+        postcode: existingCompanySettings.postcode || "",
+        country: existingCompanySettings.country || "",
+        logoUrl: existingCompanySettings.logoUrl || null,
+        bankName: existingCompanySettings.bankName || "",
+        bankAccountNo: existingCompanySettings.bankAccountNumber || "",
+        epfNo: existingCompanySettings.epfNumber || "",
+        socsoNo: existingCompanySettings.socsoNumber || "",
+        incomeTaxNo: existingCompanySettings.incomeTaxNumber || "",
+        employerNo: existingCompanySettings.employerNumber || "",
+        lhdnBranch: existingCompanySettings.lhdnBranch || "",
+        originatorId: existingCompanySettings.originatorId || "",
+        zakatNo: existingCompanySettings.zakatNumber || "",
+        cNumber: existingCompanySettings.cNumber || ""
       });
     }
   }, [existingCompanySettings]);
@@ -2181,9 +2111,9 @@ export default function SystemSettingPage() {
         const result = await response.json();
         console.log("Payment settings saved:", result);
         // Create dynamic success message based on changes
-        const currencyChanged = paymentSettings.currency !== ((currentCompanySettings as any)?.currency || 'RM');
+        const currencyChanged = paymentSettings.currency !== (currentCompanySettings?.currency || 'RM');
         const contributionsChanged = Object.keys(paymentSettings).some(key => 
-          key.endsWith('Enabled') && (paymentSettings as any)[key] !== (currentCompanySettings as any)?.[key]
+          key.endsWith('Enabled') && paymentSettings[key] !== currentCompanySettings?.[key]
         );
         
         let successMessage = "Payment settings have been saved successfully!";
@@ -2751,8 +2681,8 @@ export default function SystemSettingPage() {
     };
 
     // Check if policy exists in database
-    const existingPolicy = (financialClaimPoliciesData as any)?.find(
-      (p: any) => p.id === policyId
+    const existingPolicy = financialClaimPoliciesData?.find(
+      (p: FinancialClaimPolicy) => p.id === policyId
     );
 
     if (existingPolicy) {
@@ -2768,8 +2698,8 @@ export default function SystemSettingPage() {
     
     // Get policy data from either form or API data
     const formData = financialPolicyForm[policyId];
-    const existingPolicy = (financialClaimPoliciesData as any)?.find(
-      (p: any) => p.id === policyId
+    const existingPolicy = financialClaimPoliciesData?.find(
+      (p: FinancialClaimPolicy) => p.id === policyId
     );
     
     console.log('Form data:', formData);
@@ -2793,8 +2723,8 @@ export default function SystemSettingPage() {
   // Handler untuk cancel changes
   const handleCancelFinancialPolicy = (policyId: string) => {
     // Reset form untuk policy ini ke nilai asal atau kosong
-    const existingPolicy = (financialClaimPoliciesData as any)?.find(
-      (p: any) => p.id === policyId
+    const existingPolicy = financialClaimPoliciesData?.find(
+      (p: FinancialClaimPolicy) => p.id === policyId
     );
 
     if (existingPolicy) {
@@ -2904,15 +2834,20 @@ export default function SystemSettingPage() {
 
   const handleSaveNewDepartment = () => {
     if (newDepartmentForm.name && newDepartmentForm.code) {
-      createDepartmentMutation.mutate({
+      const newDepartment = {
+        id: departments.length + 1,
         name: newDepartmentForm.name,
-        code: newDepartmentForm.code
-      });
+        code: newDepartmentForm.code,
+        employeeCount: 0,
+        employees: []
+      };
+      setDepartments([...departments, newDepartment]);
+      setShowAddDepartmentDialog(false);
     }
   };
 
   // Department expansion handlers
-  const handleToggleDepartmentExpansion = (departmentId: string) => {
+  const handleToggleDepartmentExpansion = (departmentId: number) => {
     setExpandedDepartments(prev => 
       prev.includes(departmentId) 
         ? prev.filter(id => id !== departmentId)
@@ -2920,21 +2855,22 @@ export default function SystemSettingPage() {
     );
   };
 
-  const handleEditDepartmentName = (departmentId: string) => {
+  const handleEditDepartmentName = (departmentId: number) => {
     setEditingDepartment(departmentId);
   };
 
-  const handleSaveDepartmentName = (departmentId: string, newName: string) => {
-    updateDepartmentMutation.mutate({
-      id: departmentId,
-      data: { name: newName }
-    });
+  const handleSaveDepartmentName = (departmentId: number, newName: string) => {
+    setLocalDepartments(prev => prev.map(dept => 
+      dept.id === departmentId ? { ...dept, name: newName } : dept
+    ));
     setEditingDepartment(null);
   };
 
-  const handleDeleteDepartment = (departmentId: string) => {
+  const handleDeleteDepartment = (departmentId: number) => {
     if (window.confirm("Are you sure you want to delete this department? This action cannot be undone.")) {
-      deleteDepartmentMutation.mutate(departmentId);
+      setLocalDepartments(prev => prev.filter(dept => dept.id !== departmentId));
+      // Also remove from expanded departments if it was expanded
+      setExpandedDepartments(prev => prev.filter(id => id !== departmentId));
     }
   };
 
@@ -2983,14 +2919,14 @@ export default function SystemSettingPage() {
                     Loading forms...
                   </td>
                 </tr>
-              ) : !(formsData as any) || (formsData as any).length === 0 ? (
+              ) : !formsData || formsData.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
                     No forms found. Click "Upload New Form" to add forms.
                   </td>
                 </tr>
               ) : (
-                (formsData as any).map((form: any, index: number) => (
+                formsData.map((form: any, index: number) => (
                   <tr key={form.id}>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{index + 1}</td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{form.formName}</td>
@@ -5250,10 +5186,10 @@ export default function SystemSettingPage() {
           </Button>
         </div>
         <div className="p-4 space-y-4">
-          {(shifts as any).length === 0 ? (
+          {shifts.length === 0 ? (
             <p className="text-sm text-gray-500 italic">No shifts available. Click "Create Shift" to add a new shift.</p>
           ) : (
-            (shifts as any).map((shift: any) => (
+            shifts.map((shift: any) => (
               <div key={shift.id} className="border rounded-lg p-4 bg-gray-50">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
