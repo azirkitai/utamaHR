@@ -55,22 +55,22 @@ import type { FinancialClaimPolicy, InsertFinancialClaimPolicy } from "@shared/s
 
 // Malaysian states and their cities mapping
 const MALAYSIAN_CITIES_BY_STATE = {
-  "johor": ["Johor Bahru", "Batu Pahat", "Muar", "Kluang", "Pontian", "Segamat", "Kulai", "Skudai", "Senai", "Tampoi"],
-  "kedah": ["Alor Setar", "Sungai Petani", "Kulim", "Langkawi", "Pendang", "Baling", "Yan", "Padang Serai", "Kuala Kedah", "Jitra"],
-  "kelantan": ["Kota Bharu", "Kuala Krai", "Tanah Merah", "Machang", "Pasir Mas", "Tumpat", "Bachok", "Pasir Puteh", "Gua Musang", "Jeli"],
-  "malacca": ["Melaka", "Alor Gajah", "Jasin", "Merlimau", "Masjid Tanah", "Ayer Keroh", "Batu Berendam", "Bukit Baru", "Cheng", "Durian Tunggal"],
-  "negeri-sembilan": ["Seremban", "Port Dickson", "Nilai", "Rembau", "Tampin", "Kuala Pilah", "Johol", "Labu", "Senawang", "Ampangan"],
-  "pahang": ["Kuantan", "Temerloh", "Bentong", "Raub", "Jerantut", "Pekan", "Kuala Lipis", "Mentakab", "Maran", "Rompin"],
-  "perak": ["Ipoh", "Taiping", "Teluk Intan", "Sitiawan", "Parit Buntar", "Lumut", "Kuala Kangsar", "Tanjung Malim", "Batu Gajah", "Kampar"],
-  "perlis": ["Kangar", "Arau", "Padang Besar", "Wang Kelian", "Kuala Perlis", "Simpang Empat", "Mata Ayer", "Kaki Bukit", "Beseri", "Chuping"],
-  "penang": ["George Town", "Butterworth", "Bukit Mertajam", "Nibong Tebal", "Permatang Pauh", "Bayan Lepas", "Tanjung Bungah", "Gurney Drive", "Jelutong", "Air Itam"],
-  "sabah": ["Kota Kinabalu", "Sandakan", "Tawau", "Lahad Datu", "Keningau", "Ranau", "Papar", "Beaufort", "Kudat", "Semporna"],
-  "sarawak": ["Kuching", "Miri", "Sibu", "Bintulu", "Limbang", "Sarikei", "Sri Aman", "Kapit", "Mukah", "Betong"],
-  "selangor": ["Shah Alam", "Petaling Jaya", "Subang Jaya", "Klang", "Kajang", "Ampang", "Cheras", "Bandar Baru Bangi", "Puchong", "Seri Kembangan"],
-  "terengganu": ["Kuala Terengganu", "Kemaman", "Dungun", "Marang", "Besut", "Setiu", "Hulu Terengganu", "Jerteh", "Kuala Nerus", "Chukai"],
-  "kuala-lumpur": ["Kuala Lumpur", "KLCC", "Bangsar", "Mont Kiara", "Desa Park City", "Damansara Heights", "Kenny Hills", "Taman Tun Dr Ismail", "Sentul", "Wangsa Maju"],
-  "labuan": ["Victoria", "Rancha-Rancha", "Pohon Batu", "Layang-Layangan", "Batu Manikar", "Ganggarak", "Kiamsam", "Patau-Patau", "Sungai Bedaun", "Sungai Lada"],
-  "putrajaya": ["Putrajaya", "Presint 1", "Presint 2", "Presint 3", "Presint 4", "Presint 5", "Presint 6", "Presint 7", "Presint 8", "Presint 9"]
+  "johor": ["Johor Bahru", "Batu Pahat", "Muar", "Kluang", "Pontian", "Segamat", "Kulai", "Skudai", "Senai", "Tampoi", "Pasir Gudang", "Ulu Tiram", "Masai", "Gelang Patah", "Nusajaya", "Iskandar Puteri", "Kota Tinggi", "Mersing", "Yong Peng", "Parit Raja", "Tangkak", "Bukit Gambir", "Larkin", "Permas Jaya", "Danga Bay"],
+  "kedah": ["Alor Setar", "Sungai Petani", "Kulim", "Langkawi", "Pendang", "Baling", "Yan", "Padang Serai", "Kuala Kedah", "Jitra", "Gurun", "Merbok", "Bedong", "Kuah", "Pantai Cenang", "Kubang Pasu", "Pokok Sena", "Kepala Batas", "Changlun", "Bukit Kayu Hitam", "Kuala Nerang", "Kota Sarang Semut"],
+  "kelantan": ["Kota Bharu", "Kuala Krai", "Tanah Merah", "Machang", "Pasir Mas", "Tumpat", "Bachok", "Pasir Puteh", "Gua Musang", "Jeli", "Wakaf Che Yeh", "Rantau Panjang", "Kuala Balah", "Dabong", "Lojing", "Pengkalan Chepa", "Tok Bali", "Temangan", "Pantai Cahaya Bulan", "Pantai Irama"],
+  "malacca": ["Melaka", "Alor Gajah", "Jasin", "Merlimau", "Masjid Tanah", "Ayer Keroh", "Batu Berendam", "Bukit Baru", "Cheng", "Durian Tunggal", "Bandaraya Melaka", "Taman Melaka Raya", "Klebang", "Tengkera", "Bukit Katil", "Batu Hampar", "Asahan", "Bemban", "Sungai Udang", "Bukit Rambai"],
+  "negeri-sembilan": ["Seremban", "Port Dickson", "Nilai", "Rembau", "Tampin", "Kuala Pilah", "Johol", "Labu", "Senawang", "Ampangan", "Bahau", "Gemas", "Linggi", "Si Rusa", "Pajam", "Mantin", "Batang Benar", "Kuala Klawang", "Jelebu", "Simpang Pertang"],
+  "pahang": ["Kuantan", "Temerloh", "Bentong", "Raub", "Jerantut", "Pekan", "Kuala Lipis", "Mentakab", "Maran", "Rompin", "Gambang", "Balok", "Beserah", "Chenor", "Karak", "Genting Highlands", "Cameron Highlands", "Tanah Rata", "Brinchang", "Fraser's Hill"],
+  "perak": ["Ipoh", "Taiping", "Teluk Intan", "Sitiawan", "Parit Buntar", "Lumut", "Kuala Kangsar", "Tanjung Malim", "Batu Gajah", "Kampar", "Sungai Siput", "Chemor", "Tambun", "Gopeng", "Tapah", "Slim River", "Bagan Serai", "Selama", "Kuala Kurau", "Pantai Remis", "Manjung", "Ayer Tawar"],
+  "perlis": ["Kangar", "Arau", "Padang Besar", "Wang Kelian", "Kuala Perlis", "Simpang Empat", "Mata Ayer", "Kaki Bukit", "Beseri", "Chuping", "Sanglang", "Pauh", "Jejawi", "Bintong", "Guar Sanji"],
+  "penang": ["George Town", "Butterworth", "Bukit Mertajam", "Nibong Tebal", "Permatang Pauh", "Bayan Lepas", "Tanjung Bungah", "Gurney Drive", "Jelutong", "Air Itam", "Batu Ferringhi", "Balik Pulau", "Seberang Perai", "Perai", "Simpang Ampat", "Bukit Tambun", "Sungai Bakap", "Bagan Ajam", "Penang Hill", "Komtar"],
+  "sabah": ["Kota Kinabalu", "Sandakan", "Tawau", "Lahad Datu", "Keningau", "Ranau", "Papar", "Beaufort", "Kudat", "Semporna", "Penampang", "Putatan", "Kinarut", "Membakut", "Sipitang", "Kuala Penyu", "Kinabatangan", "Beluran", "Tongod", "Nabawan", "Tambunan", "Tuaran"],
+  "sarawak": ["Kuching", "Miri", "Sibu", "Bintulu", "Limbang", "Sarikei", "Sri Aman", "Kapit", "Mukah", "Betong", "Lawas", "Marudi", "Song", "Kanowit", "Dalat", "Daro", "Matu", "Tatau", "Belaga", "Lubok Antu", "Engkilili", "Saratok"],
+  "selangor": ["Shah Alam", "Petaling Jaya", "Subang Jaya", "Klang", "Kajang", "Ampang", "Cheras", "Bandar Baru Bangi", "Puchong", "Seri Kembangan", "Damansara", "Cyberjaya", "Sepang", "Rawang", "Selayang", "Gombak", "Banting", "Jenjarom", "Morib", "Teluk Panglima Garang", "Bandar Saujana Putra", "Bandar Bukit Tinggi", "Semenyih", "Beranang", "Dengkil", "Hulu Langat"],
+  "terengganu": ["Kuala Terengganu", "Kemaman", "Dungun", "Marang", "Besut", "Setiu", "Hulu Terengganu", "Jerteh", "Kuala Nerus", "Chukai", "Kerteh", "Paka", "Bandar Al-Muktafi Billah Shah", "Chendering", "Gong Badak", "Kampung Raja", "Merang", "Redang Island", "Perhentian Islands", "Rantau Abang"],
+  "kuala-lumpur": ["Kuala Lumpur", "KLCC", "Bangsar", "Mont Kiara", "Desa Park City", "Damansara Heights", "Kenny Hills", "Taman Tun Dr Ismail", "Sentul", "Wangsa Maju", "Bukit Bintang", "Chow Kit", "Titiwangsa", "Segambut", "Setapak", "Kepong", "Batu Caves", "Setiawangsa", "Ampang Hilir", "Dutamas"],
+  "labuan": ["Victoria", "Rancha-Rancha", "Pohon Batu", "Layang-Layangan", "Batu Manikar", "Ganggarak", "Kiamsam", "Patau-Patau", "Sungai Bedaun", "Sungai Lada", "Batu Arang", "Nagos", "Bukit Kalam", "Durian Tunjong", "Sungai Keling"],
+  "putrajaya": ["Putrajaya", "Presint 1", "Presint 2", "Presint 3", "Presint 4", "Presint 5", "Presint 6", "Presint 7", "Presint 8", "Presint 9", "Presint 10", "Presint 11", "Presint 12", "Presint 13", "Presint 14", "Presint 15", "Presint 16", "Presint 17", "Presint 18", "Presint 19"]
 };
 
 const settingsMenuItems = [
