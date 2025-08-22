@@ -612,7 +612,7 @@ export default function EmployeeDetailsPage() {
         }
       } else {
         console.error("No successful uploads in result:", result);
-        throw new Error("Tiada fail berjaya dimuat naik");
+        throw new Error("Tiada fail successfully dimuat naik");
       }
     } catch (error) {
       console.error("Error updating profile image:", error);
@@ -831,7 +831,7 @@ export default function EmployeeDetailsPage() {
     onSuccess: () => {
       toast({
         title: "Berjaya",
-        description: "Password telah berjaya ditukar",
+        description: "Password telah successfully ditukar",
       });
       setIsChangePasswordDialogOpen(false);
       setPasswordForm({
@@ -872,7 +872,7 @@ export default function EmployeeDetailsPage() {
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
       toast({
         title: "Ralat",
-        description: "Password baru dan pengesahan password tidak sama",
+        description: "Password baru dan pengevalidan password tidak sama",
         variant: "destructive",
       });
       return;
@@ -905,7 +905,7 @@ export default function EmployeeDetailsPage() {
       setIsNewPasswordDialogOpen(true);
       toast({
         title: "Berjaya",
-        description: "Password telah berjaya direset",
+        description: "Password telah successfully direset",
       });
     },
     onError: (error: any) => {
@@ -1935,7 +1935,7 @@ export default function EmployeeDetailsPage() {
                           <Label className="text-sm font-medium text-gray-700 block">Company</Label>
                           <div className="mt-1 p-2 bg-gray-100 rounded border border-gray-300">
                             <span className="text-gray-700 font-medium">
-                              {companySettings?.companyName || "Nama syarikat belum ditetapkan"}
+                              {companySettings?.companyName || "Name syarikat belum ditetapkan"}
                             </span>
                           </div>
                         </div>
@@ -3584,7 +3584,7 @@ export default function EmployeeDetailsPage() {
                 <div>
                   <p className="font-medium text-green-800">Berjaya Reset</p>
                   <p className="text-sm text-green-700">
-                    Password telah berjaya direset
+                    Password telah successfully direset
                   </p>
                 </div>
               </div>

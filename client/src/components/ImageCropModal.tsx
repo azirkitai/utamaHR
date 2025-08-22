@@ -195,7 +195,7 @@ export function ImageCropModal({ isOpen, onClose, imageSrc, onCropComplete }: Im
               data-testid="button-upload-cropped"
             >
               <Upload className="w-4 h-4 mr-1" />
-              {isProcessing ? "Memproses..." : "Upload"}
+              {isProcessing ? "Processing..." : "Upload"}
             </Button>
           </div>
         </div>

@@ -48,7 +48,7 @@ export default function PerformanceEvaluationPage() {
                 </div>
                 <p className="text-xl text-gray-600 leading-relaxed max-w-2xl mx-auto">
                   Sistem penilaian prestasi dan evaluasi pekerja yang komprehensif sedang dalam pembangunan. 
-                  Modul ini akan menyediakan alat yang diperlukan untuk mengurus dan memantau prestasi kakitangan.
+                  Modul ini akan menyediakan alat yang required untuk mengurus dan memantau prestasi kakitangan.
                 </p>
               </div>
 
@@ -74,7 +74,7 @@ export default function PerformanceEvaluationPage() {
                   <div className="text-3xl mb-3">📝</div>
                   <h3 className="font-semibold text-lg text-gray-800 mb-2">360° Evaluation</h3>
                   <p className="text-sm text-gray-600">
-                    Penilaian menyeluruh daripada penyelia, rakan sekerja, dan bawahan
+                    Penilaian menyeluruh of penyelia, rakan sekerja, dan bawahan
                   </p>
                 </div>
               </div>

@@ -142,7 +142,7 @@ export function SystemLeavePolicyManagement() {
     if (!formData.leaveType) {
       toast({
         title: "Ralat",
-        description: "Jenis cuti diperlukan",
+        description: "Jenis cuti required",
         variant: "destructive",
       });
       return;
@@ -197,7 +197,7 @@ export function SystemLeavePolicyManagement() {
     return (
       <Card>
         <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white">
-          <CardTitle>Pengurusan Polisi Cuti Sistem</CardTitle>
+          <CardTitle>Pengurusan Polisi Leave Sistem</CardTitle>
         </CardHeader>
         <CardContent className="p-6">
           <div className="flex items-center justify-center py-12">
@@ -213,7 +213,7 @@ export function SystemLeavePolicyManagement() {
       <Card>
         <CardHeader className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white">
           <div className="flex items-center justify-between">
-            <CardTitle>Pengurusan Polisi Cuti Sistem</CardTitle>
+            <CardTitle>Pengurusan Polisi Leave Sistem</CardTitle>
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button
@@ -227,11 +227,11 @@ export function SystemLeavePolicyManagement() {
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Tambah Polisi Cuti Sistem</DialogTitle>
+                  <DialogTitle>Tambah Polisi Leave Sistem</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleCreateSubmit} className="space-y-4">
                   <div>
-                    <Label htmlFor="leaveType">Jenis Cuti</Label>
+                    <Label htmlFor="leaveType">Jenis Leave</Label>
                     <Select value={formData.leaveType} onValueChange={(value) => setFormData(prev => ({ ...prev, leaveType: value }))}>
                       <SelectTrigger>
                         <SelectValue placeholder="Pilih jenis cuti..." />
@@ -357,11 +357,11 @@ export function SystemLeavePolicyManagement() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Polisi Cuti Sistem</DialogTitle>
+            <DialogTitle>Edit Polisi Leave Sistem</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleEditSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="edit-leaveType">Jenis Cuti</Label>
+              <Label htmlFor="edit-leaveType">Jenis Leave</Label>
               <Select value={formData.leaveType} onValueChange={(value) => setFormData(prev => ({ ...prev, leaveType: value }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="Pilih jenis cuti..." />

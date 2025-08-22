@@ -74,7 +74,7 @@ export function ClaimPolicyTab({ employeeId }: ClaimPolicyTabProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/financial-claim-policies"] });
       toast({
         title: "Berjaya",
-        description: "Status polisi claim berjaya dikemaskini",
+        description: "Status polisi claim successfully dikemaskini",
       });
     },
     onError: () => {

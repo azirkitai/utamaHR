@@ -1780,27 +1780,27 @@ export class DatabaseStorage implements IStorage {
     
     let timeDesc = "";
     if (hours > 0 && minutes > 0) {
-      timeDesc = `${hours} jam ${minutes} minit`;
+      timeDesc = `${hours} hours ${minutes} minutes`;
     } else if (hours > 0) {
-      timeDesc = `${hours} jam 0 minit`;
+      timeDesc = `${hours} hours 0 minutes`;
     } else {
-      timeDesc = `${minutes} minit`;
+      timeDesc = `${minutes} minutes`;
     }
 
     let actionType = "";
     switch (type) {
       case 'clock_in':
-        actionType = 'masa shift';
+        actionType = 'shift time';
         break;
       case 'break_out':
-        actionType = 'masa rehat';
+        actionType = 'break time';
         break;
       case 'break_in':
-        actionType = 'masa balik rehat';
+        actionType = 'break return time';
         break;
     }
     
-    return `Lewat ${timeDesc} dari ${actionType} ${shiftTime}. Perlu semakan penyelia.`;
+    return `Late ${timeDesc} from ${actionType} ${shiftTime}. Needs supervisor review.`;
   }
 
   async checkUniversalCompliance(record: any): Promise<{
@@ -3107,9 +3107,9 @@ export class DatabaseStorage implements IStorage {
     // Add payment cycle information to application remarks/notes
     let updatedParticulars = application.particulars || '';
     if (cutoffResult.shouldMove) {
-      updatedParticulars += `\n[SISTEM: Claim ini akan dibayar dalam kitaran pembayaran ${cutoffResult.targetMonth}/${cutoffResult.targetYear} kerana tarikh hantar melebihi cut-off.]`;
+      updatedParticulars += `\n[SISTEM: Claim ini akan dibayar within kitaran pembayaran ${cutoffResult.targetMonth}/${cutoffResult.targetYear} kerana tarikh hantar melebihi cut-off.]`;
     } else {
-      updatedParticulars += `\n[SISTEM: Claim ini akan dibayar dalam kitaran pembayaran semasa ${cutoffResult.targetMonth}/${cutoffResult.targetYear}.]`;
+      updatedParticulars += `\n[SISTEM: Claim ini akan dibayar within kitaran pembayaran semasa ${cutoffResult.targetMonth}/${cutoffResult.targetYear}.]`;
     }
 
     // Update the application with payment cycle info

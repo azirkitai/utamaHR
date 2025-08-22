@@ -288,7 +288,7 @@ export default function QRClockInPage() {
               Sistem QR Code Clock-In
             </h1>
             <p className="text-blue-100 text-lg">
-              Sistem clock-in pekerja menggunakan QR code dengan pengesahan lokasi GPS dan selfie
+              Sistem clock-in pekerja menggunakan QR code dengan pengevalidan lokasi GPS dan selfie
             </p>
           </div>
         </div>
@@ -311,11 +311,11 @@ export default function QRClockInPage() {
                     {attendanceStatus?.nextAction === 'completed' && "Jana QR Code"}
                   </CardTitle>
                   <CardDescription>
-                    {attendanceStatus?.nextAction === 'clock-in' && "QR code untuk clock-in pekerja (sah selama 2 minit)"}
-                    {attendanceStatus?.nextAction === 'break-out' && "QR code untuk break time - keluar rehat/lunch (sah selama 2 minit)"}
-                    {attendanceStatus?.nextAction === 'break-in' && "QR code untuk break off - balik dari rehat/lunch (sah selama 2 minit)"}
-                    {attendanceStatus?.nextAction === 'clock-out' && "QR code untuk clock-out pekerja (sah selama 2 minit)"}
-                    {attendanceStatus?.nextAction === 'completed' && "Semua kehadiran sudah selesai untuk hari ini"}
+                    {attendanceStatus?.nextAction === 'clock-in' && "QR code untuk clock-in pekerja (valid selama 2 minit)"}
+                    {attendanceStatus?.nextAction === 'break-out' && "QR code untuk break time - keluar break/lunch (valid selama 2 minit)"}
+                    {attendanceStatus?.nextAction === 'break-in' && "QR code untuk break off - balik dari break/lunch (valid selama 2 minit)"}
+                    {attendanceStatus?.nextAction === 'clock-out' && "QR code untuk clock-out pekerja (valid selama 2 minit)"}
+                    {attendanceStatus?.nextAction === 'completed' && "All kehadiran already selesai untuk hari ini"}
                   </CardDescription>
                 </div>
               </div>
@@ -330,7 +330,7 @@ export default function QRClockInPage() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <p className="font-medium text-green-700">Kehadiran Hari Ini Selesai</p>
+                    <p className="font-medium text-green-700">Kehadiran Days Ini Selesai</p>
                     <div className="text-sm text-gray-600 space-y-1">
                       <p>Clock-In: {attendanceStatus?.clockInTime ? (() => {
                         const utcDate = new Date(attendanceStatus.clockInTime);
@@ -370,11 +370,11 @@ export default function QRClockInPage() {
                   <div className="mb-4">
                     <div className={`w-32 h-32 mx-auto border-2 border-dashed rounded-lg flex items-center justify-center ${
                       attendanceStatus?.needsClockOut 
-                        ? 'bg-orange-100 border-orange-300' 
+                        ? 'bg-peoplee-100 border-peoplee-300' 
                         : 'bg-gray-100 border-gray-300'
                     }`}>
                       <QrCode className={`h-12 w-12 ${
-                        attendanceStatus?.needsClockOut ? 'text-orange-500' : 'text-gray-400'
+                        attendanceStatus?.needsClockOut ? 'text-peoplee-500' : 'text-gray-400'
                       }`} />
                     </div>
                   </div>
@@ -416,7 +416,7 @@ export default function QRClockInPage() {
                       attendanceStatus?.nextAction === 'clock-in'
                         ? 'bg-gradient-to-r from-green-600 via-green-700 to-emerald-700 hover:from-green-700 hover:via-green-800 hover:to-emerald-800'
                         : attendanceStatus?.nextAction === 'break-out'
-                        ? 'bg-gradient-to-r from-amber-600 via-amber-700 to-orange-700 hover:from-amber-700 hover:via-amber-800 hover:to-orange-800'
+                        ? 'bg-gradient-to-r from-amber-600 via-amber-700 to-peoplee-700 hover:from-amber-700 hover:via-amber-800 hover:to-peoplee-800'
                         : attendanceStatus?.nextAction === 'break-in'
                         ? 'bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 hover:from-blue-700 hover:via-blue-800 hover:to-indigo-800'
                         : attendanceStatus?.nextAction === 'clock-out'
@@ -467,7 +467,7 @@ export default function QRClockInPage() {
                       </Badge>
                     </div>
                     <p className="text-xs text-gray-500">
-                      QR Code akan tamat tempoh secara automatik
+                      QR Code akan expired secara automatik
                     </p>
                   </div>
 
@@ -537,7 +537,7 @@ export default function QRClockInPage() {
                   </div>
                   <div>
                     <p className="font-medium text-blue-800">Clock-In/Out Berjaya</p>
-                    <p className="text-blue-600 text-sm">Sistem akan sahkan lokasi dan automatik detect clock-in atau clock-out</p>
+                    <p className="text-blue-600 text-sm">Sistem akan validkan lokasi dan automatik detect clock-in atau clock-out</p>
                   </div>
                 </div>
 
@@ -547,11 +547,11 @@ export default function QRClockInPage() {
                     <div>
                       <p className="text-amber-800 text-sm font-medium">Nota Penting:</p>
                       <ul className="text-amber-700 text-xs mt-1 space-y-1">
-                        <li>• QR Code sah selama 2 minit sahaja</li>
-                        <li>• Setiap QR Code hanya boleh digunakan sekali</li>
+                        <li>• QR Code valid selama 2 minit validaja</li>
+                        <li>• Each QR Code hanya boleh used sekali</li>
                         <li>• Sistem automatik detect clock-in atau clock-out</li>
-                        <li>• Pekerja mesti berada dalam radius 50m dari pejabat</li>
-                        <li>• Selfie dan lokasi GPS wajib untuk pengesahan</li>
+                        <li>• Employee mesti berada dalam radius 50m dari pejabat</li>
+                        <li>• Selfie dan lokasi GPS wajib untuk pengevalidan</li>
                       </ul>
                     </div>
                   </div>
@@ -659,8 +659,8 @@ export default function QRClockInPage() {
                                 <div className="text-xs text-red-600 bg-red-50 p-1 rounded border">
                                   <AlertTriangle className="h-3 w-3 inline mr-1" />
                                   {(() => {
-                                    // Extract just the "Lewat X jam Y minit" part from the full message
-                                    const match = record.clockInRemarks.match(/Lewat \d+(?:\s+jam)?(?:\s+\d+\s+minit)?/);
+                                    // Extract just the "Late X jam Y minit" part from the full message
+                                    const match = record.clockInRemarks.match(/Late \d+(?:\s+jam)?(?:\s+\d+\s+minit)?/);
                                     return match ? match[0] : record.clockInRemarks;
                                   })()}
                                 </div>
@@ -693,7 +693,7 @@ export default function QRClockInPage() {
 
                         {/* Clock-Out Information */}
                         <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-sm font-medium text-orange-700">
+                          <div className="flex items-center gap-2 text-sm font-medium text-peoplee-700">
                             <Clock className="h-4 w-4" />
                             Clock-Out
                           </div>
@@ -718,8 +718,8 @@ export default function QRClockInPage() {
                                 <div className="text-xs text-red-600 bg-red-50 p-1 rounded border">
                                   <AlertTriangle className="h-3 w-3 inline mr-1" />
                                   {(() => {
-                                    // Extract just the "Lewat X jam Y minit" part from the full message
-                                    const match = record.breakOutRemarks.match(/Lewat \d+(?:\s+jam)?(?:\s+\d+\s+minit)?/);
+                                    // Extract just the "Late X jam Y minit" part from the full message
+                                    const match = record.breakOutRemarks.match(/Late \d+(?:\s+jam)?(?:\s+\d+\s+minit)?/);
                                     return match ? match[0] : record.breakOutRemarks;
                                   })()}
                                 </div>
@@ -777,8 +777,8 @@ export default function QRClockInPage() {
                                 <div className="text-xs text-red-600 bg-red-50 p-1 rounded border">
                                   <AlertTriangle className="h-3 w-3 inline mr-1" />
                                   {(() => {
-                                    // Extract just the "Lewat X jam Y minit" part from the full message
-                                    const match = (record as any).breakInRemarks.match(/Lewat \d+(?:\s+jam)?(?:\s+\d+\s+minit)?/);
+                                    // Extract just the "Late X jam Y minit" part from the full message
+                                    const match = (record as any).breakInRemarks.match(/Late \d+(?:\s+jam)?(?:\s+\d+\s+minit)?/);
                                     return match ? match[0] : (record as any).breakInRemarks;
                                   })()}
                                 </div>

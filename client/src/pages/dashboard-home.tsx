@@ -54,7 +54,7 @@ const authenticatedFetch = async (url: string, options: RequestInit = {}): Promi
     if (response.status === 401 || response.status === 403) {
       localStorage.removeItem("utamahr_token");
       window.location.href = "/auth";
-      throw new Error("Token tidak sah");
+      throw new Error("Token tidak valid");
     }
     const errorData = await response.json();
     throw new Error(errorData.error || `HTTP ${response.status}`);
@@ -724,9 +724,9 @@ export default function DashboardHome() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-to-br from-orange-50 to-yellow-50 border-orange-200 hover:shadow-md transition-shadow">
+              <Card className="bg-gradient-to-br from-peoplee-50 to-yellow-50 border-peoplee-200 hover:shadow-md transition-shadow">
                 <CardContent className="p-6 text-center">
-                  <div className="text-3xl font-bold text-orange-600 mb-2" data-testid="stat-overtime-approved">
+                  <div className="text-3xl font-bold text-peoplee-600 mb-2" data-testid="stat-overtime-approved">
                     {userStats?.overtimeApproved || 0}
                   </div>
                   <div className="text-sm text-gray-600">Overtime Approve</div>
@@ -1084,11 +1084,11 @@ export default function DashboardHome() {
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm font-medium text-gray-700">Tarikh Mula:</p>
+                        <p className="text-sm font-medium text-gray-700">Date Mula:</p>
                         <p className="text-base">{new Date(event.startDate).toLocaleDateString('en-GB')}</p>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-700">Tarikh Tamat:</p>
+                        <p className="text-sm font-medium text-gray-700">Date Tamat:</p>
                         <p className="text-base">{new Date(event.endDate || event.startDate).toLocaleDateString('en-GB')}</p>
                       </div>
                     </div>
@@ -1127,7 +1127,7 @@ export default function DashboardHome() {
         <Dialog open={isHolidayModalOpen} onOpenChange={setIsHolidayModalOpen}>
           <DialogContent className="max-w-md" aria-describedby="holiday-details-description">
             <DialogHeader>
-              <DialogTitle>Maklumat Hari Kelepasan</DialogTitle>
+              <DialogTitle>Maklumat Days Kelepasan</DialogTitle>
             </DialogHeader>
             <p id="holiday-details-description" className="sr-only">
               Details about the selected holiday.
@@ -1140,13 +1140,13 @@ export default function DashboardHome() {
                     <div className="text-2xl">🏛️</div>
                     <div className="flex-1">
                       <h3 className="font-semibold text-lg text-red-800">{selectedHoliday.name}</h3>
-                      <p className="text-sm text-red-600">Hari Kelepasan Awam</p>
+                      <p className="text-sm text-red-600">Days Kelepasan Awam</p>
                     </div>
                   </div>
                   
                   <div className="space-y-3">
                     <div>
-                      <p className="text-sm font-medium text-gray-700">Tarikh:</p>
+                      <p className="text-sm font-medium text-gray-700">Date:</p>
                       <p className="text-base bg-white p-2 rounded border">
                         {new Date(selectedHoliday.date).toLocaleDateString('en-GB')}
                       </p>
@@ -1172,7 +1172,7 @@ export default function DashboardHome() {
         <Dialog open={isLeaveModalOpen} onOpenChange={setIsLeaveModalOpen}>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" aria-describedby="leave-details-description">
             <DialogHeader>
-              <DialogTitle>Maklumat Cuti</DialogTitle>
+              <DialogTitle>Maklumat Leave</DialogTitle>
             </DialogHeader>
             <p id="leave-details-description" className="sr-only">
               Details about leave applications for the selected date.
@@ -1186,13 +1186,13 @@ export default function DashboardHome() {
                       <div className="text-2xl">🏖️</div>
                       <div>
                         <h3 className="font-semibold text-lg text-yellow-800">{leave.applicant}</h3>
-                        <p className="text-sm text-yellow-600">Permohonan Cuti</p>
+                        <p className="text-sm text-yellow-600">Leave Application</p>
                       </div>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4 mb-3">
                       <div>
-                        <p className="text-sm font-medium text-gray-700">Jenis Cuti:</p>
+                        <p className="text-sm font-medium text-gray-700">Jenis Leave:</p>
                         <p className="text-sm">{leave.leaveType}</p>
                       </div>
                       <div>
@@ -1200,11 +1200,11 @@ export default function DashboardHome() {
                         <p className="text-sm">{leave.totalDays} hari</p>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-700">Tarikh Mula:</p>
+                        <p className="text-sm font-medium text-gray-700">Date Mula:</p>
                         <p className="text-sm">{new Date(leave.startDate).toLocaleDateString('en-GB')}</p>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-700">Tarikh Tamat:</p>
+                        <p className="text-sm font-medium text-gray-700">Date Tamat:</p>
                         <p className="text-sm">{new Date(leave.endDate).toLocaleDateString('en-GB')}</p>
                       </div>
                     </div>

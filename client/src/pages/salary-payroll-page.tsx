@@ -798,13 +798,13 @@ export default function SalaryPayrollPage() {
                       {/* Overtime Rate in Basic Earning */}
                       <div className="flex justify-between items-center relative bg-yellow-50 p-2 rounded">
                         <div className="flex items-center space-x-2">
-                          <span className="font-medium text-orange-800">Overtime Rate</span>
+                          <span className="font-medium text-peoplee-800">Overtime Rate</span>
                           <button
                             onClick={() => {
                               console.log('Overtime settings clicked!', !showOvertimeDropdown);
                               setShowOvertimeDropdown(!showOvertimeDropdown);
                             }}
-                            className="p-1 text-orange-600 hover:text-orange-800 bg-orange-100 rounded"
+                            className="p-1 text-peoplee-600 hover:text-peoplee-800 bg-peoplee-100 rounded"
                             data-testid="button-overtime-settings"
                           >
                             <Settings className="w-4 h-4" />

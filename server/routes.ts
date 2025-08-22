@@ -174,7 +174,7 @@ async function processBreakOut(
     const activeLocations = await storage.getActiveOfficeLocations();
     if (activeLocations.length === 0) {
       return res.status(400).json({ 
-        error: "Tiada lokasi pejabat aktif ditetapkan" 
+        error: "No active office location set" 
       });
     }
 
@@ -230,11 +230,11 @@ async function processBreakOut(
       user: {
         username: user?.username
       },
-      message: "Break time telah direkodkan"
+      message: "Break time has been direkodkan"
     });
   } catch (error) {
     console.error("Break-out processing error:", error);
-    return res.status(500).json({ error: "Gagal memproses break time" });
+    return res.status(500).json({ error: "Failed to memproses break time" });
   }
 }
 
@@ -253,7 +253,7 @@ async function processBreakIn(
     const activeLocations = await storage.getActiveOfficeLocations();
     if (activeLocations.length === 0) {
       return res.status(400).json({ 
-        error: "Tiada lokasi pejabat aktif ditetapkan" 
+        error: "No active office location set" 
       });
     }
 
@@ -313,7 +313,7 @@ async function processBreakIn(
         if (currentTime > todayBreakOut) {
           const lateMinutes = Math.floor((currentTime.getTime() - todayBreakOut.getTime()) / (1000 * 60));
           breakOffCompliance.isLateBreakOut = true;
-          breakOffCompliance.breakOutRemarks = `Break off lewat ${lateMinutes} minit dari masa yang ditetapkan ${shiftBreakOutTime}. Perlu semakan penyelia.`;
+          breakOffCompliance.breakOutRemarks = `Break off lewat ${lateMinutes} minutes from yang ditetapkan ${shiftBreakOutTime}. Needs review penyelia.`;
         }
       }
     } catch (error) {
@@ -343,11 +343,11 @@ async function processBreakIn(
       user: {
         username: user?.username
       },
-      message: "Break off telah direkodkan"
+      message: "Break-off has been recorded"
     });
   } catch (error) {
     console.error("Break-in processing error:", error);
-    return res.status(500).json({ error: "Gagal memproses break off" });
+    return res.status(500).json({ error: "Failed to process break-off" });
   }
 }
 
@@ -366,7 +366,7 @@ async function processClockOut(
     const activeLocations = await storage.getActiveOfficeLocations();
     if (activeLocations.length === 0) {
       return res.status(400).json({ 
-        error: "Tiada lokasi pejabat aktif ditetapkan" 
+        error: "No active office location set" 
       });
     }
 
@@ -435,8 +435,8 @@ async function processClockOut(
         username: user?.username
       },
       message: locationStatus === "valid" 
-        ? `Clock-out berjaya! Total jam kerja: ${totalHours} jam.` 
-        : `Clock-out di luar kawasan pejabat. Total jam kerja: ${totalHours} jam.`,
+        ? `Clock-out successful! Total working hours: ${totalHours} hours.` 
+        : `Clock-out outside office area. Total working hours: ${totalHours} hours.`,
       distance: Math.round(nearestDistance)
     });
 
@@ -444,7 +444,7 @@ async function processClockOut(
     console.error("Process clock-out error:", error);
     console.error("Error stack:", error instanceof Error ? error.stack : 'Unknown error');
     return res.status(500).json({ 
-      error: "Gagal melakukan clock-out",
+      error: "Failed to perform clock-out",
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
@@ -482,7 +482,7 @@ export function registerRoutes(app: Express): Server {
       res.json(statistics);
     } catch (error) {
       console.error("Dashboard statistics error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan statistik dashboard" });
+      res.status(500).json({ error: "Failed to mendapatkan statistik dashboard" });
     }
   });
 
@@ -494,7 +494,7 @@ export function registerRoutes(app: Express): Server {
       res.json(statistics);
     } catch (error) {
       console.error("User statistics error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan statistik pengguna" });
+      res.status(500).json({ error: "Failed to mendapatkan statistik pengguna" });
     }
   });
 
@@ -505,7 +505,7 @@ export function registerRoutes(app: Express): Server {
       res.json(statistics);
     } catch (error) {
       console.error("Pending approval statistics error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan statistik pending approval" });
+      res.status(500).json({ error: "Failed to mendapatkan statistik pending approval" });
     }
   });
 
@@ -560,7 +560,7 @@ export function registerRoutes(app: Express): Server {
       res.json(employee);
     } catch (error) {
       console.error("Get user employee error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan data pekerja" });
+      res.status(500).json({ error: "Failed to mendapatkan data pework" });
     }
   });
 
@@ -573,7 +573,7 @@ export function registerRoutes(app: Express): Server {
       res.json(payrollRecords);
     } catch (error) {
       console.error("Get user payroll records error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan rekod gaji pengguna" });
+      res.status(500).json({ error: "Failed to mendapatkan rekod gaji pengguna" });
     }
   });
 
@@ -585,7 +585,7 @@ export function registerRoutes(app: Express): Server {
       res.json(announcements);
     } catch (error) {
       console.error("Get announcements error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan pengumuman" });
+      res.status(500).json({ error: "Failed to mendapatkan pengumuman" });
     }
   });
 
@@ -612,7 +612,7 @@ export function registerRoutes(app: Express): Server {
       res.json({ success: true, announcement });
     } catch (error) {
       console.error("Create announcement error:", error);
-      res.status(500).json({ error: "Gagal mencipta pengumuman" });
+      res.status(500).json({ error: "Failed to mencipta pengumuman" });
     }
   });
 
@@ -645,7 +645,7 @@ export function registerRoutes(app: Express): Server {
       res.json(unreadAnnouncements);
     } catch (error) {
       console.error("Get unread announcements error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan pengumuman yang belum dibaca" });
+      res.status(500).json({ error: "Failed to mendapatkan pengumuman yang belum dibaca" });
     }
   });
 
@@ -656,10 +656,10 @@ export function registerRoutes(app: Express): Server {
       const userId = req.user!.id;
       
       await storage.markAnnouncementAsRead(id, userId);
-      res.json({ success: true, message: "Pengumuman telah ditanda sebagai dibaca" });
+      res.json({ success: true, message: "Pengumuman has been ditanda sebagai dibaca" });
     } catch (error) {
       console.error("Acknowledge announcement error:", error);
-      res.status(500).json({ error: "Gagal menanda pengumuman sebagai dibaca" });
+      res.status(500).json({ error: "Failed to menanda pengumuman sebagai dibaca" });
     }
   });
 
@@ -965,7 +965,7 @@ export function registerRoutes(app: Express): Server {
         }
 
         const summaryData = await summaryResponse.json();
-        reportTitle = 'Ringkasan Cuti Pekerja';
+        reportTitle = 'Ringkasan Leave Employee';
         
         // Transform summary data to match PDF generator format
         reportData = {
@@ -1015,7 +1015,7 @@ export function registerRoutes(app: Express): Server {
         }
 
         const summaryData = await summaryResponse.json();
-        reportTitle = 'Laporan Permohonan Cuti';
+        reportTitle = 'Laporan Leave Application';
         
         // Transform summary data to match PDF generator format
         reportData = {
@@ -1060,7 +1060,7 @@ export function registerRoutes(app: Express): Server {
       });
       console.log('PDF generated successfully, size:', pdfBuffer.length, 'bytes');
 
-      const fileName = `Laporan_Cuti_${reportType}_${new Date().toISOString().split('T')[0]}.pdf`;
+      const fileName = `Laporan_Leave_${reportType}_${new Date().toISOString().split('T')[0]}.pdf`;
 
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
@@ -1344,7 +1344,7 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Create leave adjustment error:", error);
       res.status(500).json({ 
-        error: "Gagal menyimpan pelarasan cuti individu" 
+        error: "Failed to menyimpan pelarasan cuti individu" 
       });
     }
   });
@@ -1363,7 +1363,7 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Get leave adjustments error:", error);
       res.status(500).json({ 
-        error: "Gagal mendapatkan pelarasan cuti individu" 
+        error: "Failed to mendapatkan pelarasan cuti individu" 
       });
     }
   });
@@ -1392,14 +1392,14 @@ export function registerRoutes(app: Express): Server {
         });
       } else {
         res.status(404).json({ 
-          error: "Pelarasan cuti tidak dijumpai" 
+          error: "Pelarasan cuti not found" 
         });
       }
       
     } catch (error) {
       console.error("Update leave adjustment error:", error);
       res.status(500).json({ 
-        error: "Gagal mengemas kini pelarasan cuti individu" 
+        error: "Failed to mengemas kini pelarasan cuti individu" 
       });
     }
   });
@@ -1426,14 +1426,14 @@ export function registerRoutes(app: Express): Server {
         });
       } else {
         res.status(404).json({ 
-          error: "Pelarasan cuti tidak dijumpai" 
+          error: "Pelarasan cuti not found" 
         });
       }
       
     } catch (error) {
       console.error("Delete leave adjustment error:", error);
       res.status(500).json({ 
-        error: "Gagal memadam pelarasan cuti individu" 
+        error: "Failed to memadam pelarasan cuti individu" 
       });
     }
   });
@@ -1465,14 +1465,14 @@ export function registerRoutes(app: Express): Server {
       
       res.status(201).json({ 
         success: true, 
-        message: `Kelayakan cuti ${leaveType} berjaya ${isEligible ? 'diaktifkan' : 'dinyahaktifkan'} untuk pekerja ini`,
+        message: `Kelayakan cuti ${leaveType} berjaya ${isEligible ? 'diaktifkan' : 'dinyahaktifkan'} untuk pework ini`,
         data: result
       });
       
     } catch (error) {
       console.error("Set leave eligibility error:", error);
       res.status(500).json({ 
-        error: "Gagal mengubah kelayakan cuti individu" 
+        error: "Failed to mengubah kelayakan cuti individu" 
       });
     }
   });
@@ -1485,7 +1485,7 @@ export function registerRoutes(app: Express): Server {
       // Check user permissions
       const currentUser = await storage.getUser(req.user!.id);
       if (!currentUser) {
-        return res.status(401).json({ error: "Pengguna tidak dijumpai" });
+        return res.status(401).json({ error: "Pengguna not found" });
       }
       
       const adminRoles = ['Super Admin', 'Admin', 'HR Manager'];
@@ -1493,13 +1493,13 @@ export function registerRoutes(app: Express): Server {
       // Get employee to check if current user can access
       const employee = await storage.getEmployee(employeeId);
       if (!employee) {
-        return res.status(404).json({ error: "Pekerja tidak dijumpai" });
+        return res.status(404).json({ error: "Employee not found" });
       }
       
       // Allow access if admin role or own data
       if (!adminRoles.includes(currentUser.role) && employee.userId !== currentUser.id) {
         return res.status(403).json({ 
-          error: "Akses ditolak - tidak dibenarkan melihat kelayakan cuti pekerja lain" 
+          error: "Akses ditolak - tidak dibenarkan melihat kelayakan cuti pework lain" 
         });
       }
 
@@ -1510,7 +1510,7 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Get leave eligibility error:", error);
       res.status(500).json({ 
-        error: "Gagal mendapatkan kelayakan cuti individu" 
+        error: "Failed to mendapatkan kelayakan cuti individu" 
       });
     }
   });
@@ -1523,7 +1523,7 @@ export function registerRoutes(app: Express): Server {
       // Check user permissions
       const currentUser = await storage.getUser(req.user!.id);
       if (!currentUser) {
-        return res.status(401).json({ error: "Pengguna tidak dijumpai" });
+        return res.status(401).json({ error: "Pengguna not found" });
       }
       
       const adminRoles = ['Super Admin', 'Admin', 'HR Manager'];
@@ -1531,13 +1531,13 @@ export function registerRoutes(app: Express): Server {
       // Get employee to check if current user can access
       const employee = await storage.getEmployee(employeeId);
       if (!employee) {
-        return res.status(404).json({ error: "Pekerja tidak dijumpai" });
+        return res.status(404).json({ error: "Employee not found" });
       }
       
       // Allow access if admin role or own data
       if (!adminRoles.includes(currentUser.role) && employee.userId !== currentUser.id) {
         return res.status(403).json({ 
-          error: "Akses ditolak - tidak dibenarkan melihat kelayakan cuti pekerja lain" 
+          error: "Akses ditolak - tidak dibenarkan melihat kelayakan cuti pework lain" 
         });
       }
 
@@ -1548,14 +1548,14 @@ export function registerRoutes(app: Express): Server {
         leaveType,
         isEligible,
         message: isEligible 
-          ? `Pekerja ini layak untuk ${leaveType}` 
-          : `Pekerja ini tidak layak untuk ${leaveType}`
+          ? `Employee ini layak untuk ${leaveType}` 
+          : `Employee ini tidak layak untuk ${leaveType}`
       });
       
     } catch (error) {
       console.error("Check leave eligibility error:", error);
       res.status(500).json({ 
-        error: "Gagal memeriksa kelayakan cuti" 
+        error: "Failed to memeriksa kelayakan cuti" 
       });
     }
   });
@@ -1578,18 +1578,18 @@ export function registerRoutes(app: Express): Server {
       if (deleted) {
         res.json({ 
           success: true, 
-          message: `Kelayakan cuti ${leaveType} telah direset ke default (layak) untuk pekerja ini`
+          message: `Kelayakan cuti ${leaveType} has been direset ke default (layak) untuk pework ini`
         });
       } else {
         res.status(404).json({ 
-          error: "Record kelayakan cuti tidak dijumpai atau telah dipadam" 
+          error: "Record kelayakan cuti not found atau has been dipadam" 
         });
       }
       
     } catch (error) {
       console.error("Delete leave eligibility error:", error);
       res.status(500).json({ 
-        error: "Gagal mereset kelayakan cuti" 
+        error: "Failed to mereset kelayakan cuti" 
       });
     }
   });
@@ -1705,7 +1705,7 @@ export function registerRoutes(app: Express): Server {
       res.json(stats);
     } catch (error) {
       console.error("Employee statistics error:", error);
-      res.status(500).json({ error: "Gagal mengambil statistik pekerja" });
+      res.status(500).json({ error: "Failed to mengambil statistik pework" });
     }
   });
 
@@ -1735,7 +1735,7 @@ export function registerRoutes(app: Express): Server {
         const employee = await storage.getEmployeeByUserId(req.user!.id);
         console.log('Found Employee for User:', employee?.id, employee?.fullName);
         if (!employee) {
-          return res.status(404).json({ error: "Employee record tidak dijumpai" });
+          return res.status(404).json({ error: "Employee record not found" });
         }
         // Force to own employee ID regardless of what was requested
         targetEmployeeId = employee.id;
@@ -1780,7 +1780,7 @@ export function registerRoutes(app: Express): Server {
       res.json(recordsWithCompliance);
     } catch (error) {
       console.error("Attendance records error:", error);
-      res.status(500).json({ error: "Gagal mengambil rekod kehadiran" });
+      res.status(500).json({ error: "Failed to fetch attendance records" });
     }
   });
 
@@ -1792,14 +1792,14 @@ export function registerRoutes(app: Express): Server {
 
       // Validate location data
       if (!latitude || !longitude) {
-        return res.status(400).json({ error: "Lokasi GPS diperlukan" });
+        return res.status(400).json({ error: "GPS location required" });
       }
 
       // Get all active office locations
       const activeLocations = await storage.getActiveOfficeLocations();
       if (activeLocations.length === 0) {
         return res.status(400).json({ 
-          error: "Tiada lokasi pejabat aktif ditetapkan" 
+          error: "No active office location set" 
         });
       }
 
@@ -1830,7 +1830,7 @@ export function registerRoutes(app: Express): Server {
       }
 
       if (locationStatus === "invalid") {
-        locationMessage = "Anda berada di luar kawasan pejabat. Sila berada dalam kawasan yang ditetapkan untuk clock out";
+        locationMessage = "You are outside the office area. Please be within the designated area to clock out";
       }
 
       // Process selfie image path
@@ -1860,7 +1860,7 @@ export function registerRoutes(app: Express): Server {
       res.json({
         success: true,
         message: locationStatus === "valid" 
-          ? "Clock-out berjaya! Anda berada dalam kawasan pejabat." 
+          ? "Clock-out successful! You are within the office area." 
           : locationMessage,
         location: {
           status: locationStatus,
@@ -1872,7 +1872,7 @@ export function registerRoutes(app: Express): Server {
 
     } catch (error) {
       console.error("Mobile clock-out error:", error);
-      res.status(500).json({ error: "Gagal melakukan clock-out" });
+      res.status(500).json({ error: "Failed to perform clock-out" });
     }
   });
 
@@ -1891,7 +1891,7 @@ export function registerRoutes(app: Express): Server {
       if (!adminRoles.includes(currentUser.role)) {
         console.log("Access denied for role:", currentUser.role);
         return res.status(403).json({ 
-          error: "Tidak dibenarkan untuk membuat akaun staff baru",
+          error: "Not authorized to create new staff account",
           currentRole: currentUser.role,
           requiredRoles: adminRoles
         });
@@ -1904,7 +1904,7 @@ export function registerRoutes(app: Express): Server {
       
       if (!username || !password || !role) {
         return res.status(400).json({ 
-          error: "Username, password dan role diperlukan",
+          error: "Username, password and role required",
           received: { username: !!username, password: !!password, role: !!role }
         });
       }
@@ -1913,7 +1913,7 @@ export function registerRoutes(app: Express): Server {
       const validRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC', 'Finance/Account', 'Manager/Supervisor', 'Staff/Employee'];
       if (!validRoles.includes(role)) {
         return res.status(400).json({ 
-          error: "Role tidak sah",
+          error: "Invalid role",
           validRoles,
           received: role
         });
@@ -1967,7 +1967,7 @@ export function registerRoutes(app: Express): Server {
         console.error("Error stack:", userCreationError instanceof Error ? userCreationError.stack : 'No stack trace');
         
         return res.status(500).json({ 
-          error: "Gagal mencipta akaun staff",
+          error: "Failed to mencipta akaun staff",
           details: userCreationError instanceof Error ? userCreationError.message : String(userCreationError)
         });
       }
@@ -1992,7 +1992,7 @@ export function registerRoutes(app: Express): Server {
       }
       
       res.status(500).json({ 
-        error: "Gagal membuat akaun staff baru",
+        error: "Failed to membuat akaun staff baru",
         details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
@@ -2041,7 +2041,7 @@ export function registerRoutes(app: Express): Server {
       res.json(employees);
     } catch (error) {
       console.error("Get employees error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan senarai pekerja" });
+      res.status(500).json({ error: "Failed to mendapatkan senarai pework" });
     }
   });
 
@@ -2052,7 +2052,7 @@ export function registerRoutes(app: Express): Server {
       res.json(departments);
     } catch (error) {
       console.error("Get departments error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan senarai jabatan" });
+      res.status(500).json({ error: "Failed to mendapatkan senarai jabatan" });
     }
   });
 
@@ -2063,7 +2063,7 @@ export function registerRoutes(app: Express): Server {
       res.json(years);
     } catch (error) {
       console.error("Get years error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan senarai tahun" });
+      res.status(500).json({ error: "Failed to mendapatkan senarai tahun" });
     }
   });
 
@@ -2074,7 +2074,7 @@ export function registerRoutes(app: Express): Server {
       res.json(approvalEmployees);
     } catch (error) {
       console.error("Error fetching approval employees:", error);
-      res.status(500).json({ error: "Gagal mendapatkan senarai pekerja dengan role approval" });
+      res.status(500).json({ error: "Failed to mendapatkan list of approval role employees" });
     }
   });
 
@@ -2083,7 +2083,7 @@ export function registerRoutes(app: Express): Server {
     try {
       const user = await storage.getUser(req.params.id);
       if (!user) {
-        return res.status(404).json({ error: "User tidak dijumpai" });
+        return res.status(404).json({ error: "User not found" });
       }
       
       // Return user without password
@@ -2091,7 +2091,7 @@ export function registerRoutes(app: Express): Server {
       res.json(userWithoutPassword);
     } catch (error) {
       console.error("Error fetching user:", error);
-      res.status(500).json({ error: "Gagal mendapatkan maklumat pengguna" });
+      res.status(500).json({ error: "Failed to mendapatkan maklumat pengguna" });
     }
   });
 
@@ -2103,13 +2103,13 @@ export function registerRoutes(app: Express): Server {
       
       // Validate input
       if (!setting || typeof value !== 'boolean') {
-        return res.status(400).json({ error: "Setting dan value diperlukan" });
+        return res.status(400).json({ error: "Setting and value required" });
       }
       
       // Validate setting name
       const validSettings = ['allowClockInAnyLocation', 'enforceBreakClockOut'];
       if (!validSettings.includes(setting)) {
-        return res.status(400).json({ error: "Setting tidak sah" });
+        return res.status(400).json({ error: "Invalid setting" });
       }
       
       // For now, just return success - in production this would save to database
@@ -2117,14 +2117,14 @@ export function registerRoutes(app: Express): Server {
       
       res.json({ 
         success: true,
-        message: `Setting ${setting} telah dikemaskini kepada ${value}`,
+        message: `Setting ${setting} has been updated to ${value}`,
         employeeId,
         setting,
         value
       });
     } catch (error) {
       console.error("Update attendance settings error:", error);
-      res.status(500).json({ error: "Gagal mengkemaskini tetapan kehadiran" });
+      res.status(500).json({ error: "Failed to update attendance settings" });
     }
   });
 
@@ -2134,7 +2134,7 @@ export function registerRoutes(app: Express): Server {
       const employee = await storage.getEmployee(req.params.id);
       
       if (!employee) {
-        return res.status(404).json({ error: "Pekerja tidak dijumpai" });
+        return res.status(404).json({ error: "Employee not found" });
       }
       
       // Role-based access control for individual employee access
@@ -2148,12 +2148,12 @@ export function registerRoutes(app: Express): Server {
         if (employee.userId === currentUser.id) {
           res.json(employee);
         } else {
-          return res.status(403).json({ error: "Tidak dibenarkan mengakses data pekerja lain" });
+          return res.status(403).json({ error: "Not authorized to access other employee data" });
         }
       }
     } catch (error) {
       console.error("Get employee error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan maklumat pekerja" });
+      res.status(500).json({ error: "Failed to get employee information" });
     }
   });
 
@@ -2174,7 +2174,7 @@ export function registerRoutes(app: Express): Server {
       if (!adminRoles.includes(currentUser.role)) {
         console.log("Employee creation access denied for role:", currentUser.role);
         return res.status(403).json({ 
-          error: "Tidak dibenarkan untuk menambah pekerja baru",
+          error: "Tidak dibenarkan untuk menambah pework baru",
           currentRole: currentUser.role,
           requiredRoles: adminRoles
         });
@@ -2195,7 +2195,7 @@ export function registerRoutes(app: Express): Server {
       const targetUser = await storage.getUser(req.body.userId);
       if (!targetUser) {
         return res.status(400).json({ 
-          error: "User ID tidak dijumpai",
+          error: "User ID not found",
           userId: req.body.userId
         });
       }
@@ -2234,7 +2234,7 @@ export function registerRoutes(app: Express): Server {
         
         if (error.message.includes('foreign key')) {
           return res.status(400).json({ 
-            error: "User ID tidak sah atau tidak dijumpai",
+            error: "User ID tidak sah atau not found",
             details: error.message
           });
         }
@@ -2242,7 +2242,7 @@ export function registerRoutes(app: Express): Server {
         // Zod validation errors
         if (error.name === 'ZodError') {
           return res.status(400).json({ 
-            error: "Data tidak sah",
+            error: "Invalid data",
             details: error.message,
             issues: (error as any).issues
           });
@@ -2250,7 +2250,7 @@ export function registerRoutes(app: Express): Server {
       }
       
       res.status(500).json({ 
-        error: "Gagal menambah pekerja",
+        error: "Failed to menambah pework",
         details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
@@ -2262,7 +2262,7 @@ export function registerRoutes(app: Express): Server {
       const existingEmployee = await storage.getEmployee(req.params.id);
       
       if (!existingEmployee) {
-        return res.status(404).json({ error: "Pekerja tidak dijumpai" });
+        return res.status(404).json({ error: "Employee not found" });
       }
       
       // Role-based access control for updating
@@ -2272,7 +2272,7 @@ export function registerRoutes(app: Express): Server {
       } else {
         // Regular employees can only update their own record
         if (existingEmployee.userId !== currentUser.id) {
-          return res.status(403).json({ error: "Tidak dibenarkan mengemaskini data pekerja lain" });
+          return res.status(403).json({ error: "Tidak dibenarkan mengemaskini data pework lain" });
         }
       }
       
@@ -2281,7 +2281,7 @@ export function registerRoutes(app: Express): Server {
       res.json(employee);
     } catch (error) {
       console.error("Update employee error:", error);
-      res.status(400).json({ error: "Gagal mengemaskini pekerja" });
+      res.status(400).json({ error: "Failed to mengemaskini pework" });
     }
   });
 
@@ -2291,17 +2291,17 @@ export function registerRoutes(app: Express): Server {
       
       // Only Super Admin and Admin can delete employee records
       if (currentUser.role !== 'Super Admin' && currentUser.role !== 'Admin') {
-        return res.status(403).json({ error: "Hanya Super Admin dan Admin yang dibenarkan menghapuskan data pekerja" });
+        return res.status(403).json({ error: "Hanya Super Admin dan Admin yang dibenarkan menghapuskan data pework" });
       }
       
       const deleted = await storage.deleteEmployee(req.params.id);
       if (!deleted) {
-        return res.status(404).json({ error: "Pekerja tidak dijumpai" });
+        return res.status(404).json({ error: "Employee not found" });
       }
-      res.json({ message: "Pekerja berjaya dihapuskan" });
+      res.json({ message: "Employee berjaya dihapuskan" });
     } catch (error) {
       console.error("Delete employee error:", error);
-      res.status(500).json({ error: "Gagal menghapuskan pekerja" });
+      res.status(500).json({ error: "Failed to menghapuskan pework" });
     }
   });
 
@@ -2318,7 +2318,7 @@ export function registerRoutes(app: Express): Server {
       // Get employee to check authorization
       const employee = await storage.getEmployee(req.params.id);
       if (!employee) {
-        return res.status(404).json({ error: "Pekerja tidak dijumpai" });
+        return res.status(404).json({ error: "Employee not found" });
       }
 
       // Role-based access control for password changes
@@ -2328,7 +2328,7 @@ export function registerRoutes(app: Express): Server {
       } else {
         // Regular employees can only change their own password
         if (employee.userId !== currentUser.id) {
-          return res.status(403).json({ error: "Tidak dibenarkan menukar password pekerja lain" });
+          return res.status(403).json({ error: "Tidak dibenarkan menukar password pework lain" });
         }
       }
 
@@ -2340,7 +2340,7 @@ export function registerRoutes(app: Express): Server {
       res.json({ message: "Password berjaya ditukar" });
     } catch (error) {
       console.error("Change password error:", error);
-      res.status(500).json({ error: "Gagal menukar password" });
+      res.status(500).json({ error: "Failed to menukar password" });
     }
   });
 
@@ -2351,7 +2351,7 @@ export function registerRoutes(app: Express): Server {
       const employee = await storage.getEmployee(req.params.id);
       
       if (!employee) {
-        return res.status(404).json({ error: "Pekerja tidak dijumpai" });
+        return res.status(404).json({ error: "Employee not found" });
       }
       
       // Role-based access control
@@ -2361,7 +2361,7 @@ export function registerRoutes(app: Express): Server {
       } else {
         // Regular employees can only update their own record
         if (employee.userId !== currentUser.id) {
-          return res.status(403).json({ error: "Tidak dibenarkan mengemaskini data pekerja lain" });
+          return res.status(403).json({ error: "Tidak dibenarkan mengemaskini data pework lain" });
         }
       }
 
@@ -2393,12 +2393,12 @@ export function registerRoutes(app: Express): Server {
       }
       
       res.json({ 
-        message: "Butiran bank berjaya dikemaskini",
+        message: "Butiran bank berjaya updated",
         data: req.body 
       });
     } catch (error) {
       console.error("Update bank details error:", error);
-      res.status(500).json({ error: "Gagal mengemaskini butiran bank" });
+      res.status(500).json({ error: "Failed to mengemaskini butiran bank" });
     }
   });
 
@@ -2409,7 +2409,7 @@ export function registerRoutes(app: Express): Server {
       const employee = await storage.getEmployee(req.params.id);
       
       if (!employee) {
-        return res.status(404).json({ error: "Pekerja tidak dijumpai" });
+        return res.status(404).json({ error: "Employee not found" });
       }
       
       // Role-based access control
@@ -2419,7 +2419,7 @@ export function registerRoutes(app: Express): Server {
       } else {
         // Regular employees can only update their own record
         if (employee.userId !== currentUser.id) {
-          return res.status(403).json({ error: "Tidak dibenarkan mengemaskini data pekerja lain" });
+          return res.status(403).json({ error: "Tidak dibenarkan mengemaskini data pework lain" });
         }
       }
 
@@ -2453,12 +2453,12 @@ export function registerRoutes(app: Express): Server {
       }
       
       res.json({ 
-        message: "Butiran berkanun berjaya dikemaskini",
+        message: "Butiran berkanun berjaya updated",
         data: req.body 
       });
     } catch (error) {
       console.error("Update statutory details error:", error);
-      res.status(500).json({ error: "Gagal mengemaskini butiran berkanun" });
+      res.status(500).json({ error: "Failed to mengemaskini butiran berkanun" });
     }
   });
 
@@ -2469,7 +2469,7 @@ export function registerRoutes(app: Express): Server {
       const employee = await storage.getEmployee(req.params.id);
       
       if (!employee) {
-        return res.status(404).json({ error: "Pekerja tidak dijumpai" });
+        return res.status(404).json({ error: "Employee not found" });
       }
       
       // Role-based access control
@@ -2479,7 +2479,7 @@ export function registerRoutes(app: Express): Server {
       } else {
         // Regular employees can only update their own record
         if (employee.userId !== currentUser.id) {
-          return res.status(403).json({ error: "Tidak dibenarkan mengemaskini data pekerja lain" });
+          return res.status(403).json({ error: "Tidak dibenarkan mengemaskini data pework lain" });
         }
       }
 
@@ -2511,12 +2511,12 @@ export function registerRoutes(app: Express): Server {
       }
       
       res.json({ 
-        message: "Butiran cukai pendapatan berjaya dikemaskini",
+        message: "Butiran cukai pendapatan berjaya updated",
         data: req.body 
       });
     } catch (error) {
       console.error("Update income tax details error:", error);
-      res.status(500).json({ error: "Gagal mengemaskini butiran cukai pendapatan" });
+      res.status(500).json({ error: "Failed to mengemaskini butiran cukai pendapatan" });
     }
   });
 
@@ -2529,7 +2529,7 @@ export function registerRoutes(app: Express): Server {
       // Get the employee to check authorization
       const employee = await storage.getEmployee(employeeId);
       if (!employee) {
-        return res.status(404).json({ error: "Pekerja tidak dijumpai" });
+        return res.status(404).json({ error: "Employee not found" });
       }
       
       // Role-based access control
@@ -2539,7 +2539,7 @@ export function registerRoutes(app: Express): Server {
       } else {
         // Regular employees can only access their own contact
         if (employee.userId !== currentUser.id) {
-          return res.status(403).json({ error: "Tidak dibenarkan mengakses maklumat contact pekerja lain" });
+          return res.status(403).json({ error: "Tidak dibenarkan mengakses maklumat contact pework lain" });
         }
       }
 
@@ -2562,7 +2562,7 @@ export function registerRoutes(app: Express): Server {
       res.json(contact);
     } catch (error) {
       console.error("Get contact error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan maklumat contact" });
+      res.status(500).json({ error: "Failed to mendapatkan maklumat contact" });
     }
   });
 
@@ -2575,7 +2575,7 @@ export function registerRoutes(app: Express): Server {
       // Get the employee to check authorization
       const employee = await storage.getEmployee(employeeId);
       if (!employee) {
-        return res.status(404).json({ error: "Pekerja tidak dijumpai" });
+        return res.status(404).json({ error: "Employee not found" });
       }
       
       // Role-based access control
@@ -2585,7 +2585,7 @@ export function registerRoutes(app: Express): Server {
       } else {
         // Regular employees can only update their own contact
         if (employee.userId !== currentUser.id) {
-          return res.status(403).json({ error: "Tidak dibenarkan mengemaskini maklumat contact pekerja lain" });
+          return res.status(403).json({ error: "Tidak dibenarkan mengemaskini maklumat contact pework lain" });
         }
       }
 
@@ -2619,12 +2619,12 @@ export function registerRoutes(app: Express): Server {
       }
       
       res.json({ 
-        message: "Maklumat contact berjaya dikemaskini",
+        message: "Maklumat contact berjaya updated",
         data: updatedContact 
       });
     } catch (error) {
       console.error("Update contact error:", error);
-      res.status(500).json({ error: "Gagal mengemaskini maklumat contact" });
+      res.status(500).json({ error: "Failed to mengemaskini maklumat contact" });
     }
   });
 
@@ -2635,7 +2635,7 @@ export function registerRoutes(app: Express): Server {
       // Get employee to check authorization
       const employee = await storage.getEmployee(req.params.id);
       if (!employee) {
-        return res.status(404).json({ error: "Pekerja tidak dijumpai" });
+        return res.status(404).json({ error: "Employee not found" });
       }
 
       // Role-based access control for password reset
@@ -2645,7 +2645,7 @@ export function registerRoutes(app: Express): Server {
       } else {
         // Regular employees can only reset their own password
         if (employee.userId !== currentUser.id) {
-          return res.status(403).json({ error: "Tidak dibenarkan mereset password pekerja lain" });
+          return res.status(403).json({ error: "Tidak dibenarkan mereset password pework lain" });
         }
       }
 
@@ -2656,7 +2656,7 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       console.error("Reset password error:", error);
-      res.status(500).json({ error: "Gagal mereset password" });
+      res.status(500).json({ error: "Failed to mereset password" });
     }
   });
 
@@ -2669,7 +2669,7 @@ export function registerRoutes(app: Express): Server {
       // Get the employee to check authorization
       const employee = await storage.getEmployee(employeeId);
       if (!employee) {
-        return res.status(404).json({ error: "Pekerja tidak dijumpai" });
+        return res.status(404).json({ error: "Employee not found" });
       }
       
       // Role-based access control
@@ -2679,7 +2679,7 @@ export function registerRoutes(app: Express): Server {
       } else {
         // Regular employees can only view their own compensation
         if (employee.userId !== currentUser.id) {
-          return res.status(403).json({ error: "Tidak dibenarkan mengakses data compensation pekerja lain" });
+          return res.status(403).json({ error: "Tidak dibenarkan mengakses data compensation pework lain" });
         }
       }
 
@@ -2710,7 +2710,7 @@ export function registerRoutes(app: Express): Server {
       res.json(compensation);
     } catch (error) {
       console.error("Get compensation error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan maklumat compensation" });
+      res.status(500).json({ error: "Failed to mendapatkan maklumat compensation" });
     }
   });
 
@@ -2727,13 +2727,13 @@ export function registerRoutes(app: Express): Server {
       } else {
         // Regular employees can only access their own employment record
         if (!employment || employment.employeeId !== req.params.employeeId) {
-          return res.status(403).json({ error: "Tidak dibenarkan mengakses data pekerjaan lain" });
+          return res.status(403).json({ error: "Tidak dibenarkan mengakses data peworkan lain" });
         }
         res.json(employment);
       }
     } catch (error) {
       console.error("Get employment error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan maklumat pekerjaan" });
+      res.status(500).json({ error: "Failed to get employee informationan" });
     }
   });
 
@@ -2744,7 +2744,7 @@ export function registerRoutes(app: Express): Server {
       // Only admin roles can create employment records
       const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
       if (!adminRoles.includes(currentUser.role)) {
-        return res.status(403).json({ error: "Tidak dibenarkan untuk menambah maklumat pekerjaan" });
+        return res.status(403).json({ error: "Tidak dibenarkan untuk menambah maklumat peworkan" });
       }
       
       const validatedData = insertEmploymentSchema.parse(req.body);
@@ -2752,7 +2752,7 @@ export function registerRoutes(app: Express): Server {
       res.status(201).json(employment);
     } catch (error) {
       console.error("Create employment error:", error);
-      res.status(400).json({ error: "Gagal menambah maklumat pekerjaan" });
+      res.status(400).json({ error: "Failed to menambah maklumat peworkan" });
     }
   });
 
@@ -2763,7 +2763,7 @@ export function registerRoutes(app: Express): Server {
       // Get the employment record to check if user can edit
       const existingEmployment = await storage.getEmploymentById(req.params.id);
       if (!existingEmployment) {
-        return res.status(404).json({ error: "Maklumat pekerjaan tidak dijumpai" });
+        return res.status(404).json({ error: "Maklumat peworkan not found" });
       }
       
       // Allow admin roles to update any employment record
@@ -2774,18 +2774,18 @@ export function registerRoutes(app: Express): Server {
       const isOwnRecord = existingEmployment.employeeId === currentUser.employeeId;
       
       if (!isAdmin && !isOwnRecord) {
-        return res.status(403).json({ error: "Tidak dibenarkan untuk mengemaskini maklumat pekerjaan" });
+        return res.status(403).json({ error: "Tidak dibenarkan untuk mengemaskini maklumat peworkan" });
       }
       
       const validatedData = updateEmploymentSchema.parse(req.body);
       const employment = await storage.updateEmployment(req.params.id, validatedData);
       if (!employment) {
-        return res.status(404).json({ error: "Maklumat pekerjaan tidak dijumpai" });
+        return res.status(404).json({ error: "Maklumat peworkan not found" });
       }
       res.json(employment);
     } catch (error) {
       console.error("Update employment error:", error);
-      res.status(400).json({ error: "Gagal mengemaskini maklumat pekerjaan" });
+      res.status(400).json({ error: "Failed to mengemaskini maklumat peworkan" });
     }
   });
 
@@ -2808,7 +2808,7 @@ export function registerRoutes(app: Express): Server {
       }
     } catch (error) {
       console.error("Get contact error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan maklumat kontak" });
+      res.status(500).json({ error: "Failed to mendapatkan maklumat kontak" });
     }
   });
 
@@ -2827,7 +2827,7 @@ export function registerRoutes(app: Express): Server {
       res.status(201).json(contact);
     } catch (error) {
       console.error("Create contact error:", error);
-      res.status(400).json({ error: "Gagal menambah maklumat kontak" });
+      res.status(400).json({ error: "Failed to menambah maklumat kontak" });
     }
   });
 
@@ -2844,12 +2844,12 @@ export function registerRoutes(app: Express): Server {
       const validatedData = updateContactSchema.parse(req.body);
       const contact = await storage.updateContact(req.params.id, validatedData);
       if (!contact) {
-        return res.status(404).json({ error: "Maklumat kontak tidak dijumpai" });
+        return res.status(404).json({ error: "Maklumat kontak not found" });
       }
       res.json(contact);
     } catch (error) {
       console.error("Update contact error:", error);
-      res.status(400).json({ error: "Gagal mengemaskini maklumat kontak" });
+      res.status(400).json({ error: "Failed to mengemaskini maklumat kontak" });
     }
   });
 
@@ -2860,7 +2860,7 @@ export function registerRoutes(app: Express): Server {
       res.json(workExperiences);
     } catch (error) {
       console.error("Get work experiences error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan pengalaman kerja" });
+      res.status(500).json({ error: "Failed to mendapatkan pengalaman work" });
     }
   });
 
@@ -2871,7 +2871,7 @@ export function registerRoutes(app: Express): Server {
       res.status(201).json(workExperience);
     } catch (error) {
       console.error("Create work experience error:", error);
-      res.status(400).json({ error: "Gagal menambah pengalaman kerja" });
+      res.status(400).json({ error: "Failed to menambah pengalaman work" });
     }
   });
 
@@ -2880,12 +2880,12 @@ export function registerRoutes(app: Express): Server {
       const validatedData = updateWorkExperienceSchema.parse(req.body);
       const workExperience = await storage.updateWorkExperience(req.params.id, validatedData);
       if (!workExperience) {
-        return res.status(404).json({ error: "Pengalaman kerja tidak dijumpai" });
+        return res.status(404).json({ error: "Pengalaman work not found" });
       }
       res.json(workExperience);
     } catch (error) {
       console.error("Update work experience error:", error);
-      res.status(400).json({ error: "Gagal mengemaskini pengalaman kerja" });
+      res.status(400).json({ error: "Failed to mengemaskini pengalaman work" });
     }
   });
 
@@ -2893,12 +2893,12 @@ export function registerRoutes(app: Express): Server {
     try {
       const deleted = await storage.deleteWorkExperience(req.params.id);
       if (!deleted) {
-        return res.status(404).json({ error: "Pengalaman kerja tidak dijumpai" });
+        return res.status(404).json({ error: "Pengalaman work not found" });
       }
-      res.json({ message: "Pengalaman kerja berjaya dihapuskan" });
+      res.json({ message: "Pengalaman work berjaya dihapuskan" });
     } catch (error) {
       console.error("Delete work experience error:", error);
-      res.status(500).json({ error: "Gagal menghapuskan pengalaman kerja" });
+      res.status(500).json({ error: "Failed to menghapuskan pengalaman work" });
     }
   });
 
@@ -2909,7 +2909,7 @@ export function registerRoutes(app: Express): Server {
       res.json(envCheck);
     } catch (error) {
       console.error("Env check error:", error);
-      res.status(500).json({ error: "Gagal memeriksa environment variables" });
+      res.status(500).json({ error: "Failed to memeriksa environment variables" });
     }
   });
 
@@ -2939,7 +2939,7 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       console.error("Error re-running compliance:", error);
-      res.status(500).json({ error: "Gagal re-run compliance check" });
+      res.status(500).json({ error: "Failed to re-run compliance check" });
     }
   });
 
@@ -2968,7 +2968,7 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       console.error("QR generate error:", error);
-      res.status(500).json({ error: "Gagal menjana QR Code" });
+      res.status(500).json({ error: "Failed to menjana QR Code" });
     }
   });
 
@@ -2984,7 +2984,7 @@ export function registerRoutes(app: Express): Server {
       if (!token || token.length === 0) {
         console.log("ERROR: Empty or missing token");
         return res.status(400).json({ 
-          error: "Token QR Code tidak dijumpai",
+          error: "Token QR Code not found",
           code: "MISSING_TOKEN"
         });
       }
@@ -3004,7 +3004,7 @@ export function registerRoutes(app: Express): Server {
       if (!qrToken) {
         console.log("ERROR: Token not found or expired");
         return res.status(400).json({ 
-          error: "QR Code tidak sah atau telah tamat tempoh",
+          error: "QR Code tidak sah atau has been tamat tempoh",
           expired: true,
           code: "INVALID_TOKEN"
         });
@@ -3016,7 +3016,7 @@ export function registerRoutes(app: Express): Server {
       if (!user) {
         console.log("ERROR: User not found for token");
         return res.status(400).json({ 
-          error: "Pengguna tidak dijumpai",
+          error: "Pengguna not found",
           code: "USER_NOT_FOUND"
         });
       }
@@ -3039,7 +3039,7 @@ export function registerRoutes(app: Express): Server {
       console.error("Stack trace:", error instanceof Error ? error.stack : "No stack trace");
       console.error("=== END QR VALIDATION ERROR ===");
       res.status(500).json({ 
-        error: "Gagal mengesahkan QR Code",
+        error: "Failed to mengesahkan QR Code",
         code: "SERVER_ERROR"
       });
     }
@@ -3053,7 +3053,7 @@ export function registerRoutes(app: Express): Server {
       res.json({ uploadURL });
     } catch (error) {
       console.error("Selfie upload URL error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan URL upload" });
+      res.status(500).json({ error: "Failed to mendapatkan URL upload" });
     }
   });
 
@@ -3065,7 +3065,7 @@ export function registerRoutes(app: Express): Server {
       const validationResult = mobileClockInSchema.safeParse(req.body);
       if (!validationResult.success) {
         return res.status(400).json({ 
-          error: "Data tidak sah", 
+          error: "Invalid data", 
           details: validationResult.error.issues 
         });
       }
@@ -3076,7 +3076,7 @@ export function registerRoutes(app: Express): Server {
       const qrToken = await storage.getValidQrToken(token);
       if (!qrToken) {
         return res.status(400).json({ 
-          error: "QR Code tidak sah atau telah tamat tempoh",
+          error: "QR Code tidak sah atau has been tamat tempoh",
           expired: true
         });
       }
@@ -3087,7 +3087,7 @@ export function registerRoutes(app: Express): Server {
       
       const employee = await storage.getEmployeeByUserId(qrToken.userId);
       if (!employee) {
-        return res.status(400).json({ error: "Employee tidak dijumpai" });
+        return res.status(400).json({ error: "Employee not found" });
       }
 
       const todayAttendance = await storage.getTodayAttendanceRecord(employee.id, today);
@@ -3124,8 +3124,8 @@ export function registerRoutes(app: Express): Server {
           // All attendance actions completed for today
           return res.status(400).json({ 
             error: enforceBreakClockOut 
-              ? "Anda telah selesai clock-in, break time, break off dan clock-out untuk hari ini"
-              : "Anda telah selesai clock-in dan clock-out untuk hari ini",
+              ? "Anda has been selesai clock-in, break time, break off dan clock-out untuk hari ini"
+              : "Anda has been selesai clock-in dan clock-out untuk hari ini",
             alreadyCompleted: true
           });
         }
@@ -3135,7 +3135,7 @@ export function registerRoutes(app: Express): Server {
       const activeLocations = await storage.getActiveOfficeLocations();
       if (activeLocations.length === 0) {
         return res.status(400).json({ 
-          error: "Tiada lokasi pejabat aktif ditetapkan" 
+          error: "No active office location set" 
         });
       }
 
@@ -3167,7 +3167,7 @@ export function registerRoutes(app: Express): Server {
       }
 
       if (locationStatus === "invalid") {
-        locationMessage = "Anda berada di luar kawasan pejabat. Sila berada dalam kawasan yang ditetapkan untuk check in";
+        locationMessage = "Anda berada di outside office area. Sila berada within kawasan yang ditetapkan untuk check in";
       }
 
       // Process selfie image path
@@ -3219,13 +3219,13 @@ export function registerRoutes(app: Express): Server {
             
             let lateTimeText = '';
             if (lateHours > 0) {
-              lateTimeText = `${lateHours} jam ${remainingMinutes} minit`;
+              lateTimeText = `${lateHours} hours ${remainingMinutes} minutes`;
             } else {
-              lateTimeText = `${remainingMinutes} minit`;
+              lateTimeText = `${remainingMinutes} minutes`;
             }
             
             shiftCompliance.isLateClockIn = true;
-            shiftCompliance.clockInRemarks = `Lewat ${lateTimeText} dari masa shift ${shiftStartTime}. Perlu semakan penyelia.`;
+            shiftCompliance.clockInRemarks = `Late ${lateTimeText} from shift ${shiftStartTime}. Needs review penyelia.`;
           }
           
           shiftCompliance.shiftId = activeShift.id;
@@ -3270,7 +3270,7 @@ export function registerRoutes(app: Express): Server {
           username: user?.username
         },
         message: locationStatus === "valid" 
-          ? "Clock-in berjaya! Anda berada dalam kawasan pejabat." 
+          ? "Clock-in berjaya! Anda berada within office area." 
           : locationMessage,
         distance: Math.round(nearestDistance)
       });
@@ -3279,7 +3279,7 @@ export function registerRoutes(app: Express): Server {
       console.error("Mobile clock-in error:", error);
       console.error("Error stack:", error instanceof Error ? error.stack : 'Unknown error');
       res.status(500).json({ 
-        error: "Gagal melakukan clock-in",
+        error: "Failed to melakukan clock-in",
         details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
@@ -3306,7 +3306,7 @@ export function registerRoutes(app: Express): Server {
       const userId = req.user!.id;
       const employee = await storage.getEmployeeByUserId(userId);
       if (!employee) {
-        return res.status(404).json({ error: "Employee tidak dijumpai" });
+        return res.status(404).json({ error: "Employee not found" });
       }
 
       const today = new Date();
@@ -3359,7 +3359,7 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       console.error("Today attendance status error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan status kehadiran hari ini" });
+      res.status(500).json({ error: "Failed to mendapatkan status kehadiran hari ini" });
     }
   });
 
@@ -3441,13 +3441,13 @@ export function registerRoutes(app: Express): Server {
                 
                 let lateTimeText = '';
                 if (lateHours > 0) {
-                  lateTimeText = `${lateHours} jam ${remainingMinutes} minit`;
+                  lateTimeText = `${lateHours} hours ${remainingMinutes} minutes`;
                 } else {
-                  lateTimeText = `${remainingMinutes} minit`;
+                  lateTimeText = `${remainingMinutes} minutes`;
                 }
                 
                 isLateClockIn = true;
-                clockInRemarks = `Lewat ${lateTimeText} dari masa shift ${shiftStartTime}. Perlu semakan penyelia.`;
+                clockInRemarks = `Late ${lateTimeText} from shift ${shiftStartTime}. Needs review penyelia.`;
               }
             }
           } catch (error) {
@@ -3488,7 +3488,7 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       console.error("Attendance history error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan sejarah kehadiran" });
+      res.status(500).json({ error: "Failed to mendapatkan sejarah kehadiran" });
     }
   });
 
@@ -3499,7 +3499,7 @@ export function registerRoutes(app: Express): Server {
       res.json(locations);
     } catch (error) {
       console.error("Get office locations error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan senarai lokasi pejabat" });
+      res.status(500).json({ error: "Failed to mendapatkan senarai lokasi pejabat" });
     }
   });
 
@@ -3509,7 +3509,7 @@ export function registerRoutes(app: Express): Server {
       res.json(locations);
     } catch (error) {
       console.error("Get active office locations error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan senarai lokasi aktif" });
+      res.status(500).json({ error: "Failed to mendapatkan senarai lokasi aktif" });
     }
   });
 
@@ -3518,7 +3518,7 @@ export function registerRoutes(app: Express): Server {
       const validationResult = insertOfficeLocationSchema.safeParse(req.body);
       if (!validationResult.success) {
         return res.status(400).json({ 
-          error: "Data tidak sah", 
+          error: "Invalid data", 
           details: validationResult.error.issues 
         });
       }
@@ -3527,7 +3527,7 @@ export function registerRoutes(app: Express): Server {
       res.status(201).json(location);
     } catch (error) {
       console.error("Create office location error:", error);
-      res.status(500).json({ error: "Gagal mencipta lokasi pejabat" });
+      res.status(500).json({ error: "Failed to mencipta lokasi pejabat" });
     }
   });
 
@@ -3536,19 +3536,19 @@ export function registerRoutes(app: Express): Server {
       const validationResult = updateOfficeLocationSchema.safeParse(req.body);
       if (!validationResult.success) {
         return res.status(400).json({ 
-          error: "Data tidak sah", 
+          error: "Invalid data", 
           details: validationResult.error.issues 
         });
       }
 
       const location = await storage.updateOfficeLocation(req.params.id, validationResult.data);
       if (!location) {
-        return res.status(404).json({ error: "Lokasi tidak dijumpai" });
+        return res.status(404).json({ error: "Lokasi not found" });
       }
       res.json(location);
     } catch (error) {
       console.error("Update office location error:", error);
-      res.status(500).json({ error: "Gagal mengemaskini lokasi pejabat" });
+      res.status(500).json({ error: "Failed to mengemaskini lokasi pejabat" });
     }
   });
 
@@ -3556,12 +3556,12 @@ export function registerRoutes(app: Express): Server {
     try {
       const success = await storage.deleteOfficeLocation(req.params.id);
       if (!success) {
-        return res.status(404).json({ error: "Lokasi tidak dijumpai" });
+        return res.status(404).json({ error: "Lokasi not found" });
       }
       res.json({ message: "Lokasi berjaya dipadam" });
     } catch (error) {
       console.error("Delete office location error:", error);
-      res.status(500).json({ error: "Gagal memadamkan lokasi pejabat" });
+      res.status(500).json({ error: "Failed to memadamkan lokasi pejabat" });
     }
   });
 
@@ -3573,7 +3573,7 @@ export function registerRoutes(app: Express): Server {
       res.json(shifts);
     } catch (error) {
       console.error("Get shifts error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan senarai syif" });
+      res.status(500).json({ error: "Failed to mendapatkan senarai syif" });
     }
   });
 
@@ -3582,12 +3582,12 @@ export function registerRoutes(app: Express): Server {
     try {
       const shift = await storage.getShift(req.params.id);
       if (!shift) {
-        return res.status(404).json({ error: "Syif tidak dijumpai" });
+        return res.status(404).json({ error: "Syif not found" });
       }
       res.json(shift);
     } catch (error) {
       console.error("Get shift error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan syif" });
+      res.status(500).json({ error: "Failed to mendapatkan syif" });
     }
   });
 
@@ -3597,7 +3597,7 @@ export function registerRoutes(app: Express): Server {
       const validationResult = insertShiftSchema.safeParse(req.body);
       if (!validationResult.success) {
         return res.status(400).json({ 
-          error: "Data tidak sah", 
+          error: "Invalid data", 
           details: validationResult.error.issues 
         });
       }
@@ -3606,7 +3606,7 @@ export function registerRoutes(app: Express): Server {
       res.status(201).json(shift);
     } catch (error) {
       console.error("Create shift error:", error);
-      res.status(500).json({ error: "Gagal mencipta syif" });
+      res.status(500).json({ error: "Failed to mencipta syif" });
     }
   });
 
@@ -3616,19 +3616,19 @@ export function registerRoutes(app: Express): Server {
       const validationResult = updateShiftSchema.safeParse(req.body);
       if (!validationResult.success) {
         return res.status(400).json({ 
-          error: "Data tidak sah", 
+          error: "Invalid data", 
           details: validationResult.error.issues 
         });
       }
 
       const shift = await storage.updateShift(req.params.id, validationResult.data);
       if (!shift) {
-        return res.status(404).json({ error: "Syif tidak dijumpai" });
+        return res.status(404).json({ error: "Syif not found" });
       }
       res.json(shift);
     } catch (error) {
       console.error("Update shift error:", error);
-      res.status(500).json({ error: "Gagal mengemaskini syif" });
+      res.status(500).json({ error: "Failed to mengemaskini syif" });
     }
   });
 
@@ -3637,12 +3637,12 @@ export function registerRoutes(app: Express): Server {
     try {
       const success = await storage.deleteShift(req.params.id);
       if (!success) {
-        return res.status(404).json({ error: "Syif tidak dijumpai" });
+        return res.status(404).json({ error: "Syif not found" });
       }
       res.json({ message: "Syif berjaya dipadam" });
     } catch (error) {
       console.error("Delete shift error:", error);
-      res.status(500).json({ error: "Gagal memadamkan syif" });
+      res.status(500).json({ error: "Failed to memadamkan syif" });
     }
   });
 
@@ -3671,7 +3671,7 @@ export function registerRoutes(app: Express): Server {
       res.json(assignment);
     } catch (error) {
       console.error("Assign shift error:", error);
-      res.status(500).json({ error: "Gagal mengassign shift kepada pekerja" });
+      res.status(500).json({ error: "Failed to mengassign shift to pework" });
     }
   });
 
@@ -3683,7 +3683,7 @@ export function registerRoutes(app: Express): Server {
       res.json(shift);
     } catch (error) {
       console.error("Get employee shift error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan shift pekerja" });
+      res.status(500).json({ error: "Failed to mendapatkan shift pework" });
     }
   });
 
@@ -3694,7 +3694,7 @@ export function registerRoutes(app: Express): Server {
       res.json(employeeShifts);
     } catch (error) {
       console.error("Get employee shifts error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan senarai shift pekerja" });
+      res.status(500).json({ error: "Failed to mendapatkan senarai shift pework" });
     }
   });
 
@@ -3707,7 +3707,7 @@ export function registerRoutes(app: Express): Server {
       res.json(employeeShifts);
     } catch (error) {
       console.error("Get employee shifts by date error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan senarai shift pekerja untuk tarikh tersebut" });
+      res.status(500).json({ error: "Failed to mendapatkan senarai shift pework untuk tarikh tersebut" });
     }
   });
 
@@ -3720,7 +3720,7 @@ export function registerRoutes(app: Express): Server {
       res.json(workExperiences);
     } catch (error) {
       console.error("Get work experiences error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan pengalaman kerja" });
+      res.status(500).json({ error: "Failed to mendapatkan pengalaman work" });
     }
   });
 
@@ -3730,7 +3730,7 @@ export function registerRoutes(app: Express): Server {
       const validationResult = insertWorkExperienceSchema.safeParse(req.body);
       if (!validationResult.success) {
         return res.status(400).json({ 
-          error: "Data tidak sah", 
+          error: "Invalid data", 
           details: validationResult.error.issues 
         });
       }
@@ -3739,7 +3739,7 @@ export function registerRoutes(app: Express): Server {
       res.status(201).json(workExperience);
     } catch (error) {
       console.error("Create work experience error:", error);
-      res.status(500).json({ error: "Gagal menambah pengalaman kerja" });
+      res.status(500).json({ error: "Failed to menambah pengalaman work" });
     }
   });
 
@@ -3750,13 +3750,13 @@ export function registerRoutes(app: Express): Server {
       const deleted = await storage.deleteWorkExperience(id);
       
       if (!deleted) {
-        return res.status(404).json({ error: "Pengalaman kerja tidak dijumpai" });
+        return res.status(404).json({ error: "Pengalaman work not found" });
       }
       
-      res.json({ success: true, message: "Pengalaman kerja telah dipadam" });
+      res.json({ success: true, message: "Pengalaman work has been dipadam" });
     } catch (error) {
       console.error("Delete work experience error:", error);
-      res.status(500).json({ error: "Gagal memadamkan pengalaman kerja" });
+      res.status(500).json({ error: "Failed to memadamkan pengalaman work" });
     }
   });
 
@@ -3768,7 +3768,7 @@ export function registerRoutes(app: Express): Server {
       res.json(familyMembers);
     } catch (error) {
       console.error("Get family members error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan maklumat keluarga" });
+      res.status(500).json({ error: "Failed to mendapatkan maklumat keoutsidega" });
     }
   });
 
@@ -3779,7 +3779,7 @@ export function registerRoutes(app: Express): Server {
       if (!validationResult.success) {
         console.error("Family member validation error:", validationResult.error);
         return res.status(400).json({ 
-          error: "Data tidak sah", 
+          error: "Invalid data", 
           details: validationResult.error.errors 
         });
       }
@@ -3788,7 +3788,7 @@ export function registerRoutes(app: Express): Server {
       res.status(201).json(familyMember);
     } catch (error) {
       console.error("Create family member error:", error);
-      res.status(500).json({ error: "Gagal menambah ahli keluarga" });
+      res.status(500).json({ error: "Failed to menambah ahli keoutsidega" });
     }
   });
 
@@ -3798,13 +3798,13 @@ export function registerRoutes(app: Express): Server {
       const deleted = await storage.deleteFamilyDetails(id);
       
       if (!deleted) {
-        return res.status(404).json({ error: "Ahli keluarga tidak dijumpai" });
+        return res.status(404).json({ error: "Ahli keoutsidega not found" });
       }
       
-      res.json({ success: true, message: "Ahli keluarga telah dipadam" });
+      res.json({ success: true, message: "Ahli keoutsidega has been dipadam" });
     } catch (error) {
       console.error("Delete family member error:", error);
-      res.status(500).json({ error: "Gagal memadamkan ahli keluarga" });
+      res.status(500).json({ error: "Failed to memadamkan ahli keoutsidega" });
     }
   });
 
@@ -3847,7 +3847,7 @@ export function registerRoutes(app: Express): Server {
       res.json({ uploadURL });
     } catch (error) {
       console.error("Error getting upload URL:", error);
-      res.status(500).json({ error: "Gagal mendapatkan URL upload" });
+      res.status(500).json({ error: "Failed to mendapatkan URL upload" });
     }
   });
 
@@ -3875,7 +3875,7 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       console.error("Error setting ACL policy:", error);
-      res.status(500).json({ error: "Gagal menetapkan ACL policy" });
+      res.status(500).json({ error: "Failed to menetapkan ACL policy" });
     }
   });
 
@@ -3917,17 +3917,17 @@ export function registerRoutes(app: Express): Server {
       });
       
       if (!employee) {
-        return res.status(404).json({ error: "Employee tidak dijumpai" });
+        return res.status(404).json({ error: "Employee not found" });
       }
 
       res.json({ 
         success: true, 
         objectPath,
-        message: "Gambar profil berjaya dikemaskini" 
+        message: "Gambar profil berjaya updated" 
       });
     } catch (error) {
       console.error("Error updating profile image:", error);
-      res.status(500).json({ error: "Gagal mengemaskini gambar profil" });
+      res.status(500).json({ error: "Failed to mengemaskini gambar profil" });
     }
   });
 
@@ -3959,11 +3959,11 @@ export function registerRoutes(app: Express): Server {
       res.json({ 
         success: true, 
         objectPath,
-        message: "Logo syarikat berjaya dikemaskini" 
+        message: "Logo syarikat berjaya updated" 
       });
     } catch (error) {
       console.error("Error updating company logo:", error);
-      res.status(500).json({ error: "Gagal mengemaskini logo syarikat" });
+      res.status(500).json({ error: "Failed to mengemaskini logo syarikat" });
     }
   });
 
@@ -3986,11 +3986,11 @@ export function registerRoutes(app: Express): Server {
       console.error("Error creating claim application:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ 
-          error: "Data tidak sah", 
+          error: "Invalid data", 
           details: error.errors 
         });
       }
-      res.status(500).json({ error: "Gagal membuat permohonan claim" });
+      res.status(500).json({ error: "Failed to membuat permohonan claim" });
     }
   });
 
@@ -4021,7 +4021,7 @@ export function registerRoutes(app: Express): Server {
       else if (!hasAdminAccess) {
         const userEmployee = await storage.getEmployeeByUserId(currentUser.id);
         if (!userEmployee || userEmployee.id !== employeeId) {
-          return res.status(403).json({ error: 'Tidak dibenarkan untuk mengakses rekod claim pekerja lain' });
+          return res.status(403).json({ error: 'Tidak dibenarkan untuk mengakses rekod claim pework lain' });
         }
       }
       
@@ -4076,7 +4076,7 @@ export function registerRoutes(app: Express): Server {
       res.json(claims);
     } catch (error) {
       console.error("Error fetching claim applications:", error);
-      res.status(500).json({ error: "Gagal mengambil rekod permohonan claim" });
+      res.status(500).json({ error: "Failed to mengambil rekod permohonan claim" });
     }
   });
 
@@ -4106,7 +4106,7 @@ export function registerRoutes(app: Express): Server {
       else if (!hasAdminAccess) {
         const userEmployee = await storage.getEmployeeByUserId(currentUser.id);
         if (!userEmployee || userEmployee.id !== employeeId) {
-          return res.status(403).json({ error: 'Tidak dibenarkan untuk mengakses rekod overtime pekerja lain' });
+          return res.status(403).json({ error: 'Tidak dibenarkan untuk mengakses rekod overtime pework lain' });
         }
       }
       
@@ -4131,7 +4131,7 @@ export function registerRoutes(app: Express): Server {
       res.json(overtimeClaims);
     } catch (error) {
       console.error("Get overtime claims error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan rekod overtime claims" });
+      res.status(500).json({ error: "Failed to mendapatkan rekod overtime claims" });
     }
   });
 
@@ -4160,7 +4160,7 @@ export function registerRoutes(app: Express): Server {
       res.json(result);
     } catch (error) {
       console.error("Error fetching claim applications for approval:", error);
-      res.status(500).json({ error: "Gagal mengambil senarai permohonan untuk approval" });
+      res.status(500).json({ error: "Failed to mengambil senarai permohonan untuk approval" });
     }
   });
 
@@ -4182,13 +4182,13 @@ export function registerRoutes(app: Express): Server {
       const updatedClaim = await storage.approveClaimApplication(id, currentUser.id, level);
       
       if (!updatedClaim) {
-        return res.status(404).json({ error: "Permohonan claim tidak dijumpai" });
+        return res.status(404).json({ error: "Application claim not found" });
       }
       
       res.json(updatedClaim);
     } catch (error) {
       console.error("Error approving claim application:", error);
-      res.status(500).json({ error: "Gagal approve permohonan claim" });
+      res.status(500).json({ error: "Failed to approve permohonan claim" });
     }
   });
 
@@ -4210,13 +4210,13 @@ export function registerRoutes(app: Express): Server {
       const updatedClaim = await storage.rejectClaimApplication(id, currentUser.id, reason);
       
       if (!updatedClaim) {
-        return res.status(404).json({ error: "Permohonan claim tidak dijumpai" });
+        return res.status(404).json({ error: "Application claim not found" });
       }
       
       res.json(updatedClaim);
     } catch (error) {
       console.error("Error rejecting claim application:", error);
-      res.status(500).json({ error: "Gagal reject permohonan claim" });
+      res.status(500).json({ error: "Failed to reject permohonan claim" });
     }
   });
 
@@ -4232,7 +4232,7 @@ export function registerRoutes(app: Express): Server {
       res.json(claims);
     } catch (error) {
       console.error("Error fetching recent claim applications:", error);
-      res.status(500).json({ error: "Gagal mengambil recent claim applications" });
+      res.status(500).json({ error: "Failed to mengambil recent claim applications" });
     }
   });
 
@@ -4258,7 +4258,7 @@ export function registerRoutes(app: Express): Server {
       res.json(documents);
     } catch (error) {
       console.error("Error fetching employee documents:", error);
-      res.status(500).json({ error: "Gagal mendapatkan dokumen pekerja" });
+      res.status(500).json({ error: "Failed to mendapatkan dokumen pework" });
     }
   });
 
@@ -4269,13 +4269,13 @@ export function registerRoutes(app: Express): Server {
       const document = await storage.getEmployeeDocument(id);
       
       if (!document) {
-        return res.status(404).json({ error: "Dokumen tidak dijumpai" });
+        return res.status(404).json({ error: "Dokumen not found" });
       }
       
       res.json(document);
     } catch (error) {
       console.error("Error fetching employee document:", error);
-      res.status(500).json({ error: "Gagal mendapatkan dokumen" });
+      res.status(500).json({ error: "Failed to mendapatkan dokumen" });
     }
   });
 
@@ -4315,7 +4315,7 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       console.error("Error creating employee document:", error);
-      res.status(500).json({ error: "Gagal menyimpan dokumen" });
+      res.status(500).json({ error: "Failed to menyimpan dokumen" });
     }
   });
 
@@ -4345,17 +4345,17 @@ export function registerRoutes(app: Express): Server {
       const updatedDocument = await storage.updateEmployeeDocument(id, updates);
 
       if (!updatedDocument) {
-        return res.status(404).json({ error: "Dokumen tidak dijumpai" });
+        return res.status(404).json({ error: "Dokumen not found" });
       }
 
       res.json({
         success: true,
         document: updatedDocument,
-        message: "Dokumen berjaya dikemaskini",
+        message: "Dokumen berjaya updated",
       });
     } catch (error) {
       console.error("Error updating employee document:", error);
-      res.status(500).json({ error: "Gagal mengemaskini dokumen" });
+      res.status(500).json({ error: "Failed to mengemaskini dokumen" });
     }
   });
 
@@ -4367,7 +4367,7 @@ export function registerRoutes(app: Express): Server {
       // Check if document exists before deleting
       const document = await storage.getEmployeeDocument(id);
       if (!document) {
-        return res.status(404).json({ error: "Dokumen tidak dijumpai" });
+        return res.status(404).json({ error: "Dokumen not found" });
       }
 
       await storage.deleteEmployeeDocument(id);
@@ -4378,7 +4378,7 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       console.error("Error deleting employee document:", error);
-      res.status(500).json({ error: "Gagal memadam dokumen" });
+      res.status(500).json({ error: "Failed to memadam dokumen" });
     }
   });
 
@@ -4392,7 +4392,7 @@ export function registerRoutes(app: Express): Server {
       res.json(equipment);
     } catch (error) {
       console.error("Error fetching equipment:", error);
-      res.status(500).json({ error: "Gagal mendapatkan equipment" });
+      res.status(500).json({ error: "Failed to mendapatkan equipment" });
     }
   });
 
@@ -4423,7 +4423,7 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       console.error("Error creating equipment:", error);
-      res.status(500).json({ error: "Gagal menambah equipment" });
+      res.status(500).json({ error: "Failed to menambah equipment" });
     }
   });
 
@@ -4443,17 +4443,17 @@ export function registerRoutes(app: Express): Server {
       const updatedEquipment = await storage.updateEquipment(id, updates);
 
       if (!updatedEquipment) {
-        return res.status(404).json({ error: "Equipment tidak dijumpai" });
+        return res.status(404).json({ error: "Equipment not found" });
       }
 
       res.json({
         success: true,
         equipment: updatedEquipment,
-        message: "Equipment berjaya dikemaskini",
+        message: "Equipment berjaya updated",
       });
     } catch (error) {
       console.error("Error updating equipment:", error);
-      res.status(500).json({ error: "Gagal mengemaskini equipment" });
+      res.status(500).json({ error: "Failed to mengemaskini equipment" });
     }
   });
 
@@ -4465,7 +4465,7 @@ export function registerRoutes(app: Express): Server {
       const deleted = await storage.deleteEquipment(id);
 
       if (!deleted) {
-        return res.status(404).json({ error: "Equipment tidak dijumpai" });
+        return res.status(404).json({ error: "Equipment not found" });
       }
 
       res.json({
@@ -4474,7 +4474,7 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       console.error("Error deleting equipment:", error);
-      res.status(500).json({ error: "Gagal memadamkan equipment" });
+      res.status(500).json({ error: "Failed to memadamkan equipment" });
     }
   });
 
@@ -4490,7 +4490,7 @@ export function registerRoutes(app: Express): Server {
       res.json(carryForwardRecords);
     } catch (error) {
       console.error("Error fetching leave balance carry forward:", error);
-      res.status(500).json({ error: "Gagal mendapatkan rekod carry forward" });
+      res.status(500).json({ error: "Failed to mendapatkan rekod carry forward" });
     }
   });
 
@@ -4517,7 +4517,7 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       console.error("Error processing year-end carry forward:", error);
-      res.status(500).json({ error: "Gagal memproses carry forward akhir tahun" });
+      res.status(500).json({ error: "Failed to memproses carry forward akhir tahun" });
     }
   });
 
@@ -4555,7 +4555,7 @@ export function registerRoutes(app: Express): Server {
       res.json(allCarryForwardRecords);
     } catch (error) {
       console.error("Error fetching all carry forward records:", error);
-      res.status(500).json({ error: "Gagal mendapatkan semua rekod carry forward" });
+      res.status(500).json({ error: "Failed to mendapatkan semua rekod carry forward" });
     }
   });
 
@@ -4569,7 +4569,7 @@ export function registerRoutes(app: Express): Server {
       res.json(leavePolicies);
     } catch (error) {
       console.error("Error fetching leave policies:", error);
-      res.status(500).json({ error: "Gagal mendapatkan polisi cuti" });
+      res.status(500).json({ error: "Failed to mendapatkan polisi cuti" });
     }
   });
 
@@ -4583,7 +4583,7 @@ export function registerRoutes(app: Express): Server {
       res.json(uniqueLeaveTypes);
     } catch (error) {
       console.error("Error fetching active leave policies:", error);
-      res.status(500).json({ error: "Gagal mendapatkan polisi cuti aktif" });
+      res.status(500).json({ error: "Failed to mendapatkan polisi cuti aktif" });
     }
   });
 
@@ -4614,7 +4614,7 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       console.error("Error creating leave policy:", error);
-      res.status(500).json({ error: "Gagal menambah polisi cuti" });
+      res.status(500).json({ error: "Failed to menambah polisi cuti" });
     }
   });
 
@@ -4634,17 +4634,17 @@ export function registerRoutes(app: Express): Server {
       const updatedLeavePolicy = await storage.updateLeavePolicy(id, updates);
 
       if (!updatedLeavePolicy) {
-        return res.status(404).json({ error: "Polisi cuti tidak dijumpai" });
+        return res.status(404).json({ error: "Polisi cuti not found" });
       }
 
       res.json({
         success: true,
         leavePolicy: updatedLeavePolicy,
-        message: "Polisi cuti berjaya dikemaskini",
+        message: "Polisi cuti berjaya updated",
       });
     } catch (error) {
       console.error("Error updating leave policy:", error);
-      res.status(500).json({ error: "Gagal mengemaskini polisi cuti" });
+      res.status(500).json({ error: "Failed to mengemaskini polisi cuti" });
     }
   });
 
@@ -4657,16 +4657,16 @@ export function registerRoutes(app: Express): Server {
       const deleted = await storage.deleteLeavePolicyByEmployeeAndType(employeeId, decodeURIComponent(leaveType));
       
       if (!deleted) {
-        return res.status(404).json({ error: "Polisi cuti tidak dijumpai" });
+        return res.status(404).json({ error: "Polisi cuti not found" });
       }
 
       res.json({ 
         success: true,
-        message: `Polisi cuti ${leaveType} untuk pekerja berjaya dipadamkan` 
+        message: `Polisi cuti ${leaveType} untuk pework berjaya dipadamkan` 
       });
     } catch (error) {
       console.error("Error deleting leave policy:", error);
-      res.status(500).json({ error: "Gagal memadamkan polisi cuti" });
+      res.status(500).json({ error: "Failed to memadamkan polisi cuti" });
     }
   });
 
@@ -4679,7 +4679,7 @@ export function registerRoutes(app: Express): Server {
       const deleted = await storage.deleteLeavePolicyByType(leaveType);
       
       if (!deleted) {
-        return res.status(404).json({ error: "Polisi cuti tidak dijumpai" });
+        return res.status(404).json({ error: "Polisi cuti not found" });
       }
 
       res.json({ 
@@ -4688,7 +4688,7 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       console.error("Error deleting leave policy:", error);
-      res.status(500).json({ error: "Gagal memadamkan polisi cuti" });
+      res.status(500).json({ error: "Failed to memadamkan polisi cuti" });
     }
   });
 
@@ -4700,7 +4700,7 @@ export function registerRoutes(app: Express): Server {
       const deleted = await storage.deleteLeavePolicy(id);
 
       if (!deleted) {
-        return res.status(404).json({ error: "Polisi cuti tidak dijumpai" });
+        return res.status(404).json({ error: "Polisi cuti not found" });
       }
 
       res.json({
@@ -4709,7 +4709,7 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       console.error("Error deleting leave policy:", error);
-      res.status(500).json({ error: "Gagal memadamkan polisi cuti" });
+      res.status(500).json({ error: "Failed to memadamkan polisi cuti" });
     }
   });
 
@@ -4723,7 +4723,7 @@ export function registerRoutes(app: Express): Server {
       res.json(claimPolicies);
     } catch (error) {
       console.error("Error fetching claim policies:", error);
-      res.status(500).json({ error: "Gagal mendapatkan polisi claim" });
+      res.status(500).json({ error: "Failed to mendapatkan polisi claim" });
     }
   });
 
@@ -4754,7 +4754,7 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       console.error("Error creating claim policy:", error);
-      res.status(500).json({ error: "Gagal menambah polisi claim" });
+      res.status(500).json({ error: "Failed to menambah polisi claim" });
     }
   });
 
@@ -4774,17 +4774,17 @@ export function registerRoutes(app: Express): Server {
       const updatedClaimPolicy = await storage.updateClaimPolicy(id, updates);
 
       if (!updatedClaimPolicy) {
-        return res.status(404).json({ error: "Polisi claim tidak dijumpai" });
+        return res.status(404).json({ error: "Polisi claim not found" });
       }
 
       res.json({
         success: true,
         claimPolicy: updatedClaimPolicy,
-        message: "Polisi claim berjaya dikemaskini",
+        message: "Polisi claim berjaya updated",
       });
     } catch (error) {
       console.error("Error updating claim policy:", error);
-      res.status(500).json({ error: "Gagal mengemaskini polisi claim" });
+      res.status(500).json({ error: "Failed to mengemaskini polisi claim" });
     }
   });
 
@@ -4796,7 +4796,7 @@ export function registerRoutes(app: Express): Server {
       const deleted = await storage.deleteClaimPolicy(id);
 
       if (!deleted) {
-        return res.status(404).json({ error: "Polisi claim tidak dijumpai" });
+        return res.status(404).json({ error: "Polisi claim not found" });
       }
 
       res.json({
@@ -4805,7 +4805,7 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       console.error("Error deleting claim policy:", error);
-      res.status(500).json({ error: "Gagal memadamkan polisi claim" });
+      res.status(500).json({ error: "Failed to memadamkan polisi claim" });
     }
   });
 
@@ -4823,7 +4823,7 @@ export function registerRoutes(app: Express): Server {
       // Get current user's employee record
       const currentEmployee = await storage.getEmployeeByUserId(currentUser.id);
       if (!currentEmployee) {
-        return res.status(404).json({ error: "Employee record tidak dijumpai" });
+        return res.status(404).json({ error: "Employee record not found" });
       }
 
       // For report mode, return all applications for reporting purposes
@@ -4895,7 +4895,7 @@ export function registerRoutes(app: Express): Server {
       console.error("Get leave applications error:", error);
       console.error("Error stack:", error instanceof Error ? error.stack : 'Unknown error');
       res.status(500).json({ 
-        error: "Gagal mendapatkan permohonan cuti",
+        error: "Failed to mendapatkan permohonan cuti",
         details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
@@ -4911,7 +4911,7 @@ export function registerRoutes(app: Express): Server {
       // Get current user's employee record
       const currentEmployee = await storage.getEmployeeByUserId(currentUser.id);
       if (!currentEmployee) {
-        return res.status(404).json({ error: "Employee record tidak dijumpai" });
+        return res.status(404).json({ error: "Employee record not found" });
       }
 
       // Get leave approval settings
@@ -4923,7 +4923,7 @@ export function registerRoutes(app: Express): Server {
 
       const approvalSetting = leaveApprovalSettings[0];
       if (!approvalSetting) {
-        return res.status(400).json({ error: "Tetapan kelulusan tidak dijumpai" });
+        return res.status(400).json({ error: "Tetapan kelulusan not found" });
       }
 
       // Check authorization
@@ -4941,7 +4941,7 @@ export function registerRoutes(app: Express): Server {
         .where(eq(leaveApplications.id, id));
 
       if (!application) {
-        return res.status(404).json({ error: "Permohonan cuti tidak dijumpai" });
+        return res.status(404).json({ error: "Application cuti not found" });
       }
 
       // Determine new status based on approval level and action
@@ -4973,15 +4973,15 @@ export function registerRoutes(app: Express): Server {
       res.json({
         success: true,
         message: action === 'approve' 
-          ? `Permohonan cuti berjaya diluluskan` 
-          : `Permohonan cuti telah ditolak`,
+          ? `Application cuti berjaya diluluskan` 
+          : `Application cuti has been ditolak`,
         application: updatedApplication
       });
 
     } catch (error) {
       console.error("Approve/reject leave application error:", error);
       res.status(500).json({ 
-        error: "Gagal memproses permohonan cuti",
+        error: "Failed to memproses permohonan cuti",
         details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
@@ -5007,13 +5007,13 @@ export function registerRoutes(app: Express): Server {
       
       if (error instanceof Error && (error.name === 'ZodError' || error.message.includes('parse'))) {
         res.status(400).json({ 
-          error: "Data tidak sah", 
+          error: "Invalid data", 
           details: error.message,
           validationErrors: (error as any).issues || []
         });
       } else {
         res.status(500).json({ 
-          error: "Gagal menambah permohonan cuti",
+          error: "Failed to menambah permohonan cuti",
           details: error instanceof Error ? error.message : 'Unknown error'
         });
       }
@@ -5039,12 +5039,12 @@ export function registerRoutes(app: Express): Server {
       
       const leaveApplication = await storage.updateLeaveApplication(req.params.id, validatedData);
       if (!leaveApplication) {
-        return res.status(404).json({ error: "Permohonan cuti tidak dijumpai" });
+        return res.status(404).json({ error: "Application cuti not found" });
       }
       res.json(leaveApplication);
     } catch (error) {
       console.error("Update leave application error:", error);
-      res.status(400).json({ error: "Gagal mengemaskini permohonan cuti" });
+      res.status(400).json({ error: "Failed to mengemaskini permohonan cuti" });
     }
   });
 
@@ -5074,7 +5074,7 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Fetch leave applications for calendar error:", error);
       res.status(500).json({ 
-        error: "Gagal mengambil permohonan cuti untuk kalendar",
+        error: "Failed to mengambil permohonan cuti untuk kalendar",
         details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
@@ -5092,14 +5092,14 @@ export function registerRoutes(app: Express): Server {
         .limit(1);
 
       if (!approvalSetting) {
-        return res.status(404).json({ error: "Tetapan kelulusan tidak dijumpai" });
+        return res.status(404).json({ error: "Tetapan kelulusan not found" });
       }
 
       res.json(approvalSetting);
     } catch (error) {
       console.error("Get leave approval settings error:", error);
       res.status(500).json({ 
-        error: "Gagal mengambil tetapan kelulusan",
+        error: "Failed to mengambil tetapan kelulusan",
         details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
@@ -5215,7 +5215,7 @@ export function registerRoutes(app: Express): Server {
       res.json(companyLeaveTypes);
     } catch (error) {
       console.error("Error fetching company leave types:", error);
-      res.status(500).json({ error: "Gagal mendapatkan jenis cuti syarikat" });
+      res.status(500).json({ error: "Failed to mendapatkan jenis cuti syarikat" });
     }
   });
 
@@ -5226,7 +5226,7 @@ export function registerRoutes(app: Express): Server {
       res.json(enabledTypes);
     } catch (error) {
       console.error("Error fetching enabled leave types:", error);
-      res.status(500).json({ error: "Gagal mendapatkan jenis cuti yang diaktifkan" });
+      res.status(500).json({ error: "Failed to mendapatkan jenis cuti yang diaktifkan" });
     }
   });
 
@@ -5238,7 +5238,7 @@ export function registerRoutes(app: Express): Server {
       res.status(201).json(newType);
     } catch (error) {
       console.error("Error creating company leave type:", error);
-      res.status(500).json({ error: "Gagal mencipta jenis cuti syarikat" });
+      res.status(500).json({ error: "Failed to mencipta jenis cuti syarikat" });
     }
   });
 
@@ -5251,13 +5251,13 @@ export function registerRoutes(app: Express): Server {
       const updatedType = await storage.toggleCompanyLeaveType(leaveType, enabled);
       
       if (!updatedType) {
-        return res.status(404).json({ error: "Jenis cuti tidak dijumpai" });
+        return res.status(404).json({ error: "Jenis cuti not found" });
       }
       
       res.json(updatedType);
     } catch (error) {
       console.error("Error toggling company leave type:", error);
-      res.status(500).json({ error: "Gagal mengubah status jenis cuti" });
+      res.status(500).json({ error: "Failed to mengubah status jenis cuti" });
     }
   });
 
@@ -5270,7 +5270,7 @@ export function registerRoutes(app: Express): Server {
       res.json(groupPolicySettings);
     } catch (error) {
       console.error("Error fetching group policy settings:", error);
-      res.status(500).json({ error: "Gagal mendapatkan tetapan dasar kumpulan" });
+      res.status(500).json({ error: "Failed to mendapatkan tetapan dasar kumpulan" });
     }
   });
 
@@ -5282,7 +5282,7 @@ export function registerRoutes(app: Express): Server {
       res.json(settings);
     } catch (error) {
       console.error("Error fetching group policy settings:", error);
-      res.status(500).json({ error: "Gagal mendapatkan tetapan dasar kumpulan" });
+      res.status(500).json({ error: "Failed to mendapatkan tetapan dasar kumpulan" });
     }
   });
 
@@ -5294,7 +5294,7 @@ export function registerRoutes(app: Express): Server {
       res.status(201).json(setting);
     } catch (error) {
       console.error("Error creating/updating group policy setting:", error);
-      res.status(500).json({ error: "Gagal menyimpan tetapan dasar kumpulan" });
+      res.status(500).json({ error: "Failed to menyimpan tetapan dasar kumpulan" });
     }
   });
 
@@ -5308,7 +5308,7 @@ export function registerRoutes(app: Express): Server {
       );
       
       if (!deleted) {
-        return res.status(404).json({ error: "Tetapan dasar kumpulan tidak dijumpai" });
+        return res.status(404).json({ error: "Tetapan dasar kumpulan not found" });
       }
 
       res.json({ 
@@ -5317,7 +5317,7 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       console.error("Error deleting group policy setting:", error);
-      res.status(500).json({ error: "Gagal memadamkan tetapan dasar kumpulan" });
+      res.status(500).json({ error: "Failed to memadamkan tetapan dasar kumpulan" });
     }
   });
 
@@ -5330,7 +5330,7 @@ export function registerRoutes(app: Express): Server {
       res.json(settings);
     } catch (error) {
       console.error("Error fetching leave policy settings:", error);
-      res.status(500).json({ error: "Gagal mendapatkan tetapan polisi cuti" });
+      res.status(500).json({ error: "Failed to mendapatkan tetapan polisi cuti" });
     }
   });
 
@@ -5360,7 +5360,7 @@ export function registerRoutes(app: Express): Server {
       res.json(setting);
     } catch (error) {
       console.error("Error fetching leave policy setting:", error);
-      res.status(500).json({ error: "Gagal mendapatkan tetapan polisi cuti" });
+      res.status(500).json({ error: "Failed to mendapatkan tetapan polisi cuti" });
     }
   });
 
@@ -5371,7 +5371,7 @@ export function registerRoutes(app: Express): Server {
       res.status(201).json(setting);
     } catch (error) {
       console.error("Error creating/updating leave policy setting:", error);
-      res.status(500).json({ error: "Gagal menyimpan tetapan polisi cuti" });
+      res.status(500).json({ error: "Failed to menyimpan tetapan polisi cuti" });
     }
   });
 
@@ -5409,7 +5409,7 @@ export function registerRoutes(app: Express): Server {
       res.json(updated);
     } catch (error) {
       console.error("Error updating leave policy setting:", error);
-      res.status(500).json({ error: "Gagal mengemas kini tetapan polisi cuti" });
+      res.status(500).json({ error: "Failed to mengemas kini tetapan polisi cuti" });
     }
   });
 
@@ -5451,7 +5451,7 @@ export function registerRoutes(app: Express): Server {
         const validationResult = insertFinancialClaimPolicySchema.safeParse(req.body);
         if (!validationResult.success) {
           return res.status(400).json({ 
-            error: 'Data tidak sah', 
+            error: 'Invalid data', 
             details: validationResult.error.issues 
           });
         }
@@ -5474,7 +5474,7 @@ export function registerRoutes(app: Express): Server {
         const validationResult = updateFinancialClaimPolicySchema.safeParse(req.body);
         if (!validationResult.success) {
           return res.status(400).json({ 
-            error: 'Data tidak sah', 
+            error: 'Invalid data', 
             details: validationResult.error.issues 
           });
         }
@@ -5749,14 +5749,14 @@ export function registerRoutes(app: Express): Server {
       const { employeeId, totalHours } = req.body;
       
       if (!employeeId || !totalHours) {
-        return res.status(400).json({ error: 'Employee ID dan jumlah jam diperlukan' });
+        return res.status(400).json({ error: 'Employee ID dan jumlah hours diperlukan' });
       }
       
       const amount = await storage.calculateOvertimeAmount(employeeId, parseFloat(totalHours));
       res.json({ amount });
     } catch (error) {
       console.error('Error calculating overtime amount:', error);
-      res.status(500).json({ error: 'Gagal mengira jumlah overtime' });
+      res.status(500).json({ error: 'Failed to mengira jumlah overtime' });
     }
   });
 
@@ -5787,7 +5787,7 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       console.error('Error recalculating overtime amounts:', error);
-      res.status(500).json({ error: 'Gagal mengira semula jumlah overtime' });
+      res.status(500).json({ error: 'Failed to mengira semula jumlah overtime' });
     }
   });
 
@@ -5798,7 +5798,7 @@ export function registerRoutes(app: Express): Server {
       res.json(applications);
     } catch (error) {
       console.error('Error getting claim applications:', error);
-      res.status(500).json({ error: 'Gagal mengambil permohonan tuntutan' });
+      res.status(500).json({ error: 'Failed to mengambil permohonan tuntutan' });
     }
   });
 
@@ -5810,7 +5810,7 @@ export function registerRoutes(app: Express): Server {
       res.json(applications);
     } catch (error) {
       console.error('Error getting claim applications by employee:', error);
-      res.status(500).json({ error: 'Gagal mengambil permohonan tuntutan pekerja' });
+      res.status(500).json({ error: 'Failed to mengambil permohonan tuntutan pework' });
     }
   });
 
@@ -5825,7 +5825,7 @@ export function registerRoutes(app: Express): Server {
       res.json(applications);
     } catch (error) {
       console.error('Error getting claim applications by type:', error);
-      res.status(500).json({ error: 'Gagal mengambil permohonan tuntutan mengikut jenis' });
+      res.status(500).json({ error: 'Failed to mengambil permohonan tuntutan mengikut jenis' });
     }
   });
 
@@ -5843,7 +5843,7 @@ export function registerRoutes(app: Express): Server {
       if (!hasAdminAccess) {
         const userEmployee = await storage.getEmployeeByUserId(currentUser.id);
         if (!userEmployee || userEmployee.id !== employeeId) {
-          return res.status(403).json({ error: 'Tidak dibenarkan untuk mengakses jumlah tuntutan pekerja lain' });
+          return res.status(403).json({ error: 'Tidak dibenarkan untuk mengakses jumlah tuntutan pework lain' });
         }
       }
       
@@ -5851,7 +5851,7 @@ export function registerRoutes(app: Express): Server {
       res.json(claimTotals);
     } catch (error) {
       console.error('Error getting user claim totals:', error);
-      res.status(500).json({ error: 'Gagal mengambil jumlah tuntutan pengguna' });
+      res.status(500).json({ error: 'Failed to mengambil jumlah tuntutan pengguna' });
     }
   });
 
@@ -5863,7 +5863,7 @@ export function registerRoutes(app: Express): Server {
       if (!validationResult.success) {
         console.log('Validation errors:', validationResult.error.issues);
         return res.status(400).json({ 
-          error: 'Data tidak sah', 
+          error: 'Invalid data', 
           details: validationResult.error.issues 
         });
       }
@@ -5878,7 +5878,7 @@ export function registerRoutes(app: Express): Server {
         
         if (!policy) {
           return res.status(400).json({ 
-            error: 'Polisi kewangan tidak dijumpai' 
+            error: 'Polisi kewangan not found' 
           });
         }
 
@@ -5903,7 +5903,7 @@ export function registerRoutes(app: Express): Server {
         
         if (policy.annualLimit && totalApprovedAmount + Number(data.amount) > Number(policy.annualLimit)) {
           return res.status(400).json({ 
-            error: `Jumlah melebihi had tahunan: RM${policy.annualLimit}. Jumlah yang telah diluluskan: RM${totalApprovedAmount}` 
+            error: `Jumlah melebihi had tahunan: RM${policy.annualLimit}. Jumlah yang has been diluluskan: RM${totalApprovedAmount}` 
           });
         }
       }
@@ -5912,7 +5912,7 @@ export function registerRoutes(app: Express): Server {
       res.status(201).json(application);
     } catch (error) {
       console.error('Error creating claim application:', error);
-      res.status(500).json({ error: 'Gagal membuat permohonan tuntutan' });
+      res.status(500).json({ error: 'Failed to membuat permohonan tuntutan' });
     }
   });
 
@@ -5923,19 +5923,19 @@ export function registerRoutes(app: Express): Server {
       const validationResult = updateClaimApplicationSchema.safeParse(req.body);
       if (!validationResult.success) {
         return res.status(400).json({ 
-          error: 'Data tidak sah', 
+          error: 'Invalid data', 
           details: validationResult.error.issues 
         });
       }
 
       const application = await storage.updateClaimApplication(id, validationResult.data);
       if (!application) {
-        return res.status(404).json({ error: 'Permohonan tuntutan tidak dijumpai' });
+        return res.status(404).json({ error: 'Application tuntutan not found' });
       }
       res.json(application);
     } catch (error) {
       console.error('Error updating claim application:', error);
-      res.status(500).json({ error: 'Gagal mengemas kini permohonan tuntutan' });
+      res.status(500).json({ error: 'Failed to mengemas kini permohonan tuntutan' });
     }
   });
 
@@ -5951,13 +5951,13 @@ export function registerRoutes(app: Express): Server {
 
       const success = await storage.approveClaimApplication(id, approverId);
       if (!success) {
-        return res.status(404).json({ error: 'Permohonan tuntutan tidak dijumpai' });
+        return res.status(404).json({ error: 'Application tuntutan not found' });
       }
       
-      res.json({ message: 'Permohonan tuntutan berjaya diluluskan' });
+      res.json({ message: 'Application tuntutan berjaya diluluskan' });
     } catch (error) {
       console.error('Error approving claim application:', error);
-      res.status(500).json({ error: 'Gagal meluluskan permohonan tuntutan' });
+      res.status(500).json({ error: 'Failed to meluluskan permohonan tuntutan' });
     }
   });
 
@@ -5973,13 +5973,13 @@ export function registerRoutes(app: Express): Server {
 
       const success = await storage.rejectClaimApplication(id, rejectorId, reason);
       if (!success) {
-        return res.status(404).json({ error: 'Permohonan tuntutan tidak dijumpai' });
+        return res.status(404).json({ error: 'Application tuntutan not found' });
       }
       
-      res.json({ message: 'Permohonan tuntutan berjaya ditolak' });
+      res.json({ message: 'Application tuntutan berjaya ditolak' });
     } catch (error) {
       console.error('Error rejecting claim application:', error);
-      res.status(500).json({ error: 'Gagal menolak permohonan tuntutan' });
+      res.status(500).json({ error: 'Failed to menolak permohonan tuntutan' });
     }
   });
 
@@ -5999,13 +5999,13 @@ export function registerRoutes(app: Express): Server {
         .where(eq(employees.id, employeeId));
         
       if (!employeeData) {
-        return res.status(404).json({ error: 'Pekerja tidak dijumpai' });
+        return res.status(404).json({ error: 'Employee not found' });
       }
       
       res.json(employeeData);
     } catch (error) {
       console.error('Error getting employee details:', error);
-      res.status(500).json({ error: 'Gagal mengambil maklumat pekerja' });
+      res.status(500).json({ error: 'Failed to mengambil maklumat pework' });
     }
   });
   
@@ -6016,13 +6016,13 @@ export function registerRoutes(app: Express): Server {
       const salaryData = await storage.getMasterSalaryData(employeeId);
       
       if (!salaryData) {
-        return res.status(404).json({ error: 'Maklumat gaji pekerja tidak dijumpai' });
+        return res.status(404).json({ error: 'Maklumat gaji pework not found' });
       }
       
       res.json(salaryData);
     } catch (error) {
       console.error('Error getting employee salary:', error);
-      res.status(500).json({ error: 'Gagal mengambil maklumat gaji pekerja' });
+      res.status(500).json({ error: 'Failed to mengambil maklumat gaji pework' });
     }
   });
 
@@ -6048,7 +6048,7 @@ export function registerRoutes(app: Express): Server {
       res.status(201).json(salary);
     } catch (error) {
       console.error('Error creating employee salary:', error);
-      res.status(500).json({ error: 'Gagal membuat maklumat gaji pekerja' });
+      res.status(500).json({ error: 'Failed to membuat maklumat gaji pework' });
     }
   });
 
@@ -6100,13 +6100,13 @@ export function registerRoutes(app: Express): Server {
       console.log('Salary data saved successfully');
       
       if (!salary) {
-        return res.status(404).json({ error: 'Maklumat gaji pekerja tidak dijumpai' });
+        return res.status(404).json({ error: 'Maklumat gaji pework not found' });
       }
       
       res.json(salary);
     } catch (error) {
       console.error('Error updating employee salary:', error);
-      res.status(500).json({ error: 'Gagal mengemas kini maklumat gaji pekerja' });
+      res.status(500).json({ error: 'Failed to mengemas kini maklumat gaji pework' });
     }
   });
 
@@ -6130,7 +6130,7 @@ export function registerRoutes(app: Express): Server {
       // Get existing salary data
       const existingSalary = await storage.getEmployeeSalaryByEmployeeId(employeeId);
       if (!existingSalary) {
-        return res.status(404).json({ error: 'Maklumat gaji pekerja tidak dijumpai' });
+        return res.status(404).json({ error: 'Maklumat gaji pework not found' });
       }
       
       // Update manual YTD
@@ -6149,7 +6149,7 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       console.error('Error updating manual YTD:', error);
-      res.status(500).json({ error: 'Gagal mengemas kini YTD manual' });
+      res.status(500).json({ error: 'Failed to mengemas kini YTD manual' });
     }
   });
 
@@ -6162,7 +6162,7 @@ export function registerRoutes(app: Express): Server {
       res.json(documents);
     } catch (error) {
       console.error('Error getting payroll documents:', error);
-      res.status(500).json({ error: 'Gagal mengambil senarai dokumen payroll' });
+      res.status(500).json({ error: 'Failed to mengambil senarai dokumen payroll' });
     }
   });
 
@@ -6173,13 +6173,13 @@ export function registerRoutes(app: Express): Server {
       const document = await storage.getPayrollDocument(id);
       
       if (!document) {
-        return res.status(404).json({ error: 'Dokumen payroll tidak dijumpai' });
+        return res.status(404).json({ error: 'Dokumen payroll not found' });
       }
       
       res.json(document);
     } catch (error) {
       console.error('Error getting payroll document:', error);
-      res.status(500).json({ error: 'Gagal mengambil dokumen payroll' });
+      res.status(500).json({ error: 'Failed to mengambil dokumen payroll' });
     }
   });
 
@@ -6215,7 +6215,7 @@ export function registerRoutes(app: Express): Server {
       if (error instanceof Error) {
         res.status(400).json({ error: error.message });
       } else {
-        res.status(500).json({ error: 'Gagal membuat dokumen payroll' });
+        res.status(500).json({ error: 'Failed to membuat dokumen payroll' });
       }
     }
   });
@@ -6236,13 +6236,13 @@ export function registerRoutes(app: Express): Server {
       const document = await storage.updatePayrollDocument(id, updateData);
       
       if (!document) {
-        return res.status(404).json({ error: 'Dokumen payroll tidak dijumpai' });
+        return res.status(404).json({ error: 'Dokumen payroll not found' });
       }
       
       res.json(document);
     } catch (error) {
       console.error('Error updating payroll document:', error);
-      res.status(500).json({ error: 'Gagal mengemas kini dokumen payroll' });
+      res.status(500).json({ error: 'Failed to mengemas kini dokumen payroll' });
     }
   });
 
@@ -6261,7 +6261,7 @@ export function registerRoutes(app: Express): Server {
       // Check if document exists
       const document = await storage.getPayrollDocument(id);
       if (!document) {
-        return res.status(404).json({ error: 'Dokumen payroll tidak dijumpai' });
+        return res.status(404).json({ error: 'Dokumen payroll not found' });
       }
 
       // Delete all payroll items for this document first
@@ -6271,13 +6271,13 @@ export function registerRoutes(app: Express): Server {
       const deleted = await storage.deletePayrollDocument(id);
       
       if (!deleted) {
-        return res.status(404).json({ error: 'Dokumen payroll tidak dijumpai' });
+        return res.status(404).json({ error: 'Dokumen payroll not found' });
       }
       
-      res.json({ message: 'Dokumen payroll dan semua data berkaitan telah berjaya dipadam' });
+      res.json({ message: 'Dokumen payroll dan semua data berkaitan has been berjaya dipadam' });
     } catch (error) {
       console.error('Error deleting payroll document:', error);
-      res.status(500).json({ error: 'Gagal memadam dokumen payroll' });
+      res.status(500).json({ error: 'Failed to memadam dokumen payroll' });
     }
   });
 
@@ -6301,7 +6301,7 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       console.error('Error generating payroll items:', error);
-      res.status(500).json({ error: 'Gagal menjana slip gaji pekerja' });
+      res.status(500).json({ error: 'Failed to menjana slip gaji pework' });
     }
   });
 
@@ -6322,12 +6322,12 @@ export function registerRoutes(app: Express): Server {
       const items = await storage.generatePayrollItems(id, true); // Force regeneration
       
       res.json({ 
-        message: `${items.length} slip gaji berjaya dikemaskini dengan konfigurasi terkini`,
+        message: `${items.length} slip gaji berjaya updated dengan konfigurasi terkini`,
         items: items.length 
       });
     } catch (error) {
       console.error('Error refreshing payroll items:', error);
-      res.status(500).json({ error: 'Gagal mengemaskini slip gaji dengan konfigurasi terkini' });
+      res.status(500).json({ error: 'Failed to mengemaskini slip gaji dengan konfigurasi terkini' });
     }
   });
 
@@ -6355,7 +6355,7 @@ export function registerRoutes(app: Express): Server {
       res.json(enrichedItems);
     } catch (error) {
       console.error('Error getting payroll items:', error);
-      res.status(500).json({ error: 'Gagal mengambil senarai slip gaji' });
+      res.status(500).json({ error: 'Failed to mengambil senarai slip gaji' });
     }
   });
 
@@ -6366,7 +6366,7 @@ export function registerRoutes(app: Express): Server {
       const item = await storage.getPayrollItem(id);
       
       if (!item) {
-        return res.status(404).json({ error: 'Slip gaji tidak dijumpai' });
+        return res.status(404).json({ error: 'Slip gaji not found' });
       }
 
       // Enrich with employee details
@@ -6383,7 +6383,7 @@ export function registerRoutes(app: Express): Server {
       res.json(enrichedItem);
     } catch (error) {
       console.error('Error getting payroll item:', error);
-      res.status(500).json({ error: 'Gagal mengambil slip gaji' });
+      res.status(500).json({ error: 'Failed to mengambil slip gaji' });
     }
   });
 
@@ -6403,13 +6403,13 @@ export function registerRoutes(app: Express): Server {
       const item = await storage.updatePayrollItem(id, updateData);
       
       if (!item) {
-        return res.status(404).json({ error: 'Slip gaji tidak dijumpai' });
+        return res.status(404).json({ error: 'Slip gaji not found' });
       }
       
       res.json(item);
     } catch (error) {
       console.error('Error updating payroll item:', error);
-      res.status(500).json({ error: 'Gagal mengemas kini slip gaji' });
+      res.status(500).json({ error: 'Failed to mengemas kini slip gaji' });
     }
   });
 
@@ -6422,7 +6422,7 @@ export function registerRoutes(app: Express): Server {
       // Check if user can access this employee's payroll
       const employee = await storage.getEmployee(employeeId);
       if (!employee) {
-        return res.status(404).json({ error: 'Pekerja tidak dijumpai' });
+        return res.status(404).json({ error: 'Employee not found' });
       }
 
       // Role-based access: admins can see all, employees can only see their own
@@ -6430,7 +6430,7 @@ export function registerRoutes(app: Express): Server {
       const isOwnRecord = employee.userId === currentUser.id;
       
       if (!isAdmin && !isOwnRecord) {
-        return res.status(403).json({ error: 'Tidak dibenarkan untuk melihat rekod gaji pekerja lain' });
+        return res.status(403).json({ error: 'Tidak dibenarkan untuk melihat rekod gaji pework lain' });
       }
 
       // Get all documents first
@@ -6465,7 +6465,7 @@ export function registerRoutes(app: Express): Server {
       res.json(history);
     } catch (error) {
       console.error('Error getting payroll history:', error);
-      res.status(500).json({ error: 'Gagal mengambil sejarah gaji pekerja' });
+      res.status(500).json({ error: 'Failed to mengambil sejarah gaji pework' });
     }
   });
 
@@ -6481,13 +6481,13 @@ export function registerRoutes(app: Express): Server {
 
       const success = await storage.approvePayrollDocument(id, approverId);
       if (!success) {
-        return res.status(404).json({ error: 'Dokumen payroll tidak dijumpai' });
+        return res.status(404).json({ error: 'Dokumen payroll not found' });
       }
       
       res.json({ message: 'Dokumen payroll berjaya diluluskan' });
     } catch (error) {
       console.error('Error approving payroll document:', error);
-      res.status(500).json({ error: 'Gagal meluluskan dokumen payroll' });
+      res.status(500).json({ error: 'Failed to meluluskan dokumen payroll' });
     }
   });
 
@@ -6503,13 +6503,13 @@ export function registerRoutes(app: Express): Server {
 
       const success = await storage.rejectPayrollDocument(id, rejectorId, reason);
       if (!success) {
-        return res.status(404).json({ error: 'Dokumen payroll tidak dijumpai' });
+        return res.status(404).json({ error: 'Dokumen payroll not found' });
       }
       
       res.json({ message: 'Dokumen payroll berjaya ditolak' });
     } catch (error) {
       console.error('Error rejecting payroll document:', error);
-      res.status(500).json({ error: 'Gagal menolak dokumen payroll' });
+      res.status(500).json({ error: 'Failed to menolak dokumen payroll' });
     }
   });
 
@@ -6525,13 +6525,13 @@ export function registerRoutes(app: Express): Server {
 
       const success = await storage.submitPaymentPayrollDocument(id, submitterId);
       if (!success) {
-        return res.status(404).json({ error: 'Dokumen payroll tidak dijumpai' });
+        return res.status(404).json({ error: 'Dokumen payroll not found' });
       }
       
       res.json({ message: 'Pembayaran payroll berjaya dihantar' });
     } catch (error) {
       console.error('Error submitting payment for payroll document:', error);
-      res.status(500).json({ error: 'Gagal menghantar pembayaran payroll' });
+      res.status(500).json({ error: 'Failed to menghantar pembayaran payroll' });
     }
   });
 
@@ -6554,7 +6554,7 @@ export function registerRoutes(app: Express): Server {
       res.json(paymentSettings);
     } catch (error) {
       console.error("Error fetching payment settings:", error);
-      res.status(500).json({ error: "Gagal mendapatkan tetapan pembayaran" });
+      res.status(500).json({ error: "Failed to mendapatkan tetapan pembayaran" });
     }
   });
 
@@ -6565,7 +6565,7 @@ export function registerRoutes(app: Express): Server {
       res.json(settings);
     } catch (error) {
       console.error("Error fetching financial settings:", error);
-      res.status(500).json({ error: "Gagal mendapatkan tetapan kewangan" });
+      res.status(500).json({ error: "Failed to mendapatkan tetapan kewangan" });
     }
   });
 
@@ -6577,7 +6577,7 @@ export function registerRoutes(app: Express): Server {
       res.json(settings);
     } catch (error) {
       console.error("Error saving financial settings:", error);
-      res.status(500).json({ error: "Gagal menyimpan tetapan kewangan" });
+      res.status(500).json({ error: "Failed to menyimpan tetapan kewangan" });
     }
   });
 
@@ -6588,7 +6588,7 @@ export function registerRoutes(app: Express): Server {
       res.json(settings);
     } catch (error) {
       console.error("Error fetching company settings:", error);
-      res.status(500).json({ error: "Gagal mendapatkan tetapan syarikat" });
+      res.status(500).json({ error: "Failed to mendapatkan tetapan syarikat" });
     }
   });
 
@@ -6614,7 +6614,7 @@ export function registerRoutes(app: Express): Server {
       res.json(settings);
     } catch (error) {
       console.error("Error saving company settings:", error);
-      res.status(500).json({ error: "Gagal menyimpan tetapan syarikat" });
+      res.status(500).json({ error: "Failed to menyimpan tetapan syarikat" });
     }
   });
 
@@ -6625,13 +6625,13 @@ export function registerRoutes(app: Express): Server {
       const updatedSettings = await storage.updateCompanySettings(req.params.id, validatedData);
       
       if (!updatedSettings) {
-        return res.status(404).json({ error: "Tetapan syarikat tidak dijumpai" });
+        return res.status(404).json({ error: "Tetapan syarikat not found" });
       }
       
       res.json(updatedSettings);
     } catch (error) {
       console.error("Error updating company settings:", error);
-      res.status(500).json({ error: "Gagal mengemas kini tetapan syarikat" });
+      res.status(500).json({ error: "Failed to mengemas kini tetapan syarikat" });
     }
   });
 
@@ -6674,7 +6674,7 @@ export function registerRoutes(app: Express): Server {
       console.log("Company logo URL:", companySettings?.logoUrl);
 
       if (!document || !payrollItem || !employee) {
-        return res.status(404).json({ error: "Data payroll tidak dijumpai" });
+        return res.status(404).json({ error: "Data payroll not found" });
       }
 
       // Parse payroll item data
@@ -7024,7 +7024,7 @@ export function registerRoutes(app: Express): Server {
 
     } catch (error) {
       console.error("Error generating HTML preview:", error);
-      res.status(500).json({ error: "Gagal menjana preview slip gaji" });
+      res.status(500).json({ error: "Failed to menjana preview slip gaji" });
     }
   });
 
@@ -7050,7 +7050,7 @@ export function registerRoutes(app: Express): Server {
       const companySettings = await storage.getCompanySettings();
 
       if (!document || !payrollItem || !employee) {
-        return res.status(404).json({ error: "Data payroll tidak dijumpai" });
+        return res.status(404).json({ error: "Data payroll not found" });
       }
 
       // Parse payroll item data (same as preview) - Add debug logging
@@ -7282,7 +7282,7 @@ export function registerRoutes(app: Express): Server {
       
     } catch (error) {
       console.error("Template data error:", error);
-      res.status(500).json({ error: "Gagal mendapatkan data template slip gaji" });
+      res.status(500).json({ error: "Failed to mendapatkan data template slip gaji" });
     }
   });
 
@@ -7471,7 +7471,7 @@ export function registerRoutes(app: Express): Server {
       const companySettings = await storage.getCompanySettings();
 
       if (!document || !payrollItem || !employee) {
-        return res.status(404).json({ error: "Data payroll tidak dijumpai" });
+        return res.status(404).json({ error: "Data payroll not found" });
       }
 
       // Parse payroll data
@@ -7505,7 +7505,7 @@ export function registerRoutes(app: Express): Server {
       res.json(responseData);
     } catch (error) {
       console.error("Error fetching payroll data:", error);
-      res.status(500).json({ error: "Gagal mengambil data payroll" });
+      res.status(500).json({ error: "Failed to mengambil data payroll" });
     }
   });
 
@@ -7532,7 +7532,7 @@ export function registerRoutes(app: Express): Server {
       const companySettings = await storage.getCompanySettings();
 
       if (!document || !payrollItem || !employee) {
-        return res.status(404).json({ error: "Data payroll tidak dijumpai" });
+        return res.status(404).json({ error: "Data payroll not found" });
       }
 
       // Parse payroll data and create template data (same logic as existing)
@@ -7585,7 +7585,7 @@ export function registerRoutes(app: Express): Server {
       console.log('Alternative PDF generated successfully with html-pdf-node');
     } catch (error) {
       console.error("Error generating alternative PDF:", error);
-      res.status(500).json({ error: "Gagal menjana PDF alternatif" });
+      res.status(500).json({ error: "Failed to menjana PDF alternatif" });
     }
   });
 
@@ -7617,7 +7617,7 @@ export function registerRoutes(app: Express): Server {
       console.error("=== END POST ERROR ===");
       
       if (!res.headersSent) {
-        res.status(500).json({ error: "Gagal menjana slip gaji PDF", details: error.message });
+        res.status(500).json({ error: "Failed to menjana slip gaji PDF", details: error.message });
       }
     }
   });
@@ -7653,7 +7653,7 @@ export function registerRoutes(app: Express): Server {
           console.log('- Document:', !!document);
           console.log('- PayrollItem:', !!payrollItem);
           console.log('- Employee:', !!employee);
-          return res.status(404).json({ error: "Data payroll tidak dijumpai" });
+          return res.status(404).json({ error: "Data payroll not found" });
         }
 
         console.log('All data fetched successfully, proceeding to process...');
@@ -7830,7 +7830,7 @@ export function registerRoutes(app: Express): Server {
         console.error('=== END FUNCTION ERROR ===');
         
         if (!res.headersSent) {
-          res.status(500).json({ error: "Gagal menjana slip gaji PDF", details: error.message });
+          res.status(500).json({ error: "Failed to menjana slip gaji PDF", details: error.message });
         }
       }
   }
@@ -8042,19 +8042,19 @@ export function registerRoutes(app: Express): Server {
       // Get the payroll item
       const payrollItem = await storage.getPayrollItem(itemId);
       if (!payrollItem) {
-        return res.status(404).json({ error: "Item gaji tidak dijumpai" });
+        return res.status(404).json({ error: "Item gaji not found" });
       }
 
       // Get the payroll document
       const document = await storage.getPayrollDocument(payrollItem.documentId);
       if (!document) {
-        return res.status(404).json({ error: "Dokumen gaji tidak dijumpai" });
+        return res.status(404).json({ error: "Dokumen gaji not found" });
       }
 
       // Get the employee
       const employee = await storage.getEmployee(payrollItem.employeeId);
       if (!employee) {
-        return res.status(404).json({ error: "Pekerja tidak dijumpai" });
+        return res.status(404).json({ error: "Employee not found" });
       }
 
       // Get employment details for designation
@@ -8172,7 +8172,7 @@ export function registerRoutes(app: Express): Server {
 
     } catch (error) {
       console.error("Error generating payslip Excel:", error);
-      res.status(500).json({ error: "Gagal menjana slip gaji Excel" });
+      res.status(500).json({ error: "Failed to menjana slip gaji Excel" });
     }
   });
 
@@ -8185,7 +8185,7 @@ export function registerRoutes(app: Express): Server {
       res.json(vouchers);
     } catch (error) {
       console.error('Error fetching payment vouchers:', error);
-      res.status(500).json({ error: 'Gagal mengambil voucer pembayaran' });
+      res.status(500).json({ error: 'Failed to mengambil voucer pembayaran' });
     }
   });
 
@@ -8196,13 +8196,13 @@ export function registerRoutes(app: Express): Server {
       const voucher = await storage.getPaymentVoucher(id);
       
       if (!voucher) {
-        return res.status(404).json({ error: 'Voucer pembayaran tidak dijumpai' });
+        return res.status(404).json({ error: 'Voucer pembayaran not found' });
       }
       
       res.json(voucher);
     } catch (error) {
       console.error('Error fetching payment voucher:', error);
-      res.status(500).json({ error: 'Gagal mengambil voucer pembayaran' });
+      res.status(500).json({ error: 'Failed to mengambil voucer pembayaran' });
     }
   });
 
@@ -8241,7 +8241,7 @@ export function registerRoutes(app: Express): Server {
           error: 'CONFLICT_EXISTING_VOUCHERS',
           message: 'Voucher sudah wujud untuk penuntut berikut pada bulan ini. Sila padam voucher lama terlebih dahulu sebelum menjana voucher baru.',
           conflictingRequestors,
-          instruction: 'Padam voucher yang telah wujud dahulu, kemudian cuba lagi untuk menjana voucher baru.'
+          instruction: 'Padam voucher yang has been wujud dahulu, kemudian cuba lagi untuk menjana voucher baru.'
         });
       }
 
@@ -8279,7 +8279,7 @@ export function registerRoutes(app: Express): Server {
 
     } catch (error) {
       console.error('Error creating payment vouchers:', error);
-      res.status(500).json({ error: 'Gagal mencipta voucer pembayaran' });
+      res.status(500).json({ error: 'Failed to mencipta voucer pembayaran' });
     }
   });
 
@@ -8291,7 +8291,7 @@ export function registerRoutes(app: Express): Server {
       
       if (!validationResult.success) {
         return res.status(400).json({ 
-          error: 'Data tidak sah', 
+          error: 'Invalid data', 
           details: validationResult.error.issues 
         });
       }
@@ -8299,7 +8299,7 @@ export function registerRoutes(app: Express): Server {
       const voucher = await storage.updatePaymentVoucher(id, validationResult.data);
       
       if (!voucher) {
-        return res.status(404).json({ error: 'Voucer pembayaran tidak dijumpai' });
+        return res.status(404).json({ error: 'Voucer pembayaran not found' });
       }
 
       // When voucher is submitted, update all related claims to "Paid" status
@@ -8327,7 +8327,7 @@ export function registerRoutes(app: Express): Server {
       res.json(voucher);
     } catch (error) {
       console.error('Error updating payment voucher:', error);
-      res.status(500).json({ error: 'Gagal mengemas kini voucer pembayaran' });
+      res.status(500).json({ error: 'Failed to mengemas kini voucer pembayaran' });
     }
   });
 
@@ -8338,13 +8338,13 @@ export function registerRoutes(app: Express): Server {
       const success = await storage.deletePaymentVoucher(id);
       
       if (!success) {
-        return res.status(404).json({ error: 'Voucer pembayaran tidak dijumpai' });
+        return res.status(404).json({ error: 'Voucer pembayaran not found' });
       }
       
       res.json({ message: 'Voucer pembayaran berjaya dipadam' });
     } catch (error) {
       console.error('Error deleting payment voucher:', error);
-      res.status(500).json({ error: 'Gagal memadam voucer pembayaran' });
+      res.status(500).json({ error: 'Failed to memadam voucer pembayaran' });
     }
   });
 
@@ -8356,7 +8356,7 @@ export function registerRoutes(app: Express): Server {
       res.json(claims);
     } catch (error) {
       console.error('Error fetching approved claims:', error);
-      res.status(500).json({ error: 'Gagal mengambil tuntutan yang diluluskan' });
+      res.status(500).json({ error: 'Failed to mengambil tuntutan yang diluluskan' });
     }
   });
 
@@ -8367,7 +8367,7 @@ export function registerRoutes(app: Express): Server {
       const voucher = await storage.getPaymentVoucher(id);
       
       if (!voucher) {
-        return res.status(404).json({ error: 'Voucher pembayaran tidak dijumpai' });
+        return res.status(404).json({ error: 'Voucher pembayaran not found' });
       }
 
       // Get claims based on includedClaims array in voucher
@@ -8384,7 +8384,7 @@ export function registerRoutes(app: Express): Server {
       res.json(claims);
     } catch (error) {
       console.error('Error fetching voucher claims:', error);
-      res.status(500).json({ error: 'Gagal mengambil tuntutan voucher' });
+      res.status(500).json({ error: 'Failed to mengambil tuntutan voucher' });
     }
   });
 
@@ -8537,7 +8537,7 @@ export function registerRoutes(app: Express): Server {
       res.json(holidays);
     } catch (error) {
       console.error("Error fetching holidays:", error);
-      res.status(500).json({ error: "Gagal mendapatkan data holiday" });
+      res.status(500).json({ error: "Failed to mendapatkan data holiday" });
     }
   });
 
@@ -8555,7 +8555,7 @@ export function registerRoutes(app: Express): Server {
       const { name, date } = req.body;
       
       if (!name || !date) {
-        return res.status(400).json({ error: "Nama holiday dan tarikh diperlukan" });
+        return res.status(400).json({ error: "Name holiday dan tarikh diperlukan" });
       }
 
       const newHoliday = await storage.createHoliday({
@@ -8572,7 +8572,7 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       console.error("Error creating holiday:", error);
-      res.status(500).json({ error: "Gagal mencipta holiday" });
+      res.status(500).json({ error: "Failed to mencipta holiday" });
     }
   });
 
@@ -8593,17 +8593,17 @@ export function registerRoutes(app: Express): Server {
       const updatedHoliday = await storage.updateHoliday(id, { isPublic });
 
       if (!updatedHoliday) {
-        return res.status(404).json({ error: "Holiday tidak dijumpai" });
+        return res.status(404).json({ error: "Holiday not found" });
       }
 
       res.json({
         success: true,
         holiday: updatedHoliday,
-        message: "Holiday berjaya dikemaskini"
+        message: "Holiday berjaya updated"
       });
     } catch (error) {
       console.error("Error updating holiday:", error);
-      res.status(500).json({ error: "Gagal mengemaskini holiday" });
+      res.status(500).json({ error: "Failed to mengemaskini holiday" });
     }
   });
 
@@ -8623,7 +8623,7 @@ export function registerRoutes(app: Express): Server {
       const deleted = await storage.deleteHoliday(id);
 
       if (!deleted) {
-        return res.status(404).json({ error: "Holiday tidak dijumpai" });
+        return res.status(404).json({ error: "Holiday not found" });
       }
 
       res.json({
@@ -8632,7 +8632,7 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       console.error("Error deleting holiday:", error);
-      res.status(500).json({ error: "Gagal memadam holiday" });
+      res.status(500).json({ error: "Failed to memadam holiday" });
     }
   });
 
@@ -8644,7 +8644,7 @@ export function registerRoutes(app: Express): Server {
       res.json(events);
     } catch (error) {
       console.error("Error fetching events:", error);
-      res.status(500).json({ error: "Gagal mendapatkan data acara" });
+      res.status(500).json({ error: "Failed to mendapatkan data acara" });
     }
   });
 
@@ -8655,13 +8655,13 @@ export function registerRoutes(app: Express): Server {
       const event = await storage.getEvent(id);
       
       if (!event) {
-        return res.status(404).json({ error: "Acara tidak dijumpai" });
+        return res.status(404).json({ error: "Acara not found" });
       }
       
       res.json(event);
     } catch (error) {
       console.error("Error fetching event:", error);
-      res.status(500).json({ error: "Gagal mendapatkan data acara" });
+      res.status(500).json({ error: "Failed to mendapatkan data acara" });
     }
   });
 
@@ -8702,7 +8702,7 @@ export function registerRoutes(app: Express): Server {
       if (error.name === 'ZodError') {
         return res.status(400).json({ error: "Data acara tidak sah", details: error.errors });
       }
-      res.status(500).json({ error: "Gagal mencipta acara" });
+      res.status(500).json({ error: "Failed to mencipta acara" });
     }
   });
 
@@ -8725,20 +8725,20 @@ export function registerRoutes(app: Express): Server {
       const updatedEvent = await storage.updateEvent(id, eventData);
 
       if (!updatedEvent) {
-        return res.status(404).json({ error: "Acara tidak dijumpai" });
+        return res.status(404).json({ error: "Acara not found" });
       }
 
       res.json({
         success: true,
         event: updatedEvent,
-        message: "Acara berjaya dikemaskini"
+        message: "Acara berjaya updated"
       });
     } catch (error) {
       console.error("Error updating event:", error);
       if (error.name === 'ZodError') {
         return res.status(400).json({ error: "Data acara tidak sah", details: error.errors });
       }
-      res.status(500).json({ error: "Gagal mengemaskini acara" });
+      res.status(500).json({ error: "Failed to mengemaskini acara" });
     }
   });
 
@@ -8758,7 +8758,7 @@ export function registerRoutes(app: Express): Server {
       const deleted = await storage.deleteEvent(id);
 
       if (!deleted) {
-        return res.status(404).json({ error: "Acara tidak dijumpai" });
+        return res.status(404).json({ error: "Acara not found" });
       }
 
       res.json({
@@ -8767,7 +8767,7 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       console.error("Error deleting event:", error);
-      res.status(500).json({ error: "Gagal memadam acara" });
+      res.status(500).json({ error: "Failed to memadam acara" });
     }
   });
 
@@ -8779,7 +8779,7 @@ export function registerRoutes(app: Express): Server {
       res.json(formsData);
     } catch (error) {
       console.error("Error fetching forms:", error);
-      res.status(500).json({ error: "Gagal mendapatkan senarai borang" });
+      res.status(500).json({ error: "Failed to mendapatkan senarai bpeople" });
     }
   });
 
@@ -8790,11 +8790,11 @@ export function registerRoutes(app: Express): Server {
       const uploadedFile = req.file;
       
       if (!formName) {
-        return res.status(400).json({ error: "Nama borang diperlukan" });
+        return res.status(400).json({ error: "Name bpeople diperlukan" });
       }
 
       if (!uploadedFile) {
-        return res.status(400).json({ error: "Fail borang diperlukan" });
+        return res.status(400).json({ error: "Fail bpeople diperlukan" });
       }
 
       // Create uploads directory if it doesn't exist
@@ -8826,15 +8826,15 @@ export function registerRoutes(app: Express): Server {
 
       res.status(201).json({
         success: true,
-        message: "Borang berjaya dimuat naik",
+        message: "Bpeople berjaya dimuat naik",
         form: newForm
       });
     } catch (error) {
       console.error("Error uploading form:", error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: "Data tidak sah", details: error.errors });
+        return res.status(400).json({ error: "Invalid data", details: error.errors });
       }
-      res.status(500).json({ error: "Gagal memuat naik borang" });
+      res.status(500).json({ error: "Failed to memuat naik bpeople" });
     }
   });
 
@@ -8850,7 +8850,7 @@ export function registerRoutes(app: Express): Server {
       res.sendFile(path.resolve(filePath));
     } catch (error) {
       console.error("Error serving form file:", error);
-      res.status(404).json({ error: "Fail tidak dijumpai" });
+      res.status(404).json({ error: "Fail not found" });
     }
   });
 
@@ -8863,7 +8863,7 @@ export function registerRoutes(app: Express): Server {
       const [form] = await db.select().from(forms).where(eq(forms.id, id));
       
       if (!form) {
-        return res.status(404).json({ error: "Borang tidak dijumpai" });
+        return res.status(404).json({ error: "Bpeople not found" });
       }
 
       // Extract filename from fileUrl
@@ -8880,7 +8880,7 @@ export function registerRoutes(app: Express): Server {
       res.sendFile(path.resolve(filePath));
     } catch (error) {
       console.error("Error downloading form:", error);
-      res.status(404).json({ error: "Fail tidak dijumpai" });
+      res.status(404).json({ error: "Fail not found" });
     }
   });
 
@@ -8893,7 +8893,7 @@ export function registerRoutes(app: Express): Server {
       const [existingForm] = await db.select().from(forms).where(eq(forms.id, id));
       
       if (!existingForm) {
-        return res.status(404).json({ error: "Borang tidak dijumpai" });
+        return res.status(404).json({ error: "Bpeople not found" });
       }
 
       // Delete from database
@@ -8912,11 +8912,11 @@ export function registerRoutes(app: Express): Server {
 
       res.json({
         success: true,
-        message: "Borang berjaya dipadam"
+        message: "Bpeople berjaya dipadam"
       });
     } catch (error) {
       console.error("Error deleting form:", error);
-      res.status(500).json({ error: "Gagal memadam borang" });
+      res.status(500).json({ error: "Failed to memadam bpeople" });
     }
   });
 
@@ -8928,7 +8928,7 @@ export function registerRoutes(app: Express): Server {
       // Get current user's employee record
       const employee = await storage.getEmployeeByUserId(currentUser.id);
       if (!employee) {
-        return res.status(404).json({ error: "Employee record tidak dijumpai" });
+        return res.status(404).json({ error: "Employee record not found" });
       }
 
       // Fetch user's disciplinary records from database
@@ -8939,7 +8939,7 @@ export function registerRoutes(app: Express): Server {
       res.json(userRecords);
     } catch (error) {
       console.error("Get user disciplinary records error:", error);
-      res.status(500).json({ error: "Gagal mengambil rekod tatatertib pengguna" });
+      res.status(500).json({ error: "Failed to mengambil rekod tatatertib pengguna" });
     }
   });
 
@@ -8960,7 +8960,7 @@ export function registerRoutes(app: Express): Server {
       res.json(allRecords);
     } catch (error) {
       console.error("Get all disciplinary records error:", error);
-      res.status(500).json({ error: "Gagal mengambil rekod tatatertib" });
+      res.status(500).json({ error: "Failed to mengambil rekod tatatertib" });
     }
   });
 
@@ -8996,9 +8996,9 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Create disciplinary record error:", error);
       if (error.name === 'ZodError') {
-        return res.status(400).json({ error: "Data tidak sah", details: error.errors });
+        return res.status(400).json({ error: "Invalid data", details: error.errors });
       }
-      res.status(500).json({ error: "Gagal membuat rekod tatatertib" });
+      res.status(500).json({ error: "Failed to membuat rekod tatatertib" });
     }
   });
 
@@ -9033,7 +9033,7 @@ export function registerRoutes(app: Express): Server {
         .returning();
 
       if (!updatedRecord) {
-        return res.status(404).json({ error: "Rekod tidak dijumpai" });
+        return res.status(404).json({ error: "Rekod not found" });
       }
 
       console.log(`Updated disciplinary record ${id} - new status: ${req.body.status}`);
@@ -9045,7 +9045,7 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       console.error("Update disciplinary record error:", error);
-      res.status(500).json({ error: "Gagal mengemas kini rekod tatatertib" });
+      res.status(500).json({ error: "Failed to mengemas kini rekod tatatertib" });
     }
   });
 
@@ -9069,7 +9069,7 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       console.error("Delete disciplinary record error:", error);
-      res.status(500).json({ error: "Gagal memadam rekod tatatertib" });
+      res.status(500).json({ error: "Failed to memadam rekod tatatertib" });
     }
   });
 
@@ -9164,7 +9164,7 @@ export function registerRoutes(app: Express): Server {
         [''],
         ['NOTA:'],
         ['- Jika field tidak diisi, sistem akan gunakan nilai default'],
-        ['- Username mesti unik dalam sistem'],
+        ['- Username mesti unik within sistem'],
         ['- Email mesti format yang sah'],
         ['- Pastikan data peribadi adalah tepat dan terkini']
       ];
@@ -9197,7 +9197,7 @@ export function registerRoutes(app: Express): Server {
       console.log("Staff import template generated successfully");
     } catch (error) {
       console.error("Generate staff template error:", error);
-      res.status(500).json({ error: "Gagal menjana template Excel" });
+      res.status(500).json({ error: "Failed to menjana template Excel" });
     }
   });
 
@@ -9231,7 +9231,7 @@ export function registerRoutes(app: Express): Server {
       console.log("Employee PDF report generated successfully");
     } catch (error) {
       console.error("Generate employee PDF error:", error);
-      res.status(500).json({ error: "Gagal menjana laporan PDF employee" });
+      res.status(500).json({ error: "Failed to menjana laporan PDF employee" });
     }
   });
 

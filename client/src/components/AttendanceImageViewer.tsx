@@ -82,7 +82,7 @@ export function AttendanceImageViewer({
       type: 'Break Out',
       url: breakOutImage ? getImageUrl(breakOutImage) : null,
       time: formatTime(breakOutTime),
-      color: 'bg-orange-100 text-orange-800'
+      color: 'bg-peoplee-100 text-peoplee-800'
     },
     {
       type: 'Break In',

@@ -145,7 +145,7 @@ export default function ApplyLeavePage() {
     onSuccess: () => {
       toast({
         title: "Berjaya",
-        description: "Permohonan cuti telah dihantar",
+        description: "Application cuti telah dihantar",
       });
       // Reset form
       setStartDate("");
@@ -271,7 +271,7 @@ export default function ApplyLeavePage() {
     if (!leaveType || !startDate || !endDate || !reason || !selectedEmployeeId) {
       toast({
         title: "Ralat",
-        description: "Sila lengkapkan semua maklumat yang diperlukan",
+        description: "Sila lengkapkan semua maklumat yang required",
         variant: "destructive",
       });
       return;

@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (response.status === 401 || response.status === 403) {
         removeStoredToken();
         queryClient.setQueryData(["/api/user"], null);
-        throw new Error("Token tidak sah");
+        throw new Error("Token tidak valid");
       }
       throw new Error("Request failed");
     }
@@ -102,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.setQueryData(["/api/user"], response.user);
       toast({
         title: "Berjaya!",
-        description: response.message || "Login berjaya",
+        description: response.message || "Login successfully",
         variant: "default",
       });
     },
@@ -137,7 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.setQueryData(["/api/user"], response.user);
       toast({
         title: "Berjaya!",
-        description: response.message || "Akaun berjaya dibuat",
+        description: response.message || "Akaun successfully dibuat",
         variant: "default",
       });
     },

@@ -74,7 +74,7 @@ export default function HomePage() {
             Selamat Datang ke UtamaHR Dashboard
           </h2>
           <p className="text-gray-600" data-testid="text-welcome-message">
-            Sistem Pengurusan Pekerja Terpadu untuk organisasi anda.
+            Sistem Pengurusan Employee Terpadu untuk organisasi anda.
           </p>
         </div>
 
@@ -84,7 +84,7 @@ export default function HomePage() {
           <Card data-testid="card-employees">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Jumlah Pekerja
+                Jumlah Employee
               </CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -100,7 +100,7 @@ export default function HomePage() {
           <Card data-testid="card-attendance">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Kehadiran Hari Ini
+                Kehadiran Days Ini
               </CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -139,7 +139,7 @@ export default function HomePage() {
               <Link href="/employees">
                 <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2 w-full" data-testid="button-manage-employees">
                   <Users className="h-6 w-6" />
-                  <span>Senarai Pekerja</span>
+                  <span>Senarai Employee</span>
                 </Button>
               </Link>
               

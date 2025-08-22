@@ -132,20 +132,20 @@ export default function PaymentVoucherPage() {
             const requestorNames = errorData.conflictingRequestors.map((r: any) => r.requestorName).join(', ');
             toast({
               title: "Voucher Sudah Wujud",
-              description: `Voucher sudah wujud untuk: ${requestorNames} pada bulan ini. Sila padam voucher lama terlebih dahulu sebelum menjana voucher baru.`,
+              description: `Voucher already wujud untuk: ${requestorNames} pada bulan ini. Sila padam voucher lama terlebih dahulu sebelum menjana voucher baru.`,
               variant: "destructive",
             });
           } else {
             toast({
               title: "Voucher Sudah Wujud", 
-              description: "Voucher sudah wujud untuk penuntut pada bulan ini. Sila padam voucher lama terlebih dahulu.",
+              description: "Voucher already wujud untuk penuntut pada bulan ini. Sila padam voucher lama terlebih dahulu.",
               variant: "destructive",
             });
           }
         } catch (parseError) {
           toast({
             title: "Voucher Sudah Wujud",
-            description: "Voucher sudah wujud untuk penuntut pada bulan ini. Sila padam voucher lama terlebih dahulu.",
+            description: "Voucher already wujud untuk penuntut pada bulan ini. Sila padam voucher lama terlebih dahulu.",
             variant: "destructive",
           });
         }
@@ -432,7 +432,7 @@ export default function PaymentVoucherPage() {
 
               {/* Approved Claims Summary - GROUPED BY REQUESTOR */}
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Tuntutan Kewangan Diluluskan (Kumpulan mengikut Penuntut)</Label>
+                <Label className="text-sm font-medium">Claim Kewangan Approved (Kumpulan mengikut Penuntut)</Label>
                 <div className="bg-gray-50 p-3 rounded-lg max-h-48 overflow-y-auto">
                   {claimsLoading ? (
                     <p className="text-sm text-gray-600">Memuatkan tuntutan...</p>

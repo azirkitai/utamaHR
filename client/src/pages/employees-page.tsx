@@ -70,7 +70,7 @@ const authenticatedFetch = async (url: string, options: RequestInit = {}): Promi
     if (response.status === 401 || response.status === 403) {
       localStorage.removeItem("utamahr_token");
       window.location.href = "/auth";
-      throw new Error("Token tidak sah");
+      throw new Error("Token tidak valid");
     }
     const errorData = await response.json();
     throw new Error(errorData.error || `HTTP ${response.status}`);
@@ -106,13 +106,13 @@ export default function EmployeesPage() {
       createForm.reset();
       toast({
         title: "Berjaya!",
-        description: "Pekerja berjaya ditambah",
+        description: "Employee successfully ditambah",
         variant: "default",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Gagal Menambah Pekerja",
+        title: "Gagal Menambah Employee",
         description: error.message,
         variant: "destructive",
       });
@@ -134,13 +134,13 @@ export default function EmployeesPage() {
       editForm.reset();
       toast({
         title: "Berjaya!",
-        description: "Pekerja berjaya dikemaskini",
+        description: "Employee successfully dikemaskini",
         variant: "default",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Gagal Mengemaskini Pekerja",
+        title: "Gagal Mengemaskini Employee",
         description: error.message,
         variant: "destructive",
       });
@@ -158,13 +158,13 @@ export default function EmployeesPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/employees"] });
       toast({
         title: "Berjaya!",
-        description: "Pekerja berjaya dihapuskan",
+        description: "Employee successfully dihapuskan",
         variant: "default",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Gagal Menghapus Pekerja",
+        title: "Gagal Menghapus Employee",
         description: error.message,
         variant: "destructive",
       });
@@ -242,7 +242,7 @@ export default function EmployeesPage() {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h2 className="text-2xl font-bold text-gray-900" data-testid="text-employees-title">
-              Pengurusan Pekerja
+              Pengurusan Employee
             </h2>
             <p className="text-gray-600" data-testid="text-employees-count">
               {employees ? `${employees.length} pekerja didaftarkan` : 'Memuat...'}
@@ -253,12 +253,12 @@ export default function EmployeesPage() {
             <DialogTrigger asChild>
               <Button data-testid="button-add-employee">
                 <Plus className="w-4 h-4 mr-2" />
-                Tambah Pekerja
+                Tambah Employee
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
-                <DialogTitle>Tambah Pekerja Baru</DialogTitle>
+                <DialogTitle>Tambah Employee Baru</DialogTitle>
                 <DialogDescription>
                   Masukkan maklumat pekerja baru untuk didaftarkan ke dalam sistem.
                 </DialogDescription>
@@ -272,7 +272,7 @@ export default function EmployeesPage() {
                       name="fullName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Nama Penuh</FormLabel>
+                          <FormLabel>Name Penuh</FormLabel>
                           <FormControl>
                             <Input {...field} data-testid="input-employee-name" />
                           </FormControl>
@@ -285,7 +285,7 @@ export default function EmployeesPage() {
                       name="firstName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Nama Pertama</FormLabel>
+                          <FormLabel>Name Pertama</FormLabel>
                           <FormControl>
                             <Input {...field} data-testid="input-employee-first-name" />
                           </FormControl>
@@ -301,7 +301,7 @@ export default function EmployeesPage() {
                       name="lastName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Nama Akhir</FormLabel>
+                          <FormLabel>Name Akhir</FormLabel>
                           <FormControl>
                             <Input {...field} data-testid="input-employee-last-name" />
                           </FormControl>
@@ -357,7 +357,7 @@ export default function EmployeesPage() {
                       disabled={createEmployeeMutation.isPending}
                       data-testid="button-create-employee"
                     >
-                      {createEmployeeMutation.isPending ? "Menyimpan..." : "Simpan Pekerja"}
+                      {createEmployeeMutation.isPending ? "Menyimpan..." : "Simpan Employee"}
                     </Button>
                   </DialogFooter>
                 </form>
@@ -382,19 +382,19 @@ export default function EmployeesPage() {
                   data-testid="button-add-first-employee"
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  Tambah Pekerja Pertama
+                  Tambah Employee Pertama
                 </Button>
               </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Nama</TableHead>
+                    <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Jawatan</TableHead>
                     <TableHead>Jabatan</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Tarikh Mula</TableHead>
+                    <TableHead>Date Mula</TableHead>
                     <TableHead className="text-right">Tindakan</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -449,7 +449,7 @@ export default function EmployeesPage() {
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
-              <DialogTitle>Kemaskini Pekerja</DialogTitle>
+              <DialogTitle>Kemaskini Employee</DialogTitle>
               <DialogDescription>
                 Kemaskini maklumat pekerja yang dipilih.
               </DialogDescription>
@@ -463,7 +463,7 @@ export default function EmployeesPage() {
                     name="fullName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Nama Penuh</FormLabel>
+                        <FormLabel>Name Penuh</FormLabel>
                         <FormControl>
                           <Input {...field} data-testid="input-edit-employee-name" />
                         </FormControl>
@@ -476,7 +476,7 @@ export default function EmployeesPage() {
                     name="firstName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Nama Pertama</FormLabel>
+                        <FormLabel>Name Pertama</FormLabel>
                         <FormControl>
                           <Input {...field} data-testid="input-edit-employee-first-name" />
                         </FormControl>
@@ -492,7 +492,7 @@ export default function EmployeesPage() {
                     name="lastName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Nama Akhir</FormLabel>
+                        <FormLabel>Name Akhir</FormLabel>
                         <FormControl>
                           <Input {...field} data-testid="input-edit-employee-last-name" />
                         </FormControl>
@@ -530,7 +530,7 @@ export default function EmployeesPage() {
                     disabled={updateEmployeeMutation.isPending}
                     data-testid="button-update-employee"
                   >
-                    {updateEmployeeMutation.isPending ? "Menyimpan..." : "Kemaskini Pekerja"}
+                    {updateEmployeeMutation.isPending ? "Menyimpan..." : "Kemaskini Employee"}
                   </Button>
                 </DialogFooter>
               </form>

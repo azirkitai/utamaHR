@@ -111,7 +111,7 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/leave-eligibility", employeeId] });
       toast({
         title: "Berjaya",
-        description: `Kelayakan ${variables.leaveType} berjaya ${variables.isEligible ? 'diaktifkan' : 'dinyahaktifkan'} untuk pekerja ini`,
+        description: `Kelayakan ${variables.leaveType} successfully ${variables.isEligible ? 'diaktifkan' : 'dinyahaktifkan'} untuk pekerja ini`,
       });
     },
     onError: (error) => {
@@ -303,7 +303,7 @@ export function LeavePolicyTab({ employeeId }: LeavePolicyTabProps) {
                             <div className={`text-sm font-medium ${isAccessible ? 'text-gray-900' : 'text-gray-500'}`}>
                               {policy.leaveType || "N/A"}
                               {!isAccessible && (
-                                <span className="ml-2 text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded">
+                                <span className="ml-2 text-xs text-peoplee-600 bg-peoplee-100 px-2 py-1 rounded">
                                   Not Available
                                 </span>
                               )}

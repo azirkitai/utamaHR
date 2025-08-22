@@ -646,7 +646,7 @@ export default function SystemSettingPage() {
       });
       toast({
         title: "Berjaya",
-        description: "Shift berjaya dicipta",
+        description: "Shift successfully dicipta",
         variant: "default",
       });
     },
@@ -704,7 +704,7 @@ export default function SystemSettingPage() {
       refetchShifts();
       toast({
         title: "Berjaya",
-        description: "Shift berjaya dipadamkan",
+        description: "Shift successfully dipadamkan",
         variant: "default",
       });
     },
@@ -739,7 +739,7 @@ export default function SystemSettingPage() {
       setEditingShift(null);
       toast({
         title: "Berjaya",
-        description: "Shift berjaya dikemaskini",
+        description: "Shift successfully dikemaskini",
         variant: "default",
       });
     },
@@ -954,7 +954,7 @@ export default function SystemSettingPage() {
     onSuccess: () => {
       toast({
         title: "Polisi claim disimpan",
-        description: "Polisi claim kewangan berjaya disimpan.",
+        description: "Polisi claim kewangan successfully disimpan.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/financial-claim-policies"] });
       setHasUnsavedChanges(false);
@@ -976,7 +976,7 @@ export default function SystemSettingPage() {
     onSuccess: () => {
       toast({
         title: "Polisi claim dikemaskini", 
-        description: "Polisi claim kewangan berjaya dikemaskini.",
+        description: "Polisi claim kewangan successfully dikemaskini.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/financial-claim-policies"] });
       setHasUnsavedChanges(false);
@@ -1007,7 +1007,7 @@ export default function SystemSettingPage() {
       console.log('🎉 Delete mutation successful:', data);
       toast({
         title: "Polisi claim dipadam",
-        description: "Polisi claim kewangan berjaya dipadam dari sistem.",
+        description: "Polisi claim kewangan successfully dipadam dari sistem.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/financial-claim-policies"] });
       // Close expanded policy if it was deleted
@@ -1157,7 +1157,7 @@ export default function SystemSettingPage() {
       if (!file.type.startsWith('image/')) {
         toast({
           title: "Ralat",
-          description: "Sila pilih fail imej yang sah (JPG, PNG, GIF)",
+          description: "Sila pilih fail imej yang valid (JPG, PNG, GIF)",
           variant: "destructive",
         });
         return;
@@ -1191,7 +1191,7 @@ export default function SystemSettingPage() {
       // Get upload URL from server
       const token = localStorage.getItem("utamahr_token");
       if (!token) {
-        throw new Error("Token tidak dijumpai. Sila log masuk semula.");
+        throw new Error("Token not found. Sila log masuk semula.");
       }
 
       const uploadResponse = await fetch("/api/objects/upload", {
@@ -1256,7 +1256,7 @@ export default function SystemSettingPage() {
     mutationFn: async (data: any) => {
       const token = localStorage.getItem("utamahr_token");
       if (!token) {
-        throw new Error("Token tidak dijumpai. Sila log masuk semula.");
+        throw new Error("Token not found. Sila log masuk semula.");
       }
 
       const response = await fetch("/api/company-settings", {
@@ -1277,7 +1277,7 @@ export default function SystemSettingPage() {
     onSuccess: (response) => {
       toast({
         title: "Berjaya!",
-        description: "Maklumat syarikat telah disimpan dengan berjaya",
+        description: "Maklumat syarikat telah disimpan dengan successfully",
       });
       console.log("Data yang disimpan:", response);
       
@@ -1437,7 +1437,7 @@ export default function SystemSettingPage() {
       if (response.ok) {
         const result = await response.json();
         console.log("Success result:", result);
-        alert("Tetapan kelulusan cuti berjaya disimpan!");
+        alert("Tetapan kelulusan cuti successfully disimpan!");
       } else {
         const errorData = await response.json();
         console.log("Error response:", errorData);
@@ -1474,7 +1474,7 @@ export default function SystemSettingPage() {
       if (response.ok) {
         const result = await response.json();
         console.log("Financial approval settings saved:", result);
-        alert("Tetapan kelulusan kewangan berjaya disimpan!");
+        alert("Tetapan kelulusan kewangan successfully disimpan!");
         queryClient.invalidateQueries({ queryKey: ["/api/approval-settings/financial"] });
       } else {
         const errorData = await response.json();
@@ -1514,7 +1514,7 @@ export default function SystemSettingPage() {
       if (response.ok) {
         const result = await response.json();
         console.log("Payment approval settings saved:", result);
-        alert("Tetapan kelulusan bayaran berjaya disimpan!");
+        alert("Tetapan kelulusan bayaran successfully disimpan!");
         queryClient.invalidateQueries({ queryKey: ["/api/approval-settings/payment"] });
       } else {
         const errorData = await response.json();
@@ -1559,7 +1559,7 @@ export default function SystemSettingPage() {
           key.endsWith('Enabled') && paymentSettings[key] !== currentCompanySettings?.[key]
         );
         
-        let successMessage = "Tetapan pembayaran telah berjaya disimpan!";
+        let successMessage = "Tetapan pembayaran telah successfully disimpan!";
         
         if (currencyChanged) {
           successMessage += ` Mata wang dikemas kini kepada ${paymentSettings.currency} - perubahan ini mempengaruhi seluruh sistem termasuk Master Salary, Payroll, dan semua modul kewangan.`;
@@ -1623,7 +1623,7 @@ export default function SystemSettingPage() {
       if (response.ok) {
         const result = await response.json();
         console.log("Overtime approval settings saved:", result);
-        alert("Tetapan kelulusan lebih masa berjaya disimpan!");
+        alert("Tetapan kelulusan lebih masa successfully disimpan!");
         queryClient.invalidateQueries({ queryKey: ["/api/overtime/approval-settings"] });
       } else {
         const errorData = await response.json();
@@ -1657,7 +1657,7 @@ export default function SystemSettingPage() {
       if (response.ok) {
         const result = await response.json();
         console.log("Overtime settings saved:", result);
-        alert("Tetapan lebih masa berjaya disimpan!");
+        alert("Tetapan lebih masa successfully disimpan!");
         queryClient.invalidateQueries({ queryKey: ["/api/overtime/settings"] });
       } else {
         const errorData = await response.json();
@@ -1757,7 +1757,7 @@ export default function SystemSettingPage() {
     if (!formName.trim() || !formFile) {
       toast({
         title: "Error",
-        description: "Sila masukkan nama borang dan pilih fail untuk dimuat naik",
+        description: "Sila masukkan nama bpeople dan pilih fail untuk dimuat naik",
         variant: "destructive",
       });
       return;
@@ -1769,7 +1769,7 @@ export default function SystemSettingPage() {
       // Get authentication token
       const token = localStorage.getItem("utamahr_token");
       if (!token) {
-        throw new Error("Token tidak dijumpai. Sila log masuk semula.");
+        throw new Error("Token not found. Sila log masuk semula.");
       }
 
       // Create FormData to upload file
@@ -1788,7 +1788,7 @@ export default function SystemSettingPage() {
       if (response.ok) {
         toast({
           title: "Berjaya",
-          description: "Borang telah berjaya dimuat naik",
+          description: "Bpeople telah successfully dimuat naik",
         });
         
         // Reset form
@@ -1799,13 +1799,13 @@ export default function SystemSettingPage() {
         // Refresh forms data
         refetchForms();
       } else {
-        throw new Error("Gagal memuat naik borang");
+        throw new Error("Gagal memuat naik bpeople");
       }
     } catch (error) {
       console.error("Form upload error:", error);
       toast({
         title: "Ralat",
-        description: "Gagal memuat naik borang. Sila cuba lagi.",
+        description: "Gagal memuat naik bpeople. Sila cuba lagi.",
         variant: "destructive",
       });
     } finally {
@@ -1820,7 +1820,7 @@ export default function SystemSettingPage() {
   };
 
   const handleDeleteForm = async (formId: string) => {
-    if (!confirm("Adakah anda pasti ingin memadamkan borang ini?")) {
+    if (!confirm("Adakah anda pasti ingin memadamkan bpeople ini?")) {
       return;
     }
 
@@ -1828,7 +1828,7 @@ export default function SystemSettingPage() {
       // Get authentication token
       const token = localStorage.getItem("utamahr_token");
       if (!token) {
-        throw new Error("Token tidak dijumpai. Sila log masuk semula.");
+        throw new Error("Token not found. Sila log masuk semula.");
       }
 
       const response = await fetch(`/api/forms/${formId}`, {
@@ -1841,17 +1841,17 @@ export default function SystemSettingPage() {
       if (response.ok) {
         toast({
           title: "Berjaya",
-          description: "Borang telah berjaya dipadamkan",
+          description: "Bpeople telah successfully dipadamkan",
         });
         refetchForms();
       } else {
-        throw new Error("Gagal memadamkan borang");
+        throw new Error("Gagal memadamkan bpeople");
       }
     } catch (error) {
       console.error("Form delete error:", error);
       toast({
         title: "Ralat",
-        description: "Gagal memadamkan borang. Sila cuba lagi.",
+        description: "Gagal memadamkan bpeople. Sila cuba lagi.",
         variant: "destructive",
       });
     }
@@ -2046,7 +2046,7 @@ export default function SystemSettingPage() {
       if (response.ok) {
         toast({
           title: "Tetapan kewangan disimpan",
-          description: `Tarikh tutup claim ditetapkan pada hari ke-${financialSettings.cutoffDate} setiap bulan.`,
+          description: `Date tutup claim ditetapkan pada hari ke-${financialSettings.cutoffDate} setiap bulan.`,
         });
       } else {
         const errorData = await response.json();
@@ -2927,8 +2927,8 @@ export default function SystemSettingPage() {
                     <div>
                       <h4 className="font-medium text-gray-900">{formData.claimName}</h4>
                       <p className="text-sm text-gray-500">
-                        Tahunan: RM {formData.annualLimitUnlimited ? "Tanpa Had" : formData.annualLimit} | 
-                        Per Permohonan: RM {formData.limitPerApplicationUnlimited ? "Tanpa Had" : formData.limitPerApplication}
+                        Annual: RM {formData.annualLimitUnlimited ? "Tanpa Limit" : formData.annualLimit} | 
+                        Per Application: RM {formData.limitPerApplicationUnlimited ? "Tanpa Limit" : formData.limitPerApplication}
                       </p>
                     </div>
                     <div className="flex items-center space-x-3">
@@ -2969,7 +2969,7 @@ export default function SystemSettingPage() {
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-700 block">Had Tahunan</label>
+                          <label className="text-sm font-medium text-gray-700 block">Limit Annual</label>
                           <div className="flex items-center space-x-2">
                             <Input 
                               type="number"
@@ -2985,12 +2985,12 @@ export default function SystemSettingPage() {
                               checked={formData.annualLimitUnlimited}
                               onCheckedChange={(checked) => updateFinancialPolicyField(policyId, 'annualLimitUnlimited', checked)}
                             />
-                            <span className="text-sm text-gray-500">Tanpa Had</span>
+                            <span className="text-sm text-gray-500">Tanpa Limit</span>
                           </div>
                         </div>
                         
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-700 block">Had Setiap Permohonan</label>
+                          <label className="text-sm font-medium text-gray-700 block">Limit Each Application</label>
                           <div className="flex items-center space-x-2">
                             <Input 
                               type="number"
@@ -3006,13 +3006,13 @@ export default function SystemSettingPage() {
                               checked={formData.limitPerApplicationUnlimited}
                               onCheckedChange={(checked) => updateFinancialPolicyField(policyId, 'limitPerApplicationUnlimited', checked)}
                             />
-                            <span className="text-sm text-gray-500">Tanpa Had</span>
+                            <span className="text-sm text-gray-500">Tanpa Limit</span>
                           </div>
                         </div>
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 block">Kecualikan Pekerja</label>
+                        <label className="text-sm font-medium text-gray-700 block">Kecualikan Employee</label>
                         <Select
                           value=""
                           onValueChange={(value) => {
@@ -3802,8 +3802,8 @@ export default function SystemSettingPage() {
           <div className="space-y-2">
             <Label className="text-sm font-medium">Currency</Label>
             <p className="text-xs text-gray-500">Choose currency applied by the company across the entire system</p>
-            <div className="bg-orange-50 p-3 rounded-lg border-l-4 border-orange-400">
-              <p className="text-xs text-orange-700">
+            <div className="bg-peoplee-50 p-3 rounded-lg border-l-4 border-peoplee-400">
+              <p className="text-xs text-peoplee-700">
                 <strong>Important:</strong> Changing the currency will apply to ALL parts of the system including Master Salary, Payroll, Payment Vouchers, Claims, and all financial calculations. This change affects all employees and existing data.
               </p>
             </div>
@@ -3895,8 +3895,8 @@ export default function SystemSettingPage() {
             {/* EIS Control */}
             <div className="flex items-center justify-between p-3 border rounded-lg">
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                  <span className="text-xs font-medium text-orange-600">EIS</span>
+                <div className="w-8 h-8 bg-peoplee-100 rounded-full flex items-center justify-center">
+                  <span className="text-xs font-medium text-peoplee-600">EIS</span>
                 </div>
                 <div>
                   <Label className="text-sm font-medium">EIS Contribution</Label>

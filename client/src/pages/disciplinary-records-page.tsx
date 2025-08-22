@@ -41,7 +41,7 @@ interface DisciplinaryRecord {
 const severityColors = {
   minor: "bg-green-100 text-green-800 border-green-200",
   moderate: "bg-yellow-100 text-yellow-800 border-yellow-200", 
-  major: "bg-orange-100 text-orange-800 border-orange-200",
+  major: "bg-peoplee-100 text-peoplee-800 border-peoplee-200",
   severe: "bg-red-100 text-red-800 border-red-200"
 };
 
@@ -179,7 +179,7 @@ export default function DisciplinaryRecordsPage() {
                   <p className="text-sm font-medium text-muted-foreground">Suspensions</p>
                   <p className="text-2xl font-bold">{summaryStats.suspensions}</p>
                 </div>
-                <Clock className="h-8 w-8 text-orange-500" />
+                <Clock className="h-8 w-8 text-peoplee-500" />
               </div>
             </CardContent>
           </Card>

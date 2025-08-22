@@ -52,7 +52,7 @@ export async function generateLeaveReportPDFLib(data: LeaveReportData, company: 
       const page = pdfDoc.addPage([595.28, 841.89]); // A4 size in points
       const { width, height } = page.getSize();
       
-      page.drawText('Tiada Data Pekerja Ditemui', {
+      page.drawText('Tiada Data Employee Ditemui', {
         x: (width - 200) / 2,
         y: height / 2,
         size: 16,
@@ -153,7 +153,7 @@ export async function generateLeaveReportPDFLib(data: LeaveReportData, company: 
         });
         
         // Employee details
-        page.drawText(`Nama: ${employee.employeeName}`, {
+        page.drawText(`Name: ${employee.employeeName}`, {
           x: 55,
           y: yPosition - 20,
           size: 12,
@@ -187,7 +187,7 @@ export async function generateLeaveReportPDFLib(data: LeaveReportData, company: 
         yPosition -= 100;
         
         // === TABLE SECTION ===
-        const tableHeaders = ['No.', 'Jenis Cuti', 'Kelayakan', 'Digunakan', 'Baki Semasa', 'Status'];
+        const tableHeaders = ['No.', 'Jenis Leave', 'Kelayakan', 'Digunakan', 'Baki Semasa', 'Status'];
         const columnWidths = [40, 140, 80, 80, 80, 100];
         const tableWidth = columnWidths.reduce((sum, width) => sum + width, 0);
         const tableStartX = (width - tableWidth) / 2;
@@ -381,7 +381,7 @@ export async function generateLeaveReportPDFLib(data: LeaveReportData, company: 
         });
         
         // Page number
-        page.drawText(`Halaman ${empIndex + 1} dari ${data.employees.length}`, {
+        page.drawText(`Page ${empIndex + 1} dari ${data.employees.length}`, {
           x: width - 150,
           y: footerY,
           size: 8,

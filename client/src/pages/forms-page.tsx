@@ -35,7 +35,7 @@ export default function FormsPage() {
       if (!token) {
         toast({
           title: "Error",
-          description: "Token tidak dijumpai. Sila log masuk semula.",
+          description: "Token not found. Sila log masuk semula.",
           variant: "destructive",
         });
         return;
@@ -58,13 +58,13 @@ export default function FormsPage() {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
       } else {
-        throw new Error("Gagal memuat turun borang");
+        throw new Error("Gagal memuat turun bpeople");
       }
     } catch (error) {
       console.error("Download error:", error);
       toast({
         title: "Ralat",
-        description: "Gagal memuat turun borang. Sila cuba lagi.",
+        description: "Gagal memuat turun bpeople. Sila cuba lagi.",
         variant: "destructive",
       });
     }

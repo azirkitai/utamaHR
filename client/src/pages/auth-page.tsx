@@ -53,7 +53,7 @@ export default function AuthPage() {
             />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">UtamaHR</h1>
-          <p className="text-cyan-200">Sistem Pengurusan Pekerja Terpadu</p>
+          <p className="text-cyan-200">Sistem Pengurusan Employee Terpadu</p>
         </div>
 
         <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm">

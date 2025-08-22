@@ -1057,7 +1057,7 @@ export default function MyRecordPage() {
       const filteredRecords = searchFilteredAttendanceRecords;
       
       if (filteredRecords.length === 0) {
-        alert('Tiada rekod kehadiran dijumpai untuk tempoh tarikh yang dipilih.');
+        alert('No attendance records found for the selected date range.');
         return;
       }
       
@@ -3258,10 +3258,10 @@ export default function MyRecordPage() {
                         overtime.status === 'firstLevelApproved' ? 'bg-blue-100 text-blue-800 border-blue-200' : ''
                       }
                     >
-                      {overtime.status === 'pending' || overtime.status === 'Pending' ? 'Menunggu' :
-                       overtime.status === 'approved' || overtime.status === 'Approved' ? 'Diluluskan' :
-                       overtime.status === 'rejected' || overtime.status === 'Rejected' ? 'Ditolak' :
-                       overtime.status === 'firstLevelApproved' ? 'Lulus Tahap 1' :
+                      {overtime.status === 'pending' || overtime.status === 'Pending' ? 'Pending' :
+                       overtime.status === 'approved' || overtime.status === 'Approved' ? 'Approved' :
+                       overtime.status === 'rejected' || overtime.status === 'Rejected' ? 'Rejected' :
+                       overtime.status === 'firstLevelApproved' ? 'Approve Tahap 1' :
                        overtime.status}
                     </Badge>
                   </TableCell>
@@ -3393,7 +3393,7 @@ export default function MyRecordPage() {
                         </span>
                         {isLate && extendedRecord.clockInRemarks && (
                           <div className="text-xs text-red-600 mt-1">
-                            ({extendedRecord.clockInRemarks.split(' dari masa')[0]})
+                            ({extendedRecord.clockInRemarks.split(' from')[0]})
                           </div>
                         )}
                       </div>
@@ -3432,7 +3432,7 @@ export default function MyRecordPage() {
                   </TableCell>
 
                   
-                  {/* Break Time (keluar rehat/lunch) */}
+                  {/* Break Time (keluar break/lunch) */}
                   <TableCell>
                     {(record as any).breakOutTime ? (
                       <div className="space-y-1">
@@ -3450,7 +3450,7 @@ export default function MyRecordPage() {
                         </span>
                         {(record as any).isLateBreakOut && (record as any).breakOutRemarks && (
                           <div className="text-xs text-red-600">
-                            ({(record as any).breakOutRemarks.split(' dari masa')[0]})
+                            ({(record as any).breakOutRemarks.split(' from')[0]})
                           </div>
                         )}
                       </div>
@@ -3479,7 +3479,7 @@ export default function MyRecordPage() {
                   </TableCell>
 
                   
-                  {/* Break Off (balik dari rehat/lunch) */}
+                  {/* Break Off (balik dari break/lunch) */}
                   <TableCell>
                     {(record as any).breakInTime ? (
                       <div className="space-y-1">
@@ -3497,7 +3497,7 @@ export default function MyRecordPage() {
                         </span>
                         {(record as any).isLateBreakIn && (record as any).breakInRemarks && (
                           <div className="text-xs text-red-600">
-                            ({(record as any).breakInRemarks.split(' dari masa')[0]})
+                            ({(record as any).breakInRemarks.split(' from')[0]})
                           </div>
                         )}
                       </div>

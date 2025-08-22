@@ -62,8 +62,8 @@ function PaymentVoucherApprovalCard({ voucher, currentUser }: { voucher: any; cu
     },
     onSuccess: () => {
       toast({
-        title: "Voucher Diluluskan",
-        description: "Payment voucher telah berjaya diluluskan",
+        title: "Voucher Approved",
+        description: "Payment voucher telah successfully diluluskan",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/payment-vouchers"] });
     },
@@ -89,7 +89,7 @@ function PaymentVoucherApprovalCard({ voucher, currentUser }: { voucher: any; cu
     },
     onSuccess: () => {
       toast({
-        title: "Voucher Ditolak",
+        title: "Voucher Rejected",
         description: "Payment voucher telah ditolak",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/payment-vouchers"] });
@@ -122,7 +122,7 @@ function PaymentVoucherApprovalCard({ voucher, currentUser }: { voucher: any; cu
     if (!currentUser?.id) {
       toast({
         title: "Error",
-        description: "User ID tidak dijumpai. Sila login semula.",
+        description: "User ID not found. Sila login semula.",
         variant: "destructive",
       });
       return;
@@ -138,7 +138,7 @@ function PaymentVoucherApprovalCard({ voucher, currentUser }: { voucher: any; cu
     if (!currentUser?.id) {
       toast({
         title: "Error",
-        description: "User ID tidak dijumpai. Sila login semula.",
+        description: "User ID not found. Sila login semula.",
         variant: "destructive",
       });
       return;
@@ -295,7 +295,7 @@ export default function VoucherDetailsPage() {
     onSuccess: () => {
       toast({
         title: "Success",
-        description: "Payment voucher telah berjaya dipadam",
+        description: "Payment voucher telah successfully dipadam",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/payment-vouchers"] });
       setLocation('/payment/voucher');
@@ -321,7 +321,7 @@ export default function VoucherDetailsPage() {
     onSuccess: () => {
       toast({
         title: "Success",
-        description: "Payment voucher telah berjaya dihantar. Status claim berkaitan telah dikemas kini kepada 'Paid'",
+        description: "Payment voucher telah successfully dihantar. Status claim berkaitan telah dikemas kini kepada 'Paid'",
       });
       // Invalidate payment vouchers cache
       queryClient.invalidateQueries({ queryKey: ["/api/payment-vouchers"] });
@@ -459,7 +459,7 @@ export default function VoucherDetailsPage() {
       console.log('VOUCHER: PDF downloaded successfully');
       toast({
         title: "Berjaya",
-        description: "Payment voucher PDF berjaya dimuat turun!",
+        description: "Payment voucher PDF successfully dimuat turun!",
       });
       
     } catch (error) {

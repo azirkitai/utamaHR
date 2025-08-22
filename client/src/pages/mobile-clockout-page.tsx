@@ -117,7 +117,7 @@ export default function MobileClockOutPage() {
 
   const submitClockOut = async (latitude: number, longitude: number) => {
     if (!selfieBlob) {
-      setError("Selfie diperlukan");
+      setError("Selfie required");
       setStep("error");
       return;
     }
@@ -192,7 +192,7 @@ export default function MobileClockOutPage() {
               <h1 className="text-2xl font-bold text-gray-800">Clock-Out</h1>
             </div>
             <p className="text-gray-700">
-              Ambil selfie dan sahkan lokasi untuk clock-out
+              Ambil selfie dan validkan lokasi untuk clock-out
             </p>
           </div>
         </div>
@@ -208,7 +208,7 @@ export default function MobileClockOutPage() {
               
               {step === "camera" && "Ambil Selfie"}
               {step === "location" && "Mendapatkan Lokasi..."}
-              {step === "uploading" && "Memproses Clock-Out..."}
+              {step === "uploading" && "Processing Clock-Out..."}
               {step === "success" && "Clock-Out Berjaya"}
               {step === "error" && "Ralat Clock-Out"}
             </CardTitle>
@@ -261,7 +261,7 @@ export default function MobileClockOutPage() {
                   <RefreshCw className="h-12 w-12 text-blue-600" />
                 </div>
                 <p className="text-gray-600">
-                  Memproses clock-out...
+                  Processing clock-out...
                 </p>
                 <p className="text-sm text-gray-500">
                   Sila tunggu sebentar

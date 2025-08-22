@@ -112,7 +112,7 @@ export default function ClaimApprovalPage() {
     });
     toast({ 
       title: "Filter Direset", 
-      description: "Semua filter telah ditetapkan semula" 
+      description: "All filter telah ditetapkan semula" 
     });
   };
 
@@ -321,7 +321,7 @@ export default function ClaimApprovalPage() {
       return response.json();
     },
     onSuccess: () => {
-      toast({ title: "Berjaya!", description: "Permohonan telah diluluskan" });
+      toast({ title: "Berjaya!", description: "Application telah diluluskan" });
       queryClient.invalidateQueries({ queryKey: ["/api/claim-applications"] });
       queryClient.invalidateQueries({ queryKey: ["/api/claim-applications/type/overtime"] });
       queryClient.invalidateQueries({ queryKey: ["/api/claim-applications/type/financial"] });
@@ -359,7 +359,7 @@ export default function ClaimApprovalPage() {
       return response.json();
     },
     onSuccess: () => {
-      toast({ title: "Berjaya!", description: "Permohonan telah ditolak" });
+      toast({ title: "Berjaya!", description: "Application telah ditolak" });
       queryClient.invalidateQueries({ queryKey: ["/api/claim-applications"] });
       queryClient.invalidateQueries({ queryKey: ["/api/claim-applications/type/overtime"] });
       queryClient.invalidateQueries({ queryKey: ["/api/claim-applications/type/financial"] });
@@ -1018,7 +1018,7 @@ export default function ClaimApprovalPage() {
                             variant="outline" 
                             data-testid={`button-view-${item.id}`}
                             onClick={() => handleView(item)}
-                            title="Lihat Maklumat"
+                            title="View Details"
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
@@ -1034,7 +1034,7 @@ export default function ClaimApprovalPage() {
                                     data-testid={`button-approve-${item.id}`}
                                     onClick={() => handleApprove(item.id)}
                                     disabled={approveMutation.isPending}
-                                    title="Lulus"
+                                    title="Approve"
                                   >
                                     <Check className="w-4 h-4" />
                                   </Button>
@@ -1102,7 +1102,7 @@ export default function ClaimApprovalPage() {
                             variant="outline" 
                             data-testid={`button-view-${item.id}`}
                             onClick={() => handleView(item)}
-                            title="Lihat Maklumat"
+                            title="View Details"
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
@@ -1118,7 +1118,7 @@ export default function ClaimApprovalPage() {
                                     data-testid={`button-approve-${item.id}`}
                                     onClick={() => handleApprove(item.id)}
                                     disabled={approveMutation.isPending}
-                                    title="Lulus"
+                                    title="Approve"
                                   >
                                     <Check className="w-4 h-4" />
                                   </Button>
@@ -1356,7 +1356,7 @@ export default function ClaimApprovalPage() {
         (selectedCategory === "overtime" && filteredOvertimeClaims.length > 0)) && (
         <div className="flex justify-between items-center">
           <div className="text-sm text-gray-600">
-            Menunjukkan 1 hingga {selectedCategory === "financial" ? filteredFinancialClaims.length : filteredOvertimeClaims.length} daripada {selectedCategory === "financial" ? filteredFinancialClaims.length : filteredOvertimeClaims.length} rekod
+            Menunjukkan 1 hingga {selectedCategory === "financial" ? filteredFinancialClaims.length : filteredOvertimeClaims.length} of {selectedCategory === "financial" ? filteredFinancialClaims.length : filteredOvertimeClaims.length} rekod
           </div>
           <div className="flex space-x-2">
             <Button variant="outline" disabled data-testid="button-previous-report">
@@ -1511,7 +1511,7 @@ export default function ClaimApprovalPage() {
       {summaryData.length > 0 && (
         <div className="flex justify-between items-center">
           <div className="text-sm text-gray-600">
-            Menunjukkan 1 hingga {summaryData.length} daripada {summaryData.length} rekod
+            Menunjukkan 1 hingga {summaryData.length} of {summaryData.length} rekod
           </div>
           <div className="flex space-x-2">
             <Button variant="outline" disabled data-testid="button-previous-summary">
@@ -1627,7 +1627,7 @@ export default function ClaimApprovalPage() {
                         <th className="border border-gray-300 px-4 py-2 text-left">Bil</th>
                         <th className="border border-gray-300 px-4 py-2 text-left">Jenis</th>
                         <th className="border border-gray-300 px-4 py-2 text-left">Polisi/Sebab</th>
-                        <th className="border border-gray-300 px-4 py-2 text-left">Tarikh</th>
+                        <th className="border border-gray-300 px-4 py-2 text-left">Date</th>
                         <th className="border border-gray-300 px-4 py-2 text-left">
                           {selectedCategory === 'overtime' ? 'Masa Overtime' : 'Amaun'}
                         </th>
@@ -1700,10 +1700,10 @@ export default function ClaimApprovalPage() {
                                   claim.status === 'firstLevelApproved' ? 'bg-blue-100 text-blue-800' :
                                   'bg-gray-100 text-gray-800'
                                 }`}>
-                                  {claim.status === 'pending' ? 'Menunggu' :
-                                   claim.status === 'approved' ? 'Diluluskan' :
-                                   claim.status === 'rejected' ? 'Ditolak' :
-                                   claim.status === 'firstLevelApproved' ? 'Lulus Tahap 1' :
+                                  {claim.status === 'pending' ? 'Pending' :
+                                   claim.status === 'approved' ? 'Approved' :
+                                   claim.status === 'rejected' ? 'Rejected' :
+                                   claim.status === 'firstLevelApproved' ? 'Approve Tahap 1' :
                                    claim.status}
                                 </span>
                               </td>
@@ -1765,10 +1765,10 @@ export default function ClaimApprovalPage() {
                                   claim.status === 'firstLevelApproved' ? 'bg-blue-100 text-blue-800' :
                                   'bg-gray-100 text-gray-800'
                                 }`}>
-                                  {claim.status === 'pending' ? 'Menunggu' :
-                                   claim.status === 'approved' ? 'Diluluskan' :
-                                   claim.status === 'rejected' ? 'Ditolak' :
-                                   claim.status === 'firstLevelApproved' ? 'Lulus Tahap 1' :
+                                  {claim.status === 'pending' ? 'Pending' :
+                                   claim.status === 'approved' ? 'Approved' :
+                                   claim.status === 'rejected' ? 'Rejected' :
+                                   claim.status === 'firstLevelApproved' ? 'Approve Tahap 1' :
                                    claim.status}
                                 </span>
                               </td>
@@ -1838,7 +1838,7 @@ export default function ClaimApprovalPage() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" role="dialog" aria-labelledby="view-claim-title" aria-describedby="view-claim-description">
               <div className="flex justify-between items-center mb-4">
-                <h2 id="view-claim-title" className="text-2xl font-bold">Maklumat Permohonan</h2>
+                <h2 id="view-claim-title" className="text-2xl font-bold">Maklumat Application</h2>
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -1853,14 +1853,14 @@ export default function ClaimApprovalPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="font-medium text-gray-700">Pemohon:</label>
+                  <label className="font-medium text-gray-700">Applicant:</label>
                   <p className="text-gray-900">
                     {getEmployeeName(selectedClaimForView.employeeId)}
                   </p>
                 </div>
                 
                 <div>
-                  <label className="font-medium text-gray-700">Jenis Permohonan:</label>
+                  <label className="font-medium text-gray-700">Jenis Application:</label>
                   <p className="text-gray-900">
                     {selectedCategory === 'financial' ? selectedClaimForView.claimType : 'Overtime'}
                   </p>
@@ -1869,14 +1869,14 @@ export default function ClaimApprovalPage() {
                 <div>
                   <label className="font-medium text-gray-700">Status:</label>
                   <p className="text-gray-900">
-                    {selectedClaimForView.status === 'pending' ? 'Menunggu' : 
-                     selectedClaimForView.status === 'approved' ? 'Diluluskan' :
-                     selectedClaimForView.status === 'rejected' ? 'Ditolak' : selectedClaimForView.status}
+                    {selectedClaimForView.status === 'pending' ? 'Pending' : 
+                     selectedClaimForView.status === 'approved' ? 'Approved' :
+                     selectedClaimForView.status === 'rejected' ? 'Rejected' : selectedClaimForView.status}
                   </p>
                 </div>
                 
                 <div>
-                  <label className="font-medium text-gray-700">Tarikh Permohonan:</label>
+                  <label className="font-medium text-gray-700">Date Application:</label>
                   <p className="text-gray-900">
                     {new Date(selectedClaimForView.claimDate).toLocaleDateString('ms-MY')}
                   </p>
@@ -1885,7 +1885,7 @@ export default function ClaimApprovalPage() {
                 {selectedCategory === 'financial' ? (
                   <>
                     <div>
-                      <label className="font-medium text-gray-700">Polisi Tuntutan:</label>
+                      <label className="font-medium text-gray-700">Polisi Claim:</label>
                       <p className="text-gray-900">
                         {selectedClaimForView.financialPolicyName || 'N/A'}
                       </p>
@@ -1957,7 +1957,7 @@ export default function ClaimApprovalPage() {
                       }}
                       disabled={approveMutation.isPending}
                     >
-                      Lulus
+                      Approve
                     </Button>
                     <Button 
                       className="bg-red-600 hover:bg-red-700 text-white"

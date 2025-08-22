@@ -144,8 +144,8 @@ export default function ManageEmployeePage() {
       // Try to parse error response for detailed info
       try {
         const errorData = JSON.parse(error.message.split(': ').slice(1).join(': '));
-        if (errorData.error === "Username sudah wujud" && errorData.suggestions) {
-          errorMessage = `Username "${errorData.username}" sudah wujud. Cadangan username: ${errorData.suggestions.join(', ')}`;
+        if (errorData.error === "Username already wujud" && errorData.suggestions) {
+          errorMessage = `Username "${errorData.username}" already wujud. Cadangan username: ${errorData.suggestions.join(', ')}`;
         }
       } catch {
         // Use original error message if parsing fails
@@ -249,7 +249,7 @@ export default function ManageEmployeePage() {
       
       toast({
         title: "Ralat",
-        description: "Sila isi semua field yang diperlukan.",
+        description: "Sila isi semua field yang required.",
         variant: "destructive",
       });
       return;
@@ -313,7 +313,7 @@ export default function ManageEmployeePage() {
       if (!response.ok) {
         if (response.status === 403) {
           toast({
-            title: "Akses Ditolak",
+            title: "Akses Rejected",
             description: "Hanya admin yang dibenarkan untuk download laporan",
             variant: "destructive",
           });

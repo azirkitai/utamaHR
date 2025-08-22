@@ -36,7 +36,7 @@ export function EquipmentTab({ employeeId }: EquipmentTabProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/equipment", employeeId] });
       toast({
         title: "Berjaya",
-        description: "Equipment berjaya dipadamkan",
+        description: "Equipment successfully dipadamkan",
       });
     },
     onError: () => {

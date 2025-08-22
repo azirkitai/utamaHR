@@ -60,7 +60,7 @@ export function DocumentsTab({ employeeId }: DocumentsTabProps) {
     onSuccess: (data) => {
       toast({
         title: "Berjaya",
-        description: data.message || "Dokumen berjaya disimpan",
+        description: data.message || "Dokumen successfully disimpan",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/employee-documents", employeeId] });
       setIsModalOpen(false);
@@ -83,7 +83,7 @@ export function DocumentsTab({ employeeId }: DocumentsTabProps) {
     onSuccess: (data) => {
       toast({
         title: "Berjaya",
-        description: data.message || "Dokumen berjaya dikemaskini",
+        description: data.message || "Dokumen successfully dikemaskini",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/employee-documents", employeeId] });
       setIsModalOpen(false);
@@ -106,7 +106,7 @@ export function DocumentsTab({ employeeId }: DocumentsTabProps) {
     onSuccess: (data) => {
       toast({
         title: "Berjaya",
-        description: data.message || "Dokumen berjaya dipadam",
+        description: data.message || "Dokumen successfully dipadam",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/employee-documents", employeeId] });
     },
@@ -206,7 +206,7 @@ export function DocumentsTab({ employeeId }: DocumentsTabProps) {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12">No.</TableHead>
-                    <TableHead>Nama</TableHead>
+                    <TableHead>Name</TableHead>
                     <TableHead>Catatan</TableHead>
                     <TableHead>Dimuat naik</TableHead>
                     <TableHead className="w-32">Aksi</TableHead>

@@ -194,7 +194,7 @@ export default function SystemSettingPage() {
     onSuccess: () => {
       toast({
         title: "Polisi claim disimpan",
-        description: "Polisi claim kewangan berjaya disimpan.",
+        description: "Polisi claim kewangan successfully disimpan.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/financial-claim-policies"] });
       setHasUnsavedChanges(false);

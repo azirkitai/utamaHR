@@ -62,8 +62,8 @@ function SalaryPayrollApprovalCard({ payrollDocument, currentUser }: { payrollDo
     },
     onSuccess: () => {
       toast({
-        title: "Dokumen Diluluskan",
-        description: "Dokumen payroll telah berjaya diluluskan",
+        title: "Dokumen Approved",
+        description: "Dokumen payroll telah successfully diluluskan",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/payroll/documents"] });
     },
@@ -84,7 +84,7 @@ function SalaryPayrollApprovalCard({ payrollDocument, currentUser }: { payrollDo
     },
     onSuccess: () => {
       toast({
-        title: "Dokumen Ditolak",
+        title: "Dokumen Rejected",
         description: "Dokumen payroll telah ditolak",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/payroll/documents"] });
@@ -117,7 +117,7 @@ function SalaryPayrollApprovalCard({ payrollDocument, currentUser }: { payrollDo
     if (!currentUser?.id) {
       toast({
         title: "Error",
-        description: "User ID tidak dijumpai. Sila login semula.",
+        description: "User ID not found. Sila login semula.",
         variant: "destructive",
       });
       return;
@@ -133,7 +133,7 @@ function SalaryPayrollApprovalCard({ payrollDocument, currentUser }: { payrollDo
     if (!currentUser?.id) {
       toast({
         title: "Error",
-        description: "User ID tidak dijumpai. Sila login semula.",
+        description: "User ID not found. Sila login semula.",
         variant: "destructive",
       });
       return;
@@ -278,7 +278,7 @@ export default function PayrollDetailPage() {
       // Refresh data after successful update
       queryClient.invalidateQueries({ queryKey: ["/api/payroll/documents", id, "items"] });
       queryClient.invalidateQueries({ queryKey: ["/api/payroll/documents", id] });
-      alert('Data payroll telah berjaya dikemaskini dengan konfigurasi Master Salary terkini!');
+      alert('Data payroll telah successfully dikemaskini dengan konfigurasi Master Salary terkini!');
     },
     onError: (error) => {
       console.error('Error refreshing payroll:', error);
@@ -308,7 +308,7 @@ export default function PayrollDetailPage() {
         throw new Error('Failed to delete payroll document');
       }
 
-      alert('Data payslip untuk bulan ini telah berjaya dipadam!');
+      alert('Data payslip untuk bulan ini telah successfully dipadam!');
       // Navigate back to payroll list
       window.location.href = "/payment/salary-payroll";
     } catch (error) {
@@ -421,7 +421,7 @@ export default function PayrollDetailPage() {
       }, 100);
       
       console.log('METHOD 2: PDF downloaded successfully');
-      alert('Slip gaji PDF berjaya dimuat turun!');
+      alert('Slip gaji PDF successfully dimuat turun!');
       
     } catch (error) {
       console.error('METHOD 2 Error:', error);
@@ -451,7 +451,7 @@ export default function PayrollDetailPage() {
       alert('Slip gaji PDF sedang dimuat turun (method 3)...');
     } catch (error) {
       console.error('METHOD 3 Error:', error);
-      alert('Semua method gagal. Sila hubungi admin.');
+      alert('All method gagal. Sila hubungi admin.');
     }
   };
 
@@ -485,9 +485,9 @@ export default function PayrollDetailPage() {
       doc.setFontSize(12);
       let yPos = 40;
       
-      doc.text(`Nama: ${payrollData.employee?.fullName || employeeName}`, 20, yPos);
+      doc.text(`Name: ${payrollData.employee?.fullName || employeeName}`, 20, yPos);
       yPos += 10;
-      doc.text(`No. Pekerja: ${payrollData.employee?.employeeNo || 'N/A'}`, 20, yPos);
+      doc.text(`No. Employee: ${payrollData.employee?.employeeNo || 'N/A'}`, 20, yPos);
       yPos += 10;
       doc.text(`Bulan/Tahun: ${payrollData.document?.month || 'N/A'}/${payrollData.document?.year || 'N/A'}`, 20, yPos);
       yPos += 20;
@@ -525,7 +525,7 @@ export default function PayrollDetailPage() {
       doc.save(filename);
       
       console.log('METHOD 4: jsPDF generated successfully');
-      alert('Slip gaji PDF berjaya dimuat turun (jsPDF method)!');
+      alert('Slip gaji PDF successfully dimuat turun (jsPDF method)!');
       
     } catch (error) {
       console.error('METHOD 4 Error:', error);
@@ -565,7 +565,7 @@ export default function PayrollDetailPage() {
       URL.revokeObjectURL(url);
       
       console.log('METHOD 5: html-pdf-node success');
-      alert('Slip gaji PDF berjaya dimuat turun (html-pdf-node method)!');
+      alert('Slip gaji PDF successfully dimuat turun (html-pdf-node method)!');
       
     } catch (error) {
       console.error('METHOD 5 Error:', error);
@@ -610,9 +610,9 @@ export default function PayrollDetailPage() {
       doc.setFontSize(12);
       let yPos = 60;
       
-      doc.text(`Nama Pekerja: ${data.employee.fullName}`, 20, yPos);
+      doc.text(`Name Employee: ${data.employee.fullName}`, 20, yPos);
       yPos += 10;
-      doc.text(`No. Pekerja: ${data.employee.employeeNo}`, 20, yPos);
+      doc.text(`No. Employee: ${data.employee.employeeNo}`, 20, yPos);
       yPos += 10;
       doc.text(`No. IC: ${data.employee.ic}`, 20, yPos);
       yPos += 10;
@@ -642,7 +642,7 @@ export default function PayrollDetailPage() {
       doc.save(filename);
       
       console.log('Simple PDF generated successfully');
-      alert('PDF slip gaji berjaya dimuat turun menggunakan jsPDF!');
+      alert('PDF slip gaji successfully dimuat turun menggunakan jsPDF!');
       
     } catch (error) {
       console.error('Simple method error:', error);
@@ -741,7 +741,7 @@ export default function PayrollDetailPage() {
       URL.revokeObjectURL(url);
       
       console.log('PDF downloaded successfully');
-      alert('Slip gaji PDF telah berjaya dimuat turun!');
+      alert('Slip gaji PDF telah successfully dimuat turun!');
       
     } catch (error) {
       console.error('PDF download error:', error);

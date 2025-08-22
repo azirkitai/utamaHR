@@ -124,8 +124,8 @@ export function ClaimPolicyModal({
       toast({
         title: "Berjaya",
         description: claimPolicy
-          ? "Polisi claim berjaya dikemaskini"
-          : "Polisi claim berjaya ditambah",
+          ? "Polisi claim successfully dikemaskini"
+          : "Polisi claim successfully ditambah",
       });
       onClose();
     },

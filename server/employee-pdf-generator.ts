@@ -83,7 +83,7 @@ export class EmployeePDFGenerator {
       doc.setFontSize(24);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(30, 64, 175);
-      doc.text('LAPORAN LENGKAP PEKERJA', 105, 18, { align: 'center' });
+      doc.text('COMPLETE EMPLOYEE REPORT', 105, 18, { align: 'center' });
       
       // Company system name
       doc.setFontSize(14);
@@ -91,7 +91,7 @@ export class EmployeePDFGenerator {
       doc.setTextColor(0, 0, 0);
       const systemName = companySettings?.companyShortName || 
         companySettings?.companyName || 
-        'KLINIK UTAMA 24 JAM HR SISTEM';
+        'UTAMA 24 HOUR CLINIC HR SYSTEM';
       doc.text(systemName, 105, 28, { align: 'center' });
       
       // Header line
@@ -137,7 +137,7 @@ export class EmployeePDFGenerator {
       doc.setFontSize(8);
       doc.setTextColor(100, 100, 100);
       doc.text(`Laporan dijana oleh UtamaHR Sistem pada ${today}`, 105, 285, { align: 'center' });
-      doc.text(`Halaman ${pageNum} daripada ${totalPages}`, 105, 290, { align: 'center' });
+      doc.text(`Page ${pageNum} of ${totalPages}`, 105, 290, { align: 'center' });
     };
 
     // Generate report for each employee
@@ -150,29 +150,29 @@ export class EmployeePDFGenerator {
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(30, 64, 175);
-      doc.text(`PEKERJA ${index + 1}: ${employee.fullName || 'Tiada Nama'}`, 20, yPos);
+      doc.text(`PEKERJA ${index + 1}: ${employee.fullName || 'Tiada Name'}`, 20, yPos);
       yPos += 10;
       
       // Section 1: Maklumat Peribadi
       yPos = addSectionHeader('1. MAKLUMAT PERIBADI', yPos);
-      yPos = addTableRow('Nama Penuh', employee.fullName, yPos, false);
+      yPos = addTableRow('Name Penuh', employee.fullName, yPos, false);
       yPos = addTableRow('No. IC / NRIC', employee.nric || employee.nricOld, yPos, true);
-      yPos = addTableRow('Tarikh Lahir', formatDate(employee.dateOfBirth), yPos, false);
+      yPos = addTableRow('Date Lahir', formatDate(employee.dateOfBirth), yPos, false);
       yPos = addTableRow('Tempat Lahir', employee.placeOfBirth, yPos, true);
       yPos = addTableRow('Jantina', employee.gender, yPos, false);
       yPos = addTableRow('Alamat Tetap', employee.contact?.address, yPos, true);
       yPos = addTableRow('Alamat Surat-Menyurat', employee.contact?.mailingAddress, yPos, false);
       yPos += 5;
 
-      // Section 2: Maklumat Pekerjaan
+      // Section 2: Maklumat Employeean
       yPos = addSectionHeader('2. MAKLUMAT PEKERJAAN', yPos);
       yPos = addTableRow('Staff ID', employee.staffId, yPos, false);
-      yPos = addTableRow('No. Pekerja', employee.employment?.employeeNo, yPos, true);
+      yPos = addTableRow('No. Employee', employee.employment?.employeeNo, yPos, true);
       yPos = addTableRow('Jawatan', employee.employment?.designation, yPos, false);
       yPos = addTableRow('Jabatan', employee.employment?.department, yPos, true);
-      yPos = addTableRow('Syarikat', employee.employment?.company, yPos, false);
-      yPos = addTableRow('Status Pekerjaan', employee.employment?.employmentStatus, yPos, true);
-      yPos = addTableRow('Tarikh Mula Kerja', formatDate(employee.employment?.dateJoining), yPos, false);
+      yPos = addTableRow('Company', employee.employment?.company, yPos, false);
+      yPos = addTableRow('Status Employeean', employee.employment?.employmentStatus, yPos, true);
+      yPos = addTableRow('Date Mula Kerja', formatDate(employee.employment?.dateJoining), yPos, false);
       yPos += 5;
 
       // Check if need new page
@@ -182,29 +182,29 @@ export class EmployeePDFGenerator {
       }
 
       // Section 3: Maklumat Perhubungan
-      yPos = addSectionHeader('3. MAKLUMAT PERHUBUNGAN', yPos);
-      yPos = addTableRow('Telefon Pejabat', employee.contact?.phoneNumber, yPos, false);
-      yPos = addTableRow('Telefon Bimbit', employee.contact?.mobileNumber, yPos, true);
-      yPos = addTableRow('Email Rasmi', employee.contact?.email, yPos, false);
-      yPos = addTableRow('Email Peribadi', employee.contact?.personalEmail, yPos, true);
+      yPos = addSectionHeader('3. CONTACT INFORMATION', yPos);
+      yPos = addTableRow('Office Phone', employee.contact?.phoneNumber, yPos, false);
+      yPos = addTableRow('Mobile Phone', employee.contact?.mobileNumber, yPos, true);
+      yPos = addTableRow('Official Email', employee.contact?.email, yPos, false);
+      yPos = addTableRow('Personal Email', employee.contact?.personalEmail, yPos, true);
       yPos += 5;
 
       // Section 4: Maklumat Kecemasan
-      yPos = addSectionHeader('4. MAKLUMAT KECEMASAN', yPos);
-      yPos = addTableRow('Nama Untuk Dihubungi', employee.contact?.emergencyContactName, yPos, false);
-      yPos = addTableRow('No. Telefon Kecemasan', employee.contact?.emergencyContactPhone, yPos, true);
-      yPos = addTableRow('Hubungan', employee.contact?.emergencyContactRelationship, yPos, false);
+      yPos = addSectionHeader('4. EMERGENCY INFORMATION', yPos);
+      yPos = addTableRow('Name Untuk Dihubungi', employee.contact?.emergencyContactName, yPos, false);
+      yPos = addTableRow('Emergency Phone Number', employee.contact?.emergencyContactPhone, yPos, true);
+      yPos = addTableRow('Relationship', employee.contact?.emergencyContactRelationship, yPos, false);
       yPos += 5;
 
       // Section 5: Maklumat HR/Payroll
       yPos = addSectionHeader('5. MAKLUMAT HR/PAYROLL', yPos);
       yPos = addTableRow('Gaji Asas', employee.payroll?.basicSalary ? `RM ${employee.payroll.basicSalary.toFixed(2)}` : 'N/A', yPos, false);
-      yPos = addTableRow('Nama Bank', employee.payroll?.bankName, yPos, true);
-      yPos = addTableRow('No. Akaun Bank', employee.payroll?.accountNumber, yPos, false);
-      yPos = addTableRow('No. KWSP', employee.payroll?.epfNumber, yPos, true);
-      yPos = addTableRow('No. SOCSO', employee.payroll?.socsoNumber, yPos, false);
-      yPos = addTableRow('No. EIS', employee.payroll?.eisNumber, yPos, true);
-      yPos = addTableRow('No. PCB', employee.payroll?.pcbNumber, yPos, false);
+      yPos = addTableRow('Name Bank', employee.payroll?.bankName, yPos, true);
+      yPos = addTableRow('Bank Account Number', employee.payroll?.accountNumber, yPos, false);
+      yPos = addTableRow('EPF Number', employee.payroll?.epfNumber, yPos, true);
+      yPos = addTableRow('SOCSO Number', employee.payroll?.socsoNumber, yPos, false);
+      yPos = addTableRow('EIS Number', employee.payroll?.eisNumber, yPos, true);
+      yPos = addTableRow('PCB Number', employee.payroll?.pcbNumber, yPos, false);
 
       // Add status indicator
       yPos += 10;
@@ -217,7 +217,7 @@ export class EmployeePDFGenerator {
       doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(255, 255, 255);
-      doc.text(`STATUS: ${employee.status?.toUpperCase() || 'TIDAK DIKETAHUI'}`, 105, yPos + 4, { align: 'center' });
+      doc.text(`STATUS: ${employee.status?.toUpperCase() || 'UNKNOWN'}`, 105, yPos + 4, { align: 'center' });
     });
 
     // Add summary page
@@ -235,13 +235,13 @@ export class EmployeePDFGenerator {
     doc.setTextColor(0, 0, 0);
     
     yPos += 5;
-    doc.text(`Jumlah Keseluruhan Pekerja: ${employees.length}`, 20, yPos);
+    doc.text(`Jumlah Keseluruhan Employee: ${employees.length}`, 20, yPos);
     yPos += 8;
-    doc.text(`Pekerja Aktif: ${activeCount}`, 20, yPos);
+    doc.text(`Active Employee: ${activeCount}`, 20, yPos);
     yPos += 6;
-    doc.text(`Pekerja Dalam Percubaan: ${probationCount}`, 20, yPos);
+    doc.text(`Employee Dalam Percubaan: ${probationCount}`, 20, yPos);
     yPos += 6;
-    doc.text(`Pekerja Berhenti: ${resignedCount}`, 20, yPos);
+    doc.text(`Employee Berhenti: ${resignedCount}`, 20, yPos);
     
     // Department breakdown
     const departments = employees.reduce((acc, emp) => {
@@ -251,11 +251,11 @@ export class EmployeePDFGenerator {
     }, {} as Record<string, number>);
     
     yPos += 15;
-    yPos = addSectionHeader('PECAHAN MENGIKUT JABATAN', yPos);
+    yPos = addSectionHeader('BREAKDOWN BY DEPARTMENT', yPos);
     yPos += 5;
     
     Object.entries(departments).forEach(([dept, count]) => {
-      doc.text(`${dept}: ${count} orang`, 20, yPos);
+      doc.text(`${dept}: ${count} people`, 20, yPos);
       yPos += 6;
     });
 

@@ -250,7 +250,7 @@ export default function LeaveApprovalPage() {
     onSuccess: (data: any, variables) => {
       toast({
         title: "Berjaya!",
-        description: data.message || "Permohonan telah diproses",
+        description: data.message || "Application telah diproses",
         variant: "default",
       });
       // Refetch leave applications to get updated data
@@ -315,7 +315,7 @@ export default function LeaveApprovalPage() {
     // This can be used for additional search logic if needed
     toast({
       title: "Carian Dilakukan",
-      description: `Dijumpai ${filteredData.length} rekod daripada ${leaveApplications.length} jumlah rekod`,
+      description: `Dijumpai ${filteredData.length} rekod of ${leaveApplications.length} jumlah rekod`,
       variant: "default",
     });
   };
@@ -346,8 +346,8 @@ export default function LeaveApprovalPage() {
       const link = document.createElement('a');
       link.href = url;
       
-      const reportName = activeTab === 'summary' ? 'Ringkasan' : 'Permohonan';
-      const fileName = `Laporan_Cuti_${reportName}_${new Date().toISOString().split('T')[0]}.pdf`;
+      const reportName = activeTab === 'summary' ? 'Ringkasan' : 'Application';
+      const fileName = `Laporan_Leave_${reportName}_${new Date().toISOString().split('T')[0]}.pdf`;
       link.download = fileName;
       
       document.body.appendChild(link);
@@ -380,7 +380,7 @@ export default function LeaveApprovalPage() {
     setSelectedLeaveStatus("all");
     toast({
       title: "Penapis Telah Dibersihkan",
-      description: "Semua penapis telah diset semula",
+      description: "All penapis telah diset semula",
       variant: "default",
     });
   };
@@ -417,7 +417,7 @@ export default function LeaveApprovalPage() {
       case "summary":
         return "Leave Application Summary";
       case "balance-carry-forward":
-        return "Rekod Baki Cuti Dibawa ke Hadapan";
+        return "Rekod Baki Leave Dibawa ke Limitapan";
       default:
         return "Leave Applications";
     }
@@ -691,7 +691,7 @@ export default function LeaveApprovalPage() {
                 </div>
                 <div className="text-right">
                   <span className="bg-cyan-100 text-cyan-800 px-3 py-1 rounded-full text-sm font-medium">
-                    {Object.keys(employee.leaveBreakdown).length} Jenis Cuti
+                    {Object.keys(employee.leaveBreakdown).length} Jenis Leave
                   </span>
                 </div>
               </div>
@@ -703,7 +703,7 @@ export default function LeaveApprovalPage() {
                 <TableHeader>
                   <TableRow className="bg-gray-50">
                     <TableHead className="w-16">No.</TableHead>
-                    <TableHead>Jenis Cuti</TableHead>
+                    <TableHead>Jenis Leave</TableHead>
                     <TableHead className="text-center">Kelayakan</TableHead>
                     <TableHead className="text-center">Digunakan</TableHead>
                     <TableHead className="text-center">Baki Semasa</TableHead>

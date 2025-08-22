@@ -1383,7 +1383,7 @@ export default function CalendarPage() {
                                           <span>{holiday.name}</span>
                                           {holiday.isPublic && (
                                             <Badge className="bg-red-100 text-red-800 text-xs">
-                                              Cuti Umum
+                                              Leave Umum
                                             </Badge>
                                           )}
                                         </div>
@@ -1575,7 +1575,7 @@ export default function CalendarPage() {
         <Dialog open={isHolidayModalOpen} onOpenChange={setIsHolidayModalOpen}>
           <DialogContent className="max-w-lg" aria-describedby="holiday-details-description">
             <DialogHeader>
-              <DialogTitle>Maklumat Cuti Umum</DialogTitle>
+              <DialogTitle>Maklumat Leave Umum</DialogTitle>
             </DialogHeader>
             <p id="holiday-details-description" className="sr-only">
               Details about the selected public holiday.
@@ -1587,13 +1587,13 @@ export default function CalendarPage() {
                   <div className="text-2xl">🏛️</div>
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg text-red-800">{selectedHoliday.name}</h3>
-                    <p className="text-sm text-red-600">Cuti Umum</p>
+                    <p className="text-sm text-red-600">Leave Umum</p>
                   </div>
                 </div>
                 
                 <div className="space-y-3">
                   <div>
-                    <p className="text-sm font-medium text-gray-700">Tarikh:</p>
+                    <p className="text-sm font-medium text-gray-700">Date:</p>
                     <p className="text-base">{selectedHoliday.date}</p>
                   </div>
                   
@@ -1601,7 +1601,7 @@ export default function CalendarPage() {
                     <p className="text-sm font-medium text-gray-700">Status:</p>
                     <div className="flex items-center gap-2">
                       <Badge className="bg-red-100 text-red-800">
-                        Cuti Umum
+                        Leave Umum
                       </Badge>
                       {selectedHoliday.isPublic && (
                         <Badge className="bg-green-100 text-green-800">
@@ -1662,7 +1662,7 @@ export default function CalendarPage() {
                       
                       <div className="grid grid-cols-2 gap-4 mb-3">
                         <div>
-                          <p className="text-sm font-medium text-gray-700">Jenis Cuti:</p>
+                          <p className="text-sm font-medium text-gray-700">Jenis Leave:</p>
                           <p className="text-sm">{leave.leaveType}</p>
                         </div>
                         <div>
@@ -1670,11 +1670,11 @@ export default function CalendarPage() {
                           <p className="text-sm">{leave.totalDays} hari</p>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-700">Tarikh Mula:</p>
+                          <p className="text-sm font-medium text-gray-700">Date Mula:</p>
                           <p className="text-sm">{new Date(leave.startDate).toLocaleDateString('en-GB')}</p>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-700">Tarikh Tamat:</p>
+                          <p className="text-sm font-medium text-gray-700">Date Tamat:</p>
                           <p className="text-sm">{new Date(leave.endDate).toLocaleDateString('en-GB')}</p>
                         </div>
                       </div>
@@ -1743,11 +1743,11 @@ export default function CalendarPage() {
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm font-medium text-gray-700">Tarikh Mula:</p>
+                        <p className="text-sm font-medium text-gray-700">Date Mula:</p>
                         <p className="text-base">{new Date(event.startDate).toLocaleDateString('en-GB')}</p>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-700">Tarikh Tamat:</p>
+                        <p className="text-sm font-medium text-gray-700">Date Tamat:</p>
                         <p className="text-base">{new Date(event.endDate || event.startDate).toLocaleDateString('en-GB')}</p>
                       </div>
                     </div>

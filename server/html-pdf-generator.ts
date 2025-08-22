@@ -223,11 +223,11 @@ export function generateSimplePayslipHTML(data: {
             <div class="section-title">MAKLUMAT PEKERJA</div>
             <table class="info-table">
                 <tr>
-                    <td class="label">Nama Pekerja:</td>
+                    <td class="label">Name Employee:</td>
                     <td class="value">${data.employee.fullName}</td>
                 </tr>
                 <tr>
-                    <td class="label">No. Pekerja:</td>
+                    <td class="label">No. Employee:</td>
                     <td class="value">${data.employee.employeeNo}</td>
                 </tr>
                 <tr>

@@ -65,18 +65,18 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
   if (!token) {
-    return res.status(401).json({ error: 'Access token diperlukan' });
+    return res.status(401).json({ error: 'Access token required' });
   }
 
   const decoded = verifyToken(token);
   if (!decoded) {
-    return res.status(403).json({ error: 'Token tidak sah atau telah tamat tempoh' });
+    return res.status(403).json({ error: 'Invalid or expired token' });
   }
 
-  // Verify user masih wujud dalam database
+  // Verify user masih wujud within database
   const user = await storage.getUser(decoded.id);
   if (!user) {
-    return res.status(403).json({ error: 'User tidak dijumpai' });
+    return res.status(403).json({ error: 'User not found' });
   }
 
   req.user = user;
@@ -91,7 +91,7 @@ export function setupAuth(app: Express) {
       
       const existingUser = await storage.getUserByUsername(validatedData.username);
       if (existingUser) {
-        return res.status(400).json({ error: "Username sudah digunakan" });
+        return res.status(400).json({ error: "Username already exists" });
       }
 
       const hashedPassword = await hashPassword(validatedData.password);
@@ -103,7 +103,7 @@ export function setupAuth(app: Express) {
       const token = generateToken(newUser);
       
       res.status(201).json({
-        message: "User berjaya didaftarkan",
+        message: "User successfully registered",
         user: {
           id: newUser.id,
           username: newUser.username,
@@ -112,7 +112,7 @@ export function setupAuth(app: Express) {
       });
     } catch (error) {
       console.error("Registration error:", error);
-      res.status(400).json({ error: "Data tidak sah" });
+      res.status(400).json({ error: "Invalid data" });
     }
   });
 
@@ -123,12 +123,12 @@ export function setupAuth(app: Express) {
       
       const user = await storage.getUserByUsername(validatedData.username);
       if (!user) {
-        return res.status(401).json({ error: "Username atau password tidak betul" });
+        return res.status(401).json({ error: "Invalid username or password" });
       }
 
       const isValidPassword = await comparePasswords(validatedData.password, user.password);
       if (!isValidPassword) {
-        return res.status(401).json({ error: "Username atau password tidak betul" });
+        return res.status(401).json({ error: "Invalid username or password" });
       }
 
       const token = generateToken(user);
@@ -144,7 +144,7 @@ export function setupAuth(app: Express) {
       });
     } catch (error) {
       console.error("Login error:", error);
-      res.status(400).json({ error: "Data tidak sah" });
+      res.status(400).json({ error: "Invalid data" });
     }
   });
 

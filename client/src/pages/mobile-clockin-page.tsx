@@ -60,7 +60,7 @@ export default function MobileClockInPage() {
     if (tokenParam) {
       setToken(tokenParam);
     } else {
-      setError("Token QR Code tidak dijumpai dalam URL");
+      setError("Token QR Code not found dalam URL");
       setStep("error");
       setIsLoading(false);
     }
@@ -77,14 +77,14 @@ export default function MobileClockInPage() {
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.error || "Ralat mengesahkan QR Code");
+          throw new Error(data.error || "Ralat mengevalidkan QR Code");
         }
 
         setValidation(data);
         setStep("camera");
       } catch (err) {
         console.error("Validation error:", err);
-        setError(err instanceof Error ? err.message : "Ralat mengesahkan QR Code");
+        setError(err instanceof Error ? err.message : "Ralat mengevalidkan QR Code");
         setStep("error");
       } finally {
         setIsLoading(false);
@@ -257,8 +257,8 @@ export default function MobileClockInPage() {
       // Show success toast
       setTimeout(() => {
         const message = result.isClockOut 
-          ? `Clock-out berjaya! Total ${result.totalHours || 0} jam.`
-          : "Clock-in berjaya!";
+          ? `Clock-out successfully! Total ${result.totalHours || 0} jam.`
+          : "Clock-in successfully!";
         console.log("Mobile operation completed:", message);
       }, 500);
 
@@ -296,7 +296,7 @@ export default function MobileClockInPage() {
         <Card className="w-full max-w-md">
           <CardContent className="flex flex-col items-center py-8">
             <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-4" />
-            <p className="text-gray-600 text-center">Mengesahkan QR Code...</p>
+            <p className="text-gray-600 text-center">Mengevalidkan QR Code...</p>
           </CardContent>
         </Card>
       </div>
@@ -352,7 +352,7 @@ export default function MobileClockInPage() {
           <CardContent className="space-y-4">
             <div className="bg-gray-50 rounded-lg p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Pekerja:</span>
+                <span className="text-sm text-gray-600">Employee:</span>
                 <span className="font-medium">{clockInResult.user.username}</span>
               </div>
               
@@ -380,7 +380,7 @@ export default function MobileClockInPage() {
                 <Badge className={
                   (clockInResult.locationStatus || clockInResult.clockInRecord?.locationStatus) === "valid" 
                     ? "bg-green-100 text-green-800 border-green-200"
-                    : "bg-orange-100 text-orange-800 border-orange-200"
+                    : "bg-peoplee-100 text-peoplee-800 border-peoplee-200"
                 }>
                   {(clockInResult.locationStatus || clockInResult.clockInRecord?.locationStatus) === "valid" ? "Dalam Kawasan" : "Di Luar Kawasan"}
                 </Badge>
@@ -395,9 +395,9 @@ export default function MobileClockInPage() {
             </div>
 
             {(clockInResult.locationStatus || clockInResult.clockInRecord?.locationStatus) !== "valid" && (
-              <Alert className="border-orange-200 bg-orange-50">
-                <AlertTriangle className="h-4 w-4 text-orange-600" />
-                <AlertDescription className="text-orange-800">
+              <Alert className="border-peoplee-200 bg-peoplee-50">
+                <AlertTriangle className="h-4 w-4 text-peoplee-600" />
+                <AlertDescription className="text-peoplee-800">
                   Anda berada di luar kawasan pejabat yang ditetapkan (50m radius).
                   {clockInResult.isClockOut ? "Clock-out" : "Clock-in"} tetap direkod tetapi ditandakan sebagai di luar kawasan.
                 </AlertDescription>
@@ -448,11 +448,11 @@ export default function MobileClockInPage() {
                 <CardTitle className="text-lg">
                   {step === "camera" && "Ambil Selfie"}
                   {step === "location" && "Dapatkan Lokasi GPS"}
-                  {step === "uploading" && "Memproses Clock-In"}
+                  {step === "uploading" && "Processing Clock-In"}
                 </CardTitle>
                 <CardDescription>
-                  {step === "camera" && "Ambil gambar selfie untuk pengesahan"}
-                  {step === "location" && "Sistem akan mengesahkan lokasi anda"}
+                  {step === "camera" && "Ambil gambar selfie untuk pengevalidan"}
+                  {step === "location" && "Sistem akan mengevalidkan lokasi anda"}
                   {step === "uploading" && "Sedang memuat naik data..."}
                 </CardDescription>
               </div>
@@ -542,7 +542,7 @@ export default function MobileClockInPage() {
                     <MapPin className="h-8 w-8 text-blue-600" />
                   </div>
                   <p className="text-gray-600 mb-4">
-                    Sistem perlu mengesahkan lokasi anda untuk memastikan anda berada dalam kawasan pejabat.
+                    Sistem perlu mengevalidkan lokasi anda untuk memastikan anda berada dalam kawasan pejabat.
                   </p>
                   <p className="text-sm text-gray-500">
                     Radius yang dibenarkan: 50 meter dari pejabat
@@ -567,7 +567,7 @@ export default function MobileClockInPage() {
                   <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
                   <p className="text-gray-600 mb-2">Sedang memproses clock-in anda...</p>
                   <p className="text-sm text-gray-500">
-                    Memuat naik selfie dan mengesahkan lokasi
+                    Memuat naik selfie dan mengevalidkan lokasi
                   </p>
                 </div>
               </div>

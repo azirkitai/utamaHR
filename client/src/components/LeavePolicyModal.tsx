@@ -122,8 +122,8 @@ export function LeavePolicyModal({
       toast({
         title: "Berjaya",
         description: leavePolicy
-          ? "Polisi cuti berjaya dikemaskini"
-          : "Polisi cuti berjaya ditambah",
+          ? "Polisi cuti successfully dikemaskini"
+          : "Polisi cuti successfully ditambah",
       });
       onClose();
     },

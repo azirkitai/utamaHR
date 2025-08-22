@@ -108,7 +108,7 @@ export function GroupPolicyDialog({ open, onOpenChange, leaveType }: GroupPolicy
     if (existingRole) {
       toast({
         title: "Ralat",
-        description: "Peranan ini sudah ditambah",
+        description: "Peranan ini already ditambah",
         variant: "destructive",
       });
       return;
@@ -213,7 +213,7 @@ export function GroupPolicyDialog({ open, onOpenChange, leaveType }: GroupPolicy
                 <p className="font-medium mb-2">Maklumat:</p>
                 <ul className="space-y-1 list-disc list-inside">
                   <li>Jika tiada peranan ditetapkan, semua pekerja boleh menggunakan jenis cuti ini.</li>
-                  <li>Jika peranan ditetapkan, hanya pekerja dengan peranan yang dibenarkan sahaja yang boleh menggunakan jenis cuti ini.</li>
+                  <li>Jika peranan ditetapkan, hanya pekerja dengan peranan yang dibenarkan validaja yang boleh menggunakan jenis cuti ini.</li>
                   <li>Tetapan ini akan mempengaruhi paparan polisi cuti dalam maklumat pekerja.</li>
                 </ul>
               </div>

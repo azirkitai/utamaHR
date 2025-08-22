@@ -62,7 +62,7 @@ export function DocumentModal({
 
   const handleSave = () => {
     if (!fileName.trim()) {
-      alert("Nama fail diperlukan");
+      alert("Name fail required");
       return;
     }
 
@@ -108,7 +108,7 @@ export function DocumentModal({
         <div className="space-y-4 py-4">
           {/* File Name */}
           <div className="space-y-2">
-            <Label htmlFor="fileName">Nama Fail</Label>
+            <Label htmlFor="fileName">Name Fail</Label>
             <Input
               id="fileName"
               value={fileName}

@@ -141,7 +141,7 @@ function generateLeaveReportHTML(data: LeaveReportData, company: any): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Laporan Cuti - ${data.reportTitle}</title>
+  <title>Laporan Leave - ${data.reportTitle}</title>
   <style>
     * {
       margin: 0;
@@ -388,14 +388,14 @@ function generateLeaveReportHTML(data: LeaveReportData, company: any): string {
     <div class="employee-section">
       <div class="employee-header">
         <div class="employee-name">${employee.employeeName}</div>
-        <div class="leave-count">${leaveTypeCount} Jenis Cuti</div>
+        <div class="leave-count">${leaveTypeCount} Jenis Leave</div>
       </div>
       
       <table class="leave-table">
         <thead>
           <tr>
             <th style="width: 50px;">No.</th>
-            <th style="width: 200px;">Jenis Cuti</th>
+            <th style="width: 200px;">Jenis Leave</th>
             <th style="width: 80px;">Kelayakan</th>
             <th style="width: 80px;">Digunakan</th>
             <th style="width: 80px;">Baki Semasa</th>
@@ -448,7 +448,7 @@ function generateLeaveReportHTML(data: LeaveReportData, company: any): string {
       </div>
     </div>
     `;
-  }).join('') : '<div style="text-align: center; padding: 40px; color: #666;"><h3>Tiada Data Pekerja Ditemui</h3><p>Sila pastikan tapisan yang dipilih betul dan terdapat data pekerja dalam sistem.</p></div>'}
+  }).join('') : '<div style="text-align: center; padding: 40px; color: #666;"><h3>Tiada Data Employee Ditemui</h3><p>Sila pastikan tapisan yang dipilih betul dan terdapat data pework within sistem.</p></div>'}
 </body>
 </html>
   `;

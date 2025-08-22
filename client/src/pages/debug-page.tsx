@@ -56,7 +56,7 @@ const authenticatedFetch = async (url: string, options: RequestInit = {}): Promi
     if (response.status === 401 || response.status === 403) {
       localStorage.removeItem("utamahr_token");
       window.location.href = "/auth";
-      throw new Error("Token tidak sah");
+      throw new Error("Token tidak valid");
     }
     const errorData = await response.json();
     throw new Error(errorData.error || `HTTP ${response.status}`);
@@ -266,7 +266,7 @@ export default function DebugPage() {
                 <h4 className="font-medium mb-2">Jika ada secrets yang MISSING atau EMPTY:</h4>
                 <ol className="list-decimal list-inside space-y-1 text-gray-600">
                   <li>Pergi ke tab "Secrets" dalam Replit workspace anda</li>
-                  <li>Tambah atau kemaskini secret yang diperlukan:</li>
+                  <li>Tambah atau kemaskini secret yang required:</li>
                   <ul className="list-disc list-inside ml-4 mt-1">
                     <li><strong>JWT_SECRET</strong>: String random minimal 32 karakter</li>
                     <li><strong>SESSION_SECRET</strong>: String random minimal 32 karakter</li>

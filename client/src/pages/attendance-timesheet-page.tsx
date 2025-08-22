@@ -449,7 +449,7 @@ export default function AttendanceTimesheetPage() {
       </Card>
       <Card className="bg-white border border-gray-200">
         <CardContent className="p-6 text-center">
-          <div className="text-3xl font-bold text-orange-600 mb-2">{todayStats.onLeave}</div>
+          <div className="text-3xl font-bold text-peoplee-600 mb-2">{todayStats.onLeave}</div>
           <div className="text-sm text-gray-600">On Leave</div>
         </CardContent>
       </Card>
@@ -686,10 +686,10 @@ export default function AttendanceTimesheetPage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-orange-200">
+        <Card className="border-peoplee-200">
           <CardContent className="p-4">
             <div className="flex items-center space-x-2">
-              <Clock className="w-8 h-8 text-orange-600" />
+              <Clock className="w-8 h-8 text-peoplee-600" />
               <div>
                 <p className="text-2xl font-bold text-gray-900">{summaryTotals.totalLate}</p>
                 <p className="text-sm text-gray-600">Total Late</p>

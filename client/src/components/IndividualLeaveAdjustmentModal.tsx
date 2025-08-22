@@ -95,7 +95,7 @@ export function IndividualLeaveAdjustmentModal({
       queryClient.invalidateQueries({ queryKey: ["/api/leave-policies", employeeId] });
       toast({
         title: "Berjaya",
-        description: "Pelarasan cuti individu berjaya disimpan",
+        description: "Pelarasan cuti individu successfully disimpan",
       });
       onClose();
     },
@@ -118,7 +118,7 @@ export function IndividualLeaveAdjustmentModal({
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            Pelarasan Cuti Individu - {leavePolicy?.leaveType || "N/A"}
+            Pelarasan Leave Individu - {leavePolicy?.leaveType || "N/A"}
           </DialogTitle>
         </DialogHeader>
 
@@ -131,7 +131,7 @@ export function IndividualLeaveAdjustmentModal({
               </h3>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="text-gray-600">Jenis Cuti:</span>
+                  <span className="text-gray-600">Jenis Leave:</span>
                   <div className="font-medium">{leavePolicy?.leaveType || "N/A"}</div>
                 </div>
                 <div>
@@ -144,7 +144,7 @@ export function IndividualLeaveAdjustmentModal({
             {/* Adjustment Form Section */}
             <div className="space-y-4">
               <h3 className="text-sm font-medium text-gray-900 border-b pb-2">
-                Pelarasan Cuti Individu
+                Pelarasan Leave Individu
               </h3>
 
               {/* Adjusted Entitlement */}
@@ -186,7 +186,7 @@ export function IndividualLeaveAdjustmentModal({
                       <Textarea
                         {...field}
                         data-testid="textarea-adjustment-reason"
-                        placeholder="Contoh: Pekerja menyertai syarikat pada pertengahan tahun, tidak layak mendapat cuti tahunan penuh"
+                        placeholder="Contoh: Employee menyertai syarikat pada pertengahan tahun, tidak layak mendapat cuti tahunan penuh"
                         rows={3}
                       />
                     </FormControl>

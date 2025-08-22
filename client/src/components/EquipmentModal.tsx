@@ -109,8 +109,8 @@ export function EquipmentModal({
       toast({
         title: "Berjaya",
         description: equipment
-          ? "Equipment berjaya dikemaskini"
-          : "Equipment berjaya ditambah",
+          ? "Equipment successfully dikemaskini"
+          : "Equipment successfully ditambah",
       });
       onClose();
     },

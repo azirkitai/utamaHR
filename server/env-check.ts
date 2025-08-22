@@ -46,7 +46,7 @@ export function checkEnvironmentSecrets(): EnvCheckSummary {
 
     if (!exists) {
       status = 'MISSING';
-      message = `Secret ${secret.name} tidak wujud dalam environment variables`;
+      message = `Secret ${secret.name} tidak wujud within environment variables`;
       allValid = false;
     } else if (length === 0) {
       status = 'EMPTY';

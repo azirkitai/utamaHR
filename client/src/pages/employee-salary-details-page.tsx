@@ -195,11 +195,11 @@ type SocsoResult = {
   wageBase: number;         // asas kiraan (cap pada 5950)
   employee: number;         // caruman pekerja
   employer: number;         // caruman majikan
-  category: 1 | 2;          // kategori akhir yang digunakan
+  category: 1 | 2;          // kategori akhir yang used
 };
 
 // Jadual SOCSO rasmi mengikut PERKESO - Category 1
-// Reference: Jadual Kadar Caruman SOCSO 2025 untuk Skim Bencana Pekerjaan + Skim Keilatan
+// Reference: Jadual Kadar Caruman SOCSO 2025 untuk Skim Bencana Employeean + Skim Keilatan
 const SOCSO_TABLE_CAT1 = [
   { min: 0.01, max: 30.00, employee: 0.20, employer: 0.70 },
   { min: 30.01, max: 50.00, employee: 0.30, employer: 1.05 },
@@ -486,7 +486,7 @@ export default function EmployeeSalaryDetailsPage() {
     }
   };
 
-  // PCB39 Rebate options - only 2 options as per MySyarikat reference
+  // PCB39 Rebate options - only 2 options as per MyCompany reference
   const PCB39_REBATES_2025 = [
     { code: "ZAKAT", label: "Zakat" },
     { code: "DEPARTURE_LEVY", label: "Departure levy for umrah travel / religious travel for other religions" }
@@ -1098,7 +1098,7 @@ export default function EmployeeSalaryDetailsPage() {
         hrdf
       };
 
-      // MySyarikat Logic: Gross Salary = Basic Salary + ALL Additional Items
+      // MyCompany Logic: Gross Salary = Basic Salary + ALL Additional Items
       // This is the KEY requirement - ALL additional items count toward gross salary
       const sumAdditional = salaryData.additionalItems.reduce((sum, item) => sum + item.amount, 0);
       const grossSalary = salaryData.basicSalary + sumAdditional;

@@ -103,7 +103,7 @@ export default function ApplyClaimPage() {
     onSuccess: () => {
       toast({
         title: "Berjaya!",
-        description: "Permohonan tuntutan telah berjaya dihantar dan akan diproses oleh financial approver",
+        description: "Application tuntutan telah successfully dihantar dan akan diproses oleh financial approver",
         variant: "default",
       });
       
@@ -264,17 +264,17 @@ export default function ApplyClaimPage() {
     try {
       // Basic validation
       if (!claimType || !claimAmount || !claimDate || !selectedRequestor) {
-        return { isValid: false, error: "Sila isi semua field yang diperlukan" };
+        return { isValid: false, error: "Sila isi semua field yang required" };
       }
 
       const amount = parseFloat(claimAmount);
       if (isNaN(amount) || amount <= 0) {
-        return { isValid: false, error: "Jumlah claim mesti lebih besar daripada 0" };
+        return { isValid: false, error: "Jumlah claim mesti lebih besar of 0" };
       }
 
       // Check if policy exists
       if (!selectedPolicy) {
-        return { isValid: false, error: "Policy untuk claim type ini tidak dijumpai" };
+        return { isValid: false, error: "Policy untuk claim type ini not found" };
       }
 
       // Check per application limit
@@ -346,7 +346,7 @@ export default function ApplyClaimPage() {
       if (!validation.isValid) {
         setValidationError(validation.error);
         toast({
-          title: "Submission Ditolak",
+          title: "Submission Rejected",
           description: validation.error,
           variant: "destructive",
         });
@@ -444,10 +444,10 @@ export default function ApplyClaimPage() {
     } else if (selectedCategory === 'overtime') {
       // Basic validation for overtime
       if (!reason || !claimDate || !startTime || !endTime || !selectedRequestor) {
-        const error = "Sila isi semua field yang diperlukan untuk overtime claim";
+        const error = "Sila isi semua field yang required untuk overtime claim";
         setValidationError(error);
         toast({
-          title: "Submission Ditolak",
+          title: "Submission Rejected",
           description: error,
           variant: "destructive",
         });
@@ -459,7 +459,7 @@ export default function ApplyClaimPage() {
         const error = "Masa tamat mesti selepas masa mula";
         setValidationError(error);
         toast({
-          title: "Submission Ditolak",
+          title: "Submission Rejected",
           description: error,
           variant: "destructive",
         });
@@ -674,7 +674,7 @@ export default function ApplyClaimPage() {
                     <table className="w-full">
                       <thead className="sticky top-0 bg-white">
                         <tr className="border-b">
-                          <th className="text-left py-3 px-4 font-medium text-gray-700">Pemohon</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-700">Applicant</th>
                           <th className="text-left py-3 px-4 font-medium text-gray-700">Claim Type</th>
                           <th className="text-left py-3 px-4 font-medium text-gray-700">Amount</th>
                           <th className="text-left py-3 px-4 font-medium text-gray-700">Date</th>
@@ -854,10 +854,10 @@ export default function ApplyClaimPage() {
                   {/* Policy Limits Display */}
                   {selectedPolicy && claimType && (
                     <div className="bg-blue-50 border border-slate-200 text-blue-700 px-4 py-3 rounded-md text-sm">
-                      <div className="font-medium mb-1">Had untuk {claimType}:</div>
+                      <div className="font-medium mb-1">Limit untuk {claimType}:</div>
                       <div className="text-xs space-y-1">
-                        <div>• Had tahunan: {selectedPolicy.annualLimitUnlimited ? "Tanpa had" : `RM${selectedPolicy.annualLimit}`}</div>
-                        <div>• Had setiap permohonan: {selectedPolicy.limitPerApplicationUnlimited ? "Tanpa had" : `RM${selectedPolicy.limitPerApplication}`}</div>
+                        <div>• Limit tahunan: {selectedPolicy.annualLimitUnlimited ? "No limit" : `RM${selectedPolicy.annualLimit}`}</div>
+                        <div>• Limit setiap permohonan: {selectedPolicy.limitPerApplicationUnlimited ? "No limit" : `RM${selectedPolicy.limitPerApplication}`}</div>
                       </div>
                     </div>
                   )}
@@ -874,7 +874,7 @@ export default function ApplyClaimPage() {
                     disabled={!claimType || !claimAmount || !claimDate || !selectedRequestor || isValidating || createClaimMutation.isPending}
                     data-testid="button-submit-claim"
                   >
-                    {isValidating || createClaimMutation.isPending ? "Memproses..." : "Submit Now"}
+                    {isValidating || createClaimMutation.isPending ? "Processing..." : "Submit Now"}
                   </Button>
                 </CardContent>
               </Card>
@@ -983,7 +983,7 @@ export default function ApplyClaimPage() {
                     <table className="w-full">
                       <thead className="sticky top-0 bg-white">
                         <tr className="border-b">
-                          <th className="text-left py-3 px-4 font-medium text-gray-700">Pemohon</th>
+                          <th className="text-left py-3 px-4 font-medium text-gray-700">Applicant</th>
                           <th className="text-left py-3 px-4 font-medium text-gray-700">Claim Type</th>
                           <th className="text-left py-3 px-4 font-medium text-gray-700">Hours</th>
                           <th className="text-left py-3 px-4 font-medium text-gray-700">Date</th>
@@ -1157,7 +1157,7 @@ export default function ApplyClaimPage() {
                     disabled={!startTime || !endTime || !claimDate || !reason || !selectedRequestor || isValidating || createClaimMutation.isPending}
                     data-testid="button-submit-overtime"
                   >
-                    {isValidating || createClaimMutation.isPending ? "Memproses..." : "Submit Now"}
+                    {isValidating || createClaimMutation.isPending ? "Processing..." : "Submit Now"}
                   </Button>
                 </CardContent>
               </Card>
