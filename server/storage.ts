@@ -461,6 +461,7 @@ export interface IStorage {
   deletePayrollDocument(id: string): Promise<boolean>;
   
   getPayrollItemsByDocumentId(documentId: string): Promise<PayrollItem[]>;
+  getPayrollItemsByEmployeeId(employeeId: string): Promise<PayrollItem[]>;
   getPayrollItem(id: string): Promise<PayrollItem | undefined>;
   getPayrollItemByDocumentAndEmployee(documentId: string, employeeId: string): Promise<PayrollItem | undefined>;
   createPayrollItem(item: InsertPayrollItem): Promise<PayrollItem>;
@@ -3754,6 +3755,14 @@ export class DatabaseStorage implements IStorage {
       .from(payrollItems)
       .where(eq(payrollItems.documentId, documentId))
       .orderBy(asc(payrollItems.employeeId));
+  }
+
+  async getPayrollItemsByEmployeeId(employeeId: string): Promise<PayrollItem[]> {
+    return await db
+      .select()
+      .from(payrollItems)
+      .where(eq(payrollItems.employeeId, employeeId))
+      .orderBy(desc(payrollItems.createdAt));
   }
 
   async getPayrollItem(id: string): Promise<PayrollItem | undefined> {
