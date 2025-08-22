@@ -507,7 +507,7 @@ export default function QRClockInPage() {
                   </div>
                   <div>
                     <p className="font-medium text-blue-800">Generate QR Code</p>
-                    <p className="text-blue-600 text-sm">Click "Generate New QR Code" button di atas</p>
+                    <p className="text-blue-600 text-sm">Click "Generate New QR Code" button above</p>
                   </div>
                 </div>
 
@@ -526,7 +526,7 @@ export default function QRClockInPage() {
                     3
                   </div>
                   <div>
-                    <p className="font-medium text-blue-800">Ambil Selfie & GPS</p>
+                    <p className="font-medium text-blue-800">Take Selfie & GPS</p>
                     <p className="text-blue-600 text-sm">On mobile page, take selfie and allow location access</p>
                   </div>
                 </div>
@@ -537,7 +537,7 @@ export default function QRClockInPage() {
                   </div>
                   <div>
                     <p className="font-medium text-blue-800">Clock-In/Out Successful</p>
-                    <p className="text-blue-600 text-sm">System will validate location and automatically detect clock-in atau clock-out</p>
+                    <p className="text-blue-600 text-sm">System will validate location and automatically detect clock-in or clock-out</p>
                   </div>
                 </div>
 
@@ -545,13 +545,13 @@ export default function QRClockInPage() {
                   <div className="flex items-start gap-2">
                     <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="text-amber-800 text-sm font-medium">Nota Penting:</p>
+                      <p className="text-amber-800 text-sm font-medium">Important Notes:</p>
                       <ul className="text-amber-700 text-xs mt-1 space-y-1">
                         <li>• QR Code valid for 2 minutes only</li>
-                        <li>• Each QR Code hanya boleh used sekali</li>
+                        <li>• Each QR Code can only be used once</li>
                         <li>• System automatically detects clock-in or clock-out</li>
                         <li>• Employee must be within 50m radius from office</li>
-                        <li>• Selfie dan lokasi GPS wajib untuk pengevalidan</li>
+                        <li>• Selfie and GPS location required for validation</li>
                       </ul>
                     </div>
                   </div>
@@ -659,8 +659,8 @@ export default function QRClockInPage() {
                                 <div className="text-xs text-red-600 bg-red-50 p-1 rounded border">
                                   <AlertTriangle className="h-3 w-3 inline mr-1" />
                                   {(() => {
-                                    // Extract just the "Late X jam Y minit" part from the full message
-                                    const match = record.clockInRemarks.match(/Late \d+(?:\s+jam)?(?:\s+\d+\s+minit)?/);
+                                    // Extract just the "Late X hours Y minutes" part from the full message
+                                    const match = record.clockInRemarks.match(/Late \d+(?:\s+hours)?(?:\s+\d+\s+minutes)?/);
                                     return match ? match[0] : record.clockInRemarks;
                                   })()}
                                 </div>
@@ -718,8 +718,8 @@ export default function QRClockInPage() {
                                 <div className="text-xs text-red-600 bg-red-50 p-1 rounded border">
                                   <AlertTriangle className="h-3 w-3 inline mr-1" />
                                   {(() => {
-                                    // Extract just the "Late X jam Y minit" part from the full message
-                                    const match = record.breakOutRemarks.match(/Late \d+(?:\s+jam)?(?:\s+\d+\s+minit)?/);
+                                    // Extract just the "Late X hours Y minutes" part from the full message
+                                    const match = record.breakOutRemarks.match(/Late \d+(?:\s+hours)?(?:\s+\d+\s+minutes)?/);
                                     return match ? match[0] : record.breakOutRemarks;
                                   })()}
                                 </div>
@@ -777,8 +777,8 @@ export default function QRClockInPage() {
                                 <div className="text-xs text-red-600 bg-red-50 p-1 rounded border">
                                   <AlertTriangle className="h-3 w-3 inline mr-1" />
                                   {(() => {
-                                    // Extract just the "Late X jam Y minit" part from the full message
-                                    const match = (record as any).breakInRemarks.match(/Late \d+(?:\s+jam)?(?:\s+\d+\s+minit)?/);
+                                    // Extract just the "Late X hours Y minutes" part from the full message
+                                    const match = (record as any).breakInRemarks.match(/Late \d+(?:\s+hours)?(?:\s+\d+\s+minutes)?/);
                                     return match ? match[0] : (record as any).breakInRemarks;
                                   })()}
                                 </div>
