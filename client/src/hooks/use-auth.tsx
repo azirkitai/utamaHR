@@ -201,7 +201,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Only set timer if user is logged in
     if (!user) return;
-
+    
     // Set warning timer (8 minutes - show warning 2 minutes before logout)
     warningTimeoutRef.current = setTimeout(() => {
       if (!warningShownRef.current) {
@@ -218,7 +218,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Set logout timer (10 minutes)
     timeoutRef.current = setTimeout(() => {
       toast({
-        title: "Session Expired",
+        title: "Session Expired", 
         description: "You have been automatically logged out due to inactivity.",
         variant: "destructive",
         duration: 5000,
