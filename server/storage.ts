@@ -137,6 +137,11 @@ import {
   type InsertAnnouncement,
   type SelectUserAnnouncement,
   type InsertUserAnnouncement,
+  // User Notification types
+  userNotifications,
+  type SelectUserNotification,
+  type InsertUserNotification,
+  type UpdateUserNotification,
   // Financial Claim Policy types
   financialClaimPolicies,
   type FinancialClaimPolicy,
@@ -411,6 +416,15 @@ export interface IStorage {
   getUserAnnouncements(userId: string): Promise<SelectUserAnnouncement[]>;
   markAnnouncementAsRead(announcementId: string, userId: string): Promise<void>;
   deleteAnnouncement(announcementId: string): Promise<boolean>;
+
+  // =================== USER NOTIFICATION METHODS ===================
+  createUserNotification(notification: InsertUserNotification): Promise<SelectUserNotification>;
+  getUserNotifications(userId: string): Promise<SelectUserNotification[]>;
+  getUnreadUserNotifications(userId: string): Promise<SelectUserNotification[]>;
+  markUserNotificationAsRead(notificationId: string): Promise<void>;
+  markAllUserNotificationsAsRead(userId: string): Promise<void>;
+  deleteUserNotification(notificationId: string): Promise<boolean>;
+  createWelcomeNotification(userId: string, username: string): Promise<void>;
 
   // =================== LEAVE BALANCE CARRY FORWARD METHODS ===================
   getLeaveBalanceCarryForward(employeeId: string, year?: number): Promise<LeaveBalanceCarryForward[]>;
@@ -2686,6 +2700,117 @@ export class DatabaseStorage implements IStorage {
       return (result.rowCount || 0) > 0;
     } catch (error) {
       console.error('Error deleting announcement:', error);
+      throw error;
+    }
+  }
+
+  // =================== USER NOTIFICATION METHODS ===================
+  async createUserNotification(notification: InsertUserNotification): Promise<SelectUserNotification> {
+    try {
+      const [newNotification] = await db
+        .insert(userNotifications)
+        .values(notification)
+        .returning();
+
+      return newNotification;
+    } catch (error) {
+      console.error('Error creating user notification:', error);
+      throw error;
+    }
+  }
+
+  async getUserNotifications(userId: string): Promise<SelectUserNotification[]> {
+    try {
+      const notifications = await db
+        .select()
+        .from(userNotifications)
+        .where(eq(userNotifications.userId, userId))
+        .orderBy(desc(userNotifications.createdAt));
+
+      return notifications;
+    } catch (error) {
+      console.error('Error getting user notifications:', error);
+      throw error;
+    }
+  }
+
+  async getUnreadUserNotifications(userId: string): Promise<SelectUserNotification[]> {
+    try {
+      const unreadNotifications = await db
+        .select()
+        .from(userNotifications)
+        .where(
+          and(
+            eq(userNotifications.userId, userId),
+            eq(userNotifications.isRead, false)
+          )
+        )
+        .orderBy(desc(userNotifications.createdAt));
+
+      return unreadNotifications;
+    } catch (error) {
+      console.error('Error getting unread user notifications:', error);
+      throw error;
+    }
+  }
+
+  async markUserNotificationAsRead(notificationId: string): Promise<void> {
+    try {
+      await db
+        .update(userNotifications)
+        .set({ isRead: true, readAt: new Date() })
+        .where(eq(userNotifications.id, notificationId));
+    } catch (error) {
+      console.error('Error marking user notification as read:', error);
+      throw error;
+    }
+  }
+
+  async markAllUserNotificationsAsRead(userId: string): Promise<void> {
+    try {
+      await db
+        .update(userNotifications)
+        .set({ isRead: true, readAt: new Date() })
+        .where(
+          and(
+            eq(userNotifications.userId, userId),
+            eq(userNotifications.isRead, false)
+          )
+        );
+    } catch (error) {
+      console.error('Error marking all user notifications as read:', error);
+      throw error;
+    }
+  }
+
+  async deleteUserNotification(notificationId: string): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(userNotifications)
+        .where(eq(userNotifications.id, notificationId));
+
+      return (result.rowCount || 0) > 0;
+    } catch (error) {
+      console.error('Error deleting user notification:', error);
+      throw error;
+    }
+  }
+
+  async createWelcomeNotification(userId: string, username: string): Promise<void> {
+    try {
+      const welcomeNotification: InsertUserNotification = {
+        userId: userId,
+        type: 'welcome',
+        title: 'Welcome to UtamaHR!',
+        message: `Welcome ${username}! Your account has been successfully created.`,
+        fullDetails: `Welcome to UtamaHR, ${username}!\n\nYour account has been successfully created and is now active. You can now access all the HR features available in the system.\n\nHere are some things you can do:\n• View your employee profile and update personal information\n• Clock in/out using the QR system\n• Apply for leave and manage your leave balance\n• Submit claims and expense reports\n• Access payslips and financial documents\n• Stay updated with company announcements\n\nIf you need any assistance, please contact your HR administrator.`,
+        priority: 'medium',
+        isRead: false,
+      };
+
+      await this.createUserNotification(welcomeNotification);
+    } catch (error) {
+      console.error('Error creating welcome notification:', error);
       throw error;
     }
   }

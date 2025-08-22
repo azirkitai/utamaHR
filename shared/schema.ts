@@ -609,6 +609,23 @@ export const userAnnouncements = pgTable('user_announcements', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// User Notifications table for system notifications (welcome, reminders, etc.)
+export const userNotifications = pgTable('user_notifications', {
+  id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  type: varchar('type', { length: 50 }).notNull(), // 'welcome', 'reminder', 'system', 'approval', 'payslip'
+  title: varchar('title', { length: 255 }).notNull(),
+  message: text('message').notNull(),
+  fullDetails: text('full_details'), // Extended details for dialog view
+  priority: varchar('priority', { length: 20 }).default('medium'), // 'high', 'medium', 'low'
+  isRead: boolean('is_read').default(false),
+  readAt: timestamp('read_at'),
+  expiresAt: timestamp('expires_at'), // Optional expiry date for notifications
+  metadata: text('metadata'), // JSON string for additional data
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 // Leave Balance Carry Forward Table
 export const leaveBalanceCarryForward = pgTable('leave_balance_carry_forward', {
   id: varchar('id').primaryKey().default(sql`gen_random_uuid()`),
@@ -995,6 +1012,17 @@ export const insertUserAnnouncementSchema = createInsertSchema(userAnnouncements
 });
 export type InsertUserAnnouncement = z.infer<typeof insertUserAnnouncementSchema>;
 export type SelectUserAnnouncement = typeof userAnnouncements.$inferSelect;
+
+// User Notifications schemas
+export const insertUserNotificationSchema = createInsertSchema(userNotifications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const updateUserNotificationSchema = insertUserNotificationSchema.partial();
+export type InsertUserNotification = z.infer<typeof insertUserNotificationSchema>;
+export type UpdateUserNotification = z.infer<typeof updateUserNotificationSchema>;
+export type SelectUserNotification = typeof userNotifications.$inferSelect;
 
 // Employment schemas
 export const insertEmploymentSchema = createInsertSchema(employment).omit({

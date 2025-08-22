@@ -42,6 +42,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     enabled: !!user?.id,
   });
 
+  const { data: userNotifications } = useQuery({
+    queryKey: ["/api/user-notifications/unread"],
+    enabled: !!user?.id,
+  });
+
   const { data: pendingApprovals } = useQuery({
     queryKey: ["/api/pending-approval-statistics"],
     enabled: !!user?.id,
@@ -58,9 +63,25 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   });
 
   // Handle notification click - mark as read and open detail dialog
-  const handleNotificationClick = (notification: any) => {
-    // Mark as read
+  const handleNotificationClick = async (notification: any) => {
+    // Mark as read locally
     setReadNotifications(prev => new Set([...prev, notification.id]));
+    
+    // Mark as read on server if it's a user notification
+    if (notification.originalId && notification.type !== "announcement") {
+      try {
+        await fetch(`/api/user-notifications/${notification.originalId}/mark-read`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          }
+        });
+      } catch (error) {
+        console.error('Failed to mark notification as read:', error);
+      }
+    }
+    
     // Open detail dialog
     setSelectedNotification(notification);
     // Close notification popup
@@ -99,6 +120,27 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             priority: "high"
           });
         }
+      });
+    }
+
+    // User Notifications (welcome, system notifications, etc.)
+    if (userNotifications && Array.isArray(userNotifications) && userNotifications.length > 0) {
+      userNotifications.forEach((notification: any) => {
+        const createdDate = new Date(notification.createdAt);
+        const timeAgo = getTimeAgo(createdDate);
+        const notificationId = id++;
+        
+        notifications.push({
+          id: notificationId,
+          type: notification.type || "system",
+          title: notification.title || "System Notification",
+          message: notification.message || "New notification available",
+          fullDetails: notification.fullDetails || `${notification.title || "Notification"}\n\nDate: ${createdDate.toLocaleDateString()}\nTime: ${createdDate.toLocaleTimeString()}\n\n${notification.message || "No details available"}`,
+          timestamp: timeAgo,
+          isRead: notification.isRead || readNotifications.has(notificationId),
+          priority: notification.priority || "medium",
+          originalId: notification.id // Store original notification ID for marking as read
+        });
       });
     }
 
@@ -218,6 +260,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         return <Clock className="w-4 h-4 text-red-500" />;
       case "announcement":
         return <MessageSquare className="w-4 h-4 text-blue-500" />;
+      case "welcome":
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case "reminder":
+        return <Bell className="w-4 h-4 text-orange-500" />;
+      case "system":
+        return <Settings className="w-4 h-4 text-blue-500" />;
+      case "approval":
+        return <User className="w-4 h-4 text-purple-500" />;
+      case "payslip":
+        return <User className="w-4 h-4 text-green-500" />;
       case "leave_approval":
         return <Calendar className="w-4 h-4 text-orange-500" />;
       case "claim_approval":

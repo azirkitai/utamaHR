@@ -893,6 +893,84 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // =================== USER NOTIFICATION ROUTES ===================
+  // Get all notifications for current user
+  app.get("/api/user-notifications", authenticateToken, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const notifications = await storage.getUserNotifications(userId);
+      res.json(notifications);
+    } catch (error) {
+      console.error("Get user notifications error:", error);
+      res.status(500).json({ error: "Failed to get notifications" });
+    }
+  });
+
+  // Get unread notifications for current user
+  app.get("/api/user-notifications/unread", authenticateToken, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const unreadNotifications = await storage.getUnreadUserNotifications(userId);
+      res.json(unreadNotifications);
+    } catch (error) {
+      console.error("Get unread user notifications error:", error);
+      res.status(500).json({ error: "Failed to get unread notifications" });
+    }
+  });
+
+  // Get unread notification count for current user
+  app.get("/api/user-notifications/unread-count", authenticateToken, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const unreadNotifications = await storage.getUnreadUserNotifications(userId);
+      res.json(unreadNotifications.length);
+    } catch (error) {
+      console.error("Get unread notification count error:", error);
+      res.status(500).json({ error: "Failed to get unread notification count" });
+    }
+  });
+
+  // Mark notification as read
+  app.post("/api/user-notifications/:id/mark-read", authenticateToken, async (req, res) => {
+    try {
+      const notificationId = req.params.id;
+      await storage.markUserNotificationAsRead(notificationId);
+      res.json({ success: true, message: "Notification marked as read" });
+    } catch (error) {
+      console.error("Mark notification as read error:", error);
+      res.status(500).json({ error: "Failed to mark notification as read" });
+    }
+  });
+
+  // Mark all notifications as read for current user
+  app.post("/api/user-notifications/mark-all-read", authenticateToken, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      await storage.markAllUserNotificationsAsRead(userId);
+      res.json({ success: true, message: "All notifications marked as read" });
+    } catch (error) {
+      console.error("Mark all notifications as read error:", error);
+      res.status(500).json({ error: "Failed to mark all notifications as read" });
+    }
+  });
+
+  // Delete notification
+  app.delete("/api/user-notifications/:id", authenticateToken, async (req, res) => {
+    try {
+      const notificationId = req.params.id;
+      const success = await storage.deleteUserNotification(notificationId);
+      
+      if (success) {
+        res.json({ success: true, message: "Notification deleted" });
+      } else {
+        res.status(404).json({ error: "Notification not found" });
+      }
+    } catch (error) {
+      console.error("Delete notification error:", error);
+      res.status(500).json({ error: "Failed to delete notification" });
+    }
+  });
+
   // Get active company leave types only
   app.get("/api/company-leave-types/active", authenticateToken, async (req, res) => {
     try {
@@ -2004,6 +2082,15 @@ export function registerRoutes(app: Express): Server {
         console.log("=== USER CREATION SUCCESS ===");
         console.log("User created successfully:", newUser.id);
         console.log("New user object:", JSON.stringify(newUser, null, 2));
+        
+        // Create welcome notification for new user
+        try {
+          await storage.createWelcomeNotification(newUser.id, newUser.username);
+          console.log("Welcome notification created for user:", newUser.username);
+        } catch (notificationError) {
+          console.error("Failed to create welcome notification:", notificationError);
+          // Don't fail user creation if notification fails
+        }
         
         // Return user without password
         const { password: _, ...userWithoutPassword } = newUser;
