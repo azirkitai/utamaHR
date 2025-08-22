@@ -379,17 +379,19 @@ export default function EmployeeDetailsPage() {
     },
     onSuccess: () => {
       toast({
-        title: "Berjaya",
-        description: "Maklumat pekerja telah dikemaskini",
+        title: "Success",
+        description: "Employee information has been updated",
       });
       setIsEditingPersonal(false);
       setIsEditingDriving(false);
       queryClient.invalidateQueries({ queryKey: ["/api/employees", id] });
+      // Also invalidate the user employee query to update header role display
+      queryClient.invalidateQueries({ queryKey: ["/api/user/employee"] });
     },
     onError: () => {
       toast({
-        title: "Ralat",
-        description: "Gagal mengemaskini maklumat pekerja",
+        title: "Error",
+        description: "Failed to update employee information",
         variant: "destructive",
       });
     },
@@ -424,8 +426,8 @@ export default function EmployeeDetailsPage() {
     },
     onError: () => {
       toast({
-        title: "Ralat",
-        description: "Gagal mengemaskini maklumat pekerjaan",
+        title: "Error",
+        description: "Failed to update employment information",
         variant: "destructive",
       });
     },
@@ -453,8 +455,8 @@ export default function EmployeeDetailsPage() {
     },
     onError: () => {
       toast({
-        title: "Ralat",
-        description: "Gagal menambah pengalaman kerja",
+        title: "Error",
+        description: "Failed to add work experience",
         variant: "destructive",
       });
     },
@@ -468,15 +470,15 @@ export default function EmployeeDetailsPage() {
     },
     onSuccess: () => {
       toast({
-        title: "Berjaya",
-        description: "Pengalaman kerja telah dipadam",
+        title: "Success",
+        description: "Work experience has been deleted",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/work-experiences", id] });
     },
     onError: () => {
       toast({
-        title: "Ralat",
-        description: "Gagal memadamkan pengalaman kerja",
+        title: "Error",
+        description: "Failed to delete work experience",
         variant: "destructive",
       });
     },
@@ -498,8 +500,8 @@ export default function EmployeeDetailsPage() {
     },
     onError: () => {
       toast({
-        title: "Ralat",
-        description: "Gagal mengemaskini butiran bank",
+        title: "Error",
+        description: "Failed to update bank details",
         variant: "destructive",
       });
     },
@@ -521,8 +523,8 @@ export default function EmployeeDetailsPage() {
     },
     onError: () => {
       toast({
-        title: "Ralat",
-        description: "Gagal mengemaskini butiran berkanun",
+        title: "Error",
+        description: "Failed to update statutory details",
         variant: "destructive",
       });
     },
@@ -544,8 +546,8 @@ export default function EmployeeDetailsPage() {
     },
     onError: () => {
       toast({
-        title: "Ralat",
-        description: "Gagal mengemaskini butiran cukai pendapatan",
+        title: "Error",
+        description: "Failed to update income tax details",
         variant: "destructive",
       });
     },
@@ -604,21 +606,21 @@ export default function EmployeeDetailsPage() {
           const data = await response.json();
           console.log("Profile image update response:", data);
           toast({
-            title: "Berjaya",
-            description: "Gambar profil telah dikemaskini",
+            title: "Success",
+            description: "Profile image has been updated",
           });
           // Refresh employee data to show new profile image
           queryClient.invalidateQueries({ queryKey: ["/api/employees", id] });
         }
       } else {
         console.error("No successful uploads in result:", result);
-        throw new Error("Tiada fail successfully dimuat naik");
+        throw new Error("No files were successfully uploaded");
       }
     } catch (error) {
       console.error("Error updating profile image:", error);
       toast({
-        title: "Ralat",
-        description: `Gagal mengemaskini gambar profil: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        title: "Error",
+        description: `Failed to update profile image: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       });
     }
@@ -699,8 +701,8 @@ export default function EmployeeDetailsPage() {
     },
     onError: () => {
       toast({
-        title: "Ralat",
-        description: "Gagal mengkemaskini maklumat contact",
+        title: "Error",
+        description: "Failed to update contact information",
         variant: "destructive",
       });
     },
@@ -714,15 +716,15 @@ export default function EmployeeDetailsPage() {
     },
     onSuccess: (_, variables) => {
       toast({
-        title: "Berjaya",
-        description: `Tetapan kehadiran telah dikemaskini`,
+        title: "Success",
+        description: `Attendance settings have been updated`,
       });
       console.log(`Location setting updated: ${variables.setting} = ${variables.value}`);
     },
     onError: () => {
       toast({
-        title: "Ralat",
-        description: "Gagal mengkemaskini tetapan kehadiran",
+        title: "Error",
+        description: "Failed to update attendance settings",
         variant: "destructive",
       });
     },
