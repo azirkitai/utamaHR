@@ -5606,78 +5606,161 @@ export default function SystemSettingPage() {
     );
   };
 
-  // Role Configuration Form
+  // Role Configuration Form - Page by Page Access Control
   const renderRoleConfigurationForm = () => {
-    const rolePermissions = [
-      { id: 'dashboard', name: 'Dashboard Access', description: 'Access to main dashboard and analytics' },
-      { id: 'employees', name: 'Employee Management', description: 'Add, edit, and manage employee records' },
-      { id: 'payroll', name: 'Payroll Management', description: 'Process payroll and manage salary information' },
-      { id: 'attendance', name: 'Attendance Management', description: 'View and manage attendance records' },
-      { id: 'leave', name: 'Leave Management', description: 'Approve and manage leave requests' },
-      { id: 'claims', name: 'Claims Management', description: 'Process and approve expense claims' },
-      { id: 'reports', name: 'Reports Access', description: 'Generate and view system reports' },
-      { id: 'system-settings', name: 'System Settings', description: 'Configure system-wide settings' },
-      { id: 'user-management', name: 'User Management', description: 'Manage user accounts and roles' },
+    const systemPages = [
+      {
+        id: 'dashboard',
+        name: 'Dashboard',
+        description: 'Main dashboard showing company overview, attendance summary, recent activities, notifications, and key metrics for quick insights.',
+        features: ['View attendance statistics', 'Company announcements', 'Quick access to reports', 'System notifications'],
+        defaultRoles: ['Super Admin', 'Admin', 'HR Manager', 'Finance']
+      },
+      {
+        id: 'employee-management',
+        name: 'Employee Management',
+        description: 'Comprehensive employee records management including personal details, employment information, contact details, and document management.',
+        features: ['Add/Edit employee records', 'Upload employee documents', 'Manage employment details', 'View employee profiles'],
+        defaultRoles: ['Super Admin', 'Admin', 'HR Manager']
+      },
+      {
+        id: 'attendance',
+        name: 'Attendance Management', 
+        description: 'Track and manage employee attendance including clock-in/out records, shift management, overtime tracking, and attendance reports.',
+        features: ['View attendance records', 'Manage shifts', 'Generate attendance reports', 'Track overtime'],
+        defaultRoles: ['Super Admin', 'Admin', 'HR Manager']
+      },
+      {
+        id: 'leave-management',
+        name: 'Leave Management',
+        description: 'Handle leave applications, approvals, leave balances, leave policies configuration, and leave reports for all employees.',
+        features: ['Approve/Reject leave requests', 'View leave balances', 'Configure leave policies', 'Generate leave reports'],
+        defaultRoles: ['Super Admin', 'Admin', 'HR Manager']
+      },
+      {
+        id: 'payroll',
+        name: 'Payroll Management',
+        description: 'Process monthly payroll, generate payslips, manage salary structures, calculate statutory contributions (EPF, SOCSO, EIS), and handle salary reports.',
+        features: ['Process payroll', 'Generate payslips', 'Manage salary structures', 'Calculate deductions'],
+        defaultRoles: ['Super Admin', 'Admin', 'Finance']
+      },
+      {
+        id: 'claims',
+        name: 'Claims Management',
+        description: 'Process expense claims, reimbursement requests, travel allowances, medical claims with approval workflows and claim reporting.',
+        features: ['Process expense claims', 'Approve reimbursements', 'Manage claim policies', 'Generate claim reports'],
+        defaultRoles: ['Super Admin', 'Admin', 'Finance', 'HR Manager']
+      },
+      {
+        id: 'reports',
+        name: 'Reports & Analytics',
+        description: 'Generate comprehensive reports including attendance, payroll, leave, claims, employee analytics, and export capabilities in PDF/Excel formats.',
+        features: ['Generate attendance reports', 'Payroll reports', 'Leave analytics', 'Export to PDF/Excel'],
+        defaultRoles: ['Super Admin', 'Admin', 'HR Manager', 'Finance']
+      },
+      {
+        id: 'system-settings',
+        name: 'System Settings',
+        description: 'Configure company settings, leave policies, claim policies, attendance settings, payroll configuration, and system-wide preferences.',
+        features: ['Company configuration', 'Policy management', 'System preferences', 'Backup settings'],
+        defaultRoles: ['Super Admin', 'Admin']
+      }
     ];
 
-    const roles = [
-      { id: 'super-admin', name: 'Super Admin', description: 'Full system access with all permissions' },
-      { id: 'admin', name: 'Admin', description: 'Administrative access with most permissions' },
-      { id: 'hr-manager', name: 'HR Manager', description: 'Human resources management access' },
-      { id: 'finance', name: 'Finance', description: 'Financial operations and payroll access' },
-      { id: 'staff', name: 'Staff/Employee', description: 'Basic employee access to personal records' },
+    const availableRoles = [
+      'Super Admin', 'Admin', 'HR Manager', 'Finance', 'Staff/Employee'
     ];
+
+    const [pagePermissions, setPagePermissions] = useState(() => {
+      const initial: Record<string, string[]> = {};
+      systemPages.forEach(page => {
+        initial[page.id] = [...page.defaultRoles];
+      });
+      return initial;
+    });
+
+    const handleRoleToggle = (pageId: string, role: string) => {
+      setPagePermissions(prev => ({
+        ...prev,
+        [pageId]: prev[pageId].includes(role) 
+          ? prev[pageId].filter(r => r !== role)
+          : [...prev[pageId], role]
+      }));
+    };
 
     return (
       <div className="space-y-6">
         <div className="bg-white rounded-lg border">
           <div className="text-white p-3 rounded-t-lg shadow-sm bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800">
-            <h3 className="font-semibold text-white">Role Configuration</h3>
+            <h3 className="font-semibold text-white">Page Access Control</h3>
           </div>
           <div className="p-6 space-y-6">
-            {/* Role Management Section */}
             <div className="space-y-4">
-              <h4 className="text-lg font-semibold text-gray-900">User Roles & Permissions</h4>
-              <p className="text-sm text-gray-600">Configure role-based access control for different user types in the system.</p>
+              <h4 className="text-lg font-semibold text-gray-900">Configure Page-Level Access</h4>
+              <p className="text-sm text-gray-600">Set which user roles can access each page in the system. Multiple roles can be selected for each page.</p>
               
-              {roles.map((role) => (
-                <div key={role.id} className="border rounded-lg p-4 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h5 className="font-medium text-gray-900">{role.name}</h5>
-                      <p className="text-sm text-gray-500">{role.description}</p>
+              {systemPages.map((page) => (
+                <div key={page.id} className="border rounded-lg p-6 space-y-4">
+                  {/* Page Header */}
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                      <h5 className="text-lg font-semibold text-gray-900">{page.name}</h5>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-blue-600 border-blue-600 hover:bg-blue-50"
-                      data-testid={`button-configure-${role.id}`}
-                    >
-                      <Settings className="w-4 h-4 mr-2" />
-                      Configure
-                    </Button>
+                    
+                    <p className="text-gray-600 text-sm leading-relaxed bg-gray-50 p-3 rounded-lg">
+                      {page.description}
+                    </p>
+                    
+                    {/* Key Features */}
+                    <div className="space-y-2">
+                      <h6 className="text-sm font-medium text-gray-700">Key Features:</h6>
+                      <div className="flex flex-wrap gap-2">
+                        {page.features.map((feature, index) => (
+                          <span key={index} className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            {feature}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                   
-                  {/* Permission Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4 pt-4 border-t">
-                    {rolePermissions.map((permission) => (
-                      <div key={permission.id} className="flex items-center space-x-3">
-                        <Checkbox
-                          id={`${role.id}-${permission.id}`}
-                          defaultChecked={role.id === 'super-admin' || (role.id === 'admin' && permission.id !== 'user-management')}
-                          data-testid={`checkbox-${role.id}-${permission.id}`}
-                        />
-                        <div className="flex-1 min-w-0">
+                  {/* Role Selection */}
+                  <div className="pt-4 border-t space-y-3">
+                    <h6 className="text-sm font-medium text-gray-700">Allowed Roles:</h6>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                      {availableRoles.map((role) => (
+                        <div key={role} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`${page.id}-${role.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
+                            checked={pagePermissions[page.id]?.includes(role) || false}
+                            onCheckedChange={() => handleRoleToggle(page.id, role)}
+                            data-testid={`checkbox-${page.id}-${role.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
+                          />
                           <Label
-                            htmlFor={`${role.id}-${permission.id}`}
-                            className="text-sm font-medium text-gray-700 cursor-pointer"
+                            htmlFor={`${page.id}-${role.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
+                            className="text-sm font-medium text-gray-700 cursor-pointer flex-1"
                           >
-                            {permission.name}
+                            {role}
                           </Label>
-                          <p className="text-xs text-gray-500 truncate">{permission.description}</p>
                         </div>
+                      ))}
+                    </div>
+                    
+                    {/* Selected Roles Display */}
+                    <div className="mt-3">
+                      <div className="flex flex-wrap gap-2">
+                        {pagePermissions[page.id]?.map((role) => (
+                          <span key={role} className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 text-green-800">
+                            <Shield className="w-3 h-3 mr-1" />
+                            {role}
+                          </span>
+                        ))}
+                        {(!pagePermissions[page.id] || pagePermissions[page.id].length === 0) && (
+                          <span className="text-xs text-red-600 font-medium">No roles selected - Page will be inaccessible</span>
+                        )}
                       </div>
-                    ))}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -5685,14 +5768,24 @@ export default function SystemSettingPage() {
 
             {/* Action Buttons */}
             <div className="flex justify-end space-x-3 pt-4 border-t">
-              <Button variant="outline" data-testid="button-reset-roles">
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  const resetPermissions: Record<string, string[]> = {};
+                  systemPages.forEach(page => {
+                    resetPermissions[page.id] = [...page.defaultRoles];
+                  });
+                  setPagePermissions(resetPermissions);
+                }}
+                data-testid="button-reset-roles"
+              >
                 Reset to Default
               </Button>
               <Button 
                 className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 text-white shadow-sm"
                 data-testid="button-save-role-config"
               >
-                Save Changes
+                Save Page Permissions
               </Button>
             </div>
           </div>
