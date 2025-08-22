@@ -1623,7 +1623,7 @@ export default function SystemSettingPage() {
       setFinancialPolicyForm(prev => {
         const newForm = { ...prev };
         Object.keys(newForm).forEach(key => {
-          if (key === data?.id || key === arguments[0]) {
+          if (key === (data as any)?.id) {
             delete newForm[key];
           }
         });
@@ -1715,14 +1715,14 @@ export default function SystemSettingPage() {
             // Reset all roles to false first
             setGroupPolicySettings(prev => {
               const resetSettings = Object.keys(prev).reduce((acc, role) => {
-                acc[role] = { selected: false, days: prev[role].days };
+                (acc as any)[role] = { selected: false, days: (prev as any)[role].days };
                 return acc;
               }, {} as typeof prev);
               
               // Then set existing settings to true with their entitlement days
               existingSettings.forEach((setting: any) => {
-                if (resetSettings[setting.role]) {
-                  resetSettings[setting.role] = {
+                if ((resetSettings as any)[setting.role]) {
+                  (resetSettings as any)[setting.role] = {
                     selected: true,
                     days: setting.entitlementDays.toString()
                   };
@@ -1744,7 +1744,7 @@ export default function SystemSettingPage() {
       // Reset all selections when no policy is expanded
       setGroupPolicySettings(prev => {
         const resetSettings = Object.keys(prev).reduce((acc, role) => {
-          acc[role] = { selected: false, days: prev[role].days };
+          (acc as any)[role] = { selected: false, days: (prev as any)[role].days };
           return acc;
         }, {} as typeof prev);
         return resetSettings;
@@ -1930,32 +1930,33 @@ export default function SystemSettingPage() {
   // Update state when data changes (replaces deprecated onSuccess)
   useEffect(() => {
     if (existingCompanySettings) {
+      const settings = existingCompanySettings as any;
       // Update companyData state with real data from database
       setCompanyData({
-        companyName: existingCompanySettings.companyName || "",
-        companyShortName: existingCompanySettings.companyShortName || "",
-        companyRegNo: existingCompanySettings.companyRegistrationNumber || "",
-        companyType: existingCompanySettings.companyType || "",
-        industry: existingCompanySettings.industry || "",
-        companyEmail: existingCompanySettings.email || "",
-        companyPhone: existingCompanySettings.phoneNumber || "",
-        companyFax: existingCompanySettings.faxNumber || "",
-        streetAddress: existingCompanySettings.address || "",
-        state: existingCompanySettings.state || "",
-        city: existingCompanySettings.city || "",
-        postcode: existingCompanySettings.postcode || "",
-        country: existingCompanySettings.country || "",
-        logoUrl: existingCompanySettings.logoUrl || null,
-        bankName: existingCompanySettings.bankName || "",
-        bankAccountNo: existingCompanySettings.bankAccountNumber || "",
-        epfNo: existingCompanySettings.epfNumber || "",
-        socsoNo: existingCompanySettings.socsoNumber || "",
-        incomeTaxNo: existingCompanySettings.incomeTaxNumber || "",
-        employerNo: existingCompanySettings.employerNumber || "",
-        lhdnBranch: existingCompanySettings.lhdnBranch || "",
-        originatorId: existingCompanySettings.originatorId || "",
-        zakatNo: existingCompanySettings.zakatNumber || "",
-        cNumber: existingCompanySettings.cNumber || ""
+        companyName: settings.companyName || "",
+        companyShortName: settings.companyShortName || "",
+        companyRegNo: settings.companyRegistrationNumber || "",
+        companyType: settings.companyType || "",
+        industry: settings.industry || "",
+        companyEmail: settings.email || "",
+        companyPhone: settings.phoneNumber || "",
+        companyFax: settings.faxNumber || "",
+        streetAddress: settings.address || "",
+        state: settings.state || "",
+        city: settings.city || "",
+        postcode: settings.postcode || "",
+        country: settings.country || "",
+        logoUrl: settings.logoUrl || null,
+        bankName: settings.bankName || "",
+        bankAccountNo: settings.bankAccountNumber || "",
+        epfNo: settings.epfNumber || "",
+        socsoNo: settings.socsoNumber || "",
+        incomeTaxNo: settings.incomeTaxNumber || "",
+        employerNo: settings.employerNumber || "",
+        lhdnBranch: settings.lhdnBranch || "",
+        originatorId: settings.originatorId || "",
+        zakatNo: settings.zakatNumber || "",
+        cNumber: settings.cNumber || ""
       });
     }
   }, [existingCompanySettings]);
@@ -2180,9 +2181,9 @@ export default function SystemSettingPage() {
         const result = await response.json();
         console.log("Payment settings saved:", result);
         // Create dynamic success message based on changes
-        const currencyChanged = paymentSettings.currency !== (currentCompanySettings?.currency || 'RM');
+        const currencyChanged = paymentSettings.currency !== ((currentCompanySettings as any)?.currency || 'RM');
         const contributionsChanged = Object.keys(paymentSettings).some(key => 
-          key.endsWith('Enabled') && paymentSettings[key] !== currentCompanySettings?.[key]
+          key.endsWith('Enabled') && (paymentSettings as any)[key] !== (currentCompanySettings as any)?.[key]
         );
         
         let successMessage = "Payment settings have been saved successfully!";
@@ -2750,8 +2751,8 @@ export default function SystemSettingPage() {
     };
 
     // Check if policy exists in database
-    const existingPolicy = financialClaimPoliciesData?.find(
-      (p: FinancialClaimPolicy) => p.id === policyId
+    const existingPolicy = (financialClaimPoliciesData as any)?.find(
+      (p: any) => p.id === policyId
     );
 
     if (existingPolicy) {
@@ -2767,8 +2768,8 @@ export default function SystemSettingPage() {
     
     // Get policy data from either form or API data
     const formData = financialPolicyForm[policyId];
-    const existingPolicy = financialClaimPoliciesData?.find(
-      (p: FinancialClaimPolicy) => p.id === policyId
+    const existingPolicy = (financialClaimPoliciesData as any)?.find(
+      (p: any) => p.id === policyId
     );
     
     console.log('Form data:', formData);
@@ -2792,8 +2793,8 @@ export default function SystemSettingPage() {
   // Handler untuk cancel changes
   const handleCancelFinancialPolicy = (policyId: string) => {
     // Reset form untuk policy ini ke nilai asal atau kosong
-    const existingPolicy = financialClaimPoliciesData?.find(
-      (p: FinancialClaimPolicy) => p.id === policyId
+    const existingPolicy = (financialClaimPoliciesData as any)?.find(
+      (p: any) => p.id === policyId
     );
 
     if (existingPolicy) {
@@ -2982,14 +2983,14 @@ export default function SystemSettingPage() {
                     Loading forms...
                   </td>
                 </tr>
-              ) : !formsData || formsData.length === 0 ? (
+              ) : !(formsData as any) || (formsData as any).length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
                     No forms found. Click "Upload New Form" to add forms.
                   </td>
                 </tr>
               ) : (
-                formsData.map((form: any, index: number) => (
+                (formsData as any).map((form: any, index: number) => (
                   <tr key={form.id}>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{index + 1}</td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{form.formName}</td>
@@ -5249,10 +5250,10 @@ export default function SystemSettingPage() {
           </Button>
         </div>
         <div className="p-4 space-y-4">
-          {shifts.length === 0 ? (
+          {(shifts as any).length === 0 ? (
             <p className="text-sm text-gray-500 italic">No shifts available. Click "Create Shift" to add a new shift.</p>
           ) : (
-            shifts.map((shift: any) => (
+            (shifts as any).map((shift: any) => (
               <div key={shift.id} className="border rounded-lg p-4 bg-gray-50">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
