@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { 
   ChevronRight,
+  ArrowLeft,
   DollarSign,
   Clock,
   Upload,
@@ -562,24 +563,38 @@ export default function ApplyClaimPage() {
         {/* Header */}
         <div className="bg-white border-b px-6 py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-semibold text-gray-900">
-                {selectedCategory === 'main' ? 'Apply for Claim' : 
-                 selectedCategory === 'financial' ? 'Apply for Financial Claim' : 
-                 'Apply for Overtime Claim'}
-              </h1>
-              <div className="flex items-center text-sm text-gray-500 mt-1">
-                <span>Home</span>
-                <ChevronRight className="w-4 h-4 mx-1" />
-                <span>Claim</span>
-                {selectedCategory !== 'main' && (
-                  <>
-                    <ChevronRight className="w-4 h-4 mx-1" />
-                    <span>{selectedCategory === 'financial' ? 'Financial' : 'Overtime'}</span>
-                  </>
-                )}
-                <ChevronRight className="w-4 h-4 mx-1" />
-                <span>Apply</span>
+            <div className="flex items-center space-x-4">
+              {selectedCategory !== 'main' && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedCategory('main')}
+                  className="flex items-center text-gray-600 hover:text-gray-900"
+                  data-testid="button-back"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back
+                </Button>
+              )}
+              <div>
+                <h1 className="text-2xl font-semibold text-gray-900">
+                  {selectedCategory === 'main' ? 'Apply for Claim' : 
+                   selectedCategory === 'financial' ? 'Apply for Financial Claim' : 
+                   'Apply for Overtime Claim'}
+                </h1>
+                <div className="flex items-center text-sm text-gray-500 mt-1">
+                  <span>Home</span>
+                  <ChevronRight className="w-4 h-4 mx-1" />
+                  <span>Claim</span>
+                  {selectedCategory !== 'main' && (
+                    <>
+                      <ChevronRight className="w-4 h-4 mx-1" />
+                      <span>{selectedCategory === 'financial' ? 'Financial' : 'Overtime'}</span>
+                    </>
+                  )}
+                  <ChevronRight className="w-4 h-4 mx-1" />
+                  <span>Apply</span>
+                </div>
               </div>
             </div>
           </div>
