@@ -658,12 +658,16 @@ export default function QRClockInPage() {
                               {record.isLateClockIn && record.clockInRemarks && (
                                 <div className="text-xs text-red-600 bg-red-50 p-1 rounded border">
                                   <AlertTriangle className="h-3 w-3 inline mr-1" />
-                                  {record.clockInRemarks}
+                                  {(() => {
+                                    // Extract just the "Lewat X jam Y minit" part from the full message
+                                    const match = record.clockInRemarks.match(/Lewat \d+(?:\s+jam)?(?:\s+\d+\s+minit)?/);
+                                    return match ? match[0] : record.clockInRemarks;
+                                  })()}
                                 </div>
                               )}
                               {record.clockInLocationStatus && (
                                 <Badge 
-                                  variant={record.clockInLocationStatus === "valid" ? "success" : "destructive"}
+                                  variant={record.clockInLocationStatus === "valid" ? "secondary" : "destructive"}
                                   className="text-xs"
                                 >
                                   {record.clockInLocationStatus === "valid" ? "Lokasi Sah" : "Lokasi Tidak Sah"}
@@ -713,12 +717,16 @@ export default function QRClockInPage() {
                               {record.isLateBreakOut && record.breakOutRemarks && (
                                 <div className="text-xs text-red-600 bg-red-50 p-1 rounded border">
                                   <AlertTriangle className="h-3 w-3 inline mr-1" />
-                                  {record.breakOutRemarks}
+                                  {(() => {
+                                    // Extract just the "Lewat X jam Y minit" part from the full message
+                                    const match = record.breakOutRemarks.match(/Lewat \d+(?:\s+jam)?(?:\s+\d+\s+minit)?/);
+                                    return match ? match[0] : record.breakOutRemarks;
+                                  })()}
                                 </div>
                               )}
                               {record.clockOutLocationStatus && (
                                 <Badge 
-                                  variant={record.clockOutLocationStatus === "valid" ? "success" : "destructive"}
+                                  variant={record.clockOutLocationStatus === "valid" ? "secondary" : "destructive"}
                                   className="text-xs"
                                 >
                                   {record.clockOutLocationStatus === "valid" ? "Lokasi Sah" : "Lokasi Tidak Sah"}
@@ -739,6 +747,51 @@ export default function QRClockInPage() {
                             </div>
                           ) : (
                             <p className="pl-6 text-sm text-gray-400">Belum clock-out</p>
+                          )}
+                        </div>
+
+                        {/* Break-In Information */}
+                        <div className="space-y-2 col-span-full mt-4 border-t pt-4">
+                          <div className="flex items-center gap-2 text-sm font-medium text-blue-700">
+                            <Clock className="h-4 w-4" />
+                            Break-In (Balik dari Rehat)
+                          </div>
+                          {(record as any).breakInTime ? (
+                            <div className="pl-6 space-y-1">
+                              <p className={`text-sm ${
+                                (record as any).isLateBreakIn ? 'text-red-600 font-bold' : 'text-gray-800'
+                              }`}>
+                                {(() => {
+                                  const utcDate = new Date((record as any).breakInTime);
+                                  if (isNaN(utcDate.getTime())) return 'Invalid Date';
+                                  return utcDate.toLocaleTimeString('ms-MY', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    second: '2-digit',
+                                    timeZone: 'Asia/Kuala_Lumpur'
+                                  });
+                                })()}
+                                {(record as any).isLateBreakIn && ' ⚠️'}
+                              </p>
+                              {(record as any).isLateBreakIn && (record as any).breakInRemarks && (
+                                <div className="text-xs text-red-600 bg-red-50 p-1 rounded border">
+                                  <AlertTriangle className="h-3 w-3 inline mr-1" />
+                                  {(() => {
+                                    // Extract just the "Lewat X jam Y minit" part from the full message
+                                    const match = (record as any).breakInRemarks.match(/Lewat \d+(?:\s+jam)?(?:\s+\d+\s+minit)?/);
+                                    return match ? match[0] : (record as any).breakInRemarks;
+                                  })()}
+                                </div>
+                              )}
+                              {(record as any).breakInImage && (
+                                <div className="text-xs text-gray-500">
+                                  <Camera className="h-3 w-3 inline mr-1" />
+                                  Selfie tersimpan
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <p className="pl-6 text-sm text-gray-400">Belum break-in</p>
                           )}
                         </div>
                       </div>
