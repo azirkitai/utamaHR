@@ -1187,7 +1187,7 @@ export default function SystemSettingPage() {
         enableStrictClockIn: false,
       });
       toast({
-        title: "Berjaya",
+        title: "Success",
         description: "Shift successfully dicipta",
         variant: "default",
       });
@@ -1195,7 +1195,7 @@ export default function SystemSettingPage() {
     onError: (error: Error) => {
       console.error("Create shift error:", error);
       toast({
-        title: "Ralat",
+        title: "Error",
         description: "Gagal mencipta shift",
         variant: "destructive",
       });
@@ -1245,7 +1245,7 @@ export default function SystemSettingPage() {
     onSuccess: () => {
       refetchShifts();
       toast({
-        title: "Berjaya",
+        title: "Success",
         description: "Shift successfully dipadamkan",
         variant: "default",
       });
@@ -1253,7 +1253,7 @@ export default function SystemSettingPage() {
     onError: (error: Error) => {
       console.error("Delete shift error:", error);
       toast({
-        title: "Ralat",
+        title: "Error",
         description: "Gagal memadamkan shift",
         variant: "destructive",
       });
@@ -1280,7 +1280,7 @@ export default function SystemSettingPage() {
       setShowEditShiftDialog(false);
       setEditingShift(null);
       toast({
-        title: "Berjaya",
+        title: "Success",
         description: "Shift successfully dikemaskini",
         variant: "default",
       });
@@ -1288,7 +1288,7 @@ export default function SystemSettingPage() {
     onError: (error: Error) => {
       console.error("Update shift error:", error);
       toast({
-        title: "Ralat",
+        title: "Error",
         description: "Gagal mengemaskini shift",
         variant: "destructive",
       });
@@ -1499,7 +1499,7 @@ export default function SystemSettingPage() {
     },
     onError: (error) => {
       toast({
-        title: "Ralat",
+        title: "Error",
         description: "Gagal menyimpan polisi claim. Sila cuba lagi.",
         variant: "destructive",
       });
@@ -1521,7 +1521,7 @@ export default function SystemSettingPage() {
     },
     onError: (error) => {
       toast({
-        title: "Ralat",
+        title: "Error",
         description: "Gagal mengemaskini polisi claim. Sila cuba lagi.",
         variant: "destructive",
       });
@@ -1564,7 +1564,7 @@ export default function SystemSettingPage() {
     onError: (error) => {
       console.error('💥 Delete mutation error:', error);
       toast({
-        title: "Ralat",
+        title: "Error",
         description: `Gagal memadamkan polisi claim: ${error.message || 'Sila cuba lagi'}`,
         variant: "destructive",
       });
@@ -1694,7 +1694,7 @@ export default function SystemSettingPage() {
       // Validate file type
       if (!file.type.startsWith('image/')) {
         toast({
-          title: "Ralat",
+          title: "Error",
           description: "Sila pilih fail imej yang valid (JPG, PNG, GIF)",
           variant: "destructive",
         });
@@ -1704,7 +1704,7 @@ export default function SystemSettingPage() {
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         toast({
-          title: "Ralat", 
+          title: "Error", 
           description: "Saiz fail terlalu besar. Maksimum 5MB",
           variant: "destructive",
         });
@@ -1729,7 +1729,7 @@ export default function SystemSettingPage() {
       // Get upload URL from server
       const token = localStorage.getItem("utamahr_token");
       if (!token) {
-        throw new Error("Token not found. Sila log masuk semula.");
+        throw new Error("Token not found. Please log in again.");
       }
 
       const uploadResponse = await fetch("/api/objects/upload", {
@@ -1813,7 +1813,7 @@ export default function SystemSettingPage() {
     mutationFn: async (data: any) => {
       const token = localStorage.getItem("utamahr_token");
       if (!token) {
-        throw new Error("Token not found. Sila log masuk semula.");
+        throw new Error("Token not found. Please log in again.");
       }
 
       const response = await fetch("/api/company-settings", {
@@ -1826,15 +1826,15 @@ export default function SystemSettingPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Gagal menyimpan maklumat syarikat");
+        throw new Error("Failed to save company information");
       }
 
       return response.json();
     },
     onSuccess: (response) => {
       toast({
-        title: "Berjaya!",
-        description: "Maklumat syarikat telah disimpan dengan successfully",
+        title: "Success!",
+        description: "Company information has been saved successfully",
       });
       console.log("Data yang disimpan:", response);
       
@@ -1843,8 +1843,8 @@ export default function SystemSettingPage() {
     },
     onError: (error: any) => {
       toast({
-        title: "Ralat",
-        description: error.message || "Gagal menyimpan maklumat syarikat",
+        title: "Error",
+        description: error.message || "Failed to save company information",
         variant: "destructive",
       });
     }
@@ -1994,7 +1994,7 @@ export default function SystemSettingPage() {
       if (response.ok) {
         const result = await response.json();
         console.log("Success result:", result);
-        alert("Tetapan kelulusan cuti successfully disimpan!");
+        alert("Leave approval settings successfully saved!");
       } else {
         const errorData = await response.json();
         console.log("Error response:", errorData);
@@ -2011,7 +2011,7 @@ export default function SystemSettingPage() {
       const token = localStorage.getItem("utamahr_token");
       
       if (!token) {
-        alert("Sila log masuk semula.");
+        alert("Please log in again.");
         return;
       }
 
@@ -2031,7 +2031,7 @@ export default function SystemSettingPage() {
       if (response.ok) {
         const result = await response.json();
         console.log("Financial approval settings saved:", result);
-        alert("Tetapan kelulusan kewangan successfully disimpan!");
+        alert("Financial approval settings successfully saved!");
         queryClient.invalidateQueries({ queryKey: ["/api/approval-settings/financial"] });
       } else {
         const errorData = await response.json();
@@ -2040,7 +2040,7 @@ export default function SystemSettingPage() {
       }
     } catch (error) {
       console.error("Error saving financial approval:", error);
-      alert(`Gagal menyimpan tetapan kelulusan kewangan: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      alert(`Failed to save financial approval settings: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -2049,7 +2049,7 @@ export default function SystemSettingPage() {
       const token = localStorage.getItem("utamahr_token");
       
       if (!token) {
-        alert("Sila log masuk semula.");
+        alert("Please log in again.");
         return;
       }
 
@@ -2071,7 +2071,7 @@ export default function SystemSettingPage() {
       if (response.ok) {
         const result = await response.json();
         console.log("Payment approval settings saved:", result);
-        alert("Tetapan kelulusan bayaran successfully disimpan!");
+        alert("Payment approval settings successfully saved!");
         queryClient.invalidateQueries({ queryKey: ["/api/approval-settings/payment"] });
       } else {
         const errorData = await response.json();
@@ -2080,7 +2080,7 @@ export default function SystemSettingPage() {
       }
     } catch (error) {
       console.error("Error saving payment approval:", error);
-      alert(`Gagal menyimpan tetapan kelulusan bayaran: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      alert(`Failed to save payment approval settings: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -2092,7 +2092,7 @@ export default function SystemSettingPage() {
       if (!token) {
         toast({
           title: "Error",
-          description: "Sila log masuk semula.",
+          description: "Please log in again.",
           variant: "destructive",
         });
         return;
@@ -2116,10 +2116,10 @@ export default function SystemSettingPage() {
           key.endsWith('Enabled') && paymentSettings[key] !== currentCompanySettings?.[key]
         );
         
-        let successMessage = "Tetapan pembayaran telah successfully disimpan!";
+        let successMessage = "Payment settings have been saved successfully!";
         
         if (currencyChanged) {
-          successMessage += ` Mata wang dikemas kini kepada ${paymentSettings.currency} - perubahan ini mempengaruhi seluruh sistem termasuk Master Salary, Payroll, dan semua modul kewangan.`;
+          successMessage += ` Currency updated to ${paymentSettings.currency} - this change affects the entire system including Master Salary, Payroll, and all financial modules.`;
         }
         
         if (contributionsChanged) {
@@ -2131,12 +2131,12 @@ export default function SystemSettingPage() {
           if (paymentSettings.pcb39Enabled) enabledContributions.push("PCB39");
           
           if (enabledContributions.length > 0) {
-            successMessage += ` Caruman berkanun diaktifkan: ${enabledContributions.join(", ")}.`;
+            successMessage += ` Statutory contributions enabled: ${enabledContributions.join(", ")}.`;
           }
         }
         
         toast({
-          title: "Berjaya",
+          title: "Success",
           description: successMessage,
         });
         queryClient.invalidateQueries({ queryKey: ["/api/payment-settings"] });
@@ -2149,8 +2149,8 @@ export default function SystemSettingPage() {
     } catch (error) {
       console.error("Error saving payment settings:", error);
       toast({
-        title: "Ralat",
-        description: `Gagal menyimpan tetapan pembayaran: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        title: "Error",
+        description: `Failed to save payment settings: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       });
     }
@@ -2161,7 +2161,7 @@ export default function SystemSettingPage() {
       const token = localStorage.getItem("utamahr_token");
       
       if (!token) {
-        alert("Sila log masuk semula.");
+        alert("Please log in again.");
         return;
       }
 
@@ -2198,7 +2198,7 @@ export default function SystemSettingPage() {
       const token = localStorage.getItem("utamahr_token");
       
       if (!token) {
-        alert("Sila log masuk semula.");
+        alert("Please log in again.");
         return;
       }
 
@@ -2214,7 +2214,7 @@ export default function SystemSettingPage() {
       if (response.ok) {
         const result = await response.json();
         console.log("Overtime settings saved:", result);
-        alert("Tetapan lebih masa successfully disimpan!");
+        alert("Overtime settings successfully saved!");
         queryClient.invalidateQueries({ queryKey: ["/api/overtime/settings"] });
       } else {
         const errorData = await response.json();
@@ -2223,7 +2223,7 @@ export default function SystemSettingPage() {
       }
     } catch (error) {
       console.error("Error saving overtime settings:", error);
-      alert(`Gagal menyimpan tetapan lebih masa: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      alert(`Failed to save overtime settings: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -2257,7 +2257,7 @@ export default function SystemSettingPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/leave-policy-settings", expandedPolicyId] });
     },
     onError: (error) => {
-      console.error("Gagal mengemas kini tetapan polisi cuti:", error);
+      console.error("Failed to update leave policy settings:", error);
       toast({
         title: "❌ Error",
         description: "Failed to update leave policy setting. Please try again.",
@@ -2326,7 +2326,7 @@ export default function SystemSettingPage() {
       // Get authentication token
       const token = localStorage.getItem("utamahr_token");
       if (!token) {
-        throw new Error("Token not found. Sila log masuk semula.");
+        throw new Error("Token not found. Please log in again.");
       }
 
       // Create FormData to upload file
@@ -2344,7 +2344,7 @@ export default function SystemSettingPage() {
 
       if (response.ok) {
         toast({
-          title: "Berjaya",
+          title: "Success",
           description: "Bpeople telah successfully dimuat naik",
         });
         
@@ -2361,7 +2361,7 @@ export default function SystemSettingPage() {
     } catch (error) {
       console.error("Form upload error:", error);
       toast({
-        title: "Ralat",
+        title: "Error",
         description: "Gagal memuat naik bpeople. Sila cuba lagi.",
         variant: "destructive",
       });
@@ -2385,7 +2385,7 @@ export default function SystemSettingPage() {
       // Get authentication token
       const token = localStorage.getItem("utamahr_token");
       if (!token) {
-        throw new Error("Token not found. Sila log masuk semula.");
+        throw new Error("Token not found. Please log in again.");
       }
 
       const response = await fetch(`/api/forms/${formId}`, {
@@ -2397,7 +2397,7 @@ export default function SystemSettingPage() {
 
       if (response.ok) {
         toast({
-          title: "Berjaya",
+          title: "Success",
           description: "Bpeople telah successfully dipadamkan",
         });
         refetchForms();
@@ -2407,7 +2407,7 @@ export default function SystemSettingPage() {
     } catch (error) {
       console.error("Form delete error:", error);
       toast({
-        title: "Ralat",
+        title: "Error",
         description: "Gagal memadamkan bpeople. Sila cuba lagi.",
         variant: "destructive",
       });
@@ -2460,7 +2460,7 @@ export default function SystemSettingPage() {
       try {
         const token = localStorage.getItem("utamahr_token");
         if (!token) {
-          alert("Sila log masuk semula.");
+          alert("Please log in again.");
           return;
         }
 
@@ -2506,7 +2506,7 @@ export default function SystemSettingPage() {
       try {
         const token = localStorage.getItem("utamahr_token");
         if (!token) {
-          alert("Sila log masuk semula.");
+          alert("Please log in again.");
           return;
         }
 
@@ -2549,7 +2549,7 @@ export default function SystemSettingPage() {
       try {
         const token = localStorage.getItem("utamahr_token");
         if (!token) {
-          alert("Sila log masuk semula.");
+          alert("Please log in again.");
           return;
         }
 
@@ -2612,7 +2612,7 @@ export default function SystemSettingPage() {
     } catch (error) {
       console.error("Error saving financial settings:", error);
       toast({
-        title: "Ralat",
+        title: "Error",
         description: "Gagal menyimpan tetapan kewangan. Sila cuba lagi.",
         variant: "destructive",
       });
