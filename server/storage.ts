@@ -225,7 +225,7 @@ import {
   type UpdateEmployeeLeaveEntitlementAdjustment,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, count, sql, asc, ilike, or, gte, lte, inArray, not, isNull, isNotNull } from "drizzle-orm";
+import { eq, and, desc, count, sql, asc, ilike, or, gte, lte, inArray, not, isNull, isNotNull, ne } from "drizzle-orm";
 
 export interface IStorage {
   // =================== USER METHODS ===================
@@ -2931,6 +2931,27 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error deleting leave balance carry forward:', error);
       throw error;
+    }
+  }
+
+  // =================== DEPARTMENTS METHODS ===================
+  async getUniqueDepartments(): Promise<string[]> {
+    try {
+      const departments = await db
+        .selectDistinct({ department: employment.department })
+        .from(employment)
+        .where(and(
+          isNotNull(employment.department),
+          ne(employment.department, '')
+        ))
+        .orderBy(asc(employment.department));
+      
+      return departments
+        .map(row => row.department)
+        .filter(dept => dept != null) as string[];
+    } catch (error) {
+      console.error('Error getting unique departments:', error);
+      return [];
     }
   }
 

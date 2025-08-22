@@ -58,6 +58,11 @@ export default function ManageEmployeePage() {
     queryKey: ["/api/employees"],
   });
 
+  // Fetch departments from API
+  const { data: availableDepartments = [] } = useQuery<string[]>({
+    queryKey: ["/api/departments"],
+  });
+
   // Mutation for creating user and employee
   const createStaffMutation = useMutation({
     mutationFn: async (staffData: {
@@ -492,10 +497,14 @@ export default function ManageEmployeePage() {
                               <SelectValue placeholder="Select department" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="human-resource">Human Resource</SelectItem>
-                              <SelectItem value="it">Information Technology</SelectItem>
-                              <SelectItem value="finance">Finance</SelectItem>
-                              <SelectItem value="marketing">Marketing</SelectItem>
+                              {availableDepartments.map((dept) => (
+                                <SelectItem key={dept} value={dept}>
+                                  {dept === 'it' ? 'Information Technology' :
+                                   dept === 'human-resource' ? 'Human Resource' :
+                                   dept === 'finance' ? 'Finance' :
+                                   dept.charAt(0).toUpperCase() + dept.slice(1)}
+                                </SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                         </div>
