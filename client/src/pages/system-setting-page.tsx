@@ -831,54 +831,47 @@ export default function SystemSettingPage() {
     name: "",
     code: "",
   });
-  const [departments, setDepartments] = useState([
-    {
-      id: 1,
-      name: "Human Resource",
-      code: "HR",
-      employeeCount: 2,
-      employees: [
-        { id: "emp1", name: "John Doe", position: "HR Manager" },
-        { id: "emp2", name: "Jane Smith", position: "HR Assistant" }
-      ]
-    },
-    {
-      id: 2,
-      name: "Information Technology",
-      code: "IT",
-      employeeCount: 5,
-      employees: [
-        { id: "emp3", name: "Mike Johnson", position: "Software Developer" },
-        { id: "emp4", name: "Sarah Wilson", position: "System Administrator" },
-        { id: "emp5", name: "David Chen", position: "DevOps Engineer" },
-        { id: "emp6", name: "Lisa Park", position: "UI/UX Designer" },
-        { id: "emp7", name: "Tom Brown", position: "Database Administrator" }
-      ]
-    },
-    {
-      id: 3,
-      name: "Finance & Accounting",
-      code: "FA",
-      employeeCount: 3,
-      employees: [
-        { id: "emp8", name: "Amanda Lee", position: "Finance Manager" },
-        { id: "emp9", name: "Robert Taylor", position: "Accountant" },
-        { id: "emp10", name: "Emma Davis", position: "Finance Assistant" }
-      ]
-    },
-    {
-      id: 4,
-      name: "Marketing",
-      code: "MKT",
-      employeeCount: 4,
-      employees: [
-        { id: "emp11", name: "Chris Martinez", position: "Marketing Manager" },
-        { id: "emp12", name: "Jennifer White", position: "Digital Marketing Specialist" },
-        { id: "emp13", name: "Kevin Zhang", position: "Content Creator" },
-        { id: "emp14", name: "Maria Garcia", position: "Social Media Specialist" }
-      ]
-    },
-  ]);
+  // Generate departments with real employee data
+  const departments = useMemo(() => {
+    if (!allEmployees || allEmployees.length === 0) {
+      return [];
+    }
+
+    // Group employees by department
+    const departmentGroups = allEmployees.reduce((acc: any, employee: any) => {
+      const departmentName = employee.employment?.department || 'Unassigned';
+      
+      if (!acc[departmentName]) {
+        acc[departmentName] = [];
+      }
+      
+      acc[departmentName].push({
+        id: employee.id,
+        name: employee.fullName || `${employee.firstName} ${employee.lastName}`.trim(),
+        position: employee.employment?.designation || employee.role || 'Staff',
+        email: employee.contact?.email || 'No email',
+        status: employee.status || 'employed'
+      });
+      
+      return acc;
+    }, {});
+
+    // Convert to department array format
+    return Object.entries(departmentGroups).map(([deptName, employees]: [string, any]) => ({
+      id: Math.abs(deptName.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a; }, 0)),
+      name: deptName.charAt(0).toUpperCase() + deptName.slice(1).toLowerCase(),
+      code: deptName.substring(0, 3).toUpperCase(),
+      employeeCount: employees.length,
+      employees: employees
+    }));
+  }, [allEmployees]);
+
+  const [localDepartments, setLocalDepartments] = useState(departments);
+
+  // Sync localDepartments when departments data changes
+  useEffect(() => {
+    setLocalDepartments(departments);
+  }, [departments]);
 
   // Payment states
   const [paymentSettings, setPaymentSettings] = useState({
@@ -2732,7 +2725,7 @@ export default function SystemSettingPage() {
   };
 
   const handleSaveDepartmentName = (departmentId: number, newName: string) => {
-    setDepartments(prev => prev.map(dept => 
+    setLocalDepartments(prev => prev.map(dept => 
       dept.id === departmentId ? { ...dept, name: newName } : dept
     ));
     setEditingDepartment(null);
@@ -2740,7 +2733,7 @@ export default function SystemSettingPage() {
 
   const handleDeleteDepartment = (departmentId: number) => {
     if (window.confirm("Are you sure you want to delete this department? This action cannot be undone.")) {
-      setDepartments(prev => prev.filter(dept => dept.id !== departmentId));
+      setLocalDepartments(prev => prev.filter(dept => dept.id !== departmentId));
       // Also remove from expanded departments if it was expanded
       setExpandedDepartments(prev => prev.filter(id => id !== departmentId));
     }
@@ -5146,7 +5139,7 @@ export default function SystemSettingPage() {
       {/* Department List */}
       <div className="bg-white rounded-lg border">
         <div className="divide-y">
-          {departments.map((department) => {
+          {localDepartments.map((department) => {
             const isExpanded = expandedDepartments.includes(department.id);
             const isEditing = editingDepartment === department.id;
             
@@ -5161,7 +5154,7 @@ export default function SystemSettingPage() {
                           value={department.name}
                           onChange={(e) => {
                             const newName = e.target.value;
-                            setDepartments(prev => prev.map(dept => 
+                            setLocalDepartments(prev => prev.map(dept => 
                               dept.id === department.id ? { ...dept, name: newName } : dept
                             ));
                           }}
