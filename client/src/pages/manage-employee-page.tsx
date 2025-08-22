@@ -59,7 +59,7 @@ export default function ManageEmployeePage() {
   });
 
   // Fetch departments from API for dropdown
-  const { data: departments = [] } = useQuery<string[]>({
+  const { data: departments = [] } = useQuery<any[]>({
     queryKey: ["/api/departments"],
   });
 
@@ -499,8 +499,8 @@ export default function ManageEmployeePage() {
                             <SelectContent>
                               {departments.length > 0 ? (
                                 departments.map((dept) => (
-                                  <SelectItem key={dept} value={dept}>
-                                    {dept.charAt(0).toUpperCase() + dept.slice(1).replace('-', ' ')}
+                                  <SelectItem key={dept.id || dept} value={dept.name || dept}>
+                                    {dept.name || dept.charAt(0).toUpperCase() + dept.slice(1).replace('-', ' ')}
                                   </SelectItem>
                                 ))
                               ) : (
