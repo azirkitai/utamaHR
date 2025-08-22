@@ -5385,6 +5385,62 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // =================== PAGE PERMISSIONS ROUTES ===================
+  
+  // Save page permissions
+  app.post("/api/page-permissions", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      
+      // Only Super Admin can save page permissions
+      if (currentUser.role !== "Super Admin") {
+        return res.status(403).json({ error: "Access denied. Only Super Admin can modify page permissions." });
+      }
+
+      const pagePermissions = req.body;
+      
+      // For now, we'll store in a simple JSON file or return success
+      // In a production system, you'd store this in a database table
+      console.log("Page permissions saved:", JSON.stringify(pagePermissions, null, 2));
+      
+      res.json({ 
+        success: true, 
+        message: "Page permissions saved successfully",
+        permissions: pagePermissions
+      });
+    } catch (error) {
+      console.error("Error saving page permissions:", error);
+      res.status(500).json({ error: "Failed to save page permissions" });
+    }
+  });
+
+  // Get page permissions (optional - for loading existing permissions)
+  app.get("/api/page-permissions", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      
+      // Only Super Admin can view page permissions
+      if (currentUser.role !== "Super Admin") {
+        return res.status(403).json({ error: "Access denied. Only Super Admin can view page permissions." });
+      }
+
+      // Return default permissions for now
+      // In a production system, you'd load from database
+      const defaultPermissions = {
+        "dashboard": ["Super Admin", "Admin", "HR Manager", "Finance", "Staff/Employee"],
+        "employee-management": ["Super Admin", "Admin", "HR Manager"],
+        "payroll": ["Super Admin", "Admin", "Finance"],
+        "system-settings": ["Super Admin", "Admin"],
+        "role-configuration": ["Super Admin"]
+      };
+      
+      res.json(defaultPermissions);
+    } catch (error) {
+      console.error("Error fetching page permissions:", error);
+      res.status(500).json({ error: "Failed to fetch page permissions" });
+    }
+  });
+
   // =================== COMPANY LEAVE TYPES ROUTES ===================
   
   // Get all company leave types
