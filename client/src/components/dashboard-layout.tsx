@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [selectedNotification, setSelectedNotification] = useState<any>(null);
+  const [readNotifications, setReadNotifications] = useState<Set<number>>(new Set());
   const { user, logoutMutation } = useAuth();
 
   // Fetch real notification data from APIs
@@ -54,6 +57,22 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     enabled: !!user?.id,
   });
 
+  // Handle notification click - mark as read and open detail dialog
+  const handleNotificationClick = (notification: any) => {
+    // Mark as read
+    setReadNotifications(prev => new Set([...prev, notification.id]));
+    // Open detail dialog
+    setSelectedNotification(notification);
+    // Close notification popup
+    setIsNotificationOpen(false);
+  };
+
+  // Mark all notifications as read
+  const handleMarkAllAsRead = () => {
+    const allNotificationIds = generateNotifications().map(n => n.id);
+    setReadNotifications(new Set(allNotificationIds));
+  };
+
   // Generate real notifications based on actual data
   const generateNotifications = () => {
     const notifications = [];
@@ -68,13 +87,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         const minutesUntilShift = Math.floor(timeDiff / (1000 * 60));
 
         if (minutesUntilShift <= 30 && minutesUntilShift > 0) {
+          const notificationId = id++;
           notifications.push({
-            id: id++,
+            id: notificationId,
             type: "clock_in_reminder",
             title: "Clock-In Reminder",
             message: `Your shift starts in ${minutesUntilShift} minutes at ${shift.startTime}. Don't forget to clock in!`,
+            fullDetails: `Shift: ${shift.name}\nStart Time: ${shift.startTime}\nEnd Time: ${shift.endTime}\nDate: ${shift.date}\n\nPlease make sure to clock in on time to avoid any attendance issues.`,
             timestamp: "Now",
-            isRead: false,
+            isRead: readNotifications.has(notificationId),
             priority: "high"
           });
         }
@@ -86,14 +107,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       announcements.forEach((announcement: any) => {
         const createdDate = new Date(announcement.createdAt);
         const timeAgo = getTimeAgo(createdDate);
+        const notificationId = id++;
         
         notifications.push({
-          id: id++,
+          id: notificationId,
           type: "announcement",
           title: announcement.title || "New Announcement",
           message: announcement.content || announcement.message || "New announcement available",
+          fullDetails: `${announcement.title || "Announcement"}\n\nDate: ${createdDate.toLocaleDateString()}\nTime: ${createdDate.toLocaleTimeString()}\n\n${announcement.content || announcement.message || "No details available"}`,
           timestamp: timeAgo,
-          isRead: false,
+          isRead: readNotifications.has(notificationId),
           priority: announcement.priority || "medium"
         });
       });
@@ -104,37 +127,43 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       const approvals = pendingApprovals as any;
       
       if (approvals.pendingLeave > 0) {
+        const notificationId = id++;
         notifications.push({
-          id: id++,
+          id: notificationId,
           type: "leave_approval",
           title: "Leave Request Pending",
           message: `You have ${approvals.pendingLeave} leave request(s) pending approval.`,
+          fullDetails: `Leave Request Status\n\nPending Requests: ${approvals.pendingLeave}\nStatus: Waiting for approval\n\nYour leave request is currently being reviewed by your supervisor. You will be notified once a decision is made.\n\nTo check the status or make changes, please visit the My Records section.`,
           timestamp: "Recent",
-          isRead: false,
+          isRead: readNotifications.has(notificationId),
           priority: "medium"
         });
       }
 
       if (approvals.pendingClaim > 0) {
+        const notificationId = id++;
         notifications.push({
-          id: id++,
+          id: notificationId,
           type: "claim_approval",
           title: "Claim Request Pending",
           message: `You have ${approvals.pendingClaim} claim request(s) pending approval.`,
+          fullDetails: `Claim Request Status\n\nPending Requests: ${approvals.pendingClaim}\nStatus: Waiting for approval\n\nYour expense claim is currently being reviewed by the finance team. You will be notified once a decision is made.\n\nTo check the status or upload additional documents, please visit the My Records section.`,
           timestamp: "Recent",
-          isRead: false,
+          isRead: readNotifications.has(notificationId),
           priority: "medium"
         });
       }
 
       if (approvals.pendingOvertime > 0) {
+        const notificationId = id++;
         notifications.push({
-          id: id++,
+          id: notificationId,
           type: "overtime_approval",
           title: "Overtime Request Pending",
           message: `You have ${approvals.pendingOvertime} overtime request(s) pending approval.`,
+          fullDetails: `Overtime Request Status\n\nPending Requests: ${approvals.pendingOvertime}\nStatus: Waiting for approval\n\nYour overtime request is currently being reviewed by your supervisor. You will be notified once a decision is made.\n\nTo check the status or make changes, please visit the My Records section.`,
           timestamp: "Recent",
-          isRead: false,
+          isRead: readNotifications.has(notificationId),
           priority: "medium"
         });
       }
@@ -145,14 +174,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       userPayslips.slice(0, 3).forEach((payslip: any) => {
         const generatedDate = new Date(payslip.generatedAt || payslip.createdAt);
         const timeAgo = getTimeAgo(generatedDate);
+        const notificationId = id++;
         
         notifications.push({
-          id: id++,
+          id: notificationId,
           type: "payslip_ready",
           title: "Payslip Available",
           message: `Your ${payslip.month}/${payslip.year} payslip is ready for download.`,
+          fullDetails: `Payslip Ready for Download\n\nMonth: ${payslip.month}/${payslip.year}\nStatus: ${payslip.status}\nGenerated: ${generatedDate.toLocaleDateString()}\n\nGross Pay: RM ${payslip.grossPay || '0.00'}\nNet Pay: RM ${payslip.netPay || '0.00'}\nTotal Deductions: RM ${payslip.totalDeductions || '0.00'}\n\nYour payslip is now available for download. Please visit the Payroll section to download your payslip in PDF or Excel format.`,
           timestamp: timeAgo,
-          isRead: false,
+          isRead: readNotifications.has(notificationId),
           priority: "high"
         });
       });
@@ -368,6 +399,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                                   ? "bg-white border-gray-100" 
                                   : "bg-blue-50 border-blue-200"
                               )}
+                              onClick={() => handleNotificationClick(notification)}
                               data-testid={`notification-item-${notification.id}`}
                             >
                               <div className="flex items-start gap-2">
@@ -410,10 +442,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={() => {
-                        // Mark all as read functionality would go here
-                        console.log("Mark all as read");
-                      }}
+                      onClick={handleMarkAllAsRead}
                       className="text-xs"
                       data-testid="button-mark-all-read"
                     >
@@ -495,6 +524,61 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           {children}
         </main>
       </div>
+
+      {/* Notification Detail Dialog */}
+      <Dialog open={!!selectedNotification} onOpenChange={() => setSelectedNotification(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {selectedNotification && getNotificationIcon(selectedNotification.type)}
+              {selectedNotification?.title}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedNotification && (
+              <>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-500">
+                    {selectedNotification.timestamp}
+                  </span>
+                  <span className={cn(
+                    "px-2 py-1 text-xs rounded-full border",
+                    getPriorityColor(selectedNotification.priority)
+                  )}>
+                    {selectedNotification.priority} priority
+                  </span>
+                </div>
+                
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-800">
+                    {selectedNotification.message}
+                  </p>
+                  
+                  {selectedNotification.fullDetails && (
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <h4 className="font-medium text-sm mb-2">Details:</h4>
+                      <pre className="text-xs text-gray-700 whitespace-pre-wrap font-sans">
+                        {selectedNotification.fullDetails}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-end pt-4 border-t">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setSelectedNotification(null)}
+                    data-testid="button-close-notification-dialog"
+                  >
+                    Close
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
