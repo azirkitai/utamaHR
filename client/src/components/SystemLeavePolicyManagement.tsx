@@ -71,13 +71,13 @@ export function SystemLeavePolicyManagement() {
       resetForm();
       toast({
         title: "Berjaya",
-        description: "Polisi cuti sistem telah dicipta",
+        description: "System leave policy has been created",
       });
     },
     onError: () => {
       toast({
         title: "Ralat",
-        description: "Gagal mencipta polisi cuti sistem",
+        description: "Failed to create system leave policy",
         variant: "destructive",
       });
     },
@@ -95,7 +95,7 @@ export function SystemLeavePolicyManagement() {
       resetForm();
       toast({
         title: "Berjaya",
-        description: "Polisi cuti sistem telah dikemaskini",
+        description: "System leave policy has been updated",
       });
     },
     onError: () => {
@@ -246,13 +246,13 @@ export function SystemLeavePolicyManagement() {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="defaultEntitlement">Kelayakan Lalai (hari)</Label>
+                    <Label htmlFor="defaultEntitlement">Default Entitlement (days)</Label>
                     <Input
                       id="defaultEntitlement"
                       type="number"
                       value={formData.defaultEntitlement}
                       onChange={(e) => setFormData(prev => ({ ...prev, defaultEntitlement: e.target.value }))}
-                      placeholder="Masukkan bilangan hari..."
+                      placeholder="Enter number of days..."
                     />
                   </div>
                   <div>
@@ -300,7 +300,7 @@ export function SystemLeavePolicyManagement() {
                       <div className="space-y-1">
                         <h3 className="font-semibold text-lg">{policy.leaveType}</h3>
                         <p className="text-sm text-gray-600">
-                          Kelayakan Lalai: {policy.defaultEntitlement ? `${policy.defaultEntitlement} hari` : "Tidak ditetapkan"}
+                          Default Entitlement: {policy.defaultEntitlement ? `${policy.defaultEntitlement} days` : "Not set"}
                         </p>
                         {policy.remarks && (
                           <p className="text-sm text-gray-500">{policy.remarks}</p>
@@ -376,13 +376,13 @@ export function SystemLeavePolicyManagement() {
               </Select>
             </div>
             <div>
-              <Label htmlFor="edit-defaultEntitlement">Kelayakan Lalai (hari)</Label>
+              <Label htmlFor="edit-defaultEntitlement">Default Entitlement (days)</Label>
               <Input
                 id="edit-defaultEntitlement"
                 type="number"
                 value={formData.defaultEntitlement}
                 onChange={(e) => setFormData(prev => ({ ...prev, defaultEntitlement: e.target.value }))}
-                placeholder="Masukkan bilangan hari..."
+                placeholder="Enter number of days..."
               />
             </div>
             <div>

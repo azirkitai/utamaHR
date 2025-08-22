@@ -60,7 +60,7 @@ export function GroupPolicyDialog({ open, onOpenChange, leaveType }: GroupPolicy
       setSelectedRole("");
       toast({
         title: "Berjaya",
-        description: "Tetapan dasar kumpulan telah ditambah",
+        description: "Group policy settings have been added",
       });
     },
     onError: () => {
@@ -198,7 +198,7 @@ export function GroupPolicyDialog({ open, onOpenChange, leaveType }: GroupPolicy
             ) : (
               <Card>
                 <CardContent className="p-6 text-center text-gray-500">
-                  Tiada peranan yang dibenarkan bagi jenis cuti ini.
+                  Tiada peranan yang dibenarkan bagi this leave type.
                   <br />
                   Tambah peranan untuk mengehadkan akses.
                 </CardContent>
@@ -212,9 +212,9 @@ export function GroupPolicyDialog({ open, onOpenChange, leaveType }: GroupPolicy
               <div className="text-sm text-blue-800">
                 <p className="font-medium mb-2">Maklumat:</p>
                 <ul className="space-y-1 list-disc list-inside">
-                  <li>Jika tiada peranan ditetapkan, semua pekerja boleh menggunakan jenis cuti ini.</li>
-                  <li>Jika peranan ditetapkan, hanya pekerja dengan peranan yang dibenarkan validaja yang boleh menggunakan jenis cuti ini.</li>
-                  <li>Tetapan ini akan mempengaruhi paparan polisi cuti dalam maklumat pekerja.</li>
+                  <li>If no role is set, all employees can use this leave type.</li>
+                  <li>If role is set, only employees with permitted roles can use this leave type.</li>
+                  <li>This setting will affect the display of leave policy in employee information.</li>
                 </ul>
               </div>
             </CardContent>

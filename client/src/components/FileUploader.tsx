@@ -17,7 +17,7 @@ export function FileUploader({
   acceptedFileTypes = "*",
   maxFileSize = 10485760, // 10MB
   disabled = false,
-  placeholder = "Pilih fail untuk dimuat naik..."
+  placeholder = "Select file to upload..."
 }: FileUploaderProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);

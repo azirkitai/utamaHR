@@ -81,7 +81,7 @@ export default function PaymentVoucherPage() {
       const { created = [], message } = response || {};
       toast({
         title: "Berjaya",
-        description: message || `Berjaya menjana ${created.length} voucher pembayaran`,
+        description: message || `Successfully generated ${created.length} payment voucher`,
       });
       
       setShowNewVoucherModal(false);
@@ -131,21 +131,21 @@ export default function PaymentVoucherPage() {
           if (errorData.conflictingRequestors && errorData.conflictingRequestors.length > 0) {
             const requestorNames = errorData.conflictingRequestors.map((r: any) => r.requestorName).join(', ');
             toast({
-              title: "Voucher Sudah Wujud",
-              description: `Voucher already wujud untuk: ${requestorNames} pada bulan ini. Sila padam voucher lama terlebih dahulu sebelum menjana voucher baru.`,
+              title: "Voucher Already Exists",
+              description: `Voucher already exists for: ${requestorNames} for this month. Please delete old voucher first before generating new voucher.`,
               variant: "destructive",
             });
           } else {
             toast({
-              title: "Voucher Sudah Wujud", 
-              description: "Voucher already wujud untuk penuntut pada bulan ini. Sila padam voucher lama terlebih dahulu.",
+              title: "Voucher Already Exists", 
+              description: "Voucher already exists for penuntut for this month. Please delete old voucher first.",
               variant: "destructive",
             });
           }
         } catch (parseError) {
           toast({
-            title: "Voucher Sudah Wujud",
-            description: "Voucher already wujud untuk penuntut pada bulan ini. Sila padam voucher lama terlebih dahulu.",
+            title: "Voucher Already Exists",
+            description: "Voucher already exists for penuntut for this month. Please delete old voucher first.",
             variant: "destructive",
           });
         }
@@ -153,7 +153,7 @@ export default function PaymentVoucherPage() {
         // Only show error toast if there's a meaningful error message
         toast({
           title: "Error",
-          description: errorMessage || "Gagal menjana voucher pembayaran",
+          description: errorMessage || "Gagal menjana payment voucher",
           variant: "destructive",
         });
       }
@@ -233,13 +233,13 @@ export default function PaymentVoucherPage() {
             {vouchersLoading ? (
               <tr>
                 <td colSpan={7} className="p-8 text-center text-gray-500">
-                  Memuatkan voucher pembayaran...
+                  Memuatkan payment voucher...
                 </td>
               </tr>
             ) : vouchers.length === 0 ? (
               <tr>
                 <td colSpan={7} className="p-8 text-center text-gray-500">
-                  Tiada voucher pembayaran dijumpai.
+                  Tiada payment voucher dijumpai.
                 </td>
               </tr>
             ) : (

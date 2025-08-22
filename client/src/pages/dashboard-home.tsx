@@ -939,7 +939,7 @@ export default function DashboardHome() {
                               : 'bg-red-100 text-red-800 hover:bg-red-200'
                           }`}
                           onClick={() => handleHolidayClick(day.holiday!)}
-                          title={`Holiday: ${day.holiday.name} - Klik untuk maklumat lengkap`}
+                          title={`Holiday: ${day.holiday.name} - Click for complete information`}
                         >
                           🏛️ {day.holiday.name.length > 8 ? day.holiday.name.substring(0, 8) + '...' : day.holiday.name}
                         </div>
@@ -960,7 +960,7 @@ export default function DashboardHome() {
                               : 'bg-green-100 text-green-800 hover:bg-green-200'
                           }`}
                           onClick={() => handleEventClick(day.events!)}
-                          title={`Events: ${day.events!.map(e => e.title).join(', ')} - Klik untuk maklumat lengkap`}
+                          title={`Events: ${day.events!.map(e => e.title).join(', ')} - Click for complete information`}
                         >
                           📅 {day.events.length > 1 ? `${day.events.length} events` : day.events[0].title.length > 6 ? day.events[0].title.substring(0, 6) + '...' : day.events[0].title}
                         </div>
@@ -981,7 +981,7 @@ export default function DashboardHome() {
                               : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
                           }`}
                           onClick={() => handleLeaveClick(day.leaves!)}
-                          title={`Leaves: ${day.leaves!.map(l => l.applicant).join(', ')} - Klik untuk maklumat lengkap`}
+                          title={`Leaves: ${day.leaves!.map(l => l.applicant).join(', ')} - Click for complete information`}
                         >
                           🏖️ {day.leaves.length} leave{day.leaves.length > 1 ? 's' : ''}
                         </div>
@@ -1095,7 +1095,7 @@ export default function DashboardHome() {
                     
                     {event.time && (
                       <div>
-                        <p className="text-sm font-medium text-gray-700">Masa:</p>
+                        <p className="text-sm font-medium text-gray-700">Time:</p>
                         <p className="text-base">{event.time}</p>
                       </div>
                     )}
@@ -1197,7 +1197,7 @@ export default function DashboardHome() {
                       </div>
                       <div>
                         <p className="text-sm font-medium text-gray-700">Tempoh:</p>
-                        <p className="text-sm">{leave.totalDays} hari</p>
+                        <p className="text-sm">{leave.totalDays} days</p>
                       </div>
                       <div>
                         <p className="text-sm font-medium text-gray-700">Date Mula:</p>

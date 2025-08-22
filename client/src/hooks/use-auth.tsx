@@ -173,7 +173,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.clear();
       toast({
         title: "Logout Berjaya",
-        description: "Anda telah log keluar",
+        description: "You have been logged out",
         variant: "default",
       });
     },

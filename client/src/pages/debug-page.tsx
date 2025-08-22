@@ -258,22 +258,22 @@ export default function DebugPage() {
         {/* Instructions */}
         <Card className="mt-6" data-testid="card-instructions">
           <CardHeader>
-            <CardTitle>Cara Mengatasi Masalah Secrets</CardTitle>
+            <CardTitle>How to Resolve Secrets Issues</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4 text-sm">
               <div>
                 <h4 className="font-medium mb-2">Jika ada secrets yang MISSING atau EMPTY:</h4>
                 <ol className="list-decimal list-inside space-y-1 text-gray-600">
-                  <li>Pergi ke tab "Secrets" dalam Replit workspace anda</li>
+                  <li>Go to tab "Secrets" in your Replit workspace</li>
                   <li>Tambah atau kemaskini secret yang required:</li>
                   <ul className="list-disc list-inside ml-4 mt-1">
                     <li><strong>JWT_SECRET</strong>: String random minimal 32 karakter</li>
                     <li><strong>SESSION_SECRET</strong>: String random minimal 32 karakter</li>
                     <li><strong>DATABASE_URL</strong>: Connection string PostgreSQL</li>
                   </ul>
-                  <li>Selepas menambah secrets, click butang "Deploy" atau restart aplikasi</li>
-                  <li>Click butang "Refresh" di atas untuk check semula</li>
+                  <li>After adding secrets, click button "Deploy" or restart application</li>
+                  <li>Click button "Refresh" above to check again</li>
                 </ol>
               </div>
               

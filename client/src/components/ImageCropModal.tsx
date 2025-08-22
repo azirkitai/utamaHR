@@ -117,7 +117,7 @@ export function ImageCropModal({ isOpen, onClose, imageSrc, onCropComplete }: Im
       onClose();
     } catch (error) {
       console.error('Error creating cropped image:', error);
-      alert('Ralat memproses gambar. Sila cuba lagi.');
+      alert('Error processing image. Please try again.');
     } finally {
       setIsProcessing(false);
     }
@@ -139,7 +139,7 @@ export function ImageCropModal({ isOpen, onClose, imageSrc, onCropComplete }: Im
             Crop Gambar Profile
           </DialogTitle>
           <DialogDescription className="text-gray-600">
-            Drag dan zoom gambar untuk posisi terbaik dalam avatar bulat
+            Drag and zoom image for best position in circular avatar
           </DialogDescription>
         </DialogHeader>
 
@@ -176,7 +176,7 @@ export function ImageCropModal({ isOpen, onClose, imageSrc, onCropComplete }: Im
         {/* Action Buttons */}
         <div className="flex justify-between items-center px-6 py-4 border-t bg-gray-50">
           <p className="text-sm text-gray-600">
-            Drag untuk posisi, gunakan zoom untuk saiz yang sesuai
+            Drag to position, use zoom for appropriate size
           </p>
           <div className="flex gap-3">
             <Button

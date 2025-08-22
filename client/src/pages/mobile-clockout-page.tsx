@@ -290,13 +290,13 @@ export default function MobileClockOutPage() {
                             ? "text-green-600" 
                             : "text-red-600"
                         }`}>
-                          {clockOutResult.location.status === "valid" ? "Dalam Kawasan" : "Di Luar Kawasan"}
+                          {clockOutResult.location.status === "valid" ? "Within Area" : "Outside Area"}
                         </span>
                       </div>
                       <div className="flex items-center justify-between mt-1">
                         <span className="text-gray-600">Jarak:</span>
                         <span className="text-gray-800 font-medium">
-                          {clockOutResult.location.distance}m dari pejabat
+                          {clockOutResult.location.distance}m from office
                         </span>
                       </div>
                     </div>

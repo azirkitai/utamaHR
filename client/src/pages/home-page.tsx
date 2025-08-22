@@ -123,7 +123,7 @@ export default function HomePage() {
             <CardContent>
               <div className="text-2xl font-bold" data-testid="text-report-count">0</div>
               <p className="text-xs text-muted-foreground">
-                Tiada laporan dijana
+                No reports generated
               </p>
             </CardContent>
           </Card>
@@ -169,7 +169,7 @@ export default function HomePage() {
             <CardContent className="pt-6">
               <div className="text-sm text-gray-600">
                 <p data-testid="text-system-status">
-                  ✅ Sistem berjalan dengan normal
+                  ✅ Sistem berjalan normally
                 </p>
                 <p className="mt-2" data-testid="text-user-info">
                   Login sebagai: <span className="font-medium">{user?.username}</span>

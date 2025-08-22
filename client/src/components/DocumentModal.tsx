@@ -142,7 +142,7 @@ export function DocumentModal({
                 acceptedFileTypes="*"
                 maxFileSize={10485760} // 10MB
                 disabled={loading}
-                placeholder="Pilih fail untuk dimuat naik..."
+                placeholder="Select file to upload..."
               />
               {mode === "edit" && document?.fileUrl && !hasNewFile && (
                 <p className="text-sm text-gray-500 dark:text-gray-400">

@@ -91,7 +91,7 @@ export function ObjectUploader({
             // Validate image
             if (!isValidImage(originalFile)) {
               uppy.removeFile(file.id);
-              alert('Jenis fail tidak disokong. Sila pilih gambar (JPEG, PNG, WebP, atau GIF).');
+              alert('File type not supported. Please select image (JPEG, PNG, WebP, atau GIF).');
               return;
             }
 
@@ -107,7 +107,7 @@ export function ObjectUploader({
           } catch (error) {
             console.error('Error processing image:', error);
             uppy.removeFile(file.id);
-            alert('Ralat memproses gambar. Sila cuba dengan gambar lain.');
+            alert('Error processing image. Please try with another image.');
           }
         }
       })
@@ -123,7 +123,7 @@ export function ObjectUploader({
       })
       .on("upload-error", (file, error, response) => {
         console.error("Upload error for file:", file?.name, "Error:", error, "Response:", response);
-        alert(`Upload gagal untuk ${file?.name}: ${error?.message || 'Unknown error'}`);
+        alert(`Upload failed for ${file?.name}: ${error?.message || 'Unknown error'}`);
       })
       .on("upload-success", (file, response) => {
         console.log("Upload success for file:", file?.name, "Response:", response);
@@ -151,7 +151,7 @@ export function ObjectUploader({
         isRemote: false,
       });
 
-      console.log(`✓ Gambar telah dicrop: ${formatFileSize(croppedFile.size)} (300x300px bulat)`);
+      console.log(`✓ Image has been cropped: ${formatFileSize(croppedFile.size)} (300x300px circular)`);
 
       // Close crop modal first
       setShowCropModal(false);
@@ -166,7 +166,7 @@ export function ObjectUploader({
       
     } catch (error) {
       console.error('Error handling cropped image:', error);
-      alert('Ralat memproses gambar yang dicrop. Sila cuba lagi.');
+      alert('Error processing image yang dicrop. Please try again.');
     }
   };
 

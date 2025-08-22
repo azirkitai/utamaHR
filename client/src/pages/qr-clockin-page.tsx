@@ -147,8 +147,8 @@ export default function QRClockInPage() {
         queryClient.invalidateQueries({ queryKey: ["/api/clockin-history"] });
         
         toast({
-          title: "QR Code Tamat Tempoh",
-          description: "Sila jana QR Code baharu untuk clock-in",
+          title: "QR Code Expired",
+          description: "Please generate a new QR Code for clock-in",
           variant: "destructive",
         });
       }
@@ -220,8 +220,8 @@ export default function QRClockInPage() {
     // Check if clock-in status changed
     if (!lastAttendanceStatus.isClockInCompleted && attendanceStatus.isClockInCompleted) {
       toast({
-        title: "Clock-In Berjaya!",
-        description: "Rekod kehadiran telah dikemas kini",
+        title: "Clock-In Successful!",
+        description: "Attendance record has been updated",
         variant: "default",
       });
       // Clear QR token since it was used successfully
@@ -232,8 +232,8 @@ export default function QRClockInPage() {
     // Check if clock-out status changed  
     if (!lastAttendanceStatus.isClockOutCompleted && attendanceStatus.isClockOutCompleted) {
       toast({
-        title: "Clock-Out Berjaya!",
-        description: "Kehadiran hari ini telah selesai",
+        title: "Clock-Out Successful!",
+        description: "Today's attendance has been completed",
         variant: "default",
       });
       // Clear QR token since it was used successfully
@@ -266,11 +266,11 @@ export default function QRClockInPage() {
 
   const getLocationStatusBadge = (status: string, distance?: number) => {
     if (status === "valid") {
-      return <Badge className="bg-green-100 text-green-800 border-green-200">Dalam Kawasan</Badge>;
+      return <Badge className="bg-green-100 text-green-800 border-green-200">Within Area</Badge>;
     } else {
       return (
         <Badge className="bg-red-100 text-red-800 border-red-200">
-          Di Luar Kawasan {distance ? `(${distance}m)` : ''}
+          Outside Area {distance ? `(${distance}m)` : ''}
         </Badge>
       );
     }
@@ -285,10 +285,10 @@ export default function QRClockInPage() {
             className="rounded-lg p-6 shadow-sm bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800"
           >
             <h1 className="text-3xl font-bold text-white mb-2">
-              Sistem QR Code Clock-In
+              QR Code Clock-In System
             </h1>
             <p className="text-blue-100 text-lg">
-              Sistem clock-in pekerja menggunakan QR code dengan pengevalidan lokasi GPS dan selfie
+              Employee clock-in system using QR code with GPS location validation and selfie
             </p>
           </div>
         </div>
@@ -304,18 +304,18 @@ export default function QRClockInPage() {
                 </div>
                 <div>
                   <CardTitle className="text-xl text-gray-800">
-                    {attendanceStatus?.nextAction === 'clock-in' && "Jana QR Clock-In"}
-                    {attendanceStatus?.nextAction === 'break-out' && "Jana QR Break Time"}
-                    {attendanceStatus?.nextAction === 'break-in' && "Jana QR Break Off"}
-                    {attendanceStatus?.nextAction === 'clock-out' && "Jana QR Clock-Out"}
-                    {attendanceStatus?.nextAction === 'completed' && "Jana QR Code"}
+                    {attendanceStatus?.nextAction === 'clock-in' && "Generate QR Clock-In"}
+                    {attendanceStatus?.nextAction === 'break-out' && "Generate QR Break Time"}
+                    {attendanceStatus?.nextAction === 'break-in' && "Generate QR Break Return"}
+                    {attendanceStatus?.nextAction === 'clock-out' && "Generate QR Clock-Out"}
+                    {attendanceStatus?.nextAction === 'completed' && "Generate QR Code"}
                   </CardTitle>
                   <CardDescription>
-                    {attendanceStatus?.nextAction === 'clock-in' && "QR code untuk clock-in pekerja (valid selama 2 minit)"}
-                    {attendanceStatus?.nextAction === 'break-out' && "QR code untuk break time - keluar break/lunch (valid selama 2 minit)"}
-                    {attendanceStatus?.nextAction === 'break-in' && "QR code untuk break off - balik dari break/lunch (valid selama 2 minit)"}
-                    {attendanceStatus?.nextAction === 'clock-out' && "QR code untuk clock-out pekerja (valid selama 2 minit)"}
-                    {attendanceStatus?.nextAction === 'completed' && "All kehadiran already selesai untuk hari ini"}
+                    {attendanceStatus?.nextAction === 'clock-in' && "QR code for employee clock-in (valid for 2 minutes)"}
+                    {attendanceStatus?.nextAction === 'break-out' && "QR code for break time - start break/lunch (valid for 2 minutes)"}
+                    {attendanceStatus?.nextAction === 'break-in' && "QR code for break return - return from break/lunch (valid for 2 minutes)"}
+                    {attendanceStatus?.nextAction === 'clock-out' && "QR code for employee clock-out (valid for 2 minutes)"}
+                    {attendanceStatus?.nextAction === 'completed' && "All attendance already completed for today"}
                   </CardDescription>
                 </div>
               </div>
@@ -330,7 +330,7 @@ export default function QRClockInPage() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <p className="font-medium text-green-700">Kehadiran Days Ini Selesai</p>
+                    <p className="font-medium text-green-700">Today's Attendance Completed</p>
                     <div className="text-sm text-gray-600 space-y-1">
                       <p>Clock-In: {attendanceStatus?.clockInTime ? (() => {
                         const utcDate = new Date(attendanceStatus.clockInTime);
@@ -359,8 +359,8 @@ export default function QRClockInPage() {
                     </div>
                     <p className="text-green-600 text-sm mt-3">
                       {attendanceStatus?.enforceBreakClockOut 
-                        ? "Anda telah selesai clock-in, break time, break off dan clock-out untuk hari ini"
-                        : "Anda telah selesai clock-in dan clock-out untuk hari ini"
+                        ? "You have completed clock-in, break time, break return and clock-out for today"
+                        : "You have completed clock-in and clock-out for today"
                       }
                     </p>
                   </div>
@@ -379,9 +379,9 @@ export default function QRClockInPage() {
                     </div>
                   </div>
                   
-                  {attendanceStatus?.nextAction && attendanceStatus.nextAction !== 'clock-in' && attendanceStatus.nextAction !== 'completed' && (
+                  {attendanceStatus?.nextAction && attendanceStatus.nextAction !== 'clock-in' && (
                     <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <p className="text-blue-700 text-sm font-medium">Status Kehadiran</p>
+                      <p className="text-blue-700 text-sm font-medium">Attendance Status</p>
                       <div className="text-blue-600 text-xs space-y-1">
                         {attendanceStatus?.clockInTime && (
                           <p>✓ Clock-In: {new Date(attendanceStatus.clockInTime).toLocaleTimeString('ms-MY')}</p>
@@ -393,7 +393,7 @@ export default function QRClockInPage() {
                           <p>✓ Break Off: {new Date(attendanceStatus.breakInTime).toLocaleTimeString('ms-MY')}</p>
                         )}
                         <p className="text-blue-700 font-medium">
-                          Seterusnya: {
+                          Next: {
                             attendanceStatus?.nextAction === 'break-out' ? 'Break Time' :
                             attendanceStatus?.nextAction === 'break-in' ? 'Break Off' :
                             attendanceStatus?.nextAction === 'clock-out' ? 'Clock-Out' : ''
@@ -404,10 +404,10 @@ export default function QRClockInPage() {
                   )}
                   
                   <p className="text-gray-600 mb-4">
-                    {attendanceStatus?.nextAction === 'clock-in' && "Klik butang di bawah untuk menjana QR Code clock-in"}
-                    {attendanceStatus?.nextAction === 'break-out' && "Klik butang di bawah untuk menjana QR Code break time"}
-                    {attendanceStatus?.nextAction === 'break-in' && "Klik butang di bawah untuk menjana QR Code break off"}
-                    {attendanceStatus?.nextAction === 'clock-out' && "Klik butang di bawah untuk menjana QR Code clock-out"}
+                    {attendanceStatus?.nextAction === 'clock-in' && "Click the button below to generate QR Code for clock-in"}
+                    {attendanceStatus?.nextAction === 'break-out' && "Click the button below to generate QR Code for break time"}
+                    {attendanceStatus?.nextAction === 'break-in' && "Click the button below to generate QR Code for break return"}
+                    {attendanceStatus?.nextAction === 'clock-out' && "Click the button below to generate QR Code for clock-out"}
                   </p>
                   <Button
                     onClick={() => generateQrMutation.mutate()}
@@ -433,10 +433,10 @@ export default function QRClockInPage() {
                     ) : (
                       <>
                         <QrCode className="mr-2 h-4 w-4" />
-                        {attendanceStatus?.nextAction === 'clock-in' && "Jana QR Clock-In"}
-                        {attendanceStatus?.nextAction === 'break-out' && "Jana QR Break Time"}
-                        {attendanceStatus?.nextAction === 'break-in' && "Jana QR Break Off"}
-                        {attendanceStatus?.nextAction === 'clock-out' && "Jana QR Clock-Out"}
+                        {attendanceStatus?.nextAction === 'clock-in' && "Generate QR Clock-In"}
+                        {attendanceStatus?.nextAction === 'break-out' && "Generate QR Break Time"}
+                        {attendanceStatus?.nextAction === 'break-in' && "Generate QR Break Return"}
+                        {attendanceStatus?.nextAction === 'clock-out' && "Generate QR Clock-Out"}
                       </>
                     )}
                   </Button>
@@ -496,7 +496,7 @@ export default function QRClockInPage() {
                 <div className="p-2 rounded-lg bg-blue-100">
                   <Smartphone className="h-6 w-6 text-blue-600" />
                 </div>
-                <CardTitle className="text-lg text-blue-800">Arahan Penggunaan</CardTitle>
+                <CardTitle className="text-lg text-blue-800">Usage Instructions</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
@@ -506,8 +506,8 @@ export default function QRClockInPage() {
                     1
                   </div>
                   <div>
-                    <p className="font-medium text-blue-800">Jana QR Code</p>
-                    <p className="text-blue-600 text-sm">Klik butang "Jana QR Code Baharu" di atas</p>
+                    <p className="font-medium text-blue-800">Generate QR Code</p>
+                    <p className="text-blue-600 text-sm">Klik butang "Generate QR Code Baharu" di atas</p>
                   </div>
                 </div>
 
@@ -516,8 +516,8 @@ export default function QRClockInPage() {
                     2
                   </div>
                   <div>
-                    <p className="font-medium text-blue-800">Scan dengan Telefon</p>
-                    <p className="text-blue-600 text-sm">Gunakan kamera telefon untuk scan QR Code (tidak perlu aplikasi khas)</p>
+                    <p className="font-medium text-blue-800">Scan with Phone</p>
+                    <p className="text-blue-600 text-sm">Use phone camera untuk scan QR Code (tidak perlu aplikasi khas)</p>
                   </div>
                 </div>
 

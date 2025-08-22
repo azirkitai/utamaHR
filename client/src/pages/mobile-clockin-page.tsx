@@ -257,7 +257,7 @@ export default function MobileClockInPage() {
       // Show success toast
       setTimeout(() => {
         const message = result.isClockOut 
-          ? `Clock-out successfully! Total ${result.totalHours || 0} jam.`
+          ? `Clock-out successfully! Total ${result.totalHours || 0} hours.`
           : "Clock-in successfully!";
         console.log("Mobile operation completed:", message);
       }, 500);
@@ -357,7 +357,7 @@ export default function MobileClockInPage() {
               </div>
               
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Masa:</span>
+                <span className="text-sm text-gray-600">Time:</span>
                 <span className="font-medium">
                   {clockInResult.isClockOut && clockInResult.clockOutTime 
                     ? formatDateTime(clockInResult.clockOutTime)
@@ -371,7 +371,7 @@ export default function MobileClockInPage() {
               {clockInResult.isClockOut && clockInResult.totalHours && (
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Total Jam:</span>
-                  <span className="font-medium">{clockInResult.totalHours} jam</span>
+                  <span className="font-medium">{clockInResult.totalHours} hours</span>
                 </div>
               )}
               
@@ -382,7 +382,7 @@ export default function MobileClockInPage() {
                     ? "bg-green-100 text-green-800 border-green-200"
                     : "bg-peoplee-100 text-peoplee-800 border-peoplee-200"
                 }>
-                  {(clockInResult.locationStatus || clockInResult.clockInRecord?.locationStatus) === "valid" ? "Dalam Kawasan" : "Di Luar Kawasan"}
+                  {(clockInResult.locationStatus || clockInResult.clockInRecord?.locationStatus) === "valid" ? "Within Area" : "Outside Area"}
                 </Badge>
               </div>
               
@@ -398,7 +398,7 @@ export default function MobileClockInPage() {
               <Alert className="border-peoplee-200 bg-peoplee-50">
                 <AlertTriangle className="h-4 w-4 text-peoplee-600" />
                 <AlertDescription className="text-peoplee-800">
-                  Anda berada di luar kawasan pejabat yang ditetapkan (50m radius).
+                  Anda berada di luar designated office area (50m radius).
                   {clockInResult.isClockOut ? "Clock-out" : "Clock-in"} tetap direkod tetapi ditandakan sebagai di luar kawasan.
                 </AlertDescription>
               </Alert>
@@ -542,10 +542,10 @@ export default function MobileClockInPage() {
                     <MapPin className="h-8 w-8 text-blue-600" />
                   </div>
                   <p className="text-gray-600 mb-4">
-                    Sistem perlu mengevalidkan lokasi anda untuk memastikan anda berada dalam kawasan pejabat.
+                    Sistem perlu mengevalidkan lokasi anda to ensure you are located within office area.
                   </p>
                   <p className="text-sm text-gray-500">
-                    Radius yang dibenarkan: 50 meter dari pejabat
+                    Radius yang dibenarkan: 50 meter from office
                   </p>
                 </div>
                 

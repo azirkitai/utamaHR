@@ -741,7 +741,7 @@ export default function SystemSettingPage() {
     companyRegNo: "KLINIK UTAMA 24 JAM",
     companyType: "",
     industry: "Automotive",
-    companyEmail: "syedmuhyazir.admin@klinikutama24jam.com",
+    companyEmail: "syedmuhyazir.admin@klinikutama24hours.com",
     companyPhone: "0199076434",
     companyFax: "Fax",
     streetAddress: "Lot 5138S-A, Lorong 1g Mohd Amin, Jln Wan Hassan, Kg Batu 4",
@@ -810,7 +810,7 @@ export default function SystemSettingPage() {
     onError: (error) => {
       toast({
         title: "Ralat",
-        description: "Gagal menyimpan polisi claim. Sila cuba lagi.",
+        description: "Gagal menyimpan polisi claim. Please try again.",
         variant: "destructive",
       });
     },
@@ -832,7 +832,7 @@ export default function SystemSettingPage() {
     onError: (error) => {
       toast({
         title: "Ralat",
-        description: "Gagal mengemaskini polisi claim. Sila cuba lagi.",
+        description: "Gagal mengemaskini polisi claim. Please try again.",
         variant: "destructive",
       });
     },
@@ -875,7 +875,7 @@ export default function SystemSettingPage() {
       console.error('💥 Delete mutation error:', error);
       toast({
         title: "Ralat",
-        description: `Gagal memadamkan polisi claim: ${error.message || 'Sila cuba lagi'}`,
+        description: `Gagal memadamkan polisi claim: ${error.message || 'Please try again'}`,
         variant: "destructive",
       });
     },
@@ -1652,7 +1652,7 @@ export default function SystemSettingPage() {
         });
         
         if (response.ok) {
-          console.log(`✅ Role ${roleName} diberi kelayakan ${currentPolicy.days} hari untuk ${expandedPolicyId}`);
+          console.log(`✅ Role ${roleName} diberi kelayakan ${currentPolicy.days} days untuk ${expandedPolicyId}`);
           // Invalidate cache untuk memastikan data sentiasa terkini dan recalculate majority
           queryClient.invalidateQueries({ queryKey: [`/api/group-policy-settings/${expandedPolicyId}`] });
           queryClient.invalidateQueries({ queryKey: ["/api/group-policy-settings"] });
@@ -1663,7 +1663,7 @@ export default function SystemSettingPage() {
         }
       } catch (error) {
         console.error("Error saving group policy:", error);
-        alert("Gagal menyimpan tetapan. Sila cuba lagi.");
+        alert("Gagal menyimpan tetapan. Please try again.");
         // Revert state on error
         setGroupPolicySettings(prev => ({
           ...prev,
@@ -1741,7 +1741,7 @@ export default function SystemSettingPage() {
         });
         
         if (response.ok) {
-          console.log(`📝 Role ${roleName} kelayakan dikemaskini kepada ${newDays} hari untuk ${expandedPolicyId}`);
+          console.log(`📝 Role ${roleName} kelayakan dikemaskini kepada ${newDays} days untuk ${expandedPolicyId}`);
         } else {
           const errorData = await response.json();
           throw new Error(errorData.error || "Gagal mengemas kini tetapan dasar kumpulan");
@@ -1783,7 +1783,7 @@ export default function SystemSettingPage() {
       }
     } catch (error) {
       console.error("Error saving timeoff approval:", error);
-      alert("Gagal menyimpan tetapan kelulusan timeoff. Sila cuba lagi.");
+      alert("Gagal menyimpan tetapan kelulusan timeoff. Please try again.");
     }
   };
 
@@ -1812,7 +1812,7 @@ export default function SystemSettingPage() {
       if (response.ok) {
         toast({
           title: "Tetapan kewangan disimpan",
-          description: `Date tutup claim ditetapkan pada hari ke-${financialSettings.cutoffDate} setiap bulan.`,
+          description: `Date tutup claim ditetapkan pada days ke-${financialSettings.cutoffDate} setiap bulan.`,
         });
       } else {
         const errorData = await response.json();
@@ -1822,7 +1822,7 @@ export default function SystemSettingPage() {
       console.error("Error saving financial settings:", error);
       toast({
         title: "Ralat",
-        description: "Gagal menyimpan tetapan kewangan. Sila cuba lagi.",
+        description: "Gagal menyimpan tetapan kewangan. Please try again.",
         variant: "destructive",
       });
     }
@@ -2614,7 +2614,7 @@ export default function SystemSettingPage() {
                     <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-4">
                       <div className="bg-blue-50 border-l-4 border-blue-400 p-2 rounded">
                         <p className="text-sm text-blue-700">
-                          📝 Ubah maklumat di bawah dan klik Simpan untuk menyimpan perubahan
+                          📝 Modify information below and click Save to save changes
                         </p>
                       </div>
                       
