@@ -696,7 +696,7 @@ export default function SystemSettingPage() {
   });
 
   // Department management queries
-  const { data: systemDepartments = [], refetch: refetchDepartments } = useQuery({
+  const { data: systemDepartments = [], refetch: refetchDepartments } = useQuery<any[]>({
     queryKey: ["/api/departments"]
   });
 
