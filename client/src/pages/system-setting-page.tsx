@@ -5746,21 +5746,7 @@ export default function SystemSettingPage() {
                         </div>
                       ))}
                     </div>
-                    
-                    {/* Selected Roles Display */}
-                    <div className="mt-3">
-                      <div className="flex flex-wrap gap-2">
-                        {pagePermissions[page.id]?.map((role) => (
-                          <span key={role} className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 text-green-800">
-                            <Shield className="w-3 h-3 mr-1" />
-                            {role}
-                          </span>
-                        ))}
-                        {(!pagePermissions[page.id] || pagePermissions[page.id].length === 0) && (
-                          <span className="text-xs text-red-600 font-medium">No roles selected - Page will be inaccessible</span>
-                        )}
-                      </div>
-                    </div>
+
                   </div>
                 </div>
               ))}
