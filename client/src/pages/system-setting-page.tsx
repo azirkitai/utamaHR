@@ -823,6 +823,12 @@ export default function SystemSettingPage() {
     remark: "",
   });
 
+  // Fetch all employees first
+  const { data: allEmployees = [] } = useQuery<any[]>({
+    queryKey: ["/api/employees"],
+    enabled: true
+  });
+
   // Department states
   const [showAddDepartmentDialog, setShowAddDepartmentDialog] = useState(false);
   const [expandedDepartments, setExpandedDepartments] = useState<number[]>([]);
@@ -831,6 +837,7 @@ export default function SystemSettingPage() {
     name: "",
     code: "",
   });
+
   // Generate departments with real employee data
   const departments = useMemo(() => {
     if (!allEmployees || allEmployees.length === 0) {
@@ -1381,11 +1388,7 @@ export default function SystemSettingPage() {
     enabled: true
   });
 
-  // Get all employees for exclude selection
-  const { data: allEmployees = [] } = useQuery<any[]>({
-    queryKey: ["/api/employees"],
-    enabled: true
-  });
+  // Employee data is now fetched above for department management
 
   // Fetch financial claim policies from database
   const { data: financialClaimPoliciesData } = useQuery({
