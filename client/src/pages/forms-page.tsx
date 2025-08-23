@@ -11,12 +11,12 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-// Define the Form type
+// Define the Form type based on database structure
 interface Form {
   id: string;
   formName: string;
   fileName: string;
-  filePath: string;
+  fileUrl: string; // Changed from filePath to fileUrl to match database
   createdAt: string;
   updatedAt: string;
 }
@@ -32,13 +32,13 @@ export default function FormsPage() {
   const handleDownload = (form: Form) => {
     try {
       // Direct static file serving approach (like Payment Voucher)
-      // Use filePath directly from database
-      const downloadUrl = form.filePath;
+      // Use fileUrl directly from database
+      const downloadUrl = form.fileUrl;
       
       console.log("Direct download:", {
         formId: form.id,
         fileName: form.fileName,
-        filePath: form.filePath,
+        fileUrl: form.fileUrl,
         downloadUrl: downloadUrl
       });
       
