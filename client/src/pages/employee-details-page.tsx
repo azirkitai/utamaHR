@@ -436,6 +436,11 @@ export default function EmployeeDetailsPage() {
   // Update/Create employment mutation
   const updateEmploymentMutation = useMutation({
     mutationFn: async (data: any) => {
+      console.log("=== CLIENT EMPLOYMENT UPDATE DEBUG ===");
+      console.log("Employment data to be saved:", data);
+      console.log("Employment record exists:", !!employment?.id);
+      console.log("Employment ID:", employment?.id);
+      
       // Check if employment record exists
       const method = employment?.id ? "PUT" : "POST";
       const url = employment?.id ? `/api/employment/${employment.id}` : "/api/employment";
@@ -446,6 +451,12 @@ export default function EmployeeDetailsPage() {
         employeeId: id,
         company: companySettings?.companyName || data.company
       };
+      
+      console.log("API request details:");
+      console.log("- Method:", method);
+      console.log("- URL:", url);
+      console.log("- Updated data:", updatedData);
+      console.log("=== END CLIENT DEBUG ===");
       
       const response = await apiRequest(method, url, updatedData);
       return response.json();
@@ -460,7 +471,12 @@ export default function EmployeeDetailsPage() {
       setIsEditingYearly(false);
       queryClient.invalidateQueries({ queryKey: ["/api/employment", id] });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.log("=== CLIENT EMPLOYMENT ERROR DEBUG ===");
+      console.log("Error object:", error);
+      console.log("Error message:", error?.message);
+      console.log("=== END CLIENT ERROR DEBUG ===");
+      
       toast({
         title: "Error",
         description: "Failed to update employment information",
