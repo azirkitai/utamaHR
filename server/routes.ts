@@ -180,6 +180,18 @@ async function processBreakOut(
       });
     }
 
+    // Get employee for geofencing check
+    const employee = await storage.getEmployee(todayAttendance.employeeId);
+    const attendanceSettings = await storage.getEmployeeAttendanceSettings(employee.id);
+    const allowClockInAnyLocation = attendanceSettings.allowClockInAnyLocation;
+    
+    console.log("🔍 BREAK-OUT GPS GEOFENCING:", {
+      employeeId: employee.id,
+      allowClockInAnyLocation: allowClockInAnyLocation,
+      latitude: latitude,
+      longitude: longitude
+    });
+
     // Check location for break-out
     let locationStatus = "invalid";
     let nearestDistance = Infinity;
@@ -203,6 +215,17 @@ async function processBreakOut(
         locationStatus = "valid";
         break;
       }
+    }
+
+    // ENFORCE GPS GEOFENCING for break-out
+    if (!allowClockInAnyLocation && locationStatus === "invalid") {
+      console.log("🚫 BREAK-OUT GEOFENCING BLOCKED: GPS validation required and location invalid");
+      return res.status(400).json({ 
+        error: "GPS location validation failed. You must be within office premises for break-out.",
+        locationRequired: true,
+        nearestDistance: Math.round(nearestDistance),
+        locationStatus: locationStatus
+      });
     }
 
     // Process selfie image
@@ -259,6 +282,18 @@ async function processBreakIn(
       });
     }
 
+    // Get employee for geofencing check
+    const employee = await storage.getEmployee(todayAttendance.employeeId);
+    const attendanceSettings = await storage.getEmployeeAttendanceSettings(employee.id);
+    const allowClockInAnyLocation = attendanceSettings.allowClockInAnyLocation;
+    
+    console.log("🔍 BREAK-IN GPS GEOFENCING:", {
+      employeeId: employee.id,
+      allowClockInAnyLocation: allowClockInAnyLocation,
+      latitude: latitude,
+      longitude: longitude
+    });
+
     // Check location for break-in
     let locationStatus = "invalid";
     let nearestDistance = Infinity;
@@ -284,6 +319,17 @@ async function processBreakIn(
       }
     }
 
+    // ENFORCE GPS GEOFENCING for break-in
+    if (!allowClockInAnyLocation && locationStatus === "invalid") {
+      console.log("🚫 BREAK-IN GEOFENCING BLOCKED: GPS validation required and location invalid");
+      return res.status(400).json({ 
+        error: "GPS location validation failed. You must be within office premises for break-in.",
+        locationRequired: true,
+        nearestDistance: Math.round(nearestDistance),
+        locationStatus: locationStatus
+      });
+    }
+
     // Process selfie image
     const objectStorageService = new ObjectStorageService();
     const selfieImagePath = objectStorageService.normalizeSelfieImagePath(selfieImageUrl);
@@ -292,7 +338,7 @@ async function processBreakIn(
     await storage.markQrTokenAsUsed(qrToken.token);
 
     // Check shift compliance for BREAK-OFF only
-    const employee = await storage.getEmployee(todayAttendance.employeeId);
+    // employee already declared above for geofencing
     const currentTime = new Date();
     let breakOffCompliance = {
       isLateBreakOut: false,
@@ -372,6 +418,18 @@ async function processClockOut(
       });
     }
 
+    // Get employee for geofencing check
+    const employee = await storage.getEmployee(todayAttendance.employeeId);
+    const attendanceSettings = await storage.getEmployeeAttendanceSettings(employee.id);
+    const allowClockInAnyLocation = attendanceSettings.allowClockInAnyLocation;
+    
+    console.log("🔍 CLOCK-OUT GPS GEOFENCING:", {
+      employeeId: employee.id,
+      allowClockInAnyLocation: allowClockInAnyLocation,
+      latitude: latitude,
+      longitude: longitude
+    });
+
     // Check location for clock-out
     let locationStatus = "invalid";
     let nearestDistance = Infinity;
@@ -395,6 +453,17 @@ async function processClockOut(
         locationStatus = "valid";
         break;
       }
+    }
+
+    // ENFORCE GPS GEOFENCING for clock-out
+    if (!allowClockInAnyLocation && locationStatus === "invalid") {
+      console.log("🚫 CLOCK-OUT GEOFENCING BLOCKED: GPS validation required and location invalid");
+      return res.status(400).json({ 
+        error: "GPS location validation failed. You must be within office premises to clock out.",
+        locationRequired: true,
+        nearestDistance: Math.round(nearestDistance),
+        locationStatus: locationStatus
+      });
     }
 
     // Process selfie image
@@ -3352,6 +3421,16 @@ export function registerRoutes(app: Express): Server {
         });
       }
 
+      // Check GPS geofencing enforcement - attendanceSettings already available above
+      const allowClockInAnyLocation = attendanceSettings.allowClockInAnyLocation;
+      
+      console.log("🔍 GPS GEOFENCING DEBUG:", {
+        employeeId: employee.id,
+        allowClockInAnyLocation: allowClockInAnyLocation,
+        latitude: latitude,
+        longitude: longitude
+      });
+
       // Check if user is within any office location radius
       let locationStatus = "invalid";
       let nearestDistance = Infinity;
@@ -3379,9 +3458,30 @@ export function registerRoutes(app: Express): Server {
         }
       }
 
-      if (locationStatus === "invalid") {
-        locationMessage = "Anda berada di outside office area. Sila berada within kawasan yang ditetapkan untuk check in";
+      // ENFORCE GPS GEOFENCING - Block if GPS enforcement is enabled and location is invalid
+      if (!allowClockInAnyLocation && locationStatus === "invalid") {
+        console.log("🚫 GEOFENCING BLOCKED: GPS validation required and location invalid");
+        return res.status(400).json({ 
+          error: "GPS location validation failed. You must be within office premises to clock in/out.",
+          locationRequired: true,
+          nearestDistance: Math.round(nearestDistance),
+          locationStatus: locationStatus
+        });
       }
+
+      if (locationStatus === "invalid") {
+        locationMessage = "Outside office area but geofencing not enforced for this employee";
+      } else {
+        locationMessage = "Within office area - location valid";
+      }
+
+      console.log("🔍 GEOFENCING RESULT:", {
+        allowClockInAnyLocation: allowClockInAnyLocation,
+        locationStatus: locationStatus,
+        nearestDistance: Math.round(nearestDistance),
+        blocked: !allowClockInAnyLocation && locationStatus === "invalid",
+        message: locationMessage
+      });
 
       // Process selfie image path
       const objectStorageService = new ObjectStorageService();
