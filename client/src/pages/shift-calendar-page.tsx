@@ -168,19 +168,25 @@ export default function ShiftCalendarPage() {
   };
 
   const getDayHeaders = () => {
+    console.log(`🎯 Current view mode: ${viewMode}, ViewDates count: ${viewDates.length}`);
+    
     if (viewMode === "week") {
       const dayNames = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-      return viewDates.map((date, index) => ({
+      const headers = viewDates.map((date, index) => ({
         dayName: dayNames[index],
         dayNumber: date.getDate(),
         fullDate: date
       }));
+      console.log(`📅 Week headers:`, headers.map((h, i) => `${i}: ${h.dayNumber} (${h.fullDate.toISOString().split('T')[0]})`));
+      return headers;
     } else if (viewMode === "month") {
-      return viewDates.map((date) => ({
+      const headers = viewDates.map((date) => ({
         dayName: date.toLocaleDateString('en-US', { weekday: 'short' })[0], // Just first letter
         dayNumber: date.getDate(),
         fullDate: date
       }));
+      console.log(`📅 Month headers:`, headers.map((h, i) => `${i}: ${h.dayNumber} (${h.fullDate.toISOString().split('T')[0]})`));
+      return headers;
     }
     return [];
   };
