@@ -52,6 +52,29 @@ export default function MyRecordPage() {
   // Check if user has admin access to view other employees' data
   const hasAdminAccess = (user as any)?.role && ['Super Admin', 'Admin', 'HR Manager', 'PIC'].includes((user as any).role);
 
+  // Fetch attendance settings to check break clock out enforcement
+  const { data: attendanceSettings } = useQuery({
+    queryKey: ['/api/employee-attendance-settings', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const token = localStorage.getItem('utamahr_token');
+      const response = await fetch(`/api/employee-attendance-settings/${user.id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch attendance settings');
+      }
+      return response.json();
+    },
+    enabled: !!user?.id
+  });
+
+  // Check if break tracking is enabled for this user
+  const isBreakTrackingEnabled = attendanceSettings?.enforceBreakClockOut ?? false;
+
   // Fetch financial claim policies for dropdown options
   const { data: financialClaimPolicies = [] } = useQuery({
     queryKey: ['/api/financial-claim-policies'],
@@ -3325,10 +3348,10 @@ export default function MyRecordPage() {
               <TableHead>Date</TableHead>
               <TableHead>Clock In</TableHead>
               <TableHead>Clock In Image</TableHead>
-              <TableHead>Break Time</TableHead>
-              <TableHead>Break Time Image</TableHead>
-              <TableHead>Break Off</TableHead>
-              <TableHead>Break Off Image</TableHead>
+              {isBreakTrackingEnabled && <TableHead>Break Time</TableHead>}
+              {isBreakTrackingEnabled && <TableHead>Break Time Image</TableHead>}
+              {isBreakTrackingEnabled && <TableHead>Break Off</TableHead>}
+              {isBreakTrackingEnabled && <TableHead>Break Off Image</TableHead>}
               <TableHead>Clock Out</TableHead>
               <TableHead>Clock Out Image</TableHead>
               <TableHead>Total Hour(s)</TableHead>
@@ -3338,19 +3361,19 @@ export default function MyRecordPage() {
           <TableBody>
             {activeTab !== 'attendance' ? (
               <TableRow>
-                <TableCell colSpan={hasAdminAccess ? 11 : 10} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={hasAdminAccess ? (isBreakTrackingEnabled ? 13 : 9) : (isBreakTrackingEnabled ? 12 : 8)} className="text-center py-8 text-gray-500">
                   Click Attendance tab to view records...
                 </TableCell>
               </TableRow>
             ) : isLoadingAttendance ? (
               <TableRow>
-                <TableCell colSpan={hasAdminAccess ? 11 : 10} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={hasAdminAccess ? (isBreakTrackingEnabled ? 13 : 9) : (isBreakTrackingEnabled ? 12 : 8)} className="text-center py-8 text-gray-500">
                   Loading attendance records...
                 </TableCell>
               </TableRow>
             ) : attendanceRecords.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={hasAdminAccess ? 11 : 10} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={hasAdminAccess ? (isBreakTrackingEnabled ? 13 : 9) : (isBreakTrackingEnabled ? 12 : 8)} className="text-center py-8 text-gray-500">
                   No data available in table
                 </TableCell>
               </TableRow>
@@ -3432,98 +3455,105 @@ export default function MyRecordPage() {
                   </TableCell>
 
                   
-                  {/* Break Time (keluar break/lunch) */}
-                  <TableCell>
-                    {(record as any).breakOutTime ? (
-                      <div className="space-y-1">
-                        <span className={(record as any).isLateBreakOut ? 'text-red-600 font-bold' : 'text-gray-800'}>
-                          {(() => {
-                            const utcDate = new Date((record as any).breakOutTime);
-                            if (isNaN(utcDate.getTime())) return 'Invalid Date';
-                            return utcDate.toLocaleTimeString('en-MY', { 
-                              hour: '2-digit', 
-                              minute: '2-digit', 
-                              timeZone: 'Asia/Kuala_Lumpur',
-                              hour12: false 
-                            });
-                          })()}
-                        </span>
-                        {(record as any).isLateBreakOut && (record as any).breakOutRemarks && (
-                          <div className="text-xs text-red-600">
-                            ({(record as any).breakOutRemarks.split(' from')[0]})
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      '-'
-                    )}
-                  </TableCell>
+                  {/* Break Time (keluar break/lunch) - Only show if break tracking enabled */}
+                  {isBreakTrackingEnabled && (
+                    <TableCell>
+                      {(record as any).breakOutTime ? (
+                        <div className="space-y-1">
+                          <span className={(record as any).isLateBreakOut ? 'text-red-600 font-bold' : 'text-gray-800'}>
+                            {(() => {
+                              const utcDate = new Date((record as any).breakOutTime);
+                              if (isNaN(utcDate.getTime())) return 'Invalid Date';
+                              return utcDate.toLocaleTimeString('en-MY', { 
+                                hour: '2-digit', 
+                                minute: '2-digit', 
+                                timeZone: 'Asia/Kuala_Lumpur',
+                                hour12: false 
+                              });
+                            })()}
+                          </span>
+                          {(record as any).isLateBreakOut && (record as any).breakOutRemarks && (
+                            <div className="text-xs text-red-600">
+                              ({(record as any).breakOutRemarks.split(' from')[0]})
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        '-'
+                      )}
+                    </TableCell>
+                  )}
 
-                  {/* Break Time Image */}
-                  <TableCell>
-                    {(record as any).breakOutImage ? (
-                      <img 
-                        src={(record as any).breakOutImage}
-                        alt="Break Out"
-                        className="w-16 h-16 object-cover rounded border cursor-pointer hover:scale-105 transition-transform shadow-sm"
-                        onClick={() => window.open((record as any).breakOutImage, '_blank')}
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                        }}
-                      />
-                    ) : (
-                      <div className="w-16 h-16 bg-gray-100 rounded border flex items-center justify-center text-gray-400 text-xs">
-                        No Image
-                      </div>
-                    )}
-                  </TableCell>
+                  {/* Break Time Image - Only show if break tracking enabled */}
+                  {isBreakTrackingEnabled && (
+                    <TableCell>
+                      {(record as any).breakOutImage ? (
+                        <img 
+                          src={(record as any).breakOutImage}
+                          alt="Break Out"
+                          className="w-16 h-16 object-cover rounded border cursor-pointer hover:scale-105 transition-transform shadow-sm"
+                          onClick={() => window.open((record as any).breakOutImage, '_blank')}
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-16 h-16 bg-gray-100 rounded border flex items-center justify-center text-gray-400 text-xs">
+                          No Image
+                        </div>
+                      )}
+                    </TableCell>
+                  )}
 
-                  
-                  {/* Break Off (balik dari break/lunch) */}
-                  <TableCell>
-                    {(record as any).breakInTime ? (
-                      <div className="space-y-1">
-                        <span className={(record as any).isLateBreakIn ? 'text-red-600 font-bold' : 'text-gray-800'}>
-                          {(() => {
-                            const utcDate = new Date((record as any).breakInTime);
-                            if (isNaN(utcDate.getTime())) return 'Invalid Date';
-                            return utcDate.toLocaleTimeString('en-MY', { 
-                              hour: '2-digit', 
-                              minute: '2-digit', 
-                              timeZone: 'Asia/Kuala_Lumpur',
-                              hour12: false 
-                            });
-                          })()}
-                        </span>
-                        {(record as any).isLateBreakIn && (record as any).breakInRemarks && (
-                          <div className="text-xs text-red-600">
-                            ({(record as any).breakInRemarks.split(' from')[0]})
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      '-'
-                    )}
-                  </TableCell>
+                  {/* Break Off (balik dari break/lunch) - Only show if break tracking enabled */}
+                  {isBreakTrackingEnabled && (
+                    <TableCell>
+                      {(record as any).breakInTime ? (
+                        <div className="space-y-1">
+                          <span className={(record as any).isLateBreakIn ? 'text-red-600 font-bold' : 'text-gray-800'}>
+                            {(() => {
+                              const utcDate = new Date((record as any).breakInTime);
+                              if (isNaN(utcDate.getTime())) return 'Invalid Date';
+                              return utcDate.toLocaleTimeString('en-MY', { 
+                                hour: '2-digit', 
+                                minute: '2-digit', 
+                                timeZone: 'Asia/Kuala_Lumpur',
+                                hour12: false 
+                              });
+                            })()}
+                          </span>
+                          {(record as any).isLateBreakIn && (record as any).breakInRemarks && (
+                            <div className="text-xs text-red-600">
+                              ({(record as any).breakInRemarks.split(' from')[0]})
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        '-'
+                      )}
+                    </TableCell>
+                  )}
 
-                  {/* Break Off Image */}
-                  <TableCell>
-                    {(record as any).breakInImage ? (
-                      <img 
-                        src={(record as any).breakInImage}
-                        alt="Break In"
-                        className="w-16 h-16 object-cover rounded border cursor-pointer hover:scale-105 transition-transform shadow-sm"
-                        onClick={() => window.open((record as any).breakInImage, '_blank')}
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                        }}
-                      />
-                    ) : (
-                      <div className="w-16 h-16 bg-gray-100 rounded border flex items-center justify-center text-gray-400 text-xs">
-                        No Image
-                      </div>
-                    )}
-                  </TableCell>
+                  {/* Break Off Image - Only show if break tracking enabled */}
+                  {isBreakTrackingEnabled && (
+                    <TableCell>
+                      {(record as any).breakInImage ? (
+                        <img 
+                          src={(record as any).breakInImage}
+                          alt="Break In"
+                          className="w-16 h-16 object-cover rounded border cursor-pointer hover:scale-105 transition-transform shadow-sm"
+                          onClick={() => window.open((record as any).breakInImage, '_blank')}
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-16 h-16 bg-gray-100 rounded border flex items-center justify-center text-gray-400 text-xs">
+                          No Image
+                        </div>
+                      )}
+                    </TableCell>
+                  )}
 
                   
                   {/* Clock Out Time */}
