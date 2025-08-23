@@ -399,8 +399,8 @@ export default function EmployeeDetailsPage() {
     if (attendanceSettings && !isLoadingAttendanceSettings) {
       console.log("Loading attendance settings from database:", attendanceSettings);
       setLocationSettings({
-        allowClockInAnyLocation: attendanceSettings.allowClockInAnyLocation ?? true,
-        enforceBreakClockOut: attendanceSettings.enforceBreakClockOut ?? true
+        allowClockInAnyLocation: (attendanceSettings as any)?.allowClockInAnyLocation ?? true,
+        enforceBreakClockOut: (attendanceSettings as any)?.enforceBreakClockOut ?? true
       });
     }
   }, [attendanceSettings, isLoadingAttendanceSettings]);
@@ -436,6 +436,11 @@ export default function EmployeeDetailsPage() {
   // Update/Create employment mutation
   const updateEmploymentMutation = useMutation({
     mutationFn: async (data: any) => {
+      console.log("=== CLIENT EMPLOYMENT UPDATE DEBUG ===");
+      console.log("Employment data to be saved:", data);
+      console.log("Employment record exists:", !!employment?.id);
+      console.log("Employment ID:", employment?.id);
+      
       // Check if employment record exists
       const method = employment?.id ? "PUT" : "POST";
       const url = employment?.id ? `/api/employment/${employment.id}` : "/api/employment";
@@ -446,6 +451,12 @@ export default function EmployeeDetailsPage() {
         employeeId: id,
         company: companySettings?.companyName || data.company
       };
+      
+      console.log("API request details:");
+      console.log("- Method:", method);
+      console.log("- URL:", url);
+      console.log("- Updated data:", updatedData);
+      console.log("=== END CLIENT DEBUG ===");
       
       const response = await apiRequest(method, url, updatedData);
       return response.json();
