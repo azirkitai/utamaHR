@@ -174,10 +174,20 @@ export default function EmployeeDetailsPage() {
   });
 
   // Get employment details for this employee
-  const { data: employment, isLoading: employmentLoading } = useQuery<Employment>({
+  const { data: employment, isLoading: employmentLoading, error: employmentError } = useQuery<Employment>({
     queryKey: ["/api/employment", id],
-    enabled: !!id
+    enabled: !!id,
+    retry: false // Don't retry if employment doesn't exist yet
   });
+  
+  // Debug employment data
+  console.log("=== EMPLOYMENT DATA DEBUG ===");
+  console.log("Employee ID:", id);
+  console.log("Employment data:", employment);
+  console.log("Employment loading:", employmentLoading);
+  console.log("Employment error:", employmentError);
+  console.log("Employment ID exists:", !!employment?.id);
+  console.log("=== END EMPLOYMENT DEBUG ===");
 
   // Get family members for this employee
   const { data: familyMembers = [], isLoading: familyMembersLoading } = useQuery<any[]>({
