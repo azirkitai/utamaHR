@@ -1,0 +1,73 @@
+Punca paling biasa (dan apa nak cek)
+
+Tarikh disimpan sebagai DateTime (UTC)
+
+Frontend hantar 2025-08-26 → ditukar kepada 2025-08-25T16:00:00Z (UTC) → bila render ikut “hari”, ia jatuh ke hari sebelumnya di MYT (UTC+8).
+
+Petanda: bila log kat server, nilai yang masuk ada suffix Z.
+
+new Date('YYYY-MM-DD') di JS
+
+String ISO tanpa masa dibaca sebagai UTC, bukan local → off-by-one bila toISOString/format.
+
+Grid re-order lepas save
+
+Lepas simpan, senarai staff/distribution disusun semula (sort berbeza) → nilai “pindah baris”.
+
+Fix yang konsisten (cadangan production)
+A. Guna “DATE sahaja”, bukan DateTime
+
+DB column: jenis DATE (Postgres/MySQL) untuk shift_date.
+
+API & Frontend: hantar/terima string YYYY-MM-DD sahaja, tiada masa/zon.
+
+Di server: jangan buat new Date() pada tarikh hari; simpan string atau DATE terus.
+
+B. Jika perlu kekal DateTime
+
+Anggap tarikh “local MYT”:
+
+Frontend: buat zoned date.
+
+import { zonedTimeToUtc } from 'date-fns-tz'
+const tz = 'Asia/Kuala_Lumpur'
+const utc = zonedTimeToUtc(`${yyyy}-${mm}-${dd} 00:00:00`, tz)
+// hantar 'utc' ke API
+
+
+Render: dari UTC → local MYT sebelum derive yyyy-MM-dd.
+
+C. Elakkan new Date('YYYY-MM-DD')
+
+Gunakan parser tempatan:
+
+const parseLocalDate = (s: string) => {
+  const [y,m,d] = s.split('-').map(Number)
+  return new Date(y, m-1, d) // local midnight, bukan UTC
+}
+
+
+Untuk paparan hari: format terus string YYYY-MM-DD, bukan dari Date jika boleh.
+
+D. Kunci grid supaya tak “lompat”
+
+Jangan ubah susunan selepas save.
+
+Pastikan sort key tetap (contoh: employeeCode ASC, date ASC).
+
+Pastikan React key pada cell gunakan (employeeId + dateString) yang sama sebelum/selepas save.
+
+Prompt terus untuk agent (copy & paste)
+
+Issue: Shift berganjak ke hari/baris lain selepas Save.
+Target fix (tanpa ubah UI besar):
+
+Tukar model data shift_date kepada DATE (tanpa waktu) di DB. Jika tak boleh, simpan/ambil tarikh sebagai string YYYY-MM-DD end-to-end.
+
+Frontend: jangan guna new Date('YYYY-MM-DD') dan jangan hantar ISO time. Hantar/terima string YYYY-MM-DD sahaja.
+
+Server: hentikan sebarang toISOString()/konversi UTC untuk shift_date. Jika perlu DateTime, gunakan MYT: zonedTimeToUtc('YYYY-MM-DD 00:00:00','Asia/Kuala_Lumpur') pada insert, dan convert balik pada read.
+
+Rendering grid: gunakan dateString terus sebagai key & mapping (key = employeeId + '-' + dateString). Pastikan sorting selepas save sama seperti sebelum save (tetapkan ORDER BY employeeCode, shift_date).
+
+Tambah test ringkas: set shift pada 28/08, Save, fetch balik → pastikan shift_date === '2025-08-28' dan muncul pada cell 28, bukan 27/29. Log nilai API untuk pengesahan.

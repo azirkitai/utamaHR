@@ -306,8 +306,9 @@ export default function ShiftCalendarPage() {
   const handleShiftChange = useCallback((employeeId: string, shiftId: string, date: Date) => {
     console.log('Handling shift change:', { employeeId, shiftId, date });
     
-    // Create unique key for employee + date combination
-    const stateKey = `${employeeId}-${date.toISOString()}`;
+    // Create unique key for employee + date combination (use YYYY-MM-DD format to avoid timezone issues)
+    const dateString = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    const stateKey = `${employeeId}-${dateString}`;
     setManualShiftStates(prev => ({
       ...prev,
       [stateKey]: shiftId === "no-shift" ? "" : shiftId
@@ -315,7 +316,7 @@ export default function ShiftCalendarPage() {
     
     // Don't make individual API calls - just track changes in manual state
     // API calls will only happen when Save button is pressed
-    console.log('Shift change tracked in manual state:', { employeeId, shiftId, date: date.toISOString() });
+    console.log('Shift change tracked in manual state:', { employeeId, shiftId, dateString });
   }, []);
 
   // Independent Shift Cell Component with manual state bypass
@@ -338,7 +339,9 @@ export default function ShiftCalendarPage() {
     onShiftChange: (employeeId: string, shiftId: string, date: Date) => void;
     manualState?: string;
   }) => {
-    const uniqueId = `${employeeId}-${dayDate.toISOString()}-${dayIndex}`;
+    // Use YYYY-MM-DD format consistently to avoid timezone issues
+    const dateString = `${dayDate.getFullYear()}-${String(dayDate.getMonth() + 1).padStart(2, '0')}-${String(dayDate.getDate()).padStart(2, '0')}`;
+    const uniqueId = `${employeeId}-${dateString}-${dayIndex}`;
     
     // Use manual state if available, otherwise use shift data
     const currentShiftId = manualState !== undefined ? manualState : (shift?.shiftId || '');
@@ -609,7 +612,7 @@ export default function ShiftCalendarPage() {
                                 editMode={editMode}
                                 shifts={shifts as any[]}
                                 onShiftChange={handleShiftChange}
-                                manualState={manualShiftStates[`${employee.id}-${day.fullDate.toISOString()}`]}
+                                manualState={manualShiftStates[`${employee.id}-${day.fullDate.getFullYear()}-${String(day.fullDate.getMonth() + 1).padStart(2, '0')}-${String(day.fullDate.getDate()).padStart(2, '0')}`]}
                               />
                             </td>
                           );
@@ -646,25 +649,26 @@ export default function ShiftCalendarPage() {
                   try {
                     // Get all manual state changes that need to be saved
                     const savePromises = Object.entries(manualShiftStates).map(([key, shiftId]) => {
-                      // Key format: employeeId-ISODateString
+                      // Key format: employeeId-YYYY-MM-DD
                       // UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (36 chars including dashes)
-                      // So we extract first 36 chars as employeeId, rest as date
+                      // So we extract first 36 chars as employeeId, rest as date string
                       const employeeId = key.substring(0, 36);
-                      const assignedDate = key.substring(37); // Skip the dash after UUID
+                      const dateString = key.substring(37); // Skip the dash after UUID - this is now YYYY-MM-DD format
                       
-                      console.log('Saving shift:', { employeeId, shiftId, assignedDate });
-                      console.log('Date type:', typeof assignedDate, 'Date value:', assignedDate);
+                      console.log('Saving shift:', { employeeId, shiftId, dateString });
+                      console.log('Date string format:', dateString);
                       
-                      // Parse the date to ensure correct format
-                      const parsedDate = new Date(assignedDate);
-                      const normalizedDate = new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate());
-                      const isoDateString = normalizedDate.toISOString();
+                      // Use Malaysia timezone (MYT) to avoid timezone conversion issues
+                      // Parse YYYY-MM-DD as local date at midnight MYT
+                      const [year, month, day] = dateString.split('-').map(Number);
+                      const localDate = new Date(year, month - 1, day, 8, 0, 0); // 8 AM MYT to avoid timezone edge cases
+                      const isoDateString = localDate.toISOString();
                       
-                      console.log('Normalized date for backend:', isoDateString);
+                      console.log('Local MYT date for backend:', isoDateString);
                       
                       return apiRequest("POST", `/api/employees/${employeeId}/assign-shift`, { 
                         shiftId: shiftId === "" ? "" : shiftId,
-                        assignedDate: isoDateString  // Use normalized ISO string
+                        assignedDate: isoDateString  // Use MYT-adjusted ISO string
                       });
                     });
                     
