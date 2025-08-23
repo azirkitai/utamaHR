@@ -104,21 +104,12 @@ import {
   employeeAttendanceSettings,
   leaveApplications,
   groupPolicySettings,
-  payrollItems,
   employeeLeaveEntitlementAdjustments,
   employeeLeaveEligibility,
   // Leave Application types
   type LeaveApplication,
   type InsertLeaveApplication,
   type UpdateLeaveApplication,
-  // Employee Leave Entitlement Adjustment types
-  type EmployeeLeaveEntitlementAdjustment,
-  type InsertEmployeeLeaveEntitlementAdjustment,
-  type UpdateEmployeeLeaveEntitlementAdjustment,
-  // Employee Leave Eligibility types
-  type EmployeeLeaveEligibility,
-  type InsertEmployeeLeaveEligibility,
-  type UpdateEmployeeLeaveEligibility,
   // Company Leave Types
   companyLeaveTypes,
   type CompanyLeaveType,
@@ -221,15 +212,14 @@ import {
   type Department,
   type InsertDepartment,
   type UpdateDepartment,
-  // Employee Leave Eligibility types
-  employeeLeaveEligibility,
-  type EmployeeLeaveEligibility,
-  type InsertEmployeeLeaveEligibility,
-  type UpdateEmployeeLeaveEligibility,
-  // Employee Leave Entitlement Adjustment types
+  // Employee Leave Entitlement Adjustment types (moved from above to avoid duplicates)
   type EmployeeLeaveEntitlementAdjustment,
   type InsertEmployeeLeaveEntitlementAdjustment,
   type UpdateEmployeeLeaveEntitlementAdjustment,
+  // Employee Leave Eligibility types (moved from above to avoid duplicates)
+  type EmployeeLeaveEligibility,
+  type InsertEmployeeLeaveEligibility,
+  type UpdateEmployeeLeaveEligibility,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, count, sql, asc, ilike, or, gte, lte, inArray, not, isNull, isNotNull, ne } from "drizzle-orm";
@@ -931,12 +921,12 @@ export class DatabaseStorage implements IStorage {
 
   // =================== DISCIPLINARY METHODS ===================
   async getDisciplinaryRecords(employeeId: string): Promise<Disciplinary[]> {
-    return await db.select().from(disciplinary).where(eq(disciplinary.employeeId, employeeId));
+    return await db.select().from(disciplinaryRecords).where(eq(disciplinaryRecords.employeeId, employeeId));
   }
 
   async createDisciplinary(insertDisciplinary: InsertDisciplinary): Promise<Disciplinary> {
     const [record] = await db
-      .insert(disciplinary)
+      .insert(disciplinaryRecords)
       .values(insertDisciplinary)
       .returning();
     return record;
@@ -944,18 +934,18 @@ export class DatabaseStorage implements IStorage {
 
   async updateDisciplinary(id: string, updateDisciplinary: UpdateDisciplinary): Promise<Disciplinary | undefined> {
     const [record] = await db
-      .update(disciplinary)
+      .update(disciplinaryRecords)
       .set({
         ...updateDisciplinary,
         updatedAt: new Date()
       })
-      .where(eq(disciplinary.id, id))
+      .where(eq(disciplinaryRecords.id, id))
       .returning();
     return record || undefined;
   }
 
   async deleteDisciplinary(id: string): Promise<boolean> {
-    const result = await db.delete(disciplinary).where(eq(disciplinary.id, id));
+    const result = await db.delete(disciplinaryRecords).where(eq(disciplinaryRecords.id, id));
     return (result.rowCount ?? 0) > 0;
   }
 
@@ -4395,19 +4385,20 @@ export class DatabaseStorage implements IStorage {
     // Get approved overtime claims for the month
     const claims = await db
       .select()
-      .from(overtimeClaims)
+      .from(claimApplications)
       .where(
         and(
-          eq(overtimeClaims.employeeId, employeeId),
-          eq(overtimeClaims.status, 'approved'),
-          sql`EXTRACT(YEAR FROM ${overtimeClaims.overtimeDate}) = ${year}`,
-          sql`EXTRACT(MONTH FROM ${overtimeClaims.overtimeDate}) = ${month}`
+          eq(claimApplications.employeeId, employeeId),
+          eq(claimApplications.status, 'Approved'),
+          eq(claimApplications.claimType, 'overtime'),
+          sql`EXTRACT(YEAR FROM ${claimApplications.claimDate}) = ${year}`,
+          sql`EXTRACT(MONTH FROM ${claimApplications.claimDate}) = ${month}`
         )
       );
 
     // Calculate total overtime amount
     const totalAmount = claims.reduce((sum, claim) => {
-      return sum + parseFloat(claim.totalAmount || '0');
+      return sum + parseFloat(claim.amount || '0');
     }, 0);
 
     return totalAmount;
