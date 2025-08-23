@@ -574,10 +574,11 @@ export class DatabaseStorage implements IStorage {
       const result = await db.select({ department: employment.department }).from(employment);
       console.log("Raw departments result:", result);
       
-      const uniqueDepartments = [...new Set(result
+      const filteredDepartments = result
         .map(row => row.department)
-        .filter(dept => dept && dept.trim() !== '') // Filter out empty/null departments
-      )].sort(); // Sort alphabetically
+        .filter(dept => dept && dept.trim() !== ''); // Filter out empty/null departments
+      
+      const uniqueDepartments = Array.from(new Set(filteredDepartments)).sort(); // Sort alphabetically
       
       console.log("Unique departments:", uniqueDepartments);
       return uniqueDepartments;
