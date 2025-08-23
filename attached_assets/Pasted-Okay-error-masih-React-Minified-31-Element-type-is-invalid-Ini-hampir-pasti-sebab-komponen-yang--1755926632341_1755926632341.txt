@@ -1,0 +1,78 @@
+Okay—error masih React Minified #31 (Element type is invalid). Ini hampir pasti sebab komponen yang di-render sebenarnya undefined atau object (akibat import yang salah). Dev lepas, prod pecah—selalunya kerana case-sensitive path atau default vs named export.
+
+Di bawah ni langkah yang padat untuk cari punca tepat & baiki. Saya bagi juga prompt yang boleh terus bagi pada agent.
+
+5 langkah cepat (praktikal)
+
+Reproduce dalam production mode (sebelum deploy)
+
+Jalankan build production dan serve locally (di Replit: “Preview build” / npm run build && npm run start).
+
+Pastikan error sama muncul—senang nak debug.
+
+Kenalpasti komponen punca (bisect cepat)
+
+Di page /approval/leave, komen sementara semua child component, tinggal <div>OK</div>.
+
+Tambah semula satu demi satu komponen. Bila error muncul balik, komponen terakhir itu puncanya.
+
+Semak import komponen punca
+
+Case path tepat (Linux case-sensitive):
+import LeaveCard from './components/LeaveCard' ✅
+import LeaveCard from './components/leaveCard' ❌ (akan undefined di prod)
+
+Default vs named export:
+
+Jika fail ada export default LeaveCard → import LeaveCard (tanpa {})
+
+Jika fail ada export const LeaveCard → import dengan kurungan { LeaveCard }
+
+Elak import * as Comp from '...' untuk komponen React; itu jadikan object, bukan fungsi.
+
+Pastikan versi
+
+react dan react-dom mesti versi sama. Buang node_modules, install semula, rebuild.
+
+Bersihkan alias/paths
+
+Jika guna tsconfig.paths / alias Vite/Next, pastikan config prod resolve sama macam dev.
+
+Elak import yang saling bergantung (circular).
+
+Prompt ringkas untuk agent (copy–paste)
+
+We still get React Minified Error #31 on /approval/leave in production.
+Please do the following, without changing business logic:
+
+Run a production build locally and reproduce the error.
+
+In the /approval/leave page, temporarily comment out all child components and re-add them one by one to identify which component import triggers the error.
+
+For the faulty import, fix:
+
+Case-sensitive path (match exact filename).
+
+Default vs named export:
+
+export default X ⇒ import X from '...'
+
+export const X ⇒ import { X } from '...'
+
+Do not use import * as X for React components.
+
+Verify react and react-dom versions are identical; reinstall deps; rebuild.
+
+Ensure TS/Vite/Next path aliases resolve identically in prod.
+
+Share the exact fixed import lines and the component filename in the PR.
+
+Petunjuk dari screenshot anda
+
+Di log ada objek Object keluar — itu tanda jelas yang di-import ialah “module object”, bukan komponen React. 99% masa ini berlaku bila:
+
+Import default tapi sebenarnya named, atau sebaliknya; atau
+
+Guna import * as Comp lalu render <Comp /> (akan gagal).
+
+Buat lima langkah di atas dan punca akan “terpaku” pada satu import yang salah. Selepas dia betulkan import tersebut, halaman deploy akan naik seperti dev.
