@@ -14,7 +14,7 @@ import {
   FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { DashboardLayout } from "@/components/dashboard-layout";
+import DashboardLayout from "@/components/dashboard-layout";
 
 export default function ApplyTimeoffPage() {
   const [timeoffDate, setTimeoffDate] = useState("");
