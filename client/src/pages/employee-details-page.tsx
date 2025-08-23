@@ -334,6 +334,11 @@ export default function EmployeeDetailsPage() {
         ...employment,
         // Auto-populate company from settings if available
         company: companySettings?.companyName || employment.company,
+        // Ensure all fields are properly included including branchLocation
+        branchLocation: employment.branchLocation || "",
+        branch: employment.branch || "",
+        employeeNo: employment.employeeNo || "",
+        okuStatus: employment.okuStatus || "No"
       });
       setDateJoining(employment.dateJoining ? new Date(employment.dateJoining) : undefined);
       setDateOfSign(employment.dateOfSign ? new Date(employment.dateOfSign) : undefined);
@@ -447,8 +452,8 @@ export default function EmployeeDetailsPage() {
     },
     onSuccess: () => {
       toast({
-        title: "Berjaya",
-        description: "Maklumat pekerjaan telah dikemaskini",
+        title: "Success",
+        description: "Employment information has been updated",
       });
       setIsEditingEmployment(false);
       setIsEditingApproval(false);
@@ -988,28 +993,7 @@ export default function EmployeeDetailsPage() {
   }, [employee]);
 
   // Effect to populate employment form when employment data is loaded
-  useEffect(() => {
-    if (employment) {
-      setEmploymentForm({
-        staffId: employment.employeeNo || "",
-        designation: employment.designation || "",
-        department: employment.department || "",
-        dateJoining: employment.dateJoining ? new Date(employment.dateJoining) : undefined,
-        dateOfSign: employment.dateOfSign ? new Date(employment.dateOfSign) : undefined,
-        employmentStatus: employment.employmentStatus || "",
-        employmentType: employment.employmentType || "",
-        workingHours: employment.workingHours || "",
-        reportingManager: employment.reportingManager || "",
-        jobDescription: employment.jobDescription || "",
-        probationPeriod: employment.probationPeriod || "",
-        probationEndDate: employment.probationEndDate || "",
-        workLocation: employment.workLocation || "",
-      });
-
-      setDateJoining(employment.dateJoining ? new Date(employment.dateJoining) : undefined);
-      setDateOfSign(employment.dateOfSign ? new Date(employment.dateOfSign) : undefined);
-    }
-  }, [employment]);
+  // Remove this duplicate useEffect as it conflicts with the main employment form initialization above
 
   // Effect to populate contact form when contact data is loaded
   useEffect(() => {
@@ -2148,7 +2132,7 @@ export default function EmployeeDetailsPage() {
                             disabled={updateEmploymentMutation.isPending}
                             data-testid="button-save-employment"
                           >
-                            {updateEmploymentMutation.isPending ? "Menyimpan..." : "Save Changes"}
+                            {updateEmploymentMutation.isPending ? "Saving..." : "Save Changes"}
                           </Button>
                         </div>
                       )}
@@ -2312,7 +2296,7 @@ export default function EmployeeDetailsPage() {
                             disabled={updateEmploymentMutation.isPending}
                             data-testid="button-save-approval"
                           >
-                            {updateEmploymentMutation.isPending ? "Menyimpan..." : "Save Changes"}
+                            {updateEmploymentMutation.isPending ? "Saving..." : "Save Changes"}
                           </Button>
                         </div>
                       )}
@@ -2382,7 +2366,7 @@ export default function EmployeeDetailsPage() {
                             disabled={updateEmploymentMutation.isPending}
                             data-testid="button-save-yearly"
                           >
-                            {updateEmploymentMutation.isPending ? "Menyimpan..." : "Save Changes"}
+                            {updateEmploymentMutation.isPending ? "Saving..." : "Save Changes"}
                           </Button>
                         </div>
                       )}
