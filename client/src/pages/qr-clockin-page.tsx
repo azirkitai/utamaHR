@@ -81,6 +81,7 @@ export default function QRClockInPage() {
     refetchInterval: 3000, // Refresh every 3 seconds for real-time updates
     refetchOnWindowFocus: true, // Refresh when window gets focus
     refetchOnMount: true, // Always refresh on mount
+    staleTime: 0, // Always fetch fresh data
   });
 
   // Generate QR Code mutation
