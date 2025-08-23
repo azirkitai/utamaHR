@@ -216,13 +216,14 @@ export default function ShiftCalendarPage() {
   };
 
   const getShiftForDay = (employeeId: string, date: Date) => {
-    // Normalize date to start of day for comparison
-    const targetDate = new Date(date);
-    targetDate.setHours(0, 0, 0, 0);
-    const dayString = targetDate.toISOString().split('T')[0];
+    // Extract date parts for robust comparison
+    const targetYear = date.getFullYear();
+    const targetMonth = date.getMonth();
+    const targetDay = date.getDate();
+    const dayString = `${targetYear}-${String(targetMonth + 1).padStart(2, '0')}-${String(targetDay).padStart(2, '0')}`;
     
     console.log(`🔍 Looking for shift for employee ${employeeId} on ${dayString}`);
-    console.log(`🔍 Available shifts for this employee:`, employeeShifts.filter((es: any) => es.employeeId === employeeId));
+    console.log(`🔍 Calendar date details: Year=${targetYear}, Month=${targetMonth}, Day=${targetDay}`);
     
     // Find shift assignment for this employee on this specific date
     const specificShiftAssignment = (employeeShifts as any[]).find((assignment: any) => {
@@ -230,17 +231,19 @@ export default function ShiftCalendarPage() {
       if (!assignment.assignedDate) return false;
       
       const assignedDate = new Date(assignment.assignedDate);
-      assignedDate.setHours(0, 0, 0, 0);
-      const assignedDateString = assignedDate.toISOString().split('T')[0];
+      const assignedYear = assignedDate.getFullYear();
+      const assignedMonth = assignedDate.getMonth();
+      const assignedDay = assignedDate.getDate();
+      const assignedDateString = `${assignedYear}-${String(assignedMonth + 1).padStart(2, '0')}-${String(assignedDay).padStart(2, '0')}`;
       
-      const matches = assignedDate.getTime() === targetDate.getTime();
+      const matches = (targetYear === assignedYear && targetMonth === assignedMonth && targetDay === assignedDay);
       console.log(`🔍 Checking: ${assignedDateString} vs ${dayString} = ${matches}`);
       
       return matches;
     });
     
     if (specificShiftAssignment) {
-      console.log(`✅ Found shift assignment:`, specificShiftAssignment);
+      console.log(`✅ Found matching shift assignment:`, specificShiftAssignment);
     } else {
       console.log(`❌ No shift assignment found for ${employeeId} on ${dayString}`);
     }
