@@ -29,8 +29,10 @@ export default function ShiftCalendarPage() {
   const { toast } = useToast();
 
   // Fetch employees data
-  const { data: employees = [], isLoading } = useQuery({
+  const { data: employees = [], isLoading, refetch: refetchEmployees } = useQuery({
     queryKey: ['/api/employees'],
+    staleTime: 0, // Always consider data stale for fresh updates
+    refetchOnWindowFocus: true,
   });
 
   // Fetch shifts data for legend
@@ -40,6 +42,8 @@ export default function ShiftCalendarPage() {
 
   const { data: employeeShifts = [], refetch: refetchEmployeeShifts } = useQuery({
     queryKey: ['/api/employee-shifts'],
+    staleTime: 0, // Always consider data stale for fresh updates
+    refetchOnWindowFocus: true,
   });
 
   // Mutation for updating employee shift assignment
@@ -279,6 +283,7 @@ export default function ShiftCalendarPage() {
 
   // Manual state management to handle per-date shift assignments
   const [manualShiftStates, setManualShiftStates] = useState<Record<string, string>>({});
+  const [forceRenderKey, setForceRenderKey] = useState(0);
 
   // Memoized mutation handler that updates manual state immediately for specific date
   const handleShiftChange = useCallback((employeeId: string, shiftId: string, date: Date) => {
@@ -573,11 +578,11 @@ export default function ShiftCalendarPage() {
                         </td>
                         {getDayHeaders().map((day, dayIndex) => {
                           const shift = getShiftForDay(employee.id, day.fullDate);
-                          const uniqueKey = `cell-${employee.id}-${day.fullDate}-${dayIndex}`;
+                          const cellKey = `cell-${employee.id}-${day.fullDate}-${dayIndex}-${forceRenderKey}`;
                           return (
-                            <td key={uniqueKey} className="p-2 text-center">
+                            <td key={cellKey} className="p-2 text-center">
                               <IndependentShiftCell
-                                key={uniqueKey}
+                                key={cellKey}
                                 employeeId={employee.id}
                                 dayDate={day.fullDate}
                                 dayIndex={dayIndex}
@@ -643,10 +648,22 @@ export default function ShiftCalendarPage() {
                     // Clear manual states after successful save
                     setManualShiftStates({});
                     
-                    // Refresh data with force reload
+                    // Force refresh all data immediately
+                    console.log('Starting force refresh after save...');
                     await queryClient.invalidateQueries({ queryKey: ['/api/employee-shifts'] });
                     await queryClient.invalidateQueries({ queryKey: ['/api/employees'] });
-                    await refetchEmployeeShifts(); // Direct refetch
+                    
+                    // Force refetch with fresh data
+                    const freshData = await refetchEmployeeShifts();
+                    console.log('Fresh employee shifts data:', freshData.data?.length, 'records');
+                    
+                    // Additional force refresh for both queries
+                    await queryClient.refetchQueries({ queryKey: ['/api/employee-shifts'] });
+                    await queryClient.refetchQueries({ queryKey: ['/api/employees'] });
+                    
+                    // Force component re-render
+                    setForceRenderKey(prev => prev + 1);
+                    console.log('Force render triggered, new key:', forceRenderKey + 1);
                     
                     toast({
                       title: "Berjaya",
