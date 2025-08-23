@@ -174,20 +174,10 @@ export default function EmployeeDetailsPage() {
   });
 
   // Get employment details for this employee
-  const { data: employment, isLoading: employmentLoading, error: employmentError } = useQuery<Employment>({
+  const { data: employment, isLoading: employmentLoading } = useQuery<Employment>({
     queryKey: ["/api/employment", id],
-    enabled: !!id,
-    retry: false // Don't retry if employment doesn't exist yet
+    enabled: !!id
   });
-  
-  // Debug employment data
-  console.log("=== EMPLOYMENT DATA DEBUG ===");
-  console.log("Employee ID:", id);
-  console.log("Employment data:", employment);
-  console.log("Employment loading:", employmentLoading);
-  console.log("Employment error:", employmentError);
-  console.log("Employment ID exists:", !!employment?.id);
-  console.log("=== END EMPLOYMENT DEBUG ===");
 
   // Get family members for this employee
   const { data: familyMembers = [], isLoading: familyMembersLoading } = useQuery<any[]>({
@@ -344,11 +334,6 @@ export default function EmployeeDetailsPage() {
         ...employment,
         // Auto-populate company from settings if available
         company: companySettings?.companyName || employment.company,
-        // Ensure all fields are properly included including branchLocation
-        branchLocation: employment.branchLocation || "",
-        branch: employment.branch || "",
-        employeeNo: employment.employeeNo || "",
-        okuStatus: employment.okuStatus || "No"
       });
       setDateJoining(employment.dateJoining ? new Date(employment.dateJoining) : undefined);
       setDateOfSign(employment.dateOfSign ? new Date(employment.dateOfSign) : undefined);
@@ -409,8 +394,8 @@ export default function EmployeeDetailsPage() {
     if (attendanceSettings && !isLoadingAttendanceSettings) {
       console.log("Loading attendance settings from database:", attendanceSettings);
       setLocationSettings({
-        allowClockInAnyLocation: (attendanceSettings as any)?.allowClockInAnyLocation ?? true,
-        enforceBreakClockOut: (attendanceSettings as any)?.enforceBreakClockOut ?? true
+        allowClockInAnyLocation: attendanceSettings.allowClockInAnyLocation ?? true,
+        enforceBreakClockOut: attendanceSettings.enforceBreakClockOut ?? true
       });
     }
   }, [attendanceSettings, isLoadingAttendanceSettings]);
@@ -446,11 +431,6 @@ export default function EmployeeDetailsPage() {
   // Update/Create employment mutation
   const updateEmploymentMutation = useMutation({
     mutationFn: async (data: any) => {
-      console.log("=== CLIENT EMPLOYMENT UPDATE DEBUG ===");
-      console.log("Employment data to be saved:", data);
-      console.log("Employment record exists:", !!employment?.id);
-      console.log("Employment ID:", employment?.id);
-      
       // Check if employment record exists
       const method = employment?.id ? "PUT" : "POST";
       const url = employment?.id ? `/api/employment/${employment.id}` : "/api/employment";
@@ -462,36 +442,23 @@ export default function EmployeeDetailsPage() {
         company: companySettings?.companyName || data.company
       };
       
-      console.log("API request details:");
-      console.log("- Method:", method);
-      console.log("- URL:", url);
-      console.log("- Updated data:", updatedData);
-      console.log("=== END CLIENT DEBUG ===");
-      
       const response = await apiRequest(method, url, updatedData);
       return response.json();
     },
-    onSuccess: (updatedEmployment) => {
-      console.log("Employment update successful:", updatedEmployment);
+    onSuccess: () => {
       toast({
-        title: "Success", 
-        description: "Employment information has been updated",
+        title: "Berjaya",
+        description: "Maklumat pekerjaan telah dikemaskini",
       });
       setIsEditingEmployment(false);
       setIsEditingApproval(false);
       setIsEditingYearly(false);
-      
-      // Invalidate all related queries to refresh the data
       queryClient.invalidateQueries({ queryKey: ["/api/employment", id] });
-      queryClient.invalidateQueries({ queryKey: ["/api/employees", id] });
-      queryClient.invalidateQueries({ queryKey: ["/api/user/employee"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
     },
-    onError: (error) => {
-      console.error("Employment update error:", error);
+    onError: () => {
       toast({
         title: "Error",
-        description: `Failed to update employment information: ${error.message || 'Unknown error'}`,
+        description: "Failed to update employment information",
         variant: "destructive",
       });
     },
@@ -1021,7 +988,28 @@ export default function EmployeeDetailsPage() {
   }, [employee]);
 
   // Effect to populate employment form when employment data is loaded
-  // Remove this duplicate useEffect as it conflicts with the main employment form initialization above
+  useEffect(() => {
+    if (employment) {
+      setEmploymentForm({
+        staffId: employment.employeeNo || "",
+        designation: employment.designation || "",
+        department: employment.department || "",
+        dateJoining: employment.dateJoining ? new Date(employment.dateJoining) : undefined,
+        dateOfSign: employment.dateOfSign ? new Date(employment.dateOfSign) : undefined,
+        employmentStatus: employment.employmentStatus || "",
+        employmentType: employment.employmentType || "",
+        workingHours: employment.workingHours || "",
+        reportingManager: employment.reportingManager || "",
+        jobDescription: employment.jobDescription || "",
+        probationPeriod: employment.probationPeriod || "",
+        probationEndDate: employment.probationEndDate || "",
+        workLocation: employment.workLocation || "",
+      });
+
+      setDateJoining(employment.dateJoining ? new Date(employment.dateJoining) : undefined);
+      setDateOfSign(employment.dateOfSign ? new Date(employment.dateOfSign) : undefined);
+    }
+  }, [employment]);
 
   // Effect to populate contact form when contact data is loaded
   useEffect(() => {
@@ -2160,7 +2148,7 @@ export default function EmployeeDetailsPage() {
                             disabled={updateEmploymentMutation.isPending}
                             data-testid="button-save-employment"
                           >
-                            {updateEmploymentMutation.isPending ? "Saving..." : "Save Changes"}
+                            {updateEmploymentMutation.isPending ? "Menyimpan..." : "Save Changes"}
                           </Button>
                         </div>
                       )}
@@ -2324,7 +2312,7 @@ export default function EmployeeDetailsPage() {
                             disabled={updateEmploymentMutation.isPending}
                             data-testid="button-save-approval"
                           >
-                            {updateEmploymentMutation.isPending ? "Saving..." : "Save Changes"}
+                            {updateEmploymentMutation.isPending ? "Menyimpan..." : "Save Changes"}
                           </Button>
                         </div>
                       )}
@@ -2394,7 +2382,7 @@ export default function EmployeeDetailsPage() {
                             disabled={updateEmploymentMutation.isPending}
                             data-testid="button-save-yearly"
                           >
-                            {updateEmploymentMutation.isPending ? "Saving..." : "Save Changes"}
+                            {updateEmploymentMutation.isPending ? "Menyimpan..." : "Save Changes"}
                           </Button>
                         </div>
                       )}

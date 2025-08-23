@@ -2930,7 +2930,7 @@ export function registerRoutes(app: Express): Server {
       // Get the employment record to check if user can edit
       const existingEmployment = await storage.getEmploymentById(req.params.id);
       if (!existingEmployment) {
-        return res.status(404).json({ error: "Employment information not found" });
+        return res.status(404).json({ error: "Maklumat peworkan not found" });
       }
       
       // Allow admin roles to update any employment record
@@ -2941,34 +2941,18 @@ export function registerRoutes(app: Express): Server {
       const isOwnRecord = existingEmployment.employeeId === currentUser.employeeId;
       
       if (!isAdmin && !isOwnRecord) {
-        return res.status(403).json({ error: "Not authorized to update employment information" });
+        return res.status(403).json({ error: "Tidak dibenarkan untuk mengemaskini maklumat peworkan" });
       }
-      
-      console.log("=== SERVER EMPLOYMENT UPDATE DEBUG ===");
-      console.log("Request body:", JSON.stringify(req.body, null, 2));
-      console.log("Request params:", req.params);
-      console.log("Existing employment:", JSON.stringify(existingEmployment, null, 2));
       
       const validatedData = updateEmploymentSchema.parse(req.body);
-      console.log("Validated data:", JSON.stringify(validatedData, null, 2));
-      
       const employment = await storage.updateEmployment(req.params.id, validatedData);
       if (!employment) {
-        return res.status(404).json({ error: "Employment information not found after update" });
+        return res.status(404).json({ error: "Maklumat peworkan not found" });
       }
-      console.log("Updated employment:", JSON.stringify(employment, null, 2));
-      console.log("=== END SERVER DEBUG ===");
       res.json(employment);
     } catch (error) {
       console.error("Update employment error:", error);
-      if (error instanceof Error) {
-        console.error("Error message:", error.message);
-        console.error("Error stack:", error.stack);
-      }
-      res.status(400).json({ 
-        error: "Failed to update employment information", 
-        details: error instanceof Error ? error.message : String(error)
-      });
+      res.status(400).json({ error: "Failed to mengemaskini maklumat peworkan" });
     }
   });
 
