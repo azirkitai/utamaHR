@@ -117,9 +117,9 @@ export default function ShiftCalendarPage() {
 
       const weekDates = [];
       for (let i = 0; i < 7; i++) {
-        // CRITICAL FIX: Create dates with fixed timezone (16:00 local time) to prevent timezone offset issues
-        const currentDate = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate() + i, 16, 0, 0);
-        console.log(`📅 Calendar date ${i}: ${currentDate.toISOString()} (day ${currentDate.getDate()})`);
+        // CRITICAL FIX: Create dates with fixed timezone (08:00 local time) for consistent calendar mapping
+        const currentDate = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate() + i, 8, 0, 0);
+        console.log(`📅 Calendar date ${i}: ${currentDate.toISOString()} (day ${currentDate.getDate()}) - Calendar Index: ${i}`);
         weekDates.push(currentDate);
       }
       return weekDates;
@@ -130,8 +130,8 @@ export default function ShiftCalendarPage() {
       
       const monthDates = [];
       for (let i = 1; i <= daysInMonth; i++) {
-        // CRITICAL FIX: Create dates with fixed timezone (16:00 local time) to prevent timezone offset issues
-        const currentDate = new Date(year, month, i, 16, 0, 0);
+        // CRITICAL FIX: Create dates with fixed timezone (08:00 local time) for consistent calendar mapping
+        const currentDate = new Date(year, month, i, 8, 0, 0);
         monthDates.push(currentDate);
       }
       return monthDates;
@@ -596,6 +596,7 @@ export default function ShiftCalendarPage() {
                           {employee.name}
                         </td>
                         {getDayHeaders().map((day, dayIndex) => {
+                          console.log(`🗓️ Header Day ${dayIndex}: ${day.fullDate.toISOString()} (Calendar Day: ${day.dayNumber})`);
                           const shift = getShiftForDay(employee.id, day.fullDate);
                           const cellKey = `cell-${employee.id}-${day.fullDate}-${dayIndex}-${forceRenderKey}`;
                           return (
