@@ -32,6 +32,7 @@ import DashboardLayout from "@/components/dashboard-layout";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { formatMalaysiaTime } from "@/lib/timezone";
 import { queryClient } from "@/lib/queryClient";
 
 interface Holiday {
@@ -198,7 +199,7 @@ function ShiftComplianceCell({ employee, shift, date }: { employee: any; shift: 
             <div className={`${
               attendanceRecord.isLateClockIn ? 'text-red-200 font-bold' : 'text-green-200'
             }`}>
-              In: {new Date(attendanceRecord.clockInTime).toTimeString().slice(0, 5)}
+              In: {formatMalaysiaTime(attendanceRecord.clockInTime)}
               {attendanceRecord.isLateClockIn && ' ⚠️'}
             </div>
           )}
@@ -206,7 +207,7 @@ function ShiftComplianceCell({ employee, shift, date }: { employee: any; shift: 
             <div className={`${
               attendanceRecord.isLateBreakOut ? 'text-red-200 font-bold' : 'text-yellow-200'
             }`}>
-              Break: {new Date(attendanceRecord.breakOutTime).toTimeString().slice(0, 5)}
+              Break: {formatMalaysiaTime(attendanceRecord.breakOutTime)}
               {attendanceRecord.isLateBreakOut && ' ⚠️'}
             </div>
           )}

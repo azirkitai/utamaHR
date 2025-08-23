@@ -24,6 +24,7 @@ import utamaMedgroupImage from "@assets/PANEL KLINIK UTAMA_1755445660449.png";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { formatMalaysiaTime } from "@/lib/timezone";
 
 interface DashboardData {
   message: string;
@@ -247,11 +248,7 @@ export default function DashboardHome() {
     
     const time = new Date(timeString);
     const hours = time.getHours();
-    const timeDisplay = time.toLocaleTimeString('en-MY', { 
-      hour: '2-digit', 
-      minute: '2-digit', 
-      hour12: false 
-    });
+    const timeDisplay = formatMalaysiaTime(time);
     
     // Color coding based on time
     let color = "text-gray-600";

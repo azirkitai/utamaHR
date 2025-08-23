@@ -7,6 +7,7 @@ import DashboardLayout from "@/components/dashboard-layout";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { formatMalaysiaTime } from "@/lib/timezone";
 import { QrCode, Clock, MapPin, Camera, Smartphone, RefreshCw, CheckCircle, AlertCircle, AlertTriangle } from "lucide-react";
 import QRCodeLib from "qrcode";
 
@@ -332,30 +333,14 @@ export default function QRClockInPage() {
                   <div className="space-y-2">
                     <p className="font-medium text-green-700">Today's Attendance Completed</p>
                     <div className="text-sm text-gray-600 space-y-1">
-                      <p>Clock-In: {attendanceStatus?.clockInTime ? (() => {
-                        const utcDate = new Date(attendanceStatus.clockInTime);
-                        if (isNaN(utcDate.getTime())) return 'Invalid Date';
-                        return utcDate.toLocaleTimeString('ms-MY', { timeZone: 'Asia/Kuala_Lumpur' });
-                      })() : '-'}</p>
+                      <p>Clock-In: {attendanceStatus?.clockInTime ? formatMalaysiaTime(attendanceStatus.clockInTime) : '-'}</p>
                       {attendanceStatus?.enforceBreakClockOut && (
                         <>
-                          <p>Break Time: {attendanceStatus?.breakOutTime ? (() => {
-                            const utcDate = new Date(attendanceStatus.breakOutTime);
-                            if (isNaN(utcDate.getTime())) return 'Invalid Date';
-                            return utcDate.toLocaleTimeString('ms-MY', { timeZone: 'Asia/Kuala_Lumpur' });
-                          })() : '-'}</p>
-                          <p>Break Off: {attendanceStatus?.breakInTime ? (() => {
-                            const utcDate = new Date(attendanceStatus.breakInTime);
-                            if (isNaN(utcDate.getTime())) return 'Invalid Date';
-                            return utcDate.toLocaleTimeString('ms-MY', { timeZone: 'Asia/Kuala_Lumpur' });
-                          })() : '-'}</p>
+                          <p>Break Time: {attendanceStatus?.breakOutTime ? formatMalaysiaTime(attendanceStatus.breakOutTime) : '-'}</p>
+                          <p>Break Off: {attendanceStatus?.breakInTime ? formatMalaysiaTime(attendanceStatus.breakInTime) : '-'}</p>
                         </>
                       )}
-                      <p>Clock-Out: {attendanceStatus?.clockOutTime ? (() => {
-                        const utcDate = new Date(attendanceStatus.clockOutTime);
-                        if (isNaN(utcDate.getTime())) return 'Invalid Date';
-                        return utcDate.toLocaleTimeString('ms-MY', { timeZone: 'Asia/Kuala_Lumpur' });
-                      })() : '-'}</p>
+                      <p>Clock-Out: {attendanceStatus?.clockOutTime ? formatMalaysiaTime(attendanceStatus.clockOutTime) : '-'}</p>
                     </div>
                     <p className="text-green-600 text-sm mt-3">
                       {attendanceStatus?.enforceBreakClockOut 
@@ -384,13 +369,13 @@ export default function QRClockInPage() {
                       <p className="text-blue-700 text-sm font-medium">Attendance Status</p>
                       <div className="text-blue-600 text-xs space-y-1">
                         {attendanceStatus?.clockInTime && (
-                          <p>✓ Clock-In: {new Date(attendanceStatus.clockInTime).toLocaleTimeString('ms-MY')}</p>
+                          <p>✓ Clock-In: {formatMalaysiaTime(attendanceStatus.clockInTime)}</p>
                         )}
                         {attendanceStatus?.breakOutTime && (
-                          <p>✓ Break Time: {new Date(attendanceStatus.breakOutTime).toLocaleTimeString('ms-MY')}</p>
+                          <p>✓ Break Time: {formatMalaysiaTime(attendanceStatus.breakOutTime)}</p>
                         )}
                         {attendanceStatus?.breakInTime && (
-                          <p>✓ Break Off: {new Date(attendanceStatus.breakInTime).toLocaleTimeString('ms-MY')}</p>
+                          <p>✓ Break Off: {formatMalaysiaTime(attendanceStatus.breakInTime)}</p>
                         )}
                         <p className="text-blue-700 font-medium">
                           Next: {

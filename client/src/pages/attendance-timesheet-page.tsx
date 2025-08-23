@@ -30,6 +30,7 @@ import {
   Filter,
   X
 } from "lucide-react";
+import { formatMalaysiaTime } from "@/lib/timezone";
 
 export default function AttendanceTimesheetPage() {
   const [activeTab, setActiveTab] = useState("today");
@@ -123,16 +124,8 @@ export default function AttendanceTimesheetPage() {
     return {
       id: record.id,
       employee: employee ? `${employee.firstName} ${employee.lastName}`.trim() : 'Unknown',
-      clockIn: record.clockInTime ? new Date(record.clockInTime).toLocaleTimeString('en-US', { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: true 
-      }) : '-',
-      clockOut: record.clockOutTime ? new Date(record.clockOutTime).toLocaleTimeString('en-US', { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: true 
-      }) : '-',
+      clockIn: record.clockInTime ? formatMalaysiaTime(record.clockInTime) : '-',
+      clockOut: record.clockOutTime ? formatMalaysiaTime(record.clockOutTime) : '-',
       date: new Date(record.date).toLocaleDateString(),
       status: record.clockInTime ? 'present' : 'absent',
       isLate: record.isLateClockIn || false,
@@ -188,16 +181,8 @@ export default function AttendanceTimesheetPage() {
         shiftName: shift?.name || 'Unknown Shift',
         shiftStartTime: shift?.startTime,
         shiftEndTime: shift?.endTime,
-        clockIn: attendance?.clockInTime ? new Date(attendance.clockInTime).toLocaleTimeString('en-US', { 
-          hour: '2-digit', 
-          minute: '2-digit',
-          hour12: true 
-        }) : '',
-        clockOut: attendance?.clockOutTime ? new Date(attendance.clockOutTime).toLocaleTimeString('en-US', { 
-          hour: '2-digit', 
-          minute: '2-digit',
-          hour12: true 
-        }) : '-',
+        clockIn: attendance?.clockInTime ? formatMalaysiaTime(attendance.clockInTime) : '',
+        clockOut: attendance?.clockOutTime ? formatMalaysiaTime(attendance.clockOutTime) : '-',
         isOff: sc.isOff || false,
         attendance: {
           ...attendance,
@@ -295,16 +280,8 @@ export default function AttendanceTimesheetPage() {
     return {
       id: record.id,
       employee: employee ? `${employee.firstName} ${employee.lastName}`.trim() : 'Unknown',
-      clockIn: record.clockInTime ? new Date(record.clockInTime).toLocaleTimeString('en-US', { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: true 
-      }) : '-',
-      clockOut: record.clockOutTime ? new Date(record.clockOutTime).toLocaleTimeString('en-US', { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: true 
-      }) : '-',
+      clockIn: record.clockInTime ? formatMalaysiaTime(record.clockInTime) : '-',
+      clockOut: record.clockOutTime ? formatMalaysiaTime(record.clockOutTime) : '-',
       date: new Date(record.date).toLocaleDateString(),
       status: record.clockInTime ? 'present' : 'absent'
     };
