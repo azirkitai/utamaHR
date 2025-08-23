@@ -1238,7 +1238,7 @@ export default function EmployeeDetailsPage() {
                     })()}
                   </div>
                   <div className="text-sm opacity-90 mt-2">Department</div>
-                  <div className="font-semibold">{employment?.department || "Human Resource"}</div>
+                  <div className="font-semibold">{employment?.department ? employment.department.toUpperCase() : "HUMAN RESOURCE"}</div>
                 </div>
               </div>
             </div>
