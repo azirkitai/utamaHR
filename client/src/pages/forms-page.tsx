@@ -29,45 +29,34 @@ export default function FormsPage() {
     queryKey: ["/api/forms"],
   });
 
-  const handleDownload = async (form: Form) => {
+  const handleDownload = (form: Form) => {
     try {
-      const token = localStorage.getItem("utamahr_token");
-      if (!token) {
-        toast({
-          title: "Error",
-          description: "Token not found. Sila log masuk semula.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const response = await fetch(`/api/forms/download/${form.id}`, {
-        headers: {
-          "Authorization": `Bearer ${token}`,
-        },
+      // Direct static file serving approach (like Payment Voucher)
+      // Use filePath directly from database
+      const downloadUrl = form.filePath;
+      
+      console.log("Direct download:", {
+        formId: form.id,
+        fileName: form.fileName,
+        filePath: form.filePath,
+        downloadUrl: downloadUrl
       });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = form.fileName;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      } else {
-        // Log detailed error information
-        const errorText = await response.text();
-        console.error("Download failed:", {
-          status: response.status,
-          statusText: response.statusText,
-          errorText: errorText,
-          formId: form.id
-        });
-        throw new Error("Failed to download form");
-      }
+      
+      // Create direct download link
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = form.fileName;
+      a.target = '_blank'; // Open in new tab if download fails
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      
+      toast({
+        title: "Success",
+        description: "Form download started.",
+        variant: "default",
+      });
+      
     } catch (error) {
       console.error("Download error:", error);
       toast({
