@@ -110,15 +110,16 @@ export default function ShiftCalendarPage() {
   // Get dates based on view mode
   const getDatesForView = (date: Date) => {
     if (viewMode === "week") {
-      const startOfWeek = new Date(date);
+      const startOfWeek = new Date(date.getFullYear(), date.getMonth(), date.getDate());
       const day = startOfWeek.getDay();
       const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
       startOfWeek.setDate(diff);
 
       const weekDates = [];
       for (let i = 0; i < 7; i++) {
-        const currentDate = new Date(startOfWeek);
-        currentDate.setDate(startOfWeek.getDate() + i);
+        // CRITICAL FIX: Create dates with fixed timezone (16:00 local time) to prevent timezone offset issues
+        const currentDate = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate() + i, 16, 0, 0);
+        console.log(`📅 Calendar date ${i}: ${currentDate.toISOString()} (day ${currentDate.getDate()})`);
         weekDates.push(currentDate);
       }
       return weekDates;
@@ -129,7 +130,8 @@ export default function ShiftCalendarPage() {
       
       const monthDates = [];
       for (let i = 1; i <= daysInMonth; i++) {
-        const currentDate = new Date(year, month, i);
+        // CRITICAL FIX: Create dates with fixed timezone (16:00 local time) to prevent timezone offset issues
+        const currentDate = new Date(year, month, i, 16, 0, 0);
         monthDates.push(currentDate);
       }
       return monthDates;
@@ -217,6 +219,10 @@ export default function ShiftCalendarPage() {
     // Normalize date to start of day for comparison
     const targetDate = new Date(date);
     targetDate.setHours(0, 0, 0, 0);
+    const dayString = targetDate.toISOString().split('T')[0];
+    
+    console.log(`🔍 Looking for shift for employee ${employeeId} on ${dayString}`);
+    console.log(`🔍 Available shifts for this employee:`, employeeShifts.filter((es: any) => es.employeeId === employeeId));
     
     // Find shift assignment for this employee on this specific date
     const specificShiftAssignment = (employeeShifts as any[]).find((assignment: any) => {
@@ -225,9 +231,19 @@ export default function ShiftCalendarPage() {
       
       const assignedDate = new Date(assignment.assignedDate);
       assignedDate.setHours(0, 0, 0, 0);
+      const assignedDateString = assignedDate.toISOString().split('T')[0];
       
-      return assignedDate.getTime() === targetDate.getTime();
+      const matches = assignedDate.getTime() === targetDate.getTime();
+      console.log(`🔍 Checking: ${assignedDateString} vs ${dayString} = ${matches}`);
+      
+      return matches;
     });
+    
+    if (specificShiftAssignment) {
+      console.log(`✅ Found shift assignment:`, specificShiftAssignment);
+    } else {
+      console.log(`❌ No shift assignment found for ${employeeId} on ${dayString}`);
+    }
     
     if (specificShiftAssignment) {
       // Find the actual shift details
@@ -649,8 +665,10 @@ export default function ShiftCalendarPage() {
                       });
                     });
                     
-                    // Execute all saves
-                    await Promise.all(savePromises);
+                    // Execute all saves with detailed logging
+                    console.log('📤 Executing', savePromises.length, 'save operations...');
+                    const saveResults = await Promise.all(savePromises);
+                    console.log('📥 Save results:', saveResults);
                     
                     // Clear manual states after successful save
                     setManualShiftStates({});
