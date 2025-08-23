@@ -1086,8 +1086,29 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteOfficeLocation(id: string): Promise<boolean> {
-    const result = await db.delete(officeLocations).where(eq(officeLocations.id, id));
-    return (result.rowCount ?? 0) > 0;
+    try {
+      // First, update any attendance records that reference this location to set location to null
+      await db
+        .update(attendanceRecords)
+        .set({
+          clockInOfficeLocationId: null,
+          clockOutOfficeLocationId: null,
+          updatedAt: new Date()
+        })
+        .where(
+          or(
+            eq(attendanceRecords.clockInOfficeLocationId, id),
+            eq(attendanceRecords.clockOutOfficeLocationId, id)
+          )
+        );
+
+      // Then delete the office location
+      const result = await db.delete(officeLocations).where(eq(officeLocations.id, id));
+      return (result.rowCount ?? 0) > 0;
+    } catch (error) {
+      console.error("Error in deleteOfficeLocation:", error);
+      throw error;
+    }
   }
 
   async getActiveOfficeLocations(): Promise<OfficeLocation[]> {
