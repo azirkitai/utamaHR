@@ -1164,6 +1164,29 @@ export default function SystemSettingPage() {
     }
   });
 
+  const deleteLocationMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest("DELETE", `/api/office-locations/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      refetchLocations();
+      toast({
+        title: "Success",
+        description: "Office location successfully deleted",
+        variant: "default",
+      });
+    },
+    onError: (error: Error) => {
+      console.error("Delete location error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete office location",
+        variant: "destructive",
+      });
+    }
+  });
+
   // Shift mutations
   const createShiftMutation = useMutation({
     mutationFn: async (shiftData: any) => {
@@ -1477,6 +1500,12 @@ export default function SystemSettingPage() {
       isActive: location.isActive
     });
     setShowEditLocationDialog(true);
+  };
+
+  const handleDeleteLocation = (location: any) => {
+    if (window.confirm(`Adakah anda pasti ingin memadamkan lokasi "${location.name}"? Tindakan ini tidak boleh dibatalkan.`)) {
+      deleteLocationMutation.mutate(location.id);
+    }
   };
 
   // Shift form state
@@ -5338,7 +5367,14 @@ export default function SystemSettingPage() {
                     >
                       Edit
                     </Button>
-                    <Button variant="outline" size="sm" className="text-red-600" data-testid={`button-delete-location-${location.id}`}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200" 
+                      onClick={() => handleDeleteLocation(location)}
+                      disabled={deleteLocationMutation.isPending}
+                      data-testid={`button-delete-location-${location.id}`}
+                    >
                       Delete
                     </Button>
                   </div>
