@@ -122,7 +122,12 @@ const employees: Employee[] = [
 // Shift Compliance Cell Component
 function ShiftComplianceCell({ employee, shift, date }: { employee: any; shift: any; date: Date }) {
   // Fetch attendance record for this employee on this date
-  const { data: attendanceRecord } = useQuery({
+  const { data: attendanceRecord } = useQuery<{
+    clockInTime?: string;
+    breakOutTime?: string;
+    isLateClockIn?: boolean;
+    isLateBreakOut?: boolean;
+  }>({
     queryKey: [`/api/attendance-records/${employee.id}/${date.toISOString().split('T')[0]}`],
     enabled: !!employee.id,
   });
@@ -333,20 +338,20 @@ function ShiftCalendarView() {
   };
 
   // Fetch data
-  const { data: employees = [] } = useQuery({
+  const { data: employees = [] } = useQuery<any[]>({
     queryKey: ['/api/employees'],
   });
 
-  const { data: departments = [] } = useQuery({
+  const { data: departments = [] } = useQuery<any[]>({
     queryKey: ['/api/departments'],
   });
 
-  const { data: shifts = [] } = useQuery({
+  const { data: shifts = [] } = useQuery<any[]>({
     queryKey: ['/api/shifts'],
     refetchInterval: 5000, // Refetch every 5 seconds for real-time sync
   });
 
-  const { data: employeeShifts = [] } = useQuery({
+  const { data: employeeShifts = [] } = useQuery<any[]>({
     queryKey: ['/api/employee-shifts'],
     refetchInterval: 5000, // Refetch every 5 seconds for real-time sync
   });
