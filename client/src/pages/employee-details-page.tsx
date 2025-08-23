@@ -2071,7 +2071,7 @@ export default function EmployeeDetailsPage() {
                             </Select>
                           ) : (
                             <div className="mt-1 p-2 bg-gray-50 rounded border">
-                              {employmentForm.department || "N/A"}
+                              {employmentForm.department ? employmentForm.department.toUpperCase() : "N/A"}
                             </div>
                           )}
                         </div>
