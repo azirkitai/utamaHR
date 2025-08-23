@@ -1472,9 +1472,9 @@ export type InsertClaimPolicy = z.infer<typeof insertClaimPolicySchema>;
 export type UpdateClaimPolicy = z.infer<typeof updateClaimPolicySchema>;
 
 // Disciplinary types
-export type Disciplinary = typeof disciplinary.$inferSelect;
-export type InsertDisciplinary = z.infer<typeof insertDisciplinarySchema>;
-export type UpdateDisciplinary = z.infer<typeof updateDisciplinarySchema>;
+export type Disciplinary = typeof disciplinaryRecords.$inferSelect;
+export type InsertDisciplinary = z.infer<typeof insertDisciplinaryRecordSchema>;
+export type UpdateDisciplinary = z.infer<typeof updateDisciplinaryRecordSchema>;
 
 // Company Settings types
 export type CompanySetting = typeof companySettings.$inferSelect;
@@ -1792,7 +1792,6 @@ export type UpdateSalaryCompanyContribution = z.infer<typeof updateSalaryCompany
 
 // Holiday types
 export type Holiday = typeof holidays.$inferSelect;
-export type InsertHoliday = z.infer<typeof insertHolidaySchema>;
 export type UpdateHoliday = z.infer<typeof updateHolidaySchema>;
 
 // Event types  
