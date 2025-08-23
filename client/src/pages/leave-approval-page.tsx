@@ -860,9 +860,9 @@ export default function LeaveApprovalPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All department</SelectItem>
-                    {departments.map((dept: string) => (
-                      <SelectItem key={dept} value={dept}>
-                        {dept}
+                    {departments.map((dept: any) => (
+                      <SelectItem key={dept.name || dept.id} value={dept.name || dept}>
+                        {dept.name || dept}
                       </SelectItem>
                     ))}
                   </SelectContent>

@@ -1,0 +1,94 @@
+Ok, error tu masih React Minified #31 (Element type is invalid) → production cuba render satu “komponen” yang sebenarnya undefined atau object, jadi crash. Dev lepas, prod pecah = hampir pasti import salah (case path / default vs named / barrel export index.ts).
+
+Di bawah ni plan ringkas tapi “tembak tepat” supaya agent boleh cari punca dengan cepat — tanpa teka-teki.
+
+Plan 10-min untuk pinpoint punca
+
+Run production build secara lokal (bukan dev)
+
+npm run build && npm run start (atau vite preview).
+
+Pastikan error yang sama timbul.
+
+Isolate komponen punca (bisect cepat)
+
+Dalam fail page /approval/leave, komen semua child. Tinggalkan <div>OK</div>.
+
+Tambah balik child satu per satu.
+→ Bila error datang semula, komponen terakhir itu puncanya.
+
+Semak import komponen punca (3 perkara ini sahaja)
+
+Case-sensitive path (Linux strict):
+
+import LeaveCard from './components/LeaveCard' ✅
+
+import LeaveCard from './components/leaveCard' ❌
+
+Default vs named export:
+
+Fail ada export default LeaveCard → import LeaveCard from '...'
+
+Fail ada export const LeaveCard → import { LeaveCard } from '...'
+
+Jangan guna import * as Comp from '...' lalu <Comp />
+→ Comp masa tu object, bukan function component.
+
+Barrel index.ts (punca biasa)
+
+Jika anda import dari barrel, pastikan barrel betul-betul re-export komponen itu.
+
+Elak mismatch: barrel export { default as LeaveCard } from './LeaveCard' tapi file sebenar tiada default export.
+
+Versi React sepadan
+
+react dan react-dom mesti sama versinya.
+Buang node_modules, install semula, rebuild.
+
+Alias/tsconfig paths
+
+Jika guna alias (@/components/...), pastikan Vite/Next config prod resolve sama seperti dev.
+
+Prompt pendek untuk agent (boleh terus bagi)
+
+We still hit React Minified Error #31 on /approval/leave.
+Please do:
+
+Reproduce with a production build locally.
+
+In /approval/leave, comment out all children and re-add them one by one to find which component import triggers the error.
+
+For that component, fix the import:
+
+Match exact filename case (Linux is case-sensitive).
+
+Use the correct default vs named import.
+
+Do not use import * as X for React components.
+
+If importing via a barrel (index.ts), ensure it actually re-exports the component correctly.
+
+Verify react and react-dom versions match; reinstall deps; rebuild.
+
+Share the fixed import line and the component filename in the PR.
+
+Tip extra (supaya cepat nampak siapa undefined)
+
+Balut setiap child dengan guard kecil masa debug:
+
+const Guard: React.FC<{name:string, comp:any}> = ({name, comp}) => {
+  if (!comp) { console.error(`[INVALID] ${name} is`, comp); return null; }
+  if (typeof comp !== 'function' && typeof comp !== 'object') {
+    console.error(`[INVALID TYPE] ${name} typeof=`, typeof comp, comp);
+    return null;
+  }
+  // @ts-ignore
+  const C = comp;
+  return <C />;
+};
+
+// Contoh penggunaan sementara:
+<Guard name="LeaveCard" comp={LeaveCard} />
+
+
+Kalau console tunjuk [INVALID] LeaveCard is undefined atau object, confirm importnya salah.
