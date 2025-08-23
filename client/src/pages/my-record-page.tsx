@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -101,20 +102,15 @@ export default function MyRecordPage() {
     }
   };
 
+  // State untuk admin view mode (break tracking atau tidak)
+  const [attendanceViewMode, setAttendanceViewMode] = useState<'with-breaks' | 'without-breaks'>('without-breaks');
+  
   // Check if ANY employee has break tracking enabled (for table header logic)
   const anyEmployeeHasBreakTracking = hasAdminAccess 
-    ? allEmployeesAttendanceSettings.some((s: any) => s.enforceBreakClockOut)
-    : (userAttendanceSettings?.enforceBreakClockOut ?? false);
+    ? (attendanceViewMode === 'with-breaks') // Admin bisa pilih view mode
+    : (userAttendanceSettings?.enforceBreakClockOut ?? false); // Regular user ikut setting mereka
   
-  console.log('🔧 BREAK TRACKING DEBUG:', {
-    hasAdminAccess,
-    allEmployeesAttendanceSettingsLength: allEmployeesAttendanceSettings.length,
-    anyEmployeeHasBreakTracking,
-    allSettingsBreakStatus: allEmployeesAttendanceSettings.map((s: any) => ({
-      employeeId: s.employeeId,
-      enforceBreakClockOut: s.enforceBreakClockOut
-    }))
-  });
+
 
   // Fetch financial claim policies for dropdown options
   const { data: financialClaimPolicies = [] } = useQuery({
@@ -1010,43 +1006,81 @@ export default function MyRecordPage() {
   // Attendance filter section
   const renderAttendanceFilterSection = () => {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-        {renderDatePeriodFilter('attendance')}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Search</label>
-          <Input
-            placeholder="Search employee name..."
-            value={filters.searchTerm}
-            onChange={(e) => handleFilterChange('searchTerm', e.target.value)}
-            data-testid="input-attendance-search"
-          />
-        </div>
-        <div className="flex gap-2">
-          <Button 
-            className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700" 
-            onClick={() => {
-              console.log('🔍 ATTENDANCE SEARCH FILTERS APPLIED:', {
-                dateFrom: filters.dateFrom,
-                dateTo: filters.dateTo,
-                searchTerm: filters.searchTerm,
-                totalResults: searchFilteredAttendanceRecords.length,
-                originalTotal: attendanceRecords.length
-              });
-              // Force refetch attendance data
-              refetchAttendance();
-            }}
-            data-testid="button-attendance-search"
-          >
-            <Search className="h-4 w-4 mr-2" />
-            Search
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={handleAttendanceRecordPDFDownload}
-            data-testid="button-attendance-download"
-          >
-            <Download className="h-4 w-4" />
-          </Button>
+      <div className="space-y-4">
+        {/* Admin View Mode Toggle - Only for admin users */}
+        {hasAdminAccess && (
+          <div className="bg-gray-50 p-4 rounded-lg border">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-gray-700">
+                  Attendance View Mode
+                </label>
+                <p className="text-xs text-gray-500">
+                  {attendanceViewMode === 'with-breaks' 
+                    ? 'Showing table with break columns for comprehensive tracking' 
+                    : 'Showing simplified table without break columns'}
+                </p>
+              </div>
+              <div className="flex items-center space-x-3">
+                <span className={`text-sm ${attendanceViewMode === 'without-breaks' ? 'font-medium text-blue-600' : 'text-gray-500'}`}>
+                  Without Breaks
+                </span>
+                <Switch
+                  checked={attendanceViewMode === 'with-breaks'}
+                  onCheckedChange={(checked) => {
+                    setAttendanceViewMode(checked ? 'with-breaks' : 'without-breaks');
+                    console.log('🔄 Admin view mode changed to:', checked ? 'with-breaks' : 'without-breaks');
+                  }}
+                  data-testid="switch-attendance-view-mode"
+                />
+                <span className={`text-sm ${attendanceViewMode === 'with-breaks' ? 'font-medium text-blue-600' : 'text-gray-500'}`}>
+                  With Breaks
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Regular Filter Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+          {renderDatePeriodFilter('attendance')}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Search</label>
+            <Input
+              placeholder="Search employee name..."
+              value={filters.searchTerm}
+              onChange={(e) => handleFilterChange('searchTerm', e.target.value)}
+              data-testid="input-attendance-search"
+            />
+          </div>
+          <div className="flex gap-2">
+            <Button 
+              className="bg-gradient-to-r from-slate-900 via-blue-900 to-cyan-800 hover:from-slate-800 hover:via-blue-800 hover:to-cyan-700" 
+              onClick={() => {
+                console.log('🔍 ATTENDANCE SEARCH FILTERS APPLIED:', {
+                  dateFrom: filters.dateFrom,
+                  dateTo: filters.dateTo,
+                  searchTerm: filters.searchTerm,
+                  attendanceViewMode,
+                  totalResults: searchFilteredAttendanceRecords.length,
+                  originalTotal: attendanceRecords.length
+                });
+                // Force refetch attendance data
+                refetchAttendance();
+              }}
+              data-testid="button-attendance-search"
+            >
+              <Search className="h-4 w-4 mr-2" />
+              Search
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={handleAttendanceRecordPDFDownload}
+              data-testid="button-attendance-download"
+            >
+              <Download className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
     );
