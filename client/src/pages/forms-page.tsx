@@ -58,13 +58,21 @@ export default function FormsPage() {
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
       } else {
-        throw new Error("Gagal memuat turun bpeople");
+        // Log detailed error information
+        const errorText = await response.text();
+        console.error("Download failed:", {
+          status: response.status,
+          statusText: response.statusText,
+          errorText: errorText,
+          formId: form.id
+        });
+        throw new Error("Failed to download form");
       }
     } catch (error) {
       console.error("Download error:", error);
       toast({
-        title: "Ralat",
-        description: "Gagal memuat turun bpeople. Sila cuba lagi.",
+        title: "Error",
+        description: "Failed to download form. Please try again.",
         variant: "destructive",
       });
     }
