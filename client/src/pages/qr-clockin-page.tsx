@@ -105,8 +105,8 @@ export default function QRClockInPage() {
       } catch (error) {
         console.error("QR code generation error:", error);
         toast({
-          title: "Ralat QR Code",
-          description: "Gagal menjana QR Code visual",
+          title: "QR Code Error",
+          description: "Failed to generate QR code visual",
           variant: "destructive",
         });
       }
@@ -428,7 +428,7 @@ export default function QRClockInPage() {
                     {generateQrMutation.isPending ? (
                       <>
                         <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                        Menjana QR Code...
+                        Generating QR Code...
                       </>
                     ) : (
                       <>

@@ -3482,8 +3482,8 @@ export function registerRoutes(app: Express): Server {
       const todayAttendance = await storage.getTodayAttendanceRecord(employee.id, today);
       
       // Check if break clock-out enforcement is enabled for this employee
-      // For now, we'll assume it's enabled by default - this should come from employee settings
-      const enforceBreakClockOut = true; // TODO: Get from employee settings
+      const attendanceSettings = await storage.getEmployeeAttendanceSettings(employee.id);
+      const enforceBreakClockOut = attendanceSettings.enforceBreakClockOut;
       
       // Determine attendance status and next action
       let nextAction = 'clock-in';
@@ -3526,7 +3526,7 @@ export function registerRoutes(app: Express): Server {
       });
     } catch (error) {
       console.error("Today attendance status error:", error);
-      res.status(500).json({ error: "Failed to mendapatkan status kehadiran hari ini" });
+      res.status(500).json({ error: "Failed to get today's attendance status" });
     }
   });
 
