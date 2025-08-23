@@ -1108,12 +1108,12 @@ export class DatabaseStorage implements IStorage {
 
       // Second, update any clock-in records that reference this location to set location to null
       await db
-        .update(clockInRecords)
+        .update(clockInOut)
         .set({
           officeLocationId: null,
           updatedAt: new Date()
         })
-        .where(eq(clockInRecords.officeLocationId, id));
+        .where(eq(clockInOut.officeLocationId, id));
 
       // Then delete the office location
       const result = await db.delete(officeLocations).where(eq(officeLocations.id, id));
