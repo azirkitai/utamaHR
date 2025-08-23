@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { ObjectUploader } from "@/components/ObjectUploader";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import DashboardLayout from "@/components/dashboard-layout";
+import { DashboardLayout } from "@/components/dashboard-layout";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { 
