@@ -25,7 +25,7 @@ import {
   X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { DashboardLayout } from "@/components/dashboard-layout";
+import DashboardLayout from "@/components/dashboard-layout";
 import type { Employee, Employment, Contact } from "@shared/schema";
 
 // Extended employee type with related data

@@ -32,7 +32,7 @@ import {
   Download
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { DashboardLayout } from "@/components/dashboard-layout";
+import DashboardLayout from "@/components/dashboard-layout";
 import {
   AlertDialog,
   AlertDialogAction,
