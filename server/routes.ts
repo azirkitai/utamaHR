@@ -2944,15 +2944,31 @@ export function registerRoutes(app: Express): Server {
         return res.status(403).json({ error: "Not authorized to update employment information" });
       }
       
+      console.log("=== SERVER EMPLOYMENT UPDATE DEBUG ===");
+      console.log("Request body:", JSON.stringify(req.body, null, 2));
+      console.log("Request params:", req.params);
+      console.log("Existing employment:", JSON.stringify(existingEmployment, null, 2));
+      
       const validatedData = updateEmploymentSchema.parse(req.body);
+      console.log("Validated data:", JSON.stringify(validatedData, null, 2));
+      
       const employment = await storage.updateEmployment(req.params.id, validatedData);
       if (!employment) {
         return res.status(404).json({ error: "Employment information not found after update" });
       }
+      console.log("Updated employment:", JSON.stringify(employment, null, 2));
+      console.log("=== END SERVER DEBUG ===");
       res.json(employment);
     } catch (error) {
       console.error("Update employment error:", error);
-      res.status(400).json({ error: "Failed to update employment information" });
+      if (error instanceof Error) {
+        console.error("Error message:", error.message);
+        console.error("Error stack:", error.stack);
+      }
+      res.status(400).json({ 
+        error: "Failed to update employment information", 
+        details: error instanceof Error ? error.message : String(error)
+      });
     }
   });
 
