@@ -19,6 +19,7 @@ import {
 
 export default function ShiftCalendarPage() {
   const [currentWeek, setCurrentWeek] = useState(new Date());
+  // FORCE WEEK MODE ONLY - NO MONTH MODE ALLOWED
   const [viewMode, setViewMode] = useState<"week" | "month">("week");
   const [expandedDepartments, setExpandedDepartments] = useState<string[]>([]);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -61,15 +62,15 @@ export default function ShiftCalendarPage() {
       await queryClient.refetchQueries({ queryKey: ['/api/employee-shifts'] });
       await queryClient.refetchQueries({ queryKey: ['/api/employees'] });
       toast({
-        title: "Berjaya",
-        description: "Shift telah dikemaskini",
+        title: "Success",
+        description: "Shift has been updated",
       });
     },
     onError: (error: any) => {
       console.error('Shift assignment error:', error);
       toast({
-        title: "Ralat",
-        description: error?.message || "Gagal mengubah shift",
+        title: "Error",
+        description: error?.message || "Failed to update shift",
         variant: "destructive",
       });
     }
@@ -80,7 +81,7 @@ export default function ShiftCalendarPage() {
     const deptMap = new Map();
     
     (employees as any[]).forEach((employee: any) => {
-      const deptName = employee.employment?.department || 'Lain-lain';
+      const deptName = employee.employment?.department || 'Others';
       const deptId = deptName.toLowerCase().replace(/\s+/g, '-');
       
       if (!deptMap.has(deptId)) {
@@ -107,48 +108,29 @@ export default function ShiftCalendarPage() {
     }
   }, [departments]);
 
-  // Get dates based on view mode
+  // FORCE WEEK ONLY - NO MONTH MODE TO PREVENT INDEX CONFUSION
   const getDatesForView = (date: Date) => {
-    if (viewMode === "week") {
-      const startOfWeek = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-      const day = startOfWeek.getDay();
-      const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
-      startOfWeek.setDate(diff);
+    // ALWAYS USE WEEK MODE - IGNORE viewMode STATE
+    console.log(`🔥 FORCING WEEK MODE - Generating 7 days only`);
+    
+    const startOfWeek = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const day = startOfWeek.getDay();
+    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+    startOfWeek.setDate(diff);
 
-      const weekDates = [];
-      for (let i = 0; i < 7; i++) {
-        // CRITICAL FIX: Create dates with fixed timezone (08:00 local time) for consistent calendar mapping
-        const currentDate = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate() + i, 8, 0, 0);
-        console.log(`📅 Calendar date ${i}: ${currentDate.toISOString()} (day ${currentDate.getDate()}) - Calendar Index: ${i}`);
-        weekDates.push(currentDate);
-      }
-      return weekDates;
-    } else if (viewMode === "month") {
-      const year = date.getFullYear();
-      const month = date.getMonth();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      
-      const monthDates = [];
-      for (let i = 1; i <= daysInMonth; i++) {
-        // CRITICAL FIX: Create dates with fixed timezone (08:00 local time) for consistent calendar mapping
-        const currentDate = new Date(year, month, i, 8, 0, 0);
-        monthDates.push(currentDate);
-      }
-      return monthDates;
+    const weekDates = [];
+    for (let i = 0; i < 7; i++) {
+      const currentDate = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate() + i, 8, 0, 0);
+      console.log(`✅ WEEK DATE ${i}: ${currentDate.toISOString()} (day ${currentDate.getDate()}) - CORRECT INDEX: ${i}`);
+      weekDates.push(currentDate);
     }
-    return [];
+    return weekDates;
   };
 
   const viewDates = getDatesForView(currentWeek);
   
-  // CRITICAL FIX: Force debug to verify view mode consistency  
-  console.log(`🚨 CRITICAL DEBUG - View Mode: ${viewMode}, ViewDates count: ${viewDates.length}`);
-  if (viewDates.length !== 7 && viewMode === "week") {
-    console.error(`🔥 ERROR: Week mode should have 7 dates but got ${viewDates.length}`);
-  }
-  if (viewDates.length === 31 && viewMode === "week") {
-    console.error(`🔥 MAJOR ERROR: Week mode is showing month data (31 days)!`);
-  }
+  // Week mode verification - ensure 7 days only
+  console.log(`📅 View Mode: ${viewMode}, Generated dates: ${viewDates.length}`);
 
   const formatDateRange = () => {
     if (viewMode === "week") {
@@ -204,8 +186,8 @@ export default function ShiftCalendarPage() {
     // Prevent navigation if user has unsaved changes in edit mode
     if (editMode && Object.keys(manualShiftStates).length > 0) {
       toast({
-        title: "Simpan Perubahan Dahulu",
-        description: "Sila simpan perubahan shift sebelum navigasi ke minggu/bulan lain",
+        title: "Save Changes First",
+        description: "Please save shift changes before navigation",
         variant: "destructive",
       });
       return;
@@ -486,8 +468,8 @@ export default function ShiftCalendarPage() {
                     // Prevent date change if user has unsaved changes in edit mode
                     if (editMode && Object.keys(manualShiftStates).length > 0) {
                       toast({
-                        title: "Simpan Perubahan Dahulu",
-                        description: "Sila simpan perubahan shift sebelum tukar tarikh",
+                        title: "Save Changes First",
+                        description: "Please save shift changes before changing date",
                         variant: "destructive",
                       });
                       setShowDatePicker(false);
@@ -510,8 +492,8 @@ export default function ShiftCalendarPage() {
                 // Prevent view mode change if user has unsaved changes in edit mode
                 if (editMode && Object.keys(manualShiftStates).length > 0) {
                   toast({
-                    title: "Simpan Perubahan Dahulu",
-                    description: "Sila simpan perubahan shift sebelum tukar ke week view",
+                    title: "Save Changes First",
+                    description: "Please save shift changes before switching to week view",
                     variant: "destructive",
                   });
                   return;
@@ -530,8 +512,8 @@ export default function ShiftCalendarPage() {
                 // Prevent view mode change if user has unsaved changes in edit mode
                 if (editMode && Object.keys(manualShiftStates).length > 0) {
                   toast({
-                    title: "Simpan Perubahan Dahulu",
-                    description: "Sila simpan perubahan shift sebelum tukar ke month view",
+                    title: "Save Changes First", 
+                    description: "Please save shift changes before switching to month view",
                     variant: "destructive",
                   });
                   return;
@@ -711,8 +693,8 @@ export default function ShiftCalendarPage() {
                     console.log('Force render triggered, new key:', forceRenderKey + 1);
                     
                     toast({
-                      title: "Berjaya",
-                      description: `${savePromises.length} perubahan shift telah disimpan ke database`,
+                      title: "Success",
+                      description: `${savePromises.length} shift changes have been saved to database`,
                     });
                     
                     // Exit edit mode after 2 seconds to allow user to see the changes
@@ -722,8 +704,8 @@ export default function ShiftCalendarPage() {
                   } catch (error: any) {
                     console.error('Bulk save error:', error);
                     toast({
-                      title: "Ralat",
-                      description: error?.message || "Gagal menyimpan perubahan",
+                      title: "Error",
+                      description: error?.message || "Failed to save changes",
                       variant: "destructive",
                     });
                   }
