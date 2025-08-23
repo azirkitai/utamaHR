@@ -405,7 +405,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             {/* Center - Company name (mobile-first) */}
             <div className="flex-1 flex flex-col items-center md:items-start md:flex-row md:space-x-4">
               <div className="text-sm md:text-lg font-semibold text-gray-700 text-center md:text-left">
-                {companySettings?.companyName || 'UTAMA MEDGROUP'}
+                {(companySettings as any)?.companyName || 'UTAMA MEDGROUP'}
               </div>
               
               {/* Date and Time - Stacked on mobile, inline on desktop */}
