@@ -436,11 +436,6 @@ export default function EmployeeDetailsPage() {
   // Update/Create employment mutation
   const updateEmploymentMutation = useMutation({
     mutationFn: async (data: any) => {
-      console.log("=== CLIENT EMPLOYMENT UPDATE DEBUG ===");
-      console.log("Employment data to be saved:", data);
-      console.log("Employment record exists:", !!employment?.id);
-      console.log("Employment ID:", employment?.id);
-      
       // Check if employment record exists
       const method = employment?.id ? "PUT" : "POST";
       const url = employment?.id ? `/api/employment/${employment.id}` : "/api/employment";
@@ -451,12 +446,6 @@ export default function EmployeeDetailsPage() {
         employeeId: id,
         company: companySettings?.companyName || data.company
       };
-      
-      console.log("API request details:");
-      console.log("- Method:", method);
-      console.log("- URL:", url);
-      console.log("- Updated data:", updatedData);
-      console.log("=== END CLIENT DEBUG ===");
       
       const response = await apiRequest(method, url, updatedData);
       return response.json();
@@ -471,12 +460,7 @@ export default function EmployeeDetailsPage() {
       setIsEditingYearly(false);
       queryClient.invalidateQueries({ queryKey: ["/api/employment", id] });
     },
-    onError: (error: any) => {
-      console.log("=== CLIENT EMPLOYMENT ERROR DEBUG ===");
-      console.log("Error object:", error);
-      console.log("Error message:", error?.message);
-      console.log("=== END CLIENT ERROR DEBUG ===");
-      
+    onError: () => {
       toast({
         title: "Error",
         description: "Failed to update employment information",
@@ -1254,7 +1238,7 @@ export default function EmployeeDetailsPage() {
                     })()}
                   </div>
                   <div className="text-sm opacity-90 mt-2">Department</div>
-                  <div className="font-semibold">{employment?.department ? employment.department.toUpperCase() : "HUMAN RESOURCE"}</div>
+                  <div className="font-semibold">{employment?.department || "Human Resource"}</div>
                 </div>
               </div>
             </div>
@@ -2087,7 +2071,7 @@ export default function EmployeeDetailsPage() {
                             </Select>
                           ) : (
                             <div className="mt-1 p-2 bg-gray-50 rounded border">
-                              {employmentForm.department ? employmentForm.department.toUpperCase() : "N/A"}
+                              {employmentForm.department || "N/A"}
                             </div>
                           )}
                         </div>

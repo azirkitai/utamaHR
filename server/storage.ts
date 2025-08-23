@@ -1311,14 +1311,14 @@ export class DatabaseStorage implements IStorage {
   // =================== CLOCK-IN METHODS ===================
   async createClockInRecord(insertClockIn: InsertClockIn): Promise<ClockInRecord> {
     const [record] = await db
-      .insert(clockInOut)
+      .insert(clockInRecords)
       .values(insertClockIn)
       .returning();
     return record;
   }
 
   async getUserClockInRecords(userId: string): Promise<ClockInRecord[]> {
-    return await db.select().from(clockInOut).where(eq(clockInOut.userId, userId));
+    return await db.select().from(clockInRecords).where(eq(clockInRecords.userId, userId));
   }
 
   // =================== PASSWORD MANAGEMENT METHODS ===================
@@ -2361,10 +2361,10 @@ export class DatabaseStorage implements IStorage {
       
       // Count clock-ins for today
       const [clockInResult] = await db.select({
-        count: count(clockInOut.id)
+        count: count(clockInRecords.id)
       })
-      .from(clockInOut)
-      .where(sql`DATE(${clockInOut.clockInTime}) = ${today}`);
+      .from(clockInRecords)
+      .where(sql`DATE(${clockInRecords.clockInTime}) = ${today}`);
 
       // Count employees currently on leave (approved leave applications for today)
       const [onLeaveResult] = await db.select({
