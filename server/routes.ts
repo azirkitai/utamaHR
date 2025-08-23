@@ -2894,13 +2894,13 @@ export function registerRoutes(app: Express): Server {
       } else {
         // Regular employees can only access their own employment record
         if (!employment || employment.employeeId !== req.params.employeeId) {
-          return res.status(403).json({ error: "Tidak dibenarkan mengakses data peworkan lain" });
+          return res.status(403).json({ error: "Not authorized to access other employment data" });
         }
         res.json(employment);
       }
     } catch (error) {
       console.error("Get employment error:", error);
-      res.status(500).json({ error: "Failed to get employee informationan" });
+      res.status(500).json({ error: "Failed to get employment information" });
     }
   });
 
@@ -2911,7 +2911,7 @@ export function registerRoutes(app: Express): Server {
       // Only admin roles can create employment records
       const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
       if (!adminRoles.includes(currentUser.role)) {
-        return res.status(403).json({ error: "Tidak dibenarkan untuk menambah maklumat peworkan" });
+        return res.status(403).json({ error: "Not authorized to add employment information" });
       }
       
       const validatedData = insertEmploymentSchema.parse(req.body);
@@ -2919,7 +2919,7 @@ export function registerRoutes(app: Express): Server {
       res.status(201).json(employment);
     } catch (error) {
       console.error("Create employment error:", error);
-      res.status(400).json({ error: "Failed to menambah maklumat peworkan" });
+      res.status(400).json({ error: "Failed to add employment information" });
     }
   });
 
@@ -2930,29 +2930,33 @@ export function registerRoutes(app: Express): Server {
       // Get the employment record to check if user can edit
       const existingEmployment = await storage.getEmploymentById(req.params.id);
       if (!existingEmployment) {
-        return res.status(404).json({ error: "Maklumat peworkan not found" });
+        return res.status(404).json({ error: "Employment information not found" });
       }
       
       // Allow admin roles to update any employment record
       const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
       const isAdmin = adminRoles.includes(currentUser.role);
       
-      // Allow employees to update their own employment record
-      const isOwnRecord = existingEmployment.employeeId === currentUser.employeeId;
+      // For non-admin users, check if they can update their own employment record
+      let isOwnRecord = false;
+      if (!isAdmin) {
+        const currentEmployee = await storage.getEmployeeByUserId(currentUser.id);
+        isOwnRecord = currentEmployee && existingEmployment.employeeId === currentEmployee.id;
+      }
       
       if (!isAdmin && !isOwnRecord) {
-        return res.status(403).json({ error: "Tidak dibenarkan untuk mengemaskini maklumat peworkan" });
+        return res.status(403).json({ error: "Not authorized to update employment information" });
       }
       
       const validatedData = updateEmploymentSchema.parse(req.body);
       const employment = await storage.updateEmployment(req.params.id, validatedData);
       if (!employment) {
-        return res.status(404).json({ error: "Maklumat peworkan not found" });
+        return res.status(404).json({ error: "Employment information not found" });
       }
       res.json(employment);
     } catch (error) {
       console.error("Update employment error:", error);
-      res.status(400).json({ error: "Failed to mengemaskini maklumat peworkan" });
+      res.status(500).json({ error: "Failed to update employment information" });
     }
   });
 
