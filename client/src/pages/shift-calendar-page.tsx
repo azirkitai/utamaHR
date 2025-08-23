@@ -109,26 +109,48 @@ export default function ShiftCalendarPage() {
     }
   }, [departments]);
 
-  // FORCE WEEK MODE ONLY - PERMANENT SOLUTION
-  const getDatesForView = React.useCallback((date: Date) => {
-    console.log(`🚀 GENERATING WEEK DATES - START`);
+  // Generate dates based on view mode (week vs month)
+  const getDatesForView = React.useCallback((date: Date, mode: string) => {
+    console.log(`🚀 GENERATING DATES - Mode: ${mode}`);
     
-    const startOfWeek = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const day = startOfWeek.getDay();
-    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
-    startOfWeek.setDate(diff);
+    if (mode === "week") {
+      const startOfWeek = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const day = startOfWeek.getDay();
+      const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
+      startOfWeek.setDate(diff);
 
-    const weekDates = [];
-    for (let i = 0; i < 7; i++) {
-      const currentDate = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate() + i, 8, 0, 0);
-      console.log(`📅 WEEK ${i}: ${currentDate.toISOString()} (${currentDate.getDate()})`);
-      weekDates.push(currentDate);
+      const weekDates = [];
+      for (let i = 0; i < 7; i++) {
+        const currentDate = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate() + i, 8, 0, 0);
+        console.log(`📅 WEEK ${i}: ${currentDate.toISOString()} (${currentDate.getDate()})`);
+        weekDates.push(currentDate);
+      }
+      console.log(`🚀 TOTAL WEEK DATES GENERATED: ${weekDates.length}`);
+      return weekDates;
+    } else if (mode === "month") {
+      // Month view: Generate full month dates (start from first day of month to last day)
+      const year = date.getFullYear();
+      const month = date.getMonth();
+      
+      // First day of the month
+      const firstDay = new Date(year, month, 1, 8, 0, 0);
+      // Last day of the month
+      const lastDay = new Date(year, month + 1, 0, 8, 0, 0);
+      
+      const monthDates = [];
+      for (let day = 1; day <= lastDay.getDate(); day++) {
+        const currentDate = new Date(year, month, day, 8, 0, 0);
+        console.log(`📅 MONTH ${day}: ${currentDate.toISOString()} (${currentDate.getDate()})`);
+        monthDates.push(currentDate);
+      }
+      console.log(`🚀 TOTAL MONTH DATES GENERATED: ${monthDates.length}`);
+      return monthDates;
     }
-    console.log(`🚀 TOTAL WEEK DATES GENERATED: ${weekDates.length}`);
-    return weekDates;
+    
+    return [];
   }, []);
 
-  const viewDates = React.useMemo(() => getDatesForView(currentWeek), [currentWeek, getDatesForView]);
+  const viewDates = React.useMemo(() => getDatesForView(currentWeek, viewMode), [currentWeek, viewMode, getDatesForView]);
   
   // CRITICAL: Force verification
   console.log(`🎯 FINAL CHECK - Mode: ${viewMode}, Dates: ${viewDates.length}`);
@@ -192,6 +214,24 @@ export default function ShiftCalendarPage() {
         variant: "destructive",
       });
       return;
+    }
+    
+    if (viewMode === "week") {
+      const newDate = new Date(currentWeek);
+      if (direction === 'prev') {
+        newDate.setDate(newDate.getDate() - 7);
+      } else {
+        newDate.setDate(newDate.getDate() + 7);
+      }
+      setCurrentWeek(newDate);
+    } else if (viewMode === "month") {
+      const newDate = new Date(currentWeek);
+      if (direction === 'prev') {
+        newDate.setMonth(newDate.getMonth() - 1);
+      } else {
+        newDate.setMonth(newDate.getMonth() + 1);
+      }
+      setCurrentWeek(newDate);
     }
 
     const newDate = new Date(currentWeek);
@@ -543,9 +583,11 @@ export default function ShiftCalendarPage() {
                     Employee
                   </th>
                   {getDayHeaders().map((day, index) => (
-                    <th key={index} className="text-center p-4 font-medium text-gray-900 min-w-32">
+                    <th key={index} className={`text-center p-2 font-medium text-gray-900 ${viewMode === 'month' ? 'min-w-20' : 'min-w-32'}`}>
                       <div className="flex flex-col items-center">
-                        <span className="text-sm">{day.dayNumber} {day.dayName}</span>
+                        <span className={`${viewMode === 'month' ? 'text-xs' : 'text-sm'}`}>
+                          {day.dayNumber} {viewMode === 'week' ? day.dayName : ''}
+                        </span>
                       </div>
                     </th>
                   ))}
@@ -556,13 +598,13 @@ export default function ShiftCalendarPage() {
               <tbody>
                 {isLoading ? (
                   <tr>
-                    <td colSpan={8} className="p-8 text-center text-gray-500">
+                    <td colSpan={viewDates.length + 1} className="p-8 text-center text-gray-500">
                       Loading employees...
                     </td>
                   </tr>
                 ) : departments.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="p-8 text-center text-gray-500">
+                    <td colSpan={viewDates.length + 1} className="p-8 text-center text-gray-500">
                       No employees found
                     </td>
                   </tr>
@@ -570,7 +612,7 @@ export default function ShiftCalendarPage() {
                   <React.Fragment key={department.id}>
                     {/* Department Header Row */}
                     <tr className="bg-gray-100 border-b">
-                      <td colSpan={8} className="p-3">
+                      <td colSpan={viewDates.length + 1} className="p-3">
                         <Button
                           variant="ghost"
                           size="sm"
