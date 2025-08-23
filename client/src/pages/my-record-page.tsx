@@ -52,8 +52,27 @@ export default function MyRecordPage() {
   // Check if user has admin access to view other employees' data
   const hasAdminAccess = (user as any)?.role && ['Super Admin', 'Admin', 'HR Manager', 'PIC'].includes((user as any).role);
 
-  // Fetch attendance settings to check break clock out enforcement
-  const { data: attendanceSettings } = useQuery({
+  // Fetch all employees' attendance settings for admin users
+  const { data: allEmployeesAttendanceSettings = [] } = useQuery({
+    queryKey: ['/api/employees/attendance-settings/all'],
+    queryFn: async () => {
+      const token = localStorage.getItem('utamahr_token');
+      const response = await fetch('/api/employees/attendance-settings/all', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch all attendance settings');
+      }
+      return response.json();
+    },
+    enabled: hasAdminAccess
+  });
+
+  // Fetch current user's attendance settings for non-admin users
+  const { data: userAttendanceSettings } = useQuery({
     queryKey: ['/api/employee-attendance-settings', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
@@ -69,11 +88,23 @@ export default function MyRecordPage() {
       }
       return response.json();
     },
-    enabled: !!user?.id
+    enabled: !!user?.id && !hasAdminAccess
   });
 
-  // Check if break tracking is enabled for this user
-  const isBreakTrackingEnabled = attendanceSettings?.enforceBreakClockOut ?? false;
+  // Function to check if break tracking is enabled for a specific employee
+  const isBreakTrackingEnabledForEmployee = (employeeId: string) => {
+    if (hasAdminAccess) {
+      const settings = allEmployeesAttendanceSettings.find((s: any) => s.employeeId === employeeId);
+      return settings?.enforceBreakClockOut ?? false;
+    } else {
+      return userAttendanceSettings?.enforceBreakClockOut ?? false;
+    }
+  };
+
+  // Check if ANY employee has break tracking enabled (for table header logic)
+  const anyEmployeeHasBreakTracking = hasAdminAccess 
+    ? allEmployeesAttendanceSettings.some((s: any) => s.enforceBreakClockOut)
+    : (userAttendanceSettings?.enforceBreakClockOut ?? false);
 
   // Fetch financial claim policies for dropdown options
   const { data: financialClaimPolicies = [] } = useQuery({
@@ -3348,10 +3379,10 @@ export default function MyRecordPage() {
               <TableHead>Date</TableHead>
               <TableHead>Clock In</TableHead>
               <TableHead>Clock In Image</TableHead>
-              {isBreakTrackingEnabled && <TableHead>Break Time</TableHead>}
-              {isBreakTrackingEnabled && <TableHead>Break Time Image</TableHead>}
-              {isBreakTrackingEnabled && <TableHead>Break Off</TableHead>}
-              {isBreakTrackingEnabled && <TableHead>Break Off Image</TableHead>}
+              {anyEmployeeHasBreakTracking && <TableHead>Break Time</TableHead>}
+              {anyEmployeeHasBreakTracking && <TableHead>Break Time Image</TableHead>}
+              {anyEmployeeHasBreakTracking && <TableHead>Break Off</TableHead>}
+              {anyEmployeeHasBreakTracking && <TableHead>Break Off Image</TableHead>}
               <TableHead>Clock Out</TableHead>
               <TableHead>Clock Out Image</TableHead>
               <TableHead>Total Hour(s)</TableHead>
@@ -3361,19 +3392,19 @@ export default function MyRecordPage() {
           <TableBody>
             {activeTab !== 'attendance' ? (
               <TableRow>
-                <TableCell colSpan={hasAdminAccess ? (isBreakTrackingEnabled ? 13 : 9) : (isBreakTrackingEnabled ? 12 : 8)} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={hasAdminAccess ? (anyEmployeeHasBreakTracking ? 13 : 9) : (anyEmployeeHasBreakTracking ? 12 : 8)} className="text-center py-8 text-gray-500">
                   Click Attendance tab to view records...
                 </TableCell>
               </TableRow>
             ) : isLoadingAttendance ? (
               <TableRow>
-                <TableCell colSpan={hasAdminAccess ? (isBreakTrackingEnabled ? 13 : 9) : (isBreakTrackingEnabled ? 12 : 8)} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={hasAdminAccess ? (anyEmployeeHasBreakTracking ? 13 : 9) : (anyEmployeeHasBreakTracking ? 12 : 8)} className="text-center py-8 text-gray-500">
                   Loading attendance records...
                 </TableCell>
               </TableRow>
             ) : attendanceRecords.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={hasAdminAccess ? (isBreakTrackingEnabled ? 13 : 9) : (isBreakTrackingEnabled ? 12 : 8)} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={hasAdminAccess ? (anyEmployeeHasBreakTracking ? 13 : 9) : (anyEmployeeHasBreakTracking ? 12 : 8)} className="text-center py-8 text-gray-500">
                   No data available in table
                 </TableCell>
               </TableRow>
@@ -3455,10 +3486,10 @@ export default function MyRecordPage() {
                   </TableCell>
 
                   
-                  {/* Break Time (keluar break/lunch) - Only show if break tracking enabled */}
-                  {isBreakTrackingEnabled && (
+                  {/* Break Time (keluar break/lunch) - Show if this employee has break tracking OR if any employee has it (for admin view) */}
+                  {anyEmployeeHasBreakTracking && (
                     <TableCell>
-                      {(record as any).breakOutTime ? (
+                      {isBreakTrackingEnabledForEmployee(record.employeeId) && (record as any).breakOutTime ? (
                         <div className="space-y-1">
                           <span className={(record as any).isLateBreakOut ? 'text-red-600 font-bold' : 'text-gray-800'}>
                             {(() => {
@@ -3479,15 +3510,17 @@ export default function MyRecordPage() {
                           )}
                         </div>
                       ) : (
-                        '-'
+                        <div className="text-gray-400 text-xs">
+                          {isBreakTrackingEnabledForEmployee(record.employeeId) ? '-' : 'Break tracking disabled'}
+                        </div>
                       )}
                     </TableCell>
                   )}
 
-                  {/* Break Time Image - Only show if break tracking enabled */}
-                  {isBreakTrackingEnabled && (
+                  {/* Break Time Image - Show if this employee has break tracking OR if any employee has it (for admin view) */}
+                  {anyEmployeeHasBreakTracking && (
                     <TableCell>
-                      {(record as any).breakOutImage ? (
+                      {isBreakTrackingEnabledForEmployee(record.employeeId) && (record as any).breakOutImage ? (
                         <img 
                           src={(record as any).breakOutImage}
                           alt="Break Out"
@@ -3499,16 +3532,16 @@ export default function MyRecordPage() {
                         />
                       ) : (
                         <div className="w-16 h-16 bg-gray-100 rounded border flex items-center justify-center text-gray-400 text-xs">
-                          No Image
+                          {isBreakTrackingEnabledForEmployee(record.employeeId) ? 'No Image' : 'N/A'}
                         </div>
                       )}
                     </TableCell>
                   )}
 
-                  {/* Break Off (balik dari break/lunch) - Only show if break tracking enabled */}
-                  {isBreakTrackingEnabled && (
+                  {/* Break Off (balik dari break/lunch) - Show if this employee has break tracking OR if any employee has it (for admin view) */}
+                  {anyEmployeeHasBreakTracking && (
                     <TableCell>
-                      {(record as any).breakInTime ? (
+                      {isBreakTrackingEnabledForEmployee(record.employeeId) && (record as any).breakInTime ? (
                         <div className="space-y-1">
                           <span className={(record as any).isLateBreakIn ? 'text-red-600 font-bold' : 'text-gray-800'}>
                             {(() => {
@@ -3529,15 +3562,17 @@ export default function MyRecordPage() {
                           )}
                         </div>
                       ) : (
-                        '-'
+                        <div className="text-gray-400 text-xs">
+                          {isBreakTrackingEnabledForEmployee(record.employeeId) ? '-' : 'Break tracking disabled'}
+                        </div>
                       )}
                     </TableCell>
                   )}
 
-                  {/* Break Off Image - Only show if break tracking enabled */}
-                  {isBreakTrackingEnabled && (
+                  {/* Break Off Image - Show if this employee has break tracking OR if any employee has it (for admin view) */}
+                  {anyEmployeeHasBreakTracking && (
                     <TableCell>
-                      {(record as any).breakInImage ? (
+                      {isBreakTrackingEnabledForEmployee(record.employeeId) && (record as any).breakInImage ? (
                         <img 
                           src={(record as any).breakInImage}
                           alt="Break In"
@@ -3549,7 +3584,7 @@ export default function MyRecordPage() {
                         />
                       ) : (
                         <div className="w-16 h-16 bg-gray-100 rounded border flex items-center justify-center text-gray-400 text-xs">
-                          No Image
+                          {isBreakTrackingEnabledForEmployee(record.employeeId) ? 'No Image' : 'N/A'}
                         </div>
                       )}
                     </TableCell>

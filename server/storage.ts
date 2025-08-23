@@ -3004,6 +3004,25 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getAllEmployeesAttendanceSettings(): Promise<any[]> {
+    try {
+      const allSettings = await db
+        .select()
+        .from(employeeAttendanceSettings)
+        .orderBy(asc(employeeAttendanceSettings.employeeId));
+      
+      console.log('🔍 ALL ATTENDANCE SETTINGS DEBUG:', {
+        settingsCount: allSettings.length,
+        settings: allSettings
+      });
+      
+      return allSettings;
+    } catch (error) {
+      console.error('Error getting all employee attendance settings:', error);
+      return [];
+    }
+  }
+
   // =================== DEPARTMENTS METHODS ===================
   async getAllDepartments(): Promise<Department[]> {
     try {

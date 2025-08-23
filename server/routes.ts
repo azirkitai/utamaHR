@@ -2254,6 +2254,21 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Get employee attendance settings (alternate endpoint)
+  app.get("/api/employee-attendance-settings/:id", authenticateToken, async (req, res) => {
+    try {
+      const employeeId = req.params.id;
+      
+      // Get attendance settings from database for this employee
+      const settings = await storage.getEmployeeAttendanceSettings(employeeId);
+      
+      res.json(settings);
+    } catch (error) {
+      console.error("Get attendance settings error:", error);
+      res.status(500).json({ error: "Failed to fetch attendance settings" });
+    }
+  });
+
   // Update employee attendance settings
   app.put("/api/employees/:id/attendance-settings", authenticateToken, async (req, res) => {
     try {
@@ -2285,6 +2300,27 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Update attendance settings error:", error);
       res.status(500).json({ error: "Failed to update attendance settings" });
+    }
+  });
+
+  // Get all employees' attendance settings (for admin users)
+  app.get("/api/employees/attendance-settings/all", authenticateToken, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      
+      // Only admin roles can access all employees' attendance settings
+      const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
+      if (!adminRoles.includes(currentUser.role)) {
+        return res.status(403).json({ error: "Not authorized to access all attendance settings" });
+      }
+      
+      // Get all employees' attendance settings from database
+      const allSettings = await storage.getAllEmployeesAttendanceSettings();
+      
+      res.json(allSettings);
+    } catch (error) {
+      console.error("Get all attendance settings error:", error);
+      res.status(500).json({ error: "Failed to fetch all attendance settings" });
     }
   });
 
