@@ -453,8 +453,12 @@ async function processClockOut(
 }
 
 export function registerRoutes(app: Express): Server {
+  // Configure upload directory - use environment variable or default
+  const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(process.cwd(), 'uploads');
+  console.log("[UPLOAD] Upload directory configured:", UPLOAD_DIR);
+  
   // Serve static files from uploads directory
-  app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+  app.use('/uploads', express.static(UPLOAD_DIR));
   
   // Setup authentication routes: /api/register, /api/login, /api/logout, /api/user
   setupAuth(app);
@@ -9124,7 +9128,7 @@ export function registerRoutes(app: Express): Server {
       }
 
       // Create uploads directory if it doesn't exist
-      const uploadsDir = path.join(__dirname, '../uploads/forms');
+      const uploadsDir = path.join(UPLOAD_DIR, 'forms');
       try {
         await fs.mkdir(uploadsDir, { recursive: true });
       } catch (mkdirError) {
@@ -9136,6 +9140,14 @@ export function registerRoutes(app: Express): Server {
       const uniqueFileName = `${randomUUID()}${fileExtension}`;
       const filePath = path.join(uploadsDir, uniqueFileName);
       const fileUrl = `/uploads/forms/${uniqueFileName}`;
+
+      console.log("[UPLOAD] Saving form file:", {
+        originalName: uploadedFile.originalname,
+        uniqueFileName: uniqueFileName,
+        uploadsDir: uploadsDir,
+        filePath: filePath,
+        UPLOAD_DIR: UPLOAD_DIR
+      });
 
       // Save file to uploads directory
       await fs.writeFile(filePath, uploadedFile.buffer);
@@ -9168,7 +9180,13 @@ export function registerRoutes(app: Express): Server {
   app.get("/uploads/forms/:filename", async (req, res) => {
     try {
       const { filename } = req.params;
-      const filePath = path.join(__dirname, '../uploads/forms', filename);
+      const filePath = path.join(UPLOAD_DIR, 'forms', filename);
+      
+      console.log("[STATIC] Serving file:", {
+        filename: filename,
+        filePath: filePath,
+        UPLOAD_DIR: UPLOAD_DIR
+      });
       
       // Check if file exists
       await fs.access(filePath);
@@ -9194,23 +9212,36 @@ export function registerRoutes(app: Express): Server {
 
       // Extract filename from fileUrl - using file_url from database
       const filename = path.basename(form.file_url || form.fileUrl || '');
-      const filePath = path.join(__dirname, '../uploads/forms', filename);
+      const filePath = path.join(UPLOAD_DIR, 'forms', filename);
       
-      console.log("Attempting to download file:", {
+      console.log("[DOWNLOAD] Attempting to download file:", {
         formId: id,
         fileName: form.file_name || form.fileName,
         filePath: filePath,
+        absolutePath: path.resolve(filePath),
         fileUrl: form.file_url || form.fileUrl,
+        currentWorkingDir: process.cwd(),
+        __dirname: __dirname,
         fullForm: form
       });
       
       // Check if file exists
       try {
         await fs.access(filePath);
+        console.log("[DOWNLOAD] File access successful:", filePath);
       } catch (accessError) {
-        console.error("File access error:", accessError);
+        console.error("[DOWNLOAD] File access error:", accessError);
+        console.error("[DOWNLOAD] Full error details:", {
+          error: accessError,
+          attemptedPath: filePath,
+          fileExists: false,
+          reason: 'FILE_NOT_FOUND'
+        });
         return res.status(404).json({ 
+          ok: false,
           error: "File not found on server",
+          reason: 'FILE_NOT_FOUND',
+          path: filePath,
           details: `File path: ${filePath}`
         });
       }
@@ -9248,7 +9279,7 @@ export function registerRoutes(app: Express): Server {
       const fileUrl = existingForm.file_url || existingForm.fileUrl;
       if (fileUrl && fileUrl.startsWith('/uploads/forms/')) {
         const filename = path.basename(fileUrl);
-        const filePath = path.join(__dirname, '../uploads/forms', filename);
+        const filePath = path.join(UPLOAD_DIR, 'forms', filename);
         try {
           await fs.unlink(filePath);
         } catch (fileError) {
