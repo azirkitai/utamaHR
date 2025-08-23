@@ -636,9 +636,16 @@ export default function ShiftCalendarPage() {
                       console.log('Saving shift:', { employeeId, shiftId, assignedDate });
                       console.log('Date type:', typeof assignedDate, 'Date value:', assignedDate);
                       
+                      // Parse the date to ensure correct format
+                      const parsedDate = new Date(assignedDate);
+                      const normalizedDate = new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate());
+                      const isoDateString = normalizedDate.toISOString();
+                      
+                      console.log('Normalized date for backend:', isoDateString);
+                      
                       return apiRequest("POST", `/api/employees/${employeeId}/assign-shift`, { 
                         shiftId: shiftId === "" ? "" : shiftId,
-                        assignedDate 
+                        assignedDate: isoDateString  // Use normalized ISO string
                       });
                     });
                     
@@ -655,7 +662,7 @@ export default function ShiftCalendarPage() {
                     
                     // Force refetch with fresh data
                     const freshData = await refetchEmployeeShifts();
-                    console.log('Fresh employee shifts data:', freshData.data?.length, 'records');
+                    console.log('Fresh employee shifts data:', Array.isArray(freshData.data) ? freshData.data.length : 0, 'records');
                     
                     // Additional force refresh for both queries
                     await queryClient.refetchQueries({ queryKey: ['/api/employee-shifts'] });
