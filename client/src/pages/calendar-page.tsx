@@ -544,6 +544,9 @@ function ShiftCalendarView() {
                         {isToday && (
                           <div className="w-2 h-2 bg-blue-500 rounded-full mt-1"></div>
                         )}
+                        {isToday && (
+                          <div className="text-xs font-bold text-blue-800 mt-1">TODAY</div>
+                        )}
                       </div>
                     </th>
                   );
