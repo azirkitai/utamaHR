@@ -229,11 +229,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logoutMutation.mutate();
       }, 1000);
     }, IDLE_TIMEOUT);
-  }, [user, logoutMutation, toast, IDLE_TIMEOUT, WARNING_TIME]);
+  }, [user, logoutMutation, toast]);
 
   const handleActivity = useCallback(() => {
-    resetTimer();
-  }, [resetTimer]);
+    if (user) {
+      resetTimer();
+    }
+  }, [resetTimer, user]);
 
   // Initialize idle timeout functionality
   useEffect(() => {
@@ -254,9 +256,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     // Start the timer when component mounts and user is logged in
-    if (user) {
-      resetTimer();
-    }
+    resetTimer();
 
     // Cleanup function
     return () => {
