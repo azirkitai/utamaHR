@@ -3427,8 +3427,9 @@ export function registerRoutes(app: Express): Server {
       console.log("🔍 GPS GEOFENCING DEBUG:", {
         employeeId: employee.id,
         allowClockInAnyLocation: allowClockInAnyLocation,
-        latitude: latitude,
-        longitude: longitude
+        userLatitude: latitude,
+        userLongitude: longitude,
+        totalOfficeLocations: activeLocations.length
       });
 
       // Check if user is within any office location radius
@@ -3438,12 +3439,30 @@ export function registerRoutes(app: Express): Server {
       let locationMessage = "";
 
       for (const location of activeLocations) {
+        console.log("🔍 CHECKING OFFICE LOCATION:", {
+          locationName: location.name,
+          locationId: location.id,
+          officeLatitude: location.latitude,
+          officeLongitude: location.longitude,
+          allowedRadius: location.radius,
+          isActive: location.isActive
+        });
+
         const distance = calculateDistance(
           parseFloat(latitude), 
           parseFloat(longitude), 
           parseFloat(location.latitude), 
           parseFloat(location.longitude)
         );
+
+        console.log("🔍 DISTANCE CALCULATION:", {
+          locationName: location.name,
+          userCoords: [parseFloat(latitude), parseFloat(longitude)],
+          officeCoords: [parseFloat(location.latitude), parseFloat(location.longitude)],
+          calculatedDistance: distance,
+          allowedRadius: parseFloat(location.radius),
+          withinRadius: distance <= parseFloat(location.radius)
+        });
 
         if (distance < nearestDistance) {
           nearestDistance = distance;
@@ -3454,6 +3473,7 @@ export function registerRoutes(app: Express): Server {
         const maxDistance = parseFloat(location.radius);
         if (distance <= maxDistance) {
           locationStatus = "valid";
+          console.log("✅ LOCATION VALID - Within radius!");
           break;
         }
       }
