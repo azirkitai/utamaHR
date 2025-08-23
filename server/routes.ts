@@ -16,6 +16,7 @@ import { dirname } from 'path';
 import multer from 'multer';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { z } from 'zod';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -2927,11 +2928,19 @@ export function registerRoutes(app: Express): Server {
     try {
       const currentUser = req.user!;
       
+      console.log("=== EMPLOYMENT UPDATE DEBUG ===");
+      console.log("Employment ID:", req.params.id);
+      console.log("User:", currentUser.id, currentUser.role);
+      console.log("Request body:", JSON.stringify(req.body, null, 2));
+      
       // Get the employment record to check if user can edit
       const existingEmployment = await storage.getEmploymentById(req.params.id);
       if (!existingEmployment) {
+        console.log("Employment record not found for ID:", req.params.id);
         return res.status(404).json({ error: "Employment information not found" });
       }
+      
+      console.log("Existing employment:", JSON.stringify(existingEmployment, null, 2));
       
       // Allow admin roles to update any employment record
       const adminRoles = ['Super Admin', 'Admin', 'HR Manager', 'PIC'];
@@ -2941,21 +2950,47 @@ export function registerRoutes(app: Express): Server {
       let isOwnRecord = false;
       if (!isAdmin) {
         const currentEmployee = await storage.getEmployeeByUserId(currentUser.id);
+        console.log("Current employee for user:", currentEmployee?.id, currentEmployee?.fullName);
         isOwnRecord = currentEmployee && existingEmployment.employeeId === currentEmployee.id;
       }
+      
+      console.log("Authorization check - isAdmin:", isAdmin, "isOwnRecord:", isOwnRecord);
       
       if (!isAdmin && !isOwnRecord) {
         return res.status(403).json({ error: "Not authorized to update employment information" });
       }
       
+      // Validate the data
+      console.log("Validating data with updateEmploymentSchema...");
       const validatedData = updateEmploymentSchema.parse(req.body);
+      console.log("Validated data:", JSON.stringify(validatedData, null, 2));
+      
+      // Update employment record
+      console.log("Updating employment record...");
       const employment = await storage.updateEmployment(req.params.id, validatedData);
       if (!employment) {
+        console.log("Employment update returned null/undefined");
         return res.status(404).json({ error: "Employment information not found" });
       }
+      
+      console.log("Employment updated successfully:", JSON.stringify(employment, null, 2));
+      console.log("=== END EMPLOYMENT UPDATE DEBUG ===");
       res.json(employment);
     } catch (error) {
-      console.error("Update employment error:", error);
+      console.error("=== EMPLOYMENT UPDATE ERROR ===");
+      console.error("Error type:", error?.constructor?.name);
+      console.error("Error message:", error instanceof Error ? error.message : String(error));
+      console.error("Error stack:", error instanceof Error ? error.stack : 'No stack trace');
+      
+      if (error instanceof z.ZodError) {
+        console.error("Zod validation errors:", JSON.stringify(error.errors, null, 2));
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')
+        });
+      }
+      
+      console.error("=== END EMPLOYMENT UPDATE ERROR ===");
       res.status(500).json({ error: "Failed to update employment information" });
     }
   });
