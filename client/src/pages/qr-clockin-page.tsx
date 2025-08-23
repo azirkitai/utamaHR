@@ -77,12 +77,11 @@ export default function QRClockInPage() {
 
   // Query for attendance history (clock-in and clock-out)
   const { data: attendanceHistory, isLoading: historyLoading } = useQuery<{attendanceRecords: AttendanceRecord[]}>({
-    queryKey: ["/api/clockin-history", Date.now()], // Force new cache key each time
-    refetchInterval: 1000, // Refresh every 1 second for immediate updates
+    queryKey: ["/api/clockin-history"], // Fixed: Remove timestamp that was breaking the API endpoint
+    refetchInterval: 3000, // Refresh every 3 seconds for real-time updates
     refetchOnWindowFocus: true, // Refresh when window gets focus
     refetchOnMount: true, // Always refresh on mount
     staleTime: 0, // Always fetch fresh data
-    cacheTime: 0, // Don't cache at all
   });
 
   // Generate QR Code mutation
