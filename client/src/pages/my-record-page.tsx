@@ -105,6 +105,16 @@ export default function MyRecordPage() {
   const anyEmployeeHasBreakTracking = hasAdminAccess 
     ? allEmployeesAttendanceSettings.some((s: any) => s.enforceBreakClockOut)
     : (userAttendanceSettings?.enforceBreakClockOut ?? false);
+  
+  console.log('🔧 BREAK TRACKING DEBUG:', {
+    hasAdminAccess,
+    allEmployeesAttendanceSettingsLength: allEmployeesAttendanceSettings.length,
+    anyEmployeeHasBreakTracking,
+    allSettingsBreakStatus: allEmployeesAttendanceSettings.map((s: any) => ({
+      employeeId: s.employeeId,
+      enforceBreakClockOut: s.enforceBreakClockOut
+    }))
+  });
 
   // Fetch financial claim policies for dropdown options
   const { data: financialClaimPolicies = [] } = useQuery({
