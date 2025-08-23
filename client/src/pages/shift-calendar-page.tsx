@@ -23,6 +23,7 @@ export default function ShiftCalendarPage() {
   const [expandedDepartments, setExpandedDepartments] = useState<string[]>([]);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [preserveManualStates, setPreserveManualStates] = useState(false);
   
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -179,6 +180,16 @@ export default function ShiftCalendarPage() {
   };
 
   const navigateView = (direction: 'prev' | 'next') => {
+    // Prevent navigation if user has unsaved changes in edit mode
+    if (editMode && Object.keys(manualShiftStates).length > 0) {
+      toast({
+        title: "Simpan Perubahan Dahulu",
+        description: "Sila simpan perubahan shift sebelum navigasi ke minggu/bulan lain",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const newDate = new Date(currentWeek);
     
     if (viewMode === "week") {
@@ -433,6 +444,16 @@ export default function ShiftCalendarPage() {
                 selected={currentWeek}
                 onSelect={(date) => {
                   if (date) {
+                    // Prevent date change if user has unsaved changes in edit mode
+                    if (editMode && Object.keys(manualShiftStates).length > 0) {
+                      toast({
+                        title: "Simpan Perubahan Dahulu",
+                        description: "Sila simpan perubahan shift sebelum tukar tarikh",
+                        variant: "destructive",
+                      });
+                      setShowDatePicker(false);
+                      return;
+                    }
                     setCurrentWeek(date);
                     setShowDatePicker(false);
                   }
@@ -446,7 +467,18 @@ export default function ShiftCalendarPage() {
             <Button
               variant={viewMode === "week" ? "default" : "outline"}
               size="sm"
-              onClick={() => setViewMode("week")}
+              onClick={() => {
+                // Prevent view mode change if user has unsaved changes in edit mode
+                if (editMode && Object.keys(manualShiftStates).length > 0) {
+                  toast({
+                    title: "Simpan Perubahan Dahulu",
+                    description: "Sila simpan perubahan shift sebelum tukar ke week view",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+                setViewMode("week");
+              }}
               className={viewMode === "week" ? "bg-black text-white" : ""}
               data-testid="button-week-view"
             >
@@ -455,7 +487,18 @@ export default function ShiftCalendarPage() {
             <Button
               variant={viewMode === "month" ? "default" : "outline"}
               size="sm"
-              onClick={() => setViewMode("month")}
+              onClick={() => {
+                // Prevent view mode change if user has unsaved changes in edit mode
+                if (editMode && Object.keys(manualShiftStates).length > 0) {
+                  toast({
+                    title: "Simpan Perubahan Dahulu",
+                    description: "Sila simpan perubahan shift sebelum tukar ke month view",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+                setViewMode("month");
+              }}
               className={viewMode === "month" ? "bg-black text-white" : ""}
               data-testid="button-month-view"
             >
