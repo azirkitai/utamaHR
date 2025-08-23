@@ -64,8 +64,6 @@ import {
   type InsertOfficeLocation,
   type UpdateOfficeLocation,
   // Shift types
-  shifts,
-  employeeShifts,
   type SelectShift,
   type InsertShift,
   type GroupPolicySetting,
@@ -229,7 +227,6 @@ import {
   type InsertEmployeeLeaveEligibility,
   type UpdateEmployeeLeaveEligibility,
   // Employee Leave Entitlement Adjustment types
-  employeeLeaveEntitlementAdjustments,
   type EmployeeLeaveEntitlementAdjustment,
   type InsertEmployeeLeaveEntitlementAdjustment,
   type UpdateEmployeeLeaveEntitlementAdjustment,
@@ -3086,15 +3083,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getUniqueDepartments(): Promise<string[]> {
-    try {
-      const departmentList = await this.getAllDepartments();
-      return departmentList.map(dept => dept.name);
-    } catch (error) {
-      console.error('Error getting unique departments:', error);
-      return [];
-    }
-  }
+
 
   async processYearEndCarryForward(year: number): Promise<LeaveBalanceCarryForward[]> {
     try {
@@ -4821,20 +4810,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // =================== CLAIM APPLICATION METHODS ===================
-
-  async createClaimApplication(data: InsertClaimApplication): Promise<ClaimApplication> {
-    try {
-      const [claimApplication] = await db
-        .insert(claimApplications)
-        .values(data)
-        .returning();
-      return claimApplication;
-    } catch (error) {
-      console.error('Error creating claim application:', error);
-      throw error;
-    }
-  }
+  // =================== CLAIM APPLICATION METHODS (DUPLICATE REMOVED) ===================
 
   async getClaimApplicationsByEmployee(
     employeeId: string, 
@@ -5004,62 +4980,9 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async approveClaimApplication(
-    claimId: string,
-    approverId: string,
-    level: 'first' | 'final'
-  ): Promise<ClaimApplication | null> {
-    try {
-      const updateData: any = {
-        updatedAt: new Date()
-      };
 
-      if (level === 'first') {
-        updateData.status = 'First Level Approved';
-        updateData.firstLevelApproverId = approverId;
-      } else {
-        updateData.status = 'Approved';
-        updateData.approvedBy = approverId;
-        updateData.approvedAt = new Date();
-      }
 
-      const [updatedClaim] = await db
-        .update(claimApplications)
-        .set(updateData)
-        .where(eq(claimApplications.id, claimId))
-        .returning();
 
-      return updatedClaim || null;
-    } catch (error) {
-      console.error('Error approving claim application:', error);
-      throw error;
-    }
-  }
-
-  async rejectClaimApplication(
-    claimId: string,
-    rejectedById: string,
-    reason?: string
-  ): Promise<ClaimApplication | null> {
-    try {
-      const [updatedClaim] = await db
-        .update(claimApplications)
-        .set({
-          status: 'Rejected',
-          rejectedBy: rejectedById,
-          rejectedAt: new Date(),
-          rejectionReason: reason,
-          updatedAt: new Date()
-        })
-        .where(eq(claimApplications.id, claimId))
-        .returning();
-
-      return updatedClaim || null;
-    } catch (error) {
-      console.error('Error rejecting claim application:', error);
-      throw error;
-    }
-  }
 
   async getRecentClaimApplications(claimType: string, limit: number): Promise<ClaimApplication[]> {
     try {

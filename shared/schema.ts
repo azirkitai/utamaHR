@@ -1604,10 +1604,18 @@ export type AttendanceRecord = typeof attendanceRecords.$inferSelect;
 export type InsertAttendanceRecord = z.infer<typeof insertAttendanceRecordSchema>;
 export type UpdateAttendanceRecord = z.infer<typeof updateAttendanceRecordSchema>;
 
+// Employee attendance settings schemas
+export const insertEmployeeAttendanceSettingsSchema = createInsertSchema(employeeAttendanceSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const updateEmployeeAttendanceSettingsSchema = insertEmployeeAttendanceSettingsSchema.partial();
+
 // Employee attendance settings types
 export type EmployeeAttendanceSettings = typeof employeeAttendanceSettings.$inferSelect;
-export type InsertEmployeeAttendanceSettings = typeof employeeAttendanceSettings.$inferInsert;
-export type UpdateEmployeeAttendanceSettings = typeof employeeAttendanceSettings.$inferUpdate;
+export type InsertEmployeeAttendanceSettings = z.infer<typeof insertEmployeeAttendanceSettingsSchema>;
+export type UpdateEmployeeAttendanceSettings = z.infer<typeof updateEmployeeAttendanceSettingsSchema>;
 
 // Approval Settings types
 export type ApprovalSetting = typeof approvalSettings.$inferSelect;
