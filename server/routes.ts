@@ -9157,7 +9157,7 @@ export function registerRoutes(app: Express): Server {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: "Invalid data", details: error.errors });
       }
-      res.status(500).json({ error: "Failed to memuat naik bpeople" });
+      res.status(500).json({ error: "Failed to upload form" });
     }
   });
 
@@ -9173,7 +9173,7 @@ export function registerRoutes(app: Express): Server {
       res.sendFile(path.resolve(filePath));
     } catch (error) {
       console.error("Error serving form file:", error);
-      res.status(404).json({ error: "Fail not found" });
+      res.status(404).json({ error: "File not found" });
     }
   });
 
@@ -9186,15 +9186,30 @@ export function registerRoutes(app: Express): Server {
       const [form] = await db.select().from(forms).where(eq(forms.id, id));
       
       if (!form) {
-        return res.status(404).json({ error: "Bpeople not found" });
+        return res.status(404).json({ error: "Form not found" });
       }
 
       // Extract filename from fileUrl
       const filename = path.basename(form.fileUrl);
       const filePath = path.join(__dirname, '../uploads/forms', filename);
       
+      console.log("Attempting to download file:", {
+        formId: id,
+        fileName: form.fileName,
+        filePath: filePath,
+        fileUrl: form.fileUrl
+      });
+      
       // Check if file exists
-      await fs.access(filePath);
+      try {
+        await fs.access(filePath);
+      } catch (accessError) {
+        console.error("File access error:", accessError);
+        return res.status(404).json({ 
+          error: "File not found on server",
+          details: `File path: ${filePath}`
+        });
+      }
       
       // Set proper headers for download
       res.setHeader('Content-Disposition', `attachment; filename="${form.fileName}"`);
@@ -9203,7 +9218,10 @@ export function registerRoutes(app: Express): Server {
       res.sendFile(path.resolve(filePath));
     } catch (error) {
       console.error("Error downloading form:", error);
-      res.status(404).json({ error: "Fail not found" });
+      res.status(500).json({ 
+        error: "Failed to download file",
+        message: "Internal server error occurred while downloading the file"
+      });
     }
   });
 
@@ -9216,7 +9234,7 @@ export function registerRoutes(app: Express): Server {
       const [existingForm] = await db.select().from(forms).where(eq(forms.id, id));
       
       if (!existingForm) {
-        return res.status(404).json({ error: "Bpeople not found" });
+        return res.status(404).json({ error: "Form not found" });
       }
 
       // Delete from database
@@ -9235,11 +9253,11 @@ export function registerRoutes(app: Express): Server {
 
       res.json({
         success: true,
-        message: "Bpeople berjaya dipadam"
+        message: "Form successfully deleted"
       });
     } catch (error) {
       console.error("Error deleting form:", error);
-      res.status(500).json({ error: "Failed to memadam bpeople" });
+      res.status(500).json({ error: "Failed to delete form" });
     }
   });
 
