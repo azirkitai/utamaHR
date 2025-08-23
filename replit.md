@@ -11,6 +11,8 @@ UtamaHR is a comprehensive HR Management System built with React, TypeScript, an
 
 **REAL-TIME UPDATES COMPLETED (August 2025)**: Header role display now updates immediately when user roles are changed. Implemented comprehensive cache invalidation for employee updates including `/api/user/employee` and `/api/user` queries, ensuring role changes reflect instantly in the header display without requiring page refresh.
 
+**DATA PERSISTENCE FIX COMPLETED (August 2025)**: Resolved critical branch location data persistence bug in employee details where branch location field data was disappearing after save operations. Fixed conflicting useEffect hooks that were overwriting form state, ensuring all employment fields including branchLocation properly persist and display in static view after saving.
+
 # User Preferences
 Preferred communication style: Simple, everyday language.
 
