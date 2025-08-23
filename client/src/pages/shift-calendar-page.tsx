@@ -37,7 +37,7 @@ export default function ShiftCalendarPage() {
     queryKey: ['/api/shifts'],
   });
 
-  const { data: employeeShifts = [] } = useQuery({
+  const { data: employeeShifts = [], refetch: refetchEmployeeShifts } = useQuery({
     queryKey: ['/api/employee-shifts'],
   });
 
@@ -49,10 +49,12 @@ export default function ShiftCalendarPage() {
       console.log('Shift assignment response:', response);
       return response;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       console.log('Shift assignment successful, invalidating cache');
-      queryClient.invalidateQueries({ queryKey: ['/api/employee-shifts'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/employees'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/employee-shifts'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/employees'] });
+      await queryClient.refetchQueries({ queryKey: ['/api/employee-shifts'] });
+      await queryClient.refetchQueries({ queryKey: ['/api/employees'] });
       toast({
         title: "Berjaya",
         description: "Shift telah dikemaskini",
@@ -598,19 +600,20 @@ export default function ShiftCalendarPage() {
                     // Clear manual states after successful save
                     setManualShiftStates({});
                     
-                    // Refresh data
-                    queryClient.invalidateQueries({ queryKey: ['/api/employee-shifts'] });
-                    queryClient.invalidateQueries({ queryKey: ['/api/employees'] });
+                    // Refresh data with force reload
+                    await queryClient.invalidateQueries({ queryKey: ['/api/employee-shifts'] });
+                    await queryClient.invalidateQueries({ queryKey: ['/api/employees'] });
+                    await refetchEmployeeShifts(); // Direct refetch
                     
                     toast({
                       title: "Berjaya",
                       description: `${savePromises.length} perubahan shift telah disimpan ke database`,
                     });
                     
-                    // Exit edit mode after 5 seconds
+                    // Exit edit mode after 2 seconds to allow user to see the changes
                     setTimeout(() => {
                       setEditMode(false);
-                    }, 5000);
+                    }, 2000);
                   } catch (error: any) {
                     console.error('Bulk save error:', error);
                     toast({
