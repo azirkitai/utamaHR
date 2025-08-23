@@ -3311,7 +3311,8 @@ export function registerRoutes(app: Express): Server {
       console.log("=== END DEBUG ===");
       
       // Determine what action to take based on current attendance status and enforcement settings
-      const enforceBreakClockOut = true; // TODO: Get from employee settings
+      const attendanceSettings = await storage.getEmployeeAttendanceSettings(employee.id);
+      const enforceBreakClockOut = attendanceSettings.enforceBreakClockOut;
       
       if (todayAttendance) {
         if (!todayAttendance.clockInTime) {
