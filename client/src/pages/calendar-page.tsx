@@ -199,7 +199,17 @@ function ShiftComplianceCell({ employee, shift, date }: { employee: any; shift: 
             <div className={`${
               attendanceRecord.isLateClockIn ? 'text-red-200 font-bold' : 'text-green-200'
             }`}>
-              In: {formatMalaysiaTime(attendanceRecord.clockInTime)}
+              In: {(() => {
+                // Use same format as QR Clock-in page (12-hour format)
+                const date = new Date(attendanceRecord.clockInTime);
+                return date.toLocaleString('en-US', {
+                  timeZone: 'Asia/Kuala_Lumpur',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit',
+                  hour12: true
+                });
+              })()}
               {attendanceRecord.isLateClockIn && ' ⚠️'}
             </div>
           )}
@@ -207,7 +217,17 @@ function ShiftComplianceCell({ employee, shift, date }: { employee: any; shift: 
             <div className={`${
               attendanceRecord.isLateBreakOut ? 'text-red-200 font-bold' : 'text-yellow-200'
             }`}>
-              Break: {formatMalaysiaTime(attendanceRecord.breakOutTime)}
+              Break: {(() => {
+                // Use same format as QR Clock-in page (12-hour format)
+                const date = new Date(attendanceRecord.breakOutTime);
+                return date.toLocaleString('en-US', {
+                  timeZone: 'Asia/Kuala_Lumpur',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit',
+                  hour12: true
+                });
+              })()}
               {attendanceRecord.isLateBreakOut && ' ⚠️'}
             </div>
           )}
