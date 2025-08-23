@@ -1,0 +1,86 @@
+{status: 404, statusText: '', errorText: '{"ok":false,"error":"File not found on server","re…/forms/c16ff494-3103-4014-bd89-e3737474cf38.pdf"}', formId: '24148563-3a7f-48d3-a3f1-35c96c902544'}
+errorText
+: 
+"{\"ok\":false,\"error\":\"File not found on server\",\"reason\":\"FILE_NOT_FOUND\",\"path\":\"/home/runner/workspace/uploads/forms/c16ff494-3103-4014-bd89-e3737474cf38.pdf\",\"details\":\"File path: /home/runner/workspace/uploads/forms/c16ff494-3103-4014-bd89-e3737474cf38.pdf\"}"
+formId
+: 
+"24148563-3a7f-48d3-a3f1-35c96c902544"
+status
+: 
+404
+statusText
+: 
+""
+[[Prototype]]
+: 
+Object
+ChatGPT said:
+Thought for 8s
+
+Nice—log tu dah bagi jawapan tepat.
+
+Apa yang berlaku
+
+Server balas 404 dengan reason: FILE_NOT_FOUND dan path:
+
+/home/runner/workspace/uploads/forms/c16ff494-3103-4014-bd89-e3737474cf38.pdf
+
+
+Di production, fail tak wujud di lokasi itu. Dua punca utama:
+
+Path absolute hardcoded (contoh /home/runner/workspace/...) yang hanya betul di dev.
+
+Storan temp: fail upload disimpan dalam folder projek; bila redeploy, folder kosong → link dalam DB jadi “mayat”.
+
+Fix yang betul (ringkas & tahan lama)
+1) Jangan simpan path absolute dalam DB
+
+Simpan relative key sahaja, contoh:
+
+forms/c16ff494-3103-4014-bd89-e3737474cf38.pdf
+
+
+dan build path masa runtime:
+
+fullPath = path.join(UPLOAD_DIR, relativeKey)
+
+
+di mana UPLOAD_DIR datang dari ENV, contoh:
+
+UPLOAD_DIR=./uploads
+
+2) Serve static uploads
+
+Pastikan backend ada:
+
+app.use('/uploads', express.static(process.env.UPLOAD_DIR || 'uploads'));
+
+
+(daftar sebelum SPA fallback)
+
+3) Seed semula fail di production
+
+Upload balik 3 PDF tu di environment production (bukan copy dari dev). Lepas DB simpan relative key, download akan OK.
+
+4) Long-term: guna object storage
+
+Pindahkan upload ke Supabase Storage / S3 / R2; DB simpan storageKey/publicUrl — tak hilang bila redeploy.
+
+Prompt untuk agent (copy–paste)
+
+Issue (prod): 404 download. Log: FILE_NOT_FOUND path /home/runner/workspace/uploads/forms/....
+Fix now (no logic change):
+
+Stop saving absolute paths. Change DB to store relative file key only (e.g. forms/<uuid>.pdf).
+
+Add UPLOAD_DIR env (dev & prod) pointing to uploads base, e.g. ./uploads.
+
+In download handler, resolve with path.join(process.env.UPLOAD_DIR, file.key); check fs.existsSync then res.download.
+
+Ensure static serving: app.use('/uploads', express.static(process.env.UPLOAD_DIR || 'uploads')) before SPA routes.
+
+Write a one-off migration to strip old prefixes in DB: replace /home/runner/workspace/uploads/ with `` (empty) so records hold only forms/<file>.pdf.
+
+Re-upload the 3 PDFs in production via the UI and verify 200 OK download.
+
+(Optional, recommended) Switch uploads to object storage and store storageKey/publicUrl to avoid data loss on redeploy.
