@@ -3291,8 +3291,10 @@ export function registerRoutes(app: Express): Server {
         });
       }
 
-      // Check if user already has an attendance record for today
-      const today = new Date();
+      // Check if user already has an attendance record for today (using Malaysia timezone)
+      const now = new Date();
+      const malaysiaTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Kuala_Lumpur"}));
+      const today = new Date(malaysiaTime);
       today.setHours(0, 0, 0, 0);
       
       const employee = await storage.getEmployeeByUserId(qrToken.userId);
