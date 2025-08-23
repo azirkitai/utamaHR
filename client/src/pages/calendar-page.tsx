@@ -199,7 +199,12 @@ function ShiftComplianceCell({ employee, shift, date }: { employee: any; shift: 
             <div className={`${
               attendanceRecord.isLateClockIn ? 'text-red-200 font-bold' : 'text-green-200'
             }`}>
-              In: {formatMalaysiaTime(attendanceRecord.clockInTime)}
+              In: {(() => {
+                console.log('🔍 CALENDAR DEBUG - Raw clock-in time:', attendanceRecord.clockInTime);
+                const formatted = formatMalaysiaTime(attendanceRecord.clockInTime);
+                console.log('🔍 CALENDAR DEBUG - Formatted time:', formatted);
+                return formatted;
+              })()}
               {attendanceRecord.isLateClockIn && ' ⚠️'}
             </div>
           )}
