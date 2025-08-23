@@ -20,7 +20,8 @@ export function formatMalaysiaTime(dateTime: string | Date, options?: Intl.DateT
     const date = typeof dateTime === 'string' ? new Date(dateTime) : dateTime;
     if (isNaN(date.getTime())) return 'Invalid Date';
     
-    return date.toLocaleTimeString('ms-MY', {
+    // Use en-US locale with Asia/Kuala_Lumpur timezone for consistent formatting
+    return date.toLocaleTimeString('en-US', {
       timeZone: MALAYSIA_TIMEZONE,
       hour: '2-digit',
       minute: '2-digit',
@@ -45,7 +46,7 @@ export function formatMalaysiaDateTime(dateTime: string | Date): string {
     const date = typeof dateTime === 'string' ? new Date(dateTime) : dateTime;
     if (isNaN(date.getTime())) return 'Invalid Date';
     
-    return date.toLocaleString('ms-MY', {
+    return date.toLocaleString('en-US', {
       timeZone: MALAYSIA_TIMEZONE,
       year: 'numeric',
       month: '2-digit',
