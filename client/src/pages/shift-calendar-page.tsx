@@ -140,6 +140,15 @@ export default function ShiftCalendarPage() {
   };
 
   const viewDates = getDatesForView(currentWeek);
+  
+  // CRITICAL FIX: Force debug to verify view mode consistency  
+  console.log(`🚨 CRITICAL DEBUG - View Mode: ${viewMode}, ViewDates count: ${viewDates.length}`);
+  if (viewDates.length !== 7 && viewMode === "week") {
+    console.error(`🔥 ERROR: Week mode should have 7 dates but got ${viewDates.length}`);
+  }
+  if (viewDates.length === 31 && viewMode === "week") {
+    console.error(`🔥 MAJOR ERROR: Week mode is showing month data (31 days)!`);
+  }
 
   const formatDateRange = () => {
     if (viewMode === "week") {
@@ -602,9 +611,10 @@ export default function ShiftCalendarPage() {
                           {employee.name}
                         </td>
                         {getDayHeaders().map((day, dayIndex) => {
-                          console.log(`🗓️ Header Day ${dayIndex}: ${day.fullDate.toISOString()} (Calendar Day: ${day.dayNumber})`);
+                          console.log(`🗓️ Header Day ${dayIndex}: ${day.fullDate.toISOString()} (Calendar Day: ${day.dayNumber}) - VIEW MODE: ${viewMode}`);
                           const shift = getShiftForDay(employee.id, day.fullDate);
                           const cellKey = `cell-${employee.id}-${day.fullDate}-${dayIndex}-${forceRenderKey}`;
+                          console.log(`🔍 Shift lookup for ${employee.id} on ${day.fullDate.toISOString()}: ${shift ? 'FOUND' : 'NOT FOUND'}`);
                           return (
                             <td key={cellKey} className="p-2 text-center">
                               <IndependentShiftCell
