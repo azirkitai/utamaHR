@@ -3520,8 +3520,18 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).json({ error: "Employee not found" });
       }
 
-      const today = new Date();
+      // Use Malaysia timezone for detecting today's date
+      const now = new Date();
+      const malaysiaTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Kuala_Lumpur"}));
+      const today = new Date(malaysiaTime);
       today.setHours(0, 0, 0, 0);
+      
+      console.log('🔍 TODAY DATE DEBUG:', {
+        serverTime: now,
+        malaysiaTime: malaysiaTime,
+        todayForQuery: today,
+        currentMalaysiaDateString: malaysiaTime.toLocaleDateString('ms-MY')
+      });
       
       const todayAttendance = await storage.getTodayAttendanceRecord(employee.id, today);
       
