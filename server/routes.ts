@@ -3492,25 +3492,41 @@ export function registerRoutes(app: Express): Server {
       const attendanceSettings = await storage.getEmployeeAttendanceSettings(employee.id);
       const enforceBreakClockOut = attendanceSettings.enforceBreakClockOut;
       
-      // Determine attendance status and next action
+      // Determine attendance status and next action based on break enforcement setting
       let nextAction = 'clock-in';
       let needsClockOut = false;
       let needsBreakOut = false;
       let needsBreakIn = false;
       
+      console.log('🔍 ATTENDANCE DEBUG:', {
+        employeeId: employee.id,
+        enforceBreakClockOut: enforceBreakClockOut,
+        todayAttendance: todayAttendance ? {
+          clockInTime: todayAttendance.clockInTime,
+          breakOutTime: todayAttendance.breakOutTime,
+          breakInTime: todayAttendance.breakInTime,
+          clockOutTime: todayAttendance.clockOutTime
+        } : null
+      });
+      
       if (todayAttendance) {
         if (!todayAttendance.clockInTime) {
+          // No clock-in yet
           nextAction = 'clock-in';
         } else if (enforceBreakClockOut && !todayAttendance.breakOutTime) {
+          // Break tracking enabled and no break-out yet
           nextAction = 'break-out';
           needsBreakOut = true;
         } else if (enforceBreakClockOut && !todayAttendance.breakInTime) {
+          // Break tracking enabled and no break-in yet
           nextAction = 'break-in';
           needsBreakIn = true;
         } else if (!todayAttendance.clockOutTime) {
+          // No clock-out yet (skip break steps if break tracking disabled)
           nextAction = 'clock-out';
           needsClockOut = true;
         } else {
+          // All required steps completed
           nextAction = 'completed';
         }
       }
