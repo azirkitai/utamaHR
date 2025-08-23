@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import express, { type Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth, authenticateToken } from "./auth";
 import { storage } from "./storage";
@@ -453,6 +453,9 @@ async function processClockOut(
 }
 
 export function registerRoutes(app: Express): Server {
+  // Serve static files from uploads directory
+  app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+  
   // Setup authentication routes: /api/register, /api/login, /api/logout, /api/user
   setupAuth(app);
 
@@ -9189,15 +9192,16 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).json({ error: "Form not found" });
       }
 
-      // Extract filename from fileUrl
-      const filename = path.basename(form.fileUrl);
+      // Extract filename from fileUrl - using file_url from database
+      const filename = path.basename(form.file_url || form.fileUrl || '');
       const filePath = path.join(__dirname, '../uploads/forms', filename);
       
       console.log("Attempting to download file:", {
         formId: id,
-        fileName: form.fileName,
+        fileName: form.file_name || form.fileName,
         filePath: filePath,
-        fileUrl: form.fileUrl
+        fileUrl: form.file_url || form.fileUrl,
+        fullForm: form
       });
       
       // Check if file exists
@@ -9211,9 +9215,9 @@ export function registerRoutes(app: Express): Server {
         });
       }
       
-      // Set proper headers for download
-      res.setHeader('Content-Disposition', `attachment; filename="${form.fileName}"`);
-      res.setHeader('Content-Type', form.mimeType || 'application/octet-stream');
+      // Set proper headers for download - using file_name and mime_type from database
+      res.setHeader('Content-Disposition', `attachment; filename="${form.file_name || form.fileName}"`);
+      res.setHeader('Content-Type', form.mime_type || form.mimeType || 'application/octet-stream');
       
       res.sendFile(path.resolve(filePath));
     } catch (error) {
@@ -9240,9 +9244,10 @@ export function registerRoutes(app: Express): Server {
       // Delete from database
       const [deletedForm] = await db.delete(forms).where(eq(forms.id, id)).returning();
 
-      // Try to delete the physical file
-      if (existingForm.fileUrl && existingForm.fileUrl.startsWith('/uploads/forms/')) {
-        const filename = path.basename(existingForm.fileUrl);
+      // Try to delete the physical file - using file_url from database
+      const fileUrl = existingForm.file_url || existingForm.fileUrl;
+      if (fileUrl && fileUrl.startsWith('/uploads/forms/')) {
+        const filename = path.basename(fileUrl);
         const filePath = path.join(__dirname, '../uploads/forms', filename);
         try {
           await fs.unlink(filePath);

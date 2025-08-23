@@ -1,0 +1,93 @@
+Kenapa jadi di production (tapi dev ok)?
+
+Fail tak wujud dalam mesin deploy
+
+Di dev, anda upload PDF → tersimpan di ./uploads/forms/... lalu boleh muat turun.
+
+Di production, deploy buat “imej baharu” (fresh). Folder uploads kosong → handler download/:id cuba cari fail, tak jumpa → 404.
+
+Lagi teruk: setiap redeploy, fail runtime hilang.
+
+Root path berbeza
+
+Dev simpan uploads/forms/...; production baca server/uploads/... atau path relatif dari working dir lain → fs.existsSync gagal → 404.
+
+Static serving tak didaftarkan di production
+
+Dev ada app.use('/uploads', express.static('uploads')).
+Production terlupa/terpotong (order middleware, basePath, atau hanya serve SPA) → 404.
+
+URL API berbeza
+
+Dev panggil fetch('/api/forms/download/:id') (proxy dev).
+Production juga panggil relatif /api/... tetapi API sebenar berada pada proses/port lain atau base path lain (contoh /v1/api). → 404.
+
+Apa nak buat (paling cepat & pasti selesai)
+A) Sahkan punca dalam server production
+
+Minta agen tambahkan log dalam handler download:
+
+// GET /api/forms/download/:id
+const file = await db.forms.findByPk(req.params.id);
+// log mutlak
+console.log('[DOWNLOAD]', { id: req.params.id, filePath: file?.path, abs: path.resolve(file?.path || '') });
+if (!file || !fs.existsSync(file.path)) {
+  return res.status(404).json({ ok:false, reason:'FILE_NOT_FOUND', path: file?.path });
+}
+return res.download(file.path, file.originalName);
+
+
+Kemudian cuba klik Download → lihat log:
+
+Kalau FILE_NOT_FOUND → memang fail tak ada / path salah.
+
+Kalau handler tak pernah dipanggil → route tak match / API URL salah.
+
+B) Seed semula fail di production (hotfix segera)
+
+Upload semula tiga PDF tu melalui UI production ATAU copy dari dev ke production dan pastikan DB file.path menunjuk ke lokasi sebenar.
+
+Pastikan ada app.use('/uploads', express.static('uploads')) sebelum fallback SPA static.
+
+C) Jadikan storan persisten (elak hilang bila redeploy)
+
+Pindahkan storan ke object storage (Supabase Storage / S3 / Cloudflare R2).
+
+DB simpan publicUrl atau key sahaja.
+
+Endpoint download hanya redirect/stream dari bucket → tiada isu hilang fail.
+
+D) Pastikan path betul di production
+
+Guna env: UPLOAD_DIR=/home/runner/<app>/uploads (absolute).
+
+Ketatkan binaan path:
+
+const UPLOAD_DIR = process.env.UPLOAD_DIR!;
+const full = path.join(UPLOAD_DIR, storedRelativePath);
+
+
+Elakkan __dirname + '../uploads' yang mudah silap bila build.
+
+E) Sahkan routing API di production
+
+Cuba buka https://…/api/health (atau endpoint mudah).
+
+Jika API sebenarnya di subpath lain (cth. /v1/api), ubah frontend fetch base URL untuk production.
+
+Prompt terus untuk agent (copy–paste)
+
+Issue: Download forms 404 on production at /api/forms/download/:id while dev works.
+Fix steps:
+
+Add logging in the download handler to print id, file.path, and fs.existsSync result. Return {reason:'FILE_NOT_FOUND'} when missing.
+
+Ensure app.use('/uploads', express.static('uploads')) is registered before SPA static/fallback in production.
+
+Use an absolute UPLOAD_DIR via env and build file paths with path.join(UPLOAD_DIR, relative).
+
+Re-upload/seed the 3 PDFs in production, verify DB file.path points to actual files.
+
+Confirm frontend fetch base matches production API (same origin /api or full API_URL).
+
+Long-term: move file storage to object storage (Supabase/S3) and store publicUrl to avoid losses on redeploy.
