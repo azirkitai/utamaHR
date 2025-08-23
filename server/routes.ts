@@ -2930,7 +2930,7 @@ export function registerRoutes(app: Express): Server {
       // Get the employment record to check if user can edit
       const existingEmployment = await storage.getEmploymentById(req.params.id);
       if (!existingEmployment) {
-        return res.status(404).json({ error: "Maklumat peworkan not found" });
+        return res.status(404).json({ error: "Employment information not found" });
       }
       
       // Allow admin roles to update any employment record
@@ -2941,18 +2941,18 @@ export function registerRoutes(app: Express): Server {
       const isOwnRecord = existingEmployment.employeeId === currentUser.employeeId;
       
       if (!isAdmin && !isOwnRecord) {
-        return res.status(403).json({ error: "Tidak dibenarkan untuk mengemaskini maklumat peworkan" });
+        return res.status(403).json({ error: "Not authorized to update employment information" });
       }
       
       const validatedData = updateEmploymentSchema.parse(req.body);
       const employment = await storage.updateEmployment(req.params.id, validatedData);
       if (!employment) {
-        return res.status(404).json({ error: "Maklumat peworkan not found" });
+        return res.status(404).json({ error: "Employment information not found after update" });
       }
       res.json(employment);
     } catch (error) {
       console.error("Update employment error:", error);
-      res.status(400).json({ error: "Failed to mengemaskini maklumat peworkan" });
+      res.status(400).json({ error: "Failed to update employment information" });
     }
   });
 

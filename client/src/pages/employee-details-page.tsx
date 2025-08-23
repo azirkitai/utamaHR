@@ -461,20 +461,27 @@ export default function EmployeeDetailsPage() {
       const response = await apiRequest(method, url, updatedData);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (updatedEmployment) => {
+      console.log("Employment update successful:", updatedEmployment);
       toast({
-        title: "Success",
+        title: "Success", 
         description: "Employment information has been updated",
       });
       setIsEditingEmployment(false);
       setIsEditingApproval(false);
       setIsEditingYearly(false);
+      
+      // Invalidate all related queries to refresh the data
       queryClient.invalidateQueries({ queryKey: ["/api/employment", id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/employees", id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/employee"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Employment update error:", error);
       toast({
         title: "Error",
-        description: "Failed to update employment information",
+        description: `Failed to update employment information: ${error.message || 'Unknown error'}`,
         variant: "destructive",
       });
     },
