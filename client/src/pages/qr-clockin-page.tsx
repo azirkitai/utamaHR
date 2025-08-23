@@ -307,15 +307,15 @@ export default function QRClockInPage() {
                 <div>
                   <CardTitle className="text-xl text-gray-800">
                     {attendanceStatus?.nextAction === 'clock-in' && "Generate QR Clock-In"}
-                    {attendanceStatus?.nextAction === 'break-out' && "Generate QR Break Time"}
-                    {attendanceStatus?.nextAction === 'break-in' && "Generate QR Break Return"}
+                    {attendanceStatus?.nextAction === 'break-out' && attendanceStatus?.enforceBreakClockOut && "Generate QR Break Time"}
+                    {attendanceStatus?.nextAction === 'break-in' && attendanceStatus?.enforceBreakClockOut && "Generate QR Break Return"}
                     {attendanceStatus?.nextAction === 'clock-out' && "Generate QR Clock-Out"}
                     {attendanceStatus?.nextAction === 'completed' && "Generate QR Code"}
                   </CardTitle>
                   <CardDescription>
                     {attendanceStatus?.nextAction === 'clock-in' && "QR code for employee clock-in (valid for 2 minutes)"}
-                    {attendanceStatus?.nextAction === 'break-out' && "QR code for break time - start break/lunch (valid for 2 minutes)"}
-                    {attendanceStatus?.nextAction === 'break-in' && "QR code for break return - return from break/lunch (valid for 2 minutes)"}
+                    {attendanceStatus?.nextAction === 'break-out' && attendanceStatus?.enforceBreakClockOut && "QR code for break time - start break/lunch (valid for 2 minutes)"}
+                    {attendanceStatus?.nextAction === 'break-in' && attendanceStatus?.enforceBreakClockOut && "QR code for break return - return from break/lunch (valid for 2 minutes)"}
                     {attendanceStatus?.nextAction === 'clock-out' && "QR code for employee clock-out (valid for 2 minutes)"}
                     {attendanceStatus?.nextAction === 'completed' && "All attendance already completed for today"}
                   </CardDescription>
@@ -372,16 +372,16 @@ export default function QRClockInPage() {
                         {attendanceStatus?.clockInTime && (
                           <p>✓ Clock-In: {formatMalaysiaTime(attendanceStatus.clockInTime)}</p>
                         )}
-                        {attendanceStatus?.breakOutTime && (
+                        {attendanceStatus?.enforceBreakClockOut && attendanceStatus?.breakOutTime && (
                           <p>✓ Break Time: {formatMalaysiaTime(attendanceStatus.breakOutTime)}</p>
                         )}
-                        {attendanceStatus?.breakInTime && (
+                        {attendanceStatus?.enforceBreakClockOut && attendanceStatus?.breakInTime && (
                           <p>✓ Break Off: {formatMalaysiaTime(attendanceStatus.breakInTime)}</p>
                         )}
                         <p className="text-blue-700 font-medium">
                           Next: {
-                            attendanceStatus?.nextAction === 'break-out' ? 'Break Time' :
-                            attendanceStatus?.nextAction === 'break-in' ? 'Break Off' :
+                            attendanceStatus?.nextAction === 'break-out' && attendanceStatus?.enforceBreakClockOut ? 'Break Time' :
+                            attendanceStatus?.nextAction === 'break-in' && attendanceStatus?.enforceBreakClockOut ? 'Break Off' :
                             attendanceStatus?.nextAction === 'clock-out' ? 'Clock-Out' : ''
                           }
                         </p>
@@ -391,8 +391,8 @@ export default function QRClockInPage() {
                   
                   <p className="text-gray-600 mb-4">
                     {attendanceStatus?.nextAction === 'clock-in' && "Click the button below to generate QR Code for clock-in"}
-                    {attendanceStatus?.nextAction === 'break-out' && "Click the button below to generate QR Code for break time"}
-                    {attendanceStatus?.nextAction === 'break-in' && "Click the button below to generate QR Code for break return"}
+                    {attendanceStatus?.nextAction === 'break-out' && attendanceStatus?.enforceBreakClockOut && "Click the button below to generate QR Code for break time"}
+                    {attendanceStatus?.nextAction === 'break-in' && attendanceStatus?.enforceBreakClockOut && "Click the button below to generate QR Code for break return"}
                     {attendanceStatus?.nextAction === 'clock-out' && "Click the button below to generate QR Code for clock-out"}
                   </p>
                   <Button
@@ -420,8 +420,8 @@ export default function QRClockInPage() {
                       <>
                         <QrCode className="mr-2 h-4 w-4" />
                         {attendanceStatus?.nextAction === 'clock-in' && "Generate QR Clock-In"}
-                        {attendanceStatus?.nextAction === 'break-out' && "Generate QR Break Time"}
-                        {attendanceStatus?.nextAction === 'break-in' && "Generate QR Break Return"}
+                        {attendanceStatus?.nextAction === 'break-out' && attendanceStatus?.enforceBreakClockOut && "Generate QR Break Time"}
+                        {attendanceStatus?.nextAction === 'break-in' && attendanceStatus?.enforceBreakClockOut && "Generate QR Break Return"}
                         {attendanceStatus?.nextAction === 'clock-out' && "Generate QR Clock-Out"}
                       </>
                     )}
@@ -736,50 +736,52 @@ export default function QRClockInPage() {
                           )}
                         </div>
 
-                        {/* Break-In Information */}
-                        <div className="space-y-2 col-span-full mt-4 border-t pt-4">
-                          <div className="flex items-center gap-2 text-sm font-medium text-blue-700">
-                            <Clock className="h-4 w-4" />
-                            Break Return (Back from Break)
-                          </div>
-                          {(record as any).breakInTime ? (
-                            <div className="pl-6 space-y-1">
-                              <p className={`text-sm ${
-                                (record as any).isLateBreakIn ? 'text-red-600 font-bold' : 'text-gray-800'
-                              }`}>
-                                {(() => {
-                                  const utcDate = new Date((record as any).breakInTime);
-                                  if (isNaN(utcDate.getTime())) return 'Invalid Date';
-                                  return utcDate.toLocaleTimeString('ms-MY', {
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                    second: '2-digit',
-                                    timeZone: 'Asia/Kuala_Lumpur'
-                                  });
-                                })()}
-                                {(record as any).isLateBreakIn && ' ⚠️'}
-                              </p>
-                              {(record as any).isLateBreakIn && (record as any).breakInRemarks && (
-                                <div className="text-xs text-red-600 bg-red-50 p-1 rounded border">
-                                  <AlertTriangle className="h-3 w-3 inline mr-1" />
-                                  {(() => {
-                                    // Extract just the "Late X hours Y minutes" part from the full message
-                                    const match = (record as any).breakInRemarks.match(/Late \d+(?:\s+hours)?(?:\s+\d+\s+minutes)?/);
-                                    return match ? match[0] : (record as any).breakInRemarks;
-                                  })()}
-                                </div>
-                              )}
-                              {(record as any).breakInImage && (
-                                <div className="text-xs text-gray-500">
-                                  <Camera className="h-3 w-3 inline mr-1" />
-                                  Selfie saved
-                                </div>
-                              )}
+                        {/* Break-In Information - Only show if break tracking is enabled */}
+                        {attendanceStatus?.enforceBreakClockOut && (
+                          <div className="space-y-2 col-span-full mt-4 border-t pt-4">
+                            <div className="flex items-center gap-2 text-sm font-medium text-blue-700">
+                              <Clock className="h-4 w-4" />
+                              Break Return (Back from Break)
                             </div>
-                          ) : (
-                            <p className="pl-6 text-sm text-gray-400">Not break-in yet</p>
-                          )}
-                        </div>
+                            {(record as any).breakInTime ? (
+                              <div className="pl-6 space-y-1">
+                                <p className={`text-sm ${
+                                  (record as any).isLateBreakIn ? 'text-red-600 font-bold' : 'text-gray-800'
+                                }`}>
+                                  {(() => {
+                                    const utcDate = new Date((record as any).breakInTime);
+                                    if (isNaN(utcDate.getTime())) return 'Invalid Date';
+                                    return utcDate.toLocaleTimeString('ms-MY', {
+                                      hour: '2-digit',
+                                      minute: '2-digit',
+                                      second: '2-digit',
+                                      timeZone: 'Asia/Kuala_Lumpur'
+                                    });
+                                  })()}
+                                  {(record as any).isLateBreakIn && ' ⚠️'}
+                                </p>
+                                {(record as any).isLateBreakIn && (record as any).breakInRemarks && (
+                                  <div className="text-xs text-red-600 bg-red-50 p-1 rounded border">
+                                    <AlertTriangle className="h-3 w-3 inline mr-1" />
+                                    {(() => {
+                                      // Extract just the "Late X hours Y minutes" part from the full message
+                                      const match = (record as any).breakInRemarks.match(/Late \d+(?:\s+hours)?(?:\s+\d+\s+minutes)?/);
+                                      return match ? match[0] : (record as any).breakInRemarks;
+                                    })()}
+                                  </div>
+                                )}
+                                {(record as any).breakInImage && (
+                                  <div className="text-xs text-gray-500">
+                                    <Camera className="h-3 w-3 inline mr-1" />
+                                    Selfie saved
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <p className="pl-6 text-sm text-gray-400">Not break-in yet</p>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
