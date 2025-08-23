@@ -25,6 +25,7 @@ export default function ShiftCalendarPage() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [preserveManualStates, setPreserveManualStates] = useState(false);
+  const [calendarKey, setCalendarKey] = useState(0); // Force re-render when needed
   
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -108,29 +109,29 @@ export default function ShiftCalendarPage() {
     }
   }, [departments]);
 
-  // FORCE WEEK ONLY - NO MONTH MODE TO PREVENT INDEX CONFUSION
-  const getDatesForView = (date: Date) => {
-    // ALWAYS USE WEEK MODE - IGNORE viewMode STATE
-    console.log(`🔥 FORCING WEEK MODE - Generating 7 days only`);
+  // FORCE WEEK MODE ONLY - PERMANENT SOLUTION
+  const getDatesForView = React.useCallback((date: Date) => {
+    console.log(`🚀 GENERATING WEEK DATES - START`);
     
     const startOfWeek = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     const day = startOfWeek.getDay();
-    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
     startOfWeek.setDate(diff);
 
     const weekDates = [];
     for (let i = 0; i < 7; i++) {
       const currentDate = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate() + i, 8, 0, 0);
-      console.log(`✅ WEEK DATE ${i}: ${currentDate.toISOString()} (day ${currentDate.getDate()}) - CORRECT INDEX: ${i}`);
+      console.log(`📅 WEEK ${i}: ${currentDate.toISOString()} (${currentDate.getDate()})`);
       weekDates.push(currentDate);
     }
+    console.log(`🚀 TOTAL WEEK DATES GENERATED: ${weekDates.length}`);
     return weekDates;
-  };
+  }, []);
 
-  const viewDates = getDatesForView(currentWeek);
+  const viewDates = React.useMemo(() => getDatesForView(currentWeek), [currentWeek, getDatesForView]);
   
-  // Week mode verification - ensure 7 days only
-  console.log(`📅 View Mode: ${viewMode}, Generated dates: ${viewDates.length}`);
+  // CRITICAL: Force verification
+  console.log(`🎯 FINAL CHECK - Mode: ${viewMode}, Dates: ${viewDates.length}`);
 
   const formatDateRange = () => {
     if (viewMode === "week") {
