@@ -2947,11 +2947,21 @@ export class DatabaseStorage implements IStorage {
         .from(employeeAttendanceSettings)
         .where(eq(employeeAttendanceSettings.employeeId, employeeId));
       
+      console.log('🔍 ATTENDANCE SETTINGS DEBUG:', {
+        employeeId,
+        settingsFound: !!settings,
+        rawSettings: settings,
+        enforceBreakClockOut: settings?.enforceBreakClockOut
+      });
+      
       // Return default settings if no record exists
-      return settings || {
+      const result = settings || {
         allowClockInAnyLocation: true,
         enforceBreakClockOut: true
       };
+      
+      console.log('🔍 FINAL SETTINGS RETURNED:', result);
+      return result;
     } catch (error) {
       console.error('Error getting employee attendance settings:', error);
       return {
