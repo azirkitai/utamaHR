@@ -1,0 +1,105 @@
+Goals
+Push current Replit project to GitHub
+Import that repo in Vercel with correct build/output settings
+Make sure the app builds (no “No Output Directory named ‘dist’” error)
+Set env vars (e.g. DATABASE_URL)
+Deliver a working production URL
+Access you’ll need
+GitHub repo (create if needed): <client-username>/<repo-name>
+Vercel access (project under team/user: <vercel-team-or-user>)
+Any required env var values (e.g. DATABASE_URL from Neon)
+1) Push code from Replit to GitHub
+git init
+git add .
+git commit -m "Initial commit from Replit"
+git branch -M main
+git remote add origin https://github.com/<client-username>/<repo-name>.git
+git push -u origin main
+2) Detect project layout (important)
+A) Single-root Vite app
+index.html at repo root
+src/main.tsx (or src/main.ts) exists
+B) App in client/ subfolder (likely in this project)
+client/index.html
+client/src/main.tsx
+If it’s layout B, we must set Vite root to client and output to dist/public.
+3) Vite config (fix aliases + output)
+Create/ensure vite.config.mjs (ESM) with the right root & aliases.
+If layout A (single-root):
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import path from 'path'
+import { fileURLToPath } from 'url'
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+    },
+  },
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true,
+  },
+})
+If layout B (client/):
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import path from 'path'
+import { fileURLToPath } from 'url'
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+export default defineConfig({
+  root: path.resolve(__dirname, 'client'),
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'client/src'), // fixes "@/components/..." imports
+    },
+  },
+  build: {
+    outDir: path.resolve(__dirname, 'dist/public'), // Vercel-friendly
+    emptyOutDir: true,
+  },
+  server: { fs: { strict: true, allow: ['.'] } },
+})
+Why:
+Fixes alias errors like Rollup failed to resolve import "@/components/ui/toaster".
+Ensures build outputs to a folder Vercel can serve (dist for layout A, dist/public for layout B).
+Commit the config:
+git add vite.config.mjs
+git commit -m "chore: add correct Vite config (root/alias/outDir)"
+git push
+4) Local sanity build (optional but helpful)
+npm ci
+npm run build
+# Expect output in:
+#  - dist             (layout A)
+#  - dist/public      (layout B)
+If it fails with “cannot resolve ‘/src/main.tsx’” etc., confirm index.html points to the right entry:
+Layout A: <script type="module" src="/src/main.tsx"></script>
+Layout B: client/index.html should point to /main.tsx and client/src/main.tsx must exist.
+5) Vercel import & settings
+In Vercel:
+New Project → Import Git Repository → select the repo.
+Build & Output Settings:
+Build Command: npm run build
+Output Directory:
+dist (layout A)
+dist/public (layout B)
+Root Directory (only if Vercel asks): leave blank (.) — we’re handling root in vite.config.mjs.
+Environment Variables: add all required (e.g. DATABASE_URL, others).
+Deploy.
+If Vercel still complains “No Output Directory named ‘dist’”: re-check that vite.config.mjs build.outDir matches what you put in Vercel.
+6) Common pitfalls to fix
+Alias errors (@/… not found): ensure resolve.alias points to the actual src (root vs client/src).
+Index/entry mismatch: index.html must reference existing entry (/src/main.tsx or /main.tsx) that truly exists.
+Mixed ESM/CJS config: use vite.config.mjs not .ts on Vercel to avoid parser errors.
+Old vercel.json: not required; prefer Vercel dashboard settings. Remove stale vercel.json if it conflicts.
+Deliverables
+✅ GitHub repo URL
+✅ Vercel project URL (production domain)
+✅ Screenshot of successful build logs in Vercel
+✅ Note of env vars set (names only; do not share secrets)
