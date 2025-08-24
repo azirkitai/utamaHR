@@ -8,7 +8,7 @@ const __dirname = dirname(__filename);
 
 export default defineConfig({
   plugins: [react()],
-  root: ".",                 // index.html di root
+  root: ".",                 // index.html at root
   resolve: {
     alias: {
       "@": resolve(__dirname, "client/src"),
@@ -19,5 +19,19 @@ export default defineConfig({
   build: {
     outDir: "dist",
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
+        }
+      }
+    }
+  },
+  server: { 
+    fs: { 
+      strict: false,
+      allow: ['.', '..'] 
+    } 
   },
 });
