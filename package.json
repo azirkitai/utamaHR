@@ -4,7 +4,7 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && cp vercel.json dist/",
     "postbuild": "echo 'TREE ROOT:' && ls -la && echo 'TREE client:' && ls -la client && echo 'TREE client/dist:' && ls -la client/dist || true",
     "dev": "node start-dev.js"
   },
@@ -54,6 +54,7 @@
     "@uppy/file-input": "^4.2.2",
     "@uppy/progress-bar": "^4.3.2",
     "@uppy/react": "^4.5.2",
+    "@vercel/node": "^5.3.13",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
