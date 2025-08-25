@@ -6,7 +6,8 @@
   "scripts": {
     "build": "vite build",
     "postbuild": "echo 'TREE ROOT:' && ls -la && echo 'TREE client:' && ls -la client && echo 'TREE client/dist:' && ls -la client/dist || true",
-    "dev": "node start-dev.js"
+    "dev": "node start-dev.js",
+    "vercel-build": "vite build"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.16.0",
