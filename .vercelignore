@@ -1,0 +1,10 @@
+node_modules
+.git
+.env
+*.log
+server
+shared
+attached_assets
+scripts
+uploads
+test_*
