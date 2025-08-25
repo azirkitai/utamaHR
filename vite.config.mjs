@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
-  root: '.',
+  root: 'client',
   plugins: [react()],
   resolve: {
     alias: {
@@ -16,7 +16,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: 'dist',  // Simple: output direct ke dist
+    outDir: '../dist',
     emptyOutDir: true,
     rollupOptions: {
       output: {
@@ -27,6 +27,7 @@ export default defineConfig({
       }
     }
   },
+  base: '/',
   server: { 
     fs: { 
       strict: false,
