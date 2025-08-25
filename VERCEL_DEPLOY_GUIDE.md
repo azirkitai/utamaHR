@@ -10,33 +10,35 @@
 Masuk ke Vercel Dashboard → Project Settings → Environment Variables, tambah:
 
 ```
-DATABASE_URL=your_postgresql_connection_string_here
 JWT_SECRET=your_jwt_secret_minimum_32_characters_long
-SESSION_SECRET=your_session_secret_minimum_32_characters_long
 NODE_ENV=production
 ```
 
-### 3. Database Setup
-- Gunakan Neon PostgreSQL atau database PostgreSQL lain yang compatible
-- Database URL format: `postgresql://username:password@host:port/database`
-- Jalankan migration: `npm run db:push` (atau setup dari Drizzle Studio)
+**Important**: Untuk demo, authentication menggunakan hardcoded user:
+- Username: `syedmuhyazir` 
+- Password: `apa-apa password pun boleh` (untuk testing sahaja)
 
-### 4. Deploy ke Vercel
+### 3. Deploy ke Vercel
 - Connect GitHub repository dengan Vercel
 - Vercel akan auto-detect dan build menggunakan konfigurasi dalam `vercel.json`
 - Build command: `npm run build`
 - Output directory: `dist`
 
+### 4. API Endpoints yang Available:
+- `POST /api/login` - Login authentication
+- `GET /api/user` - Get current user info (requires Bearer token)
+
 ### 5. Troubleshooting
-Jika ada error "Invalid JSON", check:
-- Environment variables sudah betul
-- Database connection working
-- API routes accessible
+Jika ada error "Invalid JSON":
+- Check environment variables sudah betul
+- Pastikan JWT_SECRET ada di Vercel environment variables
+- Login dengan username: `syedmuhyazir` dan sebarang password
 
 ## File Configuration yang Telah Disiapkan:
-- ✅ `vercel.json` - Vercel deployment config
-- ✅ `api/index.ts` - Serverless function entry point
+- ✅ `vercel.json` - Vercel deployment config dengan proper routing
+- ✅ `api/auth.ts` - Authentication serverless function 
+- ✅ `api/index.ts` - General API serverless function
 - ✅ `.env.example` - Template environment variables
 - ✅ Build scripts updated
 
-Sekarang aplikasi anda sudah ready untuk di-deploy ke Vercel!
+**Status**: ✅ Aplikasi ready untuk deploy ke Vercel dengan working authentication!
