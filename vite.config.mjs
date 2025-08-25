@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
-  root: '.',  // Keep root at current directory since index.html is here
+  root: '.',
   plugins: [react()],
   resolve: {
     alias: {
@@ -16,7 +16,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: path.resolve(__dirname, 'dist/public'), // Output to dist/public
+    outDir: 'dist',  // Simple: output direct ke dist
     emptyOutDir: true,
     rollupOptions: {
       output: {

@@ -1,6 +1,6 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": "dist/public",
+  "outputDirectory": "dist",
   "functions": {
     "api/login.js": {
       "runtime": "nodejs18.x"
