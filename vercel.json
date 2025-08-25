@@ -1,29 +1,30 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "installCommand": "npm install",
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
   "functions": {
-    "api/*.ts": {
+    "api/login.js": {
+      "runtime": "nodejs18.x"
+    },
+    "api/user.js": {
       "runtime": "nodejs18.x"
     }
   },
   "routes": [
     {
-      "src": "/api/login",
-      "dest": "/api/auth"
-    },
-    {
-      "src": "/api/user",
-      "dest": "/api/auth"
-    },
-    {
       "src": "/api/(.*)",
-      "dest": "/api/index"
+      "dest": "/api/$1"
     },
     {
       "src": "/(.*)",
-      "dest": "/$1"
+      "dest": "/dist/$1"
     }
   ]
 }

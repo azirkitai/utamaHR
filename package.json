@@ -4,7 +4,7 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "build": "vite build && cp vercel.json dist/",
+    "build": "vite build",
     "postbuild": "echo 'TREE ROOT:' && ls -la && echo 'TREE client:' && ls -la client && echo 'TREE client/dist:' && ls -la client/dist || true",
     "dev": "node start-dev.js"
   },
