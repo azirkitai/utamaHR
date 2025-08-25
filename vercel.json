@@ -1,4 +1,5 @@
 {
+  "version": 2,
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
@@ -9,5 +10,19 @@
     "api/user.js": {
       "runtime": "nodejs18.x"
     }
-  }
+  },
+  "routes": [
+    {
+      "src": "/api/login",
+      "dest": "/api/login.js"
+    },
+    {
+      "src": "/api/user", 
+      "dest": "/api/user.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ]
 }
